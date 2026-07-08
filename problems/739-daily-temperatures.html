@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>739. 每日温度 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9;
+    color: #1d2129;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; }
+  .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px;
+    padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
+    padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb;
+    border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+
+  /* arrays */
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell {
+    width: 52px; display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .box {
+    width: 100%; height: 44px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:600;
+    border-radius:8px; background:#f1f2f4; color:#4b5563; border:2px solid transparent;
+    transition: all .2s;
+  }
+  .box.done   { background:#eef2ff; color:#a5b4fc; }
+  .box.active { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .box.instk  { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
+  .box.popped { background:#fecaca; color:#991b1b; border-color:#f87171; }
+  .box.ansset { background:#dcfce7; color:#166534; border-color:#86efac; }
+  .box.empty  { color:#c7cbd1; }
+
+  .grid { display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; }
+  @media (max-width:760px){ .grid{ grid-template-columns:1fr; } }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .stack { display:flex; flex-direction:column-reverse; gap:6px; min-height:150px; }
+  .stack-item {
+    padding:8px 10px; border-radius:8px; font-family:"SF Mono",Menlo,monospace;
+    font-size:14px; font-weight:600; text-align:center;
+    background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; animation:pop .25s ease;
+  }
+  .stack-item.top { outline:2px solid #6366f1; outline-offset:1px; }
+  .empty-hint { color:#b8bcc4; font-size:13px; font-style:italic; }
+  @keyframes pop { from{transform:scale(.8);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+  .status {
+    background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
+  }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/daily-temperatures/" target="_blank" rel="noopener">LeetCode 739</a></span>
+  </div>
+
+  <h1>739. 每日温度 · 单调栈动画</h1>
+  <div class="sub">栈里存「还没等到更暖一天」的下标(温度单调递减)。当前温度比栈顶高 → 栈顶那天等到了,弹出并记录天数差 <code>i − j</code>。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="73,74,75,71,69,72,76,73" spellcheck="false" placeholder="输入温度数组,逗号分隔">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">73,74,75,71,69,72,76,73</span>
+      <span class="chip">30,40,50,60</span>
+      <span class="chip">30,60,90</span>
+      <span class="chip">89,62,70,58,47,47,46,76,100,70</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前天 i</span>
+      <span><span class="dot" style="background:#dbeafe;border:1px solid #93c5fd"></span>在栈中(等待更暖)</span>
+      <span><span class="dot" style="background:#fecaca;border:1px solid #f87171"></span>刚弹出</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>刚写入答案</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">temperatures（温度数组）</div>
+    <div class="arr-row" id="tempRow"></div>
+    <div class="panel-title" style="margin-top:16px;">answer（结果：还要等几天）</div>
+    <div class="arr-row" id="ansRow"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="grid">
+      <div>
+        <div class="panel-title">当前状态</div>
+        <div class="status" id="status">点击「下一步」开始。</div>
+      </div>
+      <div>
+        <div class="panel-title">stack（存下标，底→顶）</div>
+        <div class="stack" id="stack"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 单调递减栈 · 时间/空间 O(N)
+class Solution {
+    public int[] dailyTemperatures(int[] t) {
+        int n = t.length;
+        int[] ans = new int[n];              <span class="cmt">// 默认全 0</span>
+        Deque&lt;Integer&gt; stack = new ArrayDeque&lt;&gt;();  <span class="cmt">// 存下标</span>
+        for (int i = 0; i &lt; n; i++) {
+            while (!stack.isEmpty() &amp;&amp; t[i] &gt; t[stack.peek()]) {
+                int j = stack.pop();
+                ans[j] = i - j;              <span class="cmt">// 第 j 天等到了更暖的第 i 天</span>
+            }
+            stack.push(i);
+        }
+        return ans;
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python</span>
+class Solution:
+    def dailyTemperatures(self, t: List[int]) -&gt; List[int]:
+        ans = [0] * len(t)
+        stack = []                       # 存下标
+        for i, cur in enumerate(t):
+            while stack and cur &gt; t[stack[-1]]:
+                j = stack.pop()
+                ans[j] = i - j
+            stack.append(i)
+        return ans</code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var tempRow = document.getElementById('tempRow');
+  var ansRow = document.getElementById('ansRow');
+  var stackEl = document.getElementById('stack');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+
+  var temps = [];
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function parseInput(s) {
+    return s.split(/[,\s]+/).map(function(x){ return x.trim(); })
+            .filter(function(x){ return x.length; })
+            .map(Number)
+            .filter(function(x){ return !isNaN(x); });
+  }
+
+  function buildSteps(t) {
+    var snaps = [];
+    var n = t.length;
+    var ans = new Array(n).fill(0);
+    var ansSet = new Array(n).fill(false);
+    var stack = [];
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        stack: stack.slice(),
+        ans: ans.slice(),
+        ansSet: ansSet.slice(),
+        popped: (o.popped === undefined ? -1 : o.popped),
+        justSet: (o.justSet === undefined ? -1 : o.justSet),
+        msg: o.msg, phase: o.phase
+      });
+    }
+
+    snap({ msg: '初始化:answer 全为 0,栈为空。栈里将存放「还没等到更暖一天」的下标。', phase: 'start' });
+
+    for (var i = 0; i < n; i++) {
+      snap({ i: i, msg: '考察第 <b>' + i + '</b> 天,温度 = <b>' + t[i] + '</b>°。看它能不能让栈里的天「等到更暖」。', phase: 'visit' });
+      while (stack.length && t[i] > t[stack[stack.length - 1]]) {
+        var j = stack[stack.length - 1];
+        stack.pop();
+        ans[j] = i - j; ansSet[j] = true;
+        snap({ i: i, popped: j, justSet: j,
+          msg: '当前 ' + t[i] + '° &gt; 栈顶第 ' + j + ' 天的 ' + t[j] + '° → <span class="op">弹出</span>第 ' + j + ' 天,answer[' + j + '] = ' + i + ' − ' + j + ' = <b>' + (i - j) + '</b>。',
+          phase: 'pop' });
+      }
+      stack.push(i);
+      snap({ i: i, msg: '第 ' + i + ' 天暂时没等到更暖的,<span class="op">压入栈</span>等待后面的日子。', phase: 'push' });
+    }
+    snap({ msg: '遍历结束 ✅ 还留在栈里的下标(第 ' + (stack.length? stack.join('、'):'—') + ' 天)后面再没有更暖的一天,answer 保持 0。', phase: 'end' });
+    return snaps;
+  }
+
+  function load(s) {
+    var t = parseInput(s);
+    if (!t.length) return;
+    temps = t;
+    steps = buildSteps(t);
+    stepIdx = 0;
+    renderArrays();
+    render();
+  }
+
+  function makeCell(idx, val, isAns) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = idx;
+    var box = document.createElement('div'); box.className = 'box';
+    box.textContent = val;
+    box.dataset.idx = idx;
+    box.dataset.ans = isAns ? '1' : '0';
+    cell.appendChild(lab); cell.appendChild(box);
+    return cell;
+  }
+
+  function renderArrays() {
+    tempRow.innerHTML = ''; ansRow.innerHTML = '';
+    for (var i = 0; i < temps.length; i++) {
+      tempRow.appendChild(makeCell(i, temps[i] + '°', false));
+      ansRow.appendChild(makeCell(i, '0', true));
+    }
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+    var inStack = {};
+    st.stack.forEach(function(x){ inStack[x] = true; });
+    var topIdx = st.stack.length ? st.stack[st.stack.length - 1] : -1;
+
+    // temperature row
+    Array.prototype.forEach.call(tempRow.children, function(cell){
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.className = 'box';
+      if (idx === st.popped) box.classList.add('popped');
+      else if (idx === st.i) box.classList.add('active');
+      else if (inStack[idx]) box.classList.add('instk');
+      else if (idx < st.i || st.phase === 'end') box.classList.add('done');
+    });
+
+    // answer row
+    Array.prototype.forEach.call(ansRow.children, function(cell){
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.textContent = st.ans[idx];
+      box.className = 'box';
+      if (idx === st.justSet) box.classList.add('ansset');
+      else if (st.ansSet[idx]) box.classList.add('done');
+      else box.classList.add('empty');
+    });
+
+    // stack
+    stackEl.innerHTML = '';
+    if (!st.stack.length) stackEl.innerHTML = '<div class="empty-hint">（空）</div>';
+    st.stack.forEach(function(idx, pos){
+      var el = document.createElement('div');
+      el.className = 'stack-item' + (pos === st.stack.length - 1 ? ' top' : '');
+      el.textContent = '#' + idx + ' → ' + temps[idx] + '°';
+      stackEl.appendChild(el);
+    });
+
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = (stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 850);
+  }
+
+  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>

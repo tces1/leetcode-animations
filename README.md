@@ -19,7 +19,8 @@
 leetcode-animations/
 ├── README.md                     # 本文件
 └── problems/                     # 所有动画，一题一个文件
-    └── 394-decode-string.html    # 394. 字符串解码
+    ├── 394-decode-string.html    # 394. 字符串解码
+    └── 739-daily-temperatures.html  # 739. 每日温度
 ```
 
 ## 文件命名规范
@@ -41,6 +42,7 @@ leetcode-animations/
 | # | 题目 | 难度 | 考点 |
 |---|------|------|------|
 | 394 | [字符串解码](problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
+| 739 | [每日温度](problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
 
 ---
 
