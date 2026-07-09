@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>84. 柱状图中最大的矩形 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+
+  /* histogram */
+  .hist { position: relative; display:flex; align-items:flex-end; gap:4px; height: 240px; padding-top:24px; }
+  .bar-wrap { position: relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; }
+  .bar {
+    width: 100%; border-radius:5px 5px 0 0; background:#cbd5e1; position: relative;
+    display:flex; align-items:flex-start; justify-content:center; transition: background .2s, box-shadow .2s;
+  }
+  .bar .h { font-family:"SF Mono",Menlo,monospace; font-size:13px; font-weight:700; color:#334155; margin-top:2px; }
+  .bar.instk  { background:#93c5fd; }
+  .bar.active { background:#6366f1; box-shadow:0 0 0 2px #4338ca inset; }
+  .bar.active .h { color:#fff; }
+  .bar.popped { background:#f87171; box-shadow:0 0 0 2px #b91c1c inset; }
+  .bar.popped .h { color:#fff; }
+  .bar-idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; margin-top:4px; }
+  /* rectangle overlay */
+  .rect-overlay {
+    position:absolute; bottom:0; background:rgba(52,211,153,.28); border:2px solid #10b981;
+    border-radius:5px 5px 0 0; pointer-events:none; transition: all .2s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rect-overlay .lab {
+    background:#059669; color:#fff; font-size:12px; font-weight:700; padding:2px 8px;
+    border-radius:6px; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
+  }
+
+  .grid { display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; }
+  @media (max-width:760px){ .grid{ grid-template-columns:1fr; } }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .stack { display:flex; flex-direction:column-reverse; gap:6px; min-height:150px; }
+  .stack-item {
+    padding:8px 10px; border-radius:8px; font-family:"SF Mono",Menlo,monospace; font-size:14px;
+    font-weight:600; text-align:center; background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; animation:pop .25s ease;
+  }
+  .stack-item.top { outline:2px solid #6366f1; outline-offset:1px; }
+  .stack-item.sentinel { background:#f3f4f6; color:#9ca3af; border-color:#e5e7eb; }
+  .empty-hint { color:#b8bcc4; font-size:13px; font-style:italic; }
+  @keyframes pop { from{transform:scale(.8);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .maxbox { font-family:"SF Mono",Menlo,monospace; font-weight:700; font-size:15px; color:#059669; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/largest-rectangle-in-histogram/" target="_blank" rel="noopener">LeetCode 84</a></span>
+  </div>
+
+  <h1>84. 柱状图中最大的矩形 · 单调栈动画</h1>
+  <div class="sub">栈里存下标,高度单调递增。遇到更矮的柱子时,以栈顶柱子为「高」,弹出并向两侧扩展算面积:<code>面积 = 高 × 宽</code>,其中宽 = 右边界 − 左边界 − 1。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="2,1,5,6,2,3" spellcheck="false" placeholder="输入柱子高度,逗号分隔">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">2,1,5,6,2,3</span>
+      <span class="chip">2,4</span>
+      <span class="chip">6,2,5,4,5,1,6</span>
+      <span class="chip">1,2,3,4,5</span>
+      <span class="chip">4,2,0,3,2,5</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前柱 i</span>
+      <span><span class="dot" style="background:#93c5fd"></span>在栈中</span>
+      <span><span class="dot" style="background:#f87171"></span>刚弹出(作为矩形高)</span>
+      <span><span class="dot" style="background:#10b981"></span>正在计算的矩形</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">柱状图 <span style="font-weight:400;text-transform:none;color:#9ca3af;">（末尾有一根虚拟高度 0 的哨兵柱，用来清空栈）</span></div>
+    <div class="hist" id="hist"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="grid">
+      <div>
+        <div class="panel-title">当前状态 · 最大面积 = <span class="maxbox" id="maxVal">0</span></div>
+        <div class="status" id="status">点击「下一步」开始。</div>
+      </div>
+      <div>
+        <div class="panel-title">stack（存下标，底→顶，高度递增）</div>
+        <div class="stack" id="stack"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 单调递增栈 · 时间/空间 O(N)
+class Solution {
+    public int largestRectangleArea(int[] h) {
+        int n = h.length, max = 0;
+        Deque&lt;Integer&gt; stack = new ArrayDeque&lt;&gt;();
+        for (int i = 0; i &lt;= n; i++) {
+            int cur = (i == n) ? 0 : h[i];       <span class="cmt">// 末尾哨兵高度 0，清空栈</span>
+            while (!stack.isEmpty() &amp;&amp; cur &lt; h[stack.peek()]) {
+                int height = h[stack.pop()];     <span class="cmt">// 以它为矩形的高</span>
+                int left = stack.isEmpty() ? -1 : stack.peek();
+                int width = i - left - 1;        <span class="cmt">// 左右两个「更矮」边界之间</span>
+                max = Math.max(max, height * width);
+            }
+            stack.push(i);
+        }
+        return max;
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python</span>
+class Solution:
+    def largestRectangleArea(self, h: List[int]) -&gt; int:
+        stack, mx, n = [], 0, len(h)
+        for i in range(n + 1):
+            cur = 0 if i == n else h[i]
+            while stack and cur &lt; h[stack[-1]]:
+                height = h[stack.pop()]
+                left = stack[-1] if stack else -1
+                mx = max(mx, height * (i - left - 1))
+            stack.append(i)
+        return mx</code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var histEl = document.getElementById('hist');
+  var stackEl = document.getElementById('stack');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var maxValEl = document.getElementById('maxVal');
+
+  var heights = [];      // includes sentinel 0 at the end
+  var realN = 0;
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+  var maxH = 1;
+
+  function parseInput(s) {
+    return s.split(/[,\s]+/).map(function(x){return x.trim();})
+            .filter(function(x){return x.length;})
+            .map(Number).filter(function(x){return !isNaN(x) && x >= 0;});
+  }
+
+  function buildSteps(h, n) {
+    var snaps = [];
+    var stack = [];
+    var mx = 0;
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        stack: stack.slice(),
+        popped: (o.popped === undefined ? -1 : o.popped),
+        mx: mx,
+        rect: o.rect || null,   // {left, right, height} in index space (exclusive borders)
+        msg: o.msg, phase: o.phase
+      });
+    }
+
+    snap({ msg: '初始化:栈为空,最大面积 = 0。栈中将存放高度递增的柱子下标。', phase: 'start' });
+
+    for (var i = 0; i <= n; i++) {
+      var cur = (i === n) ? 0 : h[i];
+      var label = (i === n) ? '哨兵柱(高度 0)' : ('第 ' + i + ' 根柱子,高度 ' + cur);
+      snap({ i: i, msg: '来到' + label + '。若它比栈顶矮,就把栈里更高的柱子逐个「结算」。', phase: 'visit' });
+
+      while (stack.length && cur < h[stack[stack.length - 1]]) {
+        var top = stack[stack.length - 1];
+        stack.pop();
+        var height = h[top];
+        var left = stack.length ? stack[stack.length - 1] : -1;
+        var width = i - left - 1;
+        var area = height * width;
+        var oldMx = mx;
+        mx = Math.max(mx, area);
+        snap({
+          i: i, popped: top, mx: mx,
+          rect: { left: left, right: i, height: height },
+          msg: '弹出第 ' + top + ' 根(高 ' + height + ')作矩形高;左边界=' + (left < 0 ? '起点' : ('第 '+left+' 根')) +
+               ',右边界=' + (i === n ? '末尾' : ('第 '+i+' 根')) + ' → 宽 = ' + i + ' − ' + left + ' − 1 = <b>' + width + '</b>;' +
+               '面积 = ' + height + ' × ' + width + ' = <span class="area">' + area + '</span>' +
+               (area > oldMx ? '(<span class="op">刷新最大值!</span>)' : '(未超过当前最大 ' + oldMx + ')'),
+          phase: 'pop'
+        });
+      }
+      stack.push(i);
+      if (i < n) {
+        snap({ i: i, mx: mx, msg: '第 ' + i + ' 根压入栈(它可能是更大矩形的一部分,先留着)。', phase: 'push' });
+      } else {
+        snap({ i: i, mx: mx, msg: '遍历结束 ✅ 最大矩形面积 = <span class="area">' + mx + '</span>。', phase: 'end' });
+      }
+    }
+    return snaps;
+  }
+
+  function load(s) {
+    var real = parseInput(s);
+    if (!real.length) return;
+    realN = real.length;
+    heights = real.concat([0]);        // sentinel
+    maxH = Math.max.apply(null, real.concat([1]));
+    steps = buildSteps(real, realN);
+    stepIdx = 0;
+    renderHist();
+    render();
+  }
+
+  var BAR_W = 46, GAP = 4, HIST_H = 200, TOP_PAD = 24;
+
+  function renderHist() {
+    histEl.innerHTML = '';
+    for (var i = 0; i < heights.length; i++) {
+      var isSent = (i === realN);
+      var wrap = document.createElement('div');
+      wrap.className = 'bar-wrap';
+      wrap.style.width = BAR_W + 'px';
+
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      var px = Math.round(heights[i] / maxH * HIST_H);
+      bar.style.height = Math.max(px, heights[i] === 0 ? 2 : 6) + 'px';
+      bar.dataset.idx = i;
+      if (isSent) { bar.style.opacity = '.55'; bar.style.backgroundImage = 'repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 5px,#f3f4f6 5px,#f3f4f6 10px)'; }
+
+      var hlab = document.createElement('div');
+      hlab.className = 'h'; hlab.textContent = heights[i];
+      bar.appendChild(hlab);
+
+      var idxLab = document.createElement('div');
+      idxLab.className = 'bar-idx'; idxLab.textContent = isSent ? '⌀' : i;
+
+      wrap.appendChild(bar);
+      wrap.appendChild(idxLab);
+      histEl.appendChild(wrap);
+    }
+    // overlay element for the rectangle
+    var ov = document.createElement('div');
+    ov.className = 'rect-overlay'; ov.id = 'rectOverlay'; ov.style.display = 'none';
+    histEl.appendChild(ov);
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+    var inStack = {}; st.stack.forEach(function(x){ inStack[x] = true; });
+
+    Array.prototype.forEach.call(histEl.querySelectorAll('.bar'), function(bar){
+      var idx = +bar.dataset.idx;
+      bar.className = 'bar';
+      if (idx === st.popped) bar.classList.add('popped');
+      else if (idx === st.i) bar.classList.add('active');
+      else if (inStack[idx]) bar.classList.add('instk');
+    });
+
+    // rectangle overlay: spans indices (left, right) exclusive => bars left+1 .. right-1
+    var ov = document.getElementById('rectOverlay');
+    if (st.rect) {
+      var lb = st.rect.left + 1;          // first bar covered
+      var rb = st.rect.right - 1;         // last bar covered
+      var spanCount = rb - lb + 1;
+      var leftPx = lb * (BAR_W + GAP);
+      var widthPx = spanCount * BAR_W + (spanCount - 1) * GAP;
+      var heightPx = Math.max(Math.round(st.rect.height / maxH * HIST_H), 6);
+      ov.style.display = 'flex';
+      ov.style.left = leftPx + 'px';
+      ov.style.width = widthPx + 'px';
+      ov.style.height = heightPx + 'px';
+      ov.innerHTML = '<span class="lab">' + st.rect.height + ' × ' + spanCount + ' = ' + (st.rect.height * spanCount) + '</span>';
+    } else {
+      ov.style.display = 'none';
+    }
+
+    // stack
+    stackEl.innerHTML = '';
+    if (!st.stack.length) stackEl.innerHTML = '<div class="empty-hint">（空）</div>';
+    st.stack.forEach(function(idx, pos){
+      var el = document.createElement('div');
+      var sentinel = (idx === realN);
+      el.className = 'stack-item' + (pos === st.stack.length - 1 ? ' top' : '') + (sentinel ? ' sentinel' : '');
+      el.textContent = sentinel ? ('#' + idx + ' ⌀ 高0') : ('#' + idx + ' → 高 ' + heights[idx]);
+      stackEl.appendChild(el);
+    });
+
+    maxValEl.textContent = st.mx;
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = (stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 950);
+  }
+
+  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>

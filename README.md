@@ -19,6 +19,7 @@
 leetcode-animations/
 ├── README.md                     # 本文件
 └── problems/                     # 所有动画，一题一个文件
+    ├── 84-largest-rectangle-in-histogram.html  # 84. 柱状图中最大的矩形
     ├── 394-decode-string.html    # 394. 字符串解码
     └── 739-daily-temperatures.html  # 739. 每日温度
 ```
@@ -41,6 +42,7 @@ leetcode-animations/
 
 | # | 题目 | 难度 | 考点 |
 |---|------|------|------|
+| 84 | [柱状图中最大的矩形](problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
 | 394 | [字符串解码](problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
 | 739 | [每日温度](problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
 
