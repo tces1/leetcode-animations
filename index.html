@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 算法动画演示集</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 32px 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  header { margin-bottom: 24px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .sub { color: #6b7280; font-size: 14px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 20px 0 8px; }
+  input[type=text] {
+    flex: 1; min-width: 220px; padding: 10px 14px; font-size: 14px;
+    border: 1px solid #d1d5db; border-radius: 10px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  .count { color:#9ca3af; font-size:13px; margin-bottom:14px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .card {
+    display: block; text-decoration: none; color: inherit;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px;
+    transition: transform .15s, box-shadow .15s, border-color .15s; position: relative; overflow: hidden;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.08); border-color: #c7cbf5; }
+  .card .num { font-family: "SF Mono", Menlo, monospace; font-size: 13px; font-weight: 700; color: #6366f1; margin-bottom: 6px; }
+  .card h3 { margin: 0 0 8px; font-size: 17px; }
+  .card .slug { margin: 0; font-size: 12px; color: #9ca3af; font-family: "SF Mono", Menlo, monospace; }
+  .diff { position: absolute; top: 16px; right: 16px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+  .easy { background: #dcfce7; color: #166534; }
+  .medium { background: #fef3c7; color: #92400e; }
+  .hard { background: #fee2e2; color: #991b1b; }
+
+  .msg { text-align: center; color: #9ca3af; padding: 40px 0; font-size: 14px; }
+  .msg.err { color:#b91c1c; }
+  .msg a { color:#6366f1; }
+  .skeleton { background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:18px; }
+  .sk-line { height:12px; border-radius:6px; background:linear-gradient(90deg,#eee,#f5f5f5,#eee); background-size:200% 100%; animation:shimmer 1.2s infinite; margin-bottom:10px; }
+  @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+  footer { margin-top: 32px; color: #9ca3af; font-size: 12px; text-align: center; }
+  code { font-family:"SF Mono",Menlo,monospace; background:#eef0f4; padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎬 LeetCode 算法动画演示集</h1>
+    <div class="sub">可交互动画，把经典算法的执行过程一步步看清。列表由 <code>problems/</code> 目录自动生成，新增题目无需改动本页。</div>
+  </header>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="搜索题号或题名，如 394 / 解码 / 矩形">
+  </div>
+  <div class="count" id="count"></div>
+
+  <div class="grid" id="grid"></div>
+  <div class="msg" id="msg" style="display:none;"></div>
+
+  <footer>加题只需在 <code>problems/</code> 放一个 <code>题号-题名.html</code>，push 后刷新即可 🚀</footer>
+</div>
+
+<script>
+(function () {
+  var grid = document.getElementById('grid');
+  var msg = document.getElementById('msg');
+  var search = document.getElementById('search');
+  var countEl = document.getElementById('count');
+
+  var DIFF_CLASS = { '简单':'easy', '中等':'medium', '困难':'hard' };
+  var all = [];   // {num, title, slug, file, diff}
+
+  function showMsg(html, isErr) {
+    msg.style.display = 'block';
+    msg.className = 'msg' + (isErr ? ' err' : '');
+    msg.innerHTML = html;
+  }
+
+  function skeletons(n) {
+    grid.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+      var d = document.createElement('div');
+      d.className = 'skeleton';
+      d.innerHTML = '<div class="sk-line" style="width:35%"></div><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:50%"></div>';
+      grid.appendChild(d);
+    }
+  }
+
+  // 从当前网址推断 owner / repo，避免写死
+  function resolveRepo() {
+    var host = location.hostname;                 // 例如 tces1.github.io
+    var owner = host.split('.')[0];
+    var seg = location.pathname.split('/').filter(Boolean);
+    // 项目站点: /<repo>/...  用户站点(<owner>.github.io): 无 repo 段
+    var repo = seg.length ? seg[0] : (owner + '.github.io');
+    return { owner: owner, repo: repo, isPages: /\.github\.io$/.test(host) };
+  }
+
+  // 从题目文件里读 <title> 和难度标签
+  function fetchMeta(file, num, slug) {
+    return fetch('problems/' + file).then(function (r) {
+      if (!r.ok) throw 0;
+      return r.text();
+    }).then(function (html) {
+      var t = (html.match(/<title>([^<]*)<\/title>/) || [])[1] || '';
+      var title = t.replace(/\s*[—-]\s*动画演示\s*$/, '').replace(/^\d+\.\s*/, '').trim();
+      var diffTxt = (html.match(/class="difftag"[^>]*>([^<]*)</) || [])[1] || '';
+      return { num: num, slug: slug, file: file, title: title || slug, diff: diffTxt.trim() };
+    }).catch(function () {
+      return { num: num, slug: slug, file: file, title: slug, diff: '' };
+    });
+  }
+
+  function render() {
+    var q = search.value.trim().toLowerCase();
+    var list = all.filter(function (p) {
+      if (!q) return true;
+      return (p.num + ' ' + p.title + ' ' + p.slug).toLowerCase().indexOf(q) >= 0;
+    });
+    grid.innerHTML = '';
+    countEl.textContent = '共 ' + all.length + ' 道题' + (q ? '，匹配 ' + list.length + ' 道' : '');
+    if (!list.length) { showMsg('没有匹配的题目 🤔'); return; }
+    msg.style.display = 'none';
+    list.forEach(function (p) {
+      var a = document.createElement('a');
+      a.className = 'card';
+      a.href = 'problems/' + p.file;
+      var dcls = DIFF_CLASS[p.diff] || '';
+      a.innerHTML =
+        (p.diff ? '<div class="diff ' + dcls + '">' + p.diff + '</div>' : '') +
+        '<div class="num">#' + p.num + '</div>' +
+        '<h3>' + p.title + '</h3>' +
+        '<div class="slug">' + p.slug + '</div>';
+      grid.appendChild(a);
+    });
+  }
+
+  function load() {
+    skeletons(3);
+    var rp = resolveRepo();
+    var api = 'https://api.github.com/repos/' + rp.owner + '/' + rp.repo + '/contents/problems';
+    fetch(api, { headers: { 'Accept': 'application/vnd.github+json' } })
+      .then(function (r) {
+        if (r.status === 403) throw new Error('rate');
+        if (!r.ok) throw new Error('http');
+        return r.json();
+      })
+      .then(function (items) {
+        var files = items.filter(function (it) {
+          return it.type === 'file' && /^\d+-.*\.html$/i.test(it.name);
+        });
+        if (!files.length) { showMsg('problems/ 目录里还没有题目文件。'); grid.innerHTML=''; return; }
+        return Promise.all(files.map(function (it) {
+          var m = it.name.match(/^(\d+)-(.*)\.html$/i);
+          var num = parseInt(m[1], 10);
+          var slug = m[2];
+          return fetchMeta(it.name, num, slug);
+        })).then(function (metas) {
+          all = metas.sort(function (a, b) { return a.num - b.num; });
+          render();
+        });
+      })
+      .catch(function (e) {
+        grid.innerHTML = '';
+        if (e && e.message === 'rate') {
+          showMsg('GitHub API 访问频率暂时超限（每小时 60 次）。请稍后<a href="javascript:location.reload()">刷新重试</a>。', true);
+        } else if (location.protocol === 'file:') {
+          showMsg('本地直接打开时无法自动发现题目（需部署到 GitHub Pages）。<br>你可以直接进入 <code>problems/</code> 目录打开各题的 html。', true);
+        } else {
+          showMsg('加载题目列表失败，请<a href="javascript:location.reload()">刷新重试</a>。', true);
+        }
+      });
+  }
+
+  search.addEventListener('input', render);
+  load();
+})();
+</script>
+</body>
+</html>

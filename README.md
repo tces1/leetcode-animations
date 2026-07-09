@@ -4,7 +4,9 @@
 
 ## 快速开始
 
-直接进入 `problems/` 目录，双击任意 `题号-题名.html` 文件即可在浏览器打开对应动画。
+- **在线**：部署到 GitHub Pages 后，打开首页 `index.html`，题目卡片会**自动从 `problems/` 目录生成**（点卡片进入动画）。
+- **本地**：直接进入 `problems/` 目录，双击任意 `题号-题名.html` 即可打开对应动画。
+  （本地 `file://` 方式打开首页时无法自动列目录，请直接进 `problems/`；首页的自动发现依赖线上部署。）
 
 每个动画页面通用能力：
 
@@ -17,6 +19,8 @@
 
 ```
 leetcode-animations/
+├── index.html                    # 首页：自动扫描 problems/ 生成题目卡片
+├── .nojekyll                     # 让 GitHub Pages 原样托管静态文件
 ├── README.md                     # 本文件
 └── problems/                     # 所有动画，一题一个文件
     ├── 84-largest-rectangle-in-histogram.html  # 84. 柱状图中最大的矩形
@@ -36,7 +40,7 @@ leetcode-animations/
 
 ## 如何新增一道题
 
-在 `problems/` 下新建 `题号-英文题名.html`（复制现有文件当模板最快，保留顶部导航栏即可），保存后直接打开就能用。无需改动其他任何文件。
+在 `problems/` 下新建 `题号-英文题名.html`（复制现有文件当模板最快，保留顶部导航栏即可）。**无需改动 `index.html` 或本文件的任何内容** —— 首页会自动扫描目录，从题目文件自身的 `<title>` 和难度标签生成卡片。push 后刷新首页即可看到新题。
 
 ## 题目清单
 
