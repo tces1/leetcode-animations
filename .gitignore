@@ -1,2 +1,5 @@
 .DS_Store
 node_modules/
+
+# 构建产物：由 CI（部署前）自动生成，不纳入版本库
+problems.json
