@@ -16,6 +16,9 @@
   header { margin-bottom: 24px; }
   h1 { font-size: 26px; margin: 0 0 6px; }
   .sub { color: #6b7280; font-size: 14px; }
+  .site { margin-top: 8px; font-size: 13px; color: #6b7280; }
+  .site a { color: #6366f1; text-decoration: none; font-family:"SF Mono",Menlo,monospace; }
+  .site a:hover { text-decoration: underline; }
 
   .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 20px 0 8px; }
   input[type=text] {
@@ -47,6 +50,9 @@
   .sk-line { height:12px; border-radius:6px; background:linear-gradient(90deg,#eee,#f5f5f5,#eee); background-size:200% 100%; animation:shimmer 1.2s infinite; margin-bottom:10px; }
   @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
   footer { margin-top: 32px; color: #9ca3af; font-size: 12px; text-align: center; }
+  .contribute { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px 18px; font-size:13px; color:#4b5563; line-height:1.7; }
+  .contribute a { color:#6366f1; text-decoration:none; font-weight:600; }
+  .contribute a:hover { text-decoration:underline; }
   code { font-family:"SF Mono",Menlo,monospace; background:#eef0f4; padding:1px 5px; border-radius:4px; }
 </style>
 </head>
@@ -55,6 +61,7 @@
   <header>
     <h1>🎬 LeetCode 算法动画演示集</h1>
     <div class="sub">可交互动画，把经典算法的执行过程一步步看清。列表由 <code>problems/</code> 目录自动生成，新增题目无需改动本页。</div>
+    <div class="site">🔗 在线访问：<a href="https://tces1.github.io/leetcode-animations/">https://tces1.github.io/leetcode-animations/</a></div>
   </header>
 
   <div class="toolbar">
@@ -65,7 +72,14 @@
   <div class="grid" id="grid"></div>
   <div class="msg" id="msg" style="display:none;"></div>
 
-  <footer>加题只需在 <code>problems/</code> 放一个 <code>题号-题名.html</code>，push 后刷新即可 🚀</footer>
+  <footer>
+    <div class="contribute">
+      🙌 欢迎大家一起参与项目！在
+      <a href="https://github.com/tces1/leetcode-animations">GitHub 仓库</a>
+      提交你的动画（往 <code>problems/</code> 放一个 <code>题号-题名.html</code>，push 后自动上架），
+      也欢迎<a href="https://github.com/tces1/leetcode-animations/issues">提交 issue</a> 反馈问题或点题。
+    </div>
+  </footer>
 </div>
 
 <script>
