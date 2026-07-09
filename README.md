@@ -19,8 +19,13 @@
 
 ```
 leetcode-animations/
-├── index.html                    # 首页：自动扫描 problems/ 生成题目卡片
+├── index.html                    # 首页：读取 problems.json 渲染题目卡片
+├── problems.json                 # 题目清单（由 CI 自动生成，请勿手改）
 ├── .nojekyll                     # 让 GitHub Pages 原样托管静态文件
+├── scripts/
+│   └── gen-manifest.js           # 扫描 problems/ 生成 problems.json
+├── .github/workflows/
+│   └── manifest.yml              # push 时自动重建 problems.json
 ├── README.md                     # 本文件
 └── problems/                     # 所有动画，一题一个文件
     ├── 84-largest-rectangle-in-histogram.html  # 84. 柱状图中最大的矩形
@@ -40,7 +45,11 @@ leetcode-animations/
 
 ## 如何新增一道题
 
-在 `problems/` 下新建 `题号-英文题名.html`（复制现有文件当模板最快，保留顶部导航栏即可）。**无需改动 `index.html` 或本文件的任何内容** —— 首页会自动扫描目录，从题目文件自身的 `<title>` 和难度标签生成卡片。push 后刷新首页即可看到新题。
+在 `problems/` 下新建 `题号-英文题名.html`（复制现有文件当模板最快，保留顶部导航栏即可）。**无需改动 `index.html`、`problems.json` 或本文件** —— push 后，GitHub Actions 会自动扫描目录、从每个题目文件的 `<title>` 和难度标签重建 `problems.json`，首页随即多出一张卡片。
+
+> 首页优先读取同源的 `problems.json`（秒开、无访问限额）；只有在清单尚未生成时，才会临时回退到 GitHub API 列目录（每小时 60 次限额）。
+>
+> 本地想手动重建清单：`node scripts/gen-manifest.js`
 
 ## 题目清单
 

@@ -145,6 +145,19 @@
 
   function load() {
     skeletons(3);
+    // 首选：读同源的 problems.json（由 CI 自动生成，无限额、秒开）
+    fetch('problems.json', { cache: 'no-cache' })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (items) {
+        if (!Array.isArray(items) || !items.length) throw 0;
+        all = items.slice().sort(function (a, b) { return a.num - b.num; });
+        render();
+      })
+      .catch(function () { loadFromApi(); });   // 清单不存在时回退到 API
+  }
+
+  // 回退方案：直接问 GitHub API 列目录（有每小时 60 次限额）
+  function loadFromApi() {
     var rp = resolveRepo();
     var api = 'https://api.github.com/repos/' + rp.owner + '/' + rp.repo + '/contents/problems';
     fetch(api, { headers: { 'Accept': 'application/vnd.github+json' } })
@@ -160,9 +173,7 @@
         if (!files.length) { showMsg('problems/ 目录里还没有题目文件。'); grid.innerHTML=''; return; }
         return Promise.all(files.map(function (it) {
           var m = it.name.match(/^(\d+)-(.*)\.html$/i);
-          var num = parseInt(m[1], 10);
-          var slug = m[2];
-          return fetchMeta(it.name, num, slug);
+          return fetchMeta(it.name, parseInt(m[1], 10), m[2]);
         })).then(function (metas) {
           all = metas.sort(function (a, b) { return a.num - b.num; });
           render();
@@ -171,7 +182,7 @@
       .catch(function (e) {
         grid.innerHTML = '';
         if (e && e.message === 'rate') {
-          showMsg('GitHub API 访问频率暂时超限（每小时 60 次）。请稍后<a href="javascript:location.reload()">刷新重试</a>。', true);
+          showMsg('题目清单尚未生成，且 GitHub API 暂时超限（每小时 60 次）。<br>推送后 Actions 会自动生成 <code>problems.json</code>，届时本页将秒开、不再受限。请稍后<a href="javascript:location.reload()">刷新</a>。', true);
         } else if (location.protocol === 'file:') {
           showMsg('本地直接打开时无法自动发现题目（需部署到 GitHub Pages）。<br>你可以直接进入 <code>problems/</code> 目录打开各题的 html。', true);
         } else {
