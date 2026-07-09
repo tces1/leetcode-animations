@@ -58,15 +58,17 @@
   .bar.popped { background:#f87171; box-shadow:0 0 0 2px #b91c1c inset; }
   .bar.popped .h { color:#fff; }
   .bar-idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; margin-top:4px; }
-  /* rectangle overlay */
+  /* rectangle overlay: 只用一条上沿高度线 + 小旗标签，不再盖住柱子 */
   .rect-overlay {
-    position:absolute; bottom:0; background:rgba(52,211,153,.28); border:2px solid #10b981;
-    border-radius:5px 5px 0 0; pointer-events:none; transition: all .2s;
-    display:flex; align-items:center; justify-content:center;
+    position:absolute; bottom:0; background:rgba(16,185,129,.10);
+    border-top:3px solid #10b981; pointer-events:none;
+    transition: left .2s, width .2s, height .2s;
+    display:flex; align-items:flex-start; justify-content:center;
   }
   .rect-overlay .lab {
-    background:#059669; color:#fff; font-size:12px; font-weight:700; padding:2px 8px;
-    border-radius:6px; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
+    transform: translateY(-100%);
+    background:#059669; color:#fff; font-size:11px; font-weight:700; padding:1px 7px;
+    border-radius:5px 5px 0 0; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
   }
 
   .grid { display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; }
