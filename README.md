@@ -2,9 +2,11 @@
 
 用可交互的网页动画，把经典算法题的执行过程一步步可视化。纯静态 HTML，**无需任何依赖**，双击对应文件即可在浏览器打开。
 
+🔗 **在线访问**：<https://tces1.github.io/leetcode-animations/>
+
 ## 快速开始
 
-- **在线**：部署到 GitHub Pages 后，打开首页 `index.html`，题目卡片会**自动从 `problems/` 目录生成**（点卡片进入动画）。
+- **在线**：直接打开 <https://tces1.github.io/leetcode-animations/>，题目卡片会**自动从 `problems/` 目录生成**（点卡片进入动画）。
 - **本地**：直接进入 `problems/` 目录，双击任意 `题号-题名.html` 即可打开对应动画。
   （本地 `file://` 方式打开首页时无法自动列目录，请直接进 `problems/`；首页的自动发现依赖线上部署。）
 
@@ -57,6 +59,7 @@ leetcode-animations/
 | # | 题目 | 难度 | 考点 |
 |---|------|------|------|
 | 84 | [柱状图中最大的矩形](problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
+| 295 | [数据流的中位数](problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
 | 394 | [字符串解码](problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
 | 739 | [每日温度](problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
 

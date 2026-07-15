@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>295. 数据流的中位数 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+
+  /* stream array */
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell { width: 46px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .box {
+    width: 100%; height: 42px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:600;
+    border-radius:8px; background:#f1f2f4; color:#4b5563; border:2px solid transparent; transition: all .2s;
+  }
+  .box.pending { color:#9ca3af; }
+  .box.done    { background:#eef2ff; color:#818cf8; }
+  .box.active  { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  /* two heaps + median */
+  .heaps { display:flex; align-items:center; gap:12px; }
+  .heap-col { flex:1; min-width:0; }
+  .heap-col.left { text-align:right; }
+  .heap-row {
+    display:flex; gap:6px; flex-wrap:wrap; min-height:44px; align-items:center;
+    background:#f8fafc; border:1px dashed #e2e8f0; border-radius:10px; padding:8px;
+  }
+  .heap-col.left .heap-row { justify-content:flex-end; }
+  .heap-col.right .heap-row { justify-content:flex-start; }
+  .hcell {
+    min-width:38px; height:40px; padding:0 8px; display:flex; align-items:center; justify-content:center;
+    border-radius:8px; font-family:"SF Mono",Menlo,monospace; font-weight:700; font-size:15px;
+    background:#eef2ff; color:#4338ca; border:2px solid transparent; transition: all .2s;
+  }
+  .hcell.root { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.18); }
+  .hcell.temp { background:#fef3c7; color:#92400e; border-style:dashed; border-color:#f59e0b; }
+  .hcell.pop  { background:#fee2e2; color:#991b1b; border-color:#ef4444; }
+  .hcell.moved{ background:#dcfce7; color:#166534; border-color:#22c55e; }
+  .heap-title { font-size:12px; font-weight:700; color:#374151; margin-bottom:8px; }
+  .heap-title small { font-weight:400; color:#9ca3af; }
+  .heap-meta { font-size:12px; color:#6b7280; margin-top:8px; font-family:"SF Mono",Menlo,monospace; }
+  .empty-hint { color:#b8bcc4; font-size:13px; font-style:italic; }
+
+  .median-col { flex:0 0 auto; text-align:center; padding:0 4px; }
+  .median-label { font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.04em; }
+  .median-box {
+    min-width:70px; padding:10px 14px; margin-top:4px; border-radius:12px;
+    background:#111827; color:#fcd34d; font-family:"SF Mono",Menlo,monospace; font-weight:700; font-size:22px;
+  }
+  .median-box.pulse { animation: mpulse .5s ease; }
+  @keyframes mpulse { 0%{transform:scale(1);} 50%{transform:scale(1.14); box-shadow:0 8px 20px rgba(17,24,39,.4);} 100%{transform:scale(1);} }
+  .median-rule { font-size:11px; color:#9ca3af; margin-top:6px; max-width:150px; margin-left:auto; margin-right:auto; }
+
+  @media (max-width:680px){
+    .heaps { flex-direction:column; align-items:stretch; }
+    .heap-col.left, .heap-col.right { text-align:center; }
+    .heap-col.left .heap-row, .heap-col.right .heap-row { justify-content:center; }
+    .median-rule { max-width:none; }
+  }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .cmt { color:#7dd3fc; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/find-median-from-data-stream/" target="_blank" rel="noopener">LeetCode 295</a></span>
+  </div>
+
+  <h1>295. 数据流的中位数 · 对顶堆动画</h1>
+  <div class="sub">用两个堆把数据「一分为二」：<b>left</b> 是大顶堆存较小的一半，<b>right</b> 是小顶堆存较大的一半，并始终让 left 比 right 多 0 或 1 个。中位数就落在两个堆顶之间：奇数个取 left 堆顶，偶数个取两堆顶的平均。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="5,2,8,1,9,3,7" spellcheck="false" placeholder="输入依次 addNum 的数字,逗号分隔">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">5,2,8,1,9,3,7</span>
+      <span class="chip">1,2,3,4,5,6</span>
+      <span class="chip">6,10,2,6,5,0,6,3</span>
+      <span class="chip">41,35,62,4,97</span>
+      <span class="chip">2,3</span>
+      <span class="chip">10</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前加入的数</span>
+      <span><span class="dot" style="background:#fef3c7;border:1px dashed #f59e0b"></span>刚压入(待处理)</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #ef4444"></span>将被弹出的堆顶</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #22c55e"></span>刚移动到另一堆</span>
+      <span><span class="dot" style="background:#eef2ff;box-shadow:0 0 0 2px #6366f1 inset"></span>堆顶</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">数据流（依次调用 addNum）</div>
+    <div class="arr-row" id="streamRow"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">对顶堆（越靠中间越接近中位数）</div>
+    <div class="heaps">
+      <div class="heap-col left">
+        <div class="heap-title">left · 大顶堆 <small>较小的一半</small></div>
+        <div class="heap-row" id="leftRow"></div>
+        <div class="heap-meta">堆顶(最大)=<span id="leftTop">—</span> · 大小 <span id="leftSize">0</span></div>
+      </div>
+      <div class="median-col">
+        <div class="median-label">中位数</div>
+        <div class="median-box" id="medianBox">—</div>
+        <div class="median-rule" id="medianRule">findMedian()</div>
+      </div>
+      <div class="heap-col right">
+        <div class="heap-title">right · 小顶堆 <small>较大的一半</small></div>
+        <div class="heap-row" id="rightRow"></div>
+        <div class="heap-meta">堆顶(最小)=<span id="rightTop">—</span> · 大小 <span id="rightSize">0</span></div>
+      </div>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Python / Java）</summary>
+      <pre><code><span class="cmt"># Python 3.14+：heapq 提供了公开的大顶堆版本函数</span>
+from heapq import heappush, heappushpop, heappush_max, heappushpop_max
+
+class MedianFinder:
+    def __init__(self):
+        self.left = []   <span class="cmt"># 大顶堆：较小的一半</span>
+        self.right = []  <span class="cmt"># 小顶堆：较大的一半</span>
+
+    def addNum(self, num: int) -&gt; None:
+        if len(self.left) == len(self.right):
+            <span class="cmt"># 让 num 经 right 中转，把「该进小半区的数」放进 left</span>
+            heappush_max(self.left, heappushpop(self.right, num))
+        else:
+            <span class="cmt"># 让 num 经 left 中转，把「该进大半区的数」放进 right</span>
+            heappush(self.right, heappushpop_max(self.left, num))
+
+    def findMedian(self) -&gt; float:
+        if len(self.left) &gt; len(self.right):
+            return self.left[0]
+        return (self.left[0] + self.right[0]) / 2
+
+<span class="cmt"># 若 Python &lt; 3.14 没有 *_max：把值取负存入普通小顶堆即可模拟大顶堆</span></code></pre>
+      <pre><code><span class="cmt">// Java · 两个优先队列 · addNum O(log n)，findMedian O(1)</span>
+class MedianFinder {
+    <span class="cmt">// left 大顶堆：较小的一半；right 小顶堆：较大的一半</span>
+    private final PriorityQueue&lt;Integer&gt; left = new PriorityQueue&lt;&gt;(Collections.reverseOrder());
+    private final PriorityQueue&lt;Integer&gt; right = new PriorityQueue&lt;&gt;();
+
+    public void addNum(int num) {
+        if (left.size() == right.size()) {
+            right.offer(num);
+            left.offer(right.poll());   <span class="cmt">// = heappushpop(right, num) 后进 left</span>
+        } else {
+            left.offer(num);
+            right.offer(left.poll());   <span class="cmt">// = heappushpop_max(left, num) 后进 right</span>
+        }
+    }
+
+    public double findMedian() {
+        if (left.size() &gt; right.size()) return left.peek();
+        return (left.peek() + right.peek()) / 2.0;
+    }
+}</code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var streamRow = document.getElementById('streamRow');
+  var leftRow = document.getElementById('leftRow');
+  var rightRow = document.getElementById('rightRow');
+  var leftTopEl = document.getElementById('leftTop');
+  var rightTopEl = document.getElementById('rightTop');
+  var leftSizeEl = document.getElementById('leftSize');
+  var rightSizeEl = document.getElementById('rightSize');
+  var medianBox = document.getElementById('medianBox');
+  var medianRule = document.getElementById('medianRule');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+
+  var stream = [];
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function parseInput(s) {
+    return s.split(/[,\s]+/).map(function(x){ return x.trim(); })
+            .filter(function(x){ return x.length; })
+            .map(Number)
+            .filter(function(x){ return !isNaN(x); });
+  }
+
+  function fmt(n) { return (n % 1 === 0) ? String(n) : n.toFixed(1); }
+
+  function buildSteps(nums) {
+    var snaps = [];
+    var left = [];   // array of {v,id} — 大顶堆(较小的一半)
+    var right = [];  // array of {v,id} — 小顶堆(较大的一半)
+
+    function maxItem(a){ var m=a[0]; for (var i=1;i<a.length;i++) if (a[i].v > m.v) m=a[i]; return m; }
+    function minItem(a){ var m=a[0]; for (var i=1;i<a.length;i++) if (a[i].v < m.v) m=a[i]; return m; }
+    function removeById(a, id){ for (var i=0;i<a.length;i++) if (a[i].id===id) return a.splice(i,1)[0]; }
+
+    function medInfo() {
+      if (left.length === right.length) {
+        if (left.length === 0) return null;
+        var lt = maxItem(left).v, rt = minItem(right).v;
+        return { val: (lt+rt)/2, rule: '共 ' + (left.length+right.length) + ' 个(偶)：(' + lt + ' + ' + rt + ') ÷ 2' };
+      }
+      if (left.length === right.length + 1) {
+        var m = maxItem(left).v;
+        return { val: m, rule: '共 ' + (left.length+right.length) + ' 个(奇)：left 堆顶 = ' + m };
+      }
+      return null; // 中途状态：两堆大小暂不满足不变式
+    }
+
+    function snap(o) {
+      snaps.push({
+        cur: (o.cur === undefined ? -1 : o.cur),
+        committed: (o.committed === undefined ? 0 : o.committed),
+        left: left.map(function(x){ return { v:x.v, id:x.id }; }),
+        right: right.map(function(x){ return { v:x.v, id:x.id }; }),
+        tempId: (o.tempId === undefined ? -1 : o.tempId),
+        popId: (o.popId === undefined ? -1 : o.popId),
+        movedId: (o.movedId === undefined ? -1 : o.movedId),
+        median: medInfo(),
+        msg: o.msg, phase: o.phase
+      });
+    }
+
+    snap({ committed: 0, phase: 'start',
+      msg: '初始化：<b>left</b> 是大顶堆(存较小的一半)，<b>right</b> 是小顶堆(存较大的一半)。规则是让 left 比 right 多 0 或 1 个，中位数就藏在两个堆顶之间。' });
+
+    for (var i = 0; i < nums.length; i++) {
+      var item = { v: nums[i], id: i };
+      var eq = (left.length === right.length);
+
+      snap({ cur: i, committed: i, phase: 'visit',
+        msg: '加入 <b>' + item.v + '</b>。当前 left=' + left.length + ' 个、right=' + right.length + ' 个 → ' +
+             (eq ? '两堆一样大，<span class="op">这次让 left 多一个</span>（经 right 中转）。'
+                 : 'left 比 right 多一个，<span class="op">这次让 right 多一个</span>（经 left 中转），两堆重新持平。') });
+
+      if (eq) {
+        right.push(item);
+        var cand = minItem(right);
+        snap({ cur: i, committed: i, phase: 'push', tempId: item.id, popId: cand.id,
+          msg: '把 ' + item.v + ' 先压入 <b>right</b>(小顶堆)，再弹出堆里最小的 <b>' + cand.v + '</b> —— 它才是「该进较小一半」的那个数。<span class="cmt">(这一步就是 heappushpop)</span>' });
+        var y = removeById(right, cand.id);
+        left.push(y);
+        snap({ cur: i, committed: i+1, phase: 'move', movedId: y.id,
+          msg: '把弹出的 <b>' + y.v + '</b> 压入 <b>left</b>(大顶堆)。left 现在多一个 → 元素为奇数，中位数 = left 堆顶 <b>' + maxItem(left).v + '</b>。' });
+      } else {
+        left.push(item);
+        var cand2 = maxItem(left);
+        snap({ cur: i, committed: i, phase: 'push', tempId: item.id, popId: cand2.id,
+          msg: '把 ' + item.v + ' 先压入 <b>left</b>(大顶堆)，再弹出堆里最大的 <b>' + cand2.v + '</b> —— 它才是「该进较大一半」的那个数。<span class="cmt">(heappushpop_max)</span>' });
+        var y2 = removeById(left, cand2.id);
+        right.push(y2);
+        var lt = maxItem(left).v, rt = minItem(right).v;
+        snap({ cur: i, committed: i+1, phase: 'move', movedId: y2.id,
+          msg: '把弹出的 <b>' + y2.v + '</b> 压入 <b>right</b>(小顶堆)。两堆一样大 → 元素为偶数，中位数 = (' + lt + ' + ' + rt + ') ÷ 2 = <b>' + fmt((lt+rt)/2) + '</b>。' });
+      }
+    }
+
+    var fm = medInfo();
+    snap({ cur: -1, committed: nums.length, phase: 'done',
+      msg: '全部 ' + nums.length + ' 个数处理完毕 ✅ 此后任何时刻 <b>findMedian()</b> 都是 O(1)：' + (fm ? fm.rule + ' = <b>' + fmt(fm.val) + '</b>' : '—') + '。' });
+    return snaps;
+  }
+
+  function makeCell(idx, val) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = idx;
+    var box = document.createElement('div'); box.className = 'box'; box.textContent = val; box.dataset.idx = idx;
+    cell.appendChild(lab); cell.appendChild(box);
+    return cell;
+  }
+
+  function renderStream() {
+    streamRow.innerHTML = '';
+    for (var i = 0; i < stream.length; i++) streamRow.appendChild(makeCell(i, stream[i]));
+  }
+
+  function renderHeap(rowEl, items, isLeft, st) {
+    rowEl.innerHTML = '';
+    if (!items.length) { rowEl.innerHTML = '<span class="empty-hint">（空）</span>'; return; }
+    var sorted = items.slice().sort(function(a,b){ return a.v - b.v; });
+    var rootIdx = isLeft ? sorted.length - 1 : 0; // left 的堆顶=最大(最右)，right 的堆顶=最小(最左)
+    sorted.forEach(function(it, pos){
+      var el = document.createElement('div');
+      var cls = 'hcell';
+      if (it.id === st.popId) cls += ' pop';
+      else if (it.id === st.movedId) cls += ' moved';
+      else if (it.id === st.tempId) cls += ' temp';
+      if (pos === rootIdx) { cls += ' root'; el.title = '堆顶'; }
+      el.className = cls;
+      el.textContent = it.v;
+      rowEl.appendChild(el);
+    });
+  }
+
+  function load(s) {
+    var nums = parseInput(s);
+    if (!nums.length) return;
+    stream = nums;
+    steps = buildSteps(nums);
+    stepIdx = 0;
+    renderStream();
+    render();
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+
+    Array.prototype.forEach.call(streamRow.children, function(cell){
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.className = 'box';
+      if (idx === st.cur) box.classList.add('active');
+      else if (idx < st.committed) box.classList.add('done');
+      else box.classList.add('pending');
+    });
+
+    renderHeap(leftRow, st.left, true, st);
+    renderHeap(rightRow, st.right, false, st);
+
+    leftSizeEl.textContent = st.left.length;
+    rightSizeEl.textContent = st.right.length;
+    leftTopEl.textContent = st.left.length ? Math.max.apply(null, st.left.map(function(x){ return x.v; })) : '—';
+    rightTopEl.textContent = st.right.length ? Math.min.apply(null, st.right.map(function(x){ return x.v; })) : '—';
+
+    if (st.median) { medianBox.textContent = fmt(st.median.val); medianRule.textContent = st.median.rule; }
+    else { medianBox.textContent = '—'; medianRule.textContent = '调整中…（两堆大小暂不满足条件）'; }
+    medianBox.className = 'median-box' + (((st.phase === 'move' || st.phase === 'done') && st.median) ? ' pulse' : '');
+
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 900);
+  }
+
+  nextBtn.onclick = function(){ stopPlay(); next(); };
+  prevBtn.onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
