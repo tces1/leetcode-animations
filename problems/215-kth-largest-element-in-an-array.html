@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>215. 数组中的第K个最大元素 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 180px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=number] {
+    width: 72px; padding: 9px 10px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  label { font-size: 14px; color:#374151; font-weight:600; }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .target-info { margin-top:12px; font-size:13px; color:#4b5563; }
+  .target-info b { font-family:"SF Mono",Menlo,monospace; color:#4338ca; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell { width: 54px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .box {
+    width: 100%; height: 46px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700;
+    border-radius:8px; background:#f8fafc; color:#334155; border:2px solid #e2e8f0; transition: all .18s;
+  }
+  .box.unknown  { background:#f8fafc; color:#334155; border-color:#e2e8f0; }      /* 待处理 */
+  .box.less     { background:#dbeafe; color:#1e40af; border-color:#bfdbfe; }      /* 小于区 */
+  .box.equal    { background:#ede9fe; color:#6d28d9; border-color:#c4b5fd; }      /* 等于区(基准) */
+  .box.greater  { background:#ffedd5; color:#c2410c; border-color:#fed7aa; }      /* 大于区 */
+  .box.out      { background:#f1f2f4; color:#c7cbd1; border-color:#eceef1; }      /* 已排除 */
+  .box.swap     { background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }      /* 交换中 */
+  .box.answer   { background:#22c55e; color:#fff; border-color:#16a34a; box-shadow:0 6px 14px rgba(34,197,94,.4); }
+  .ptr-cell { width:54px; min-height:20px; display:flex; align-items:center; justify-content:center; gap:3px; flex-wrap:wrap; }
+  .ptr { font-family:"SF Mono",Menlo,monospace; font-size:11px; font-weight:700; padding:0 5px; border-radius:5px; }
+  .ptr.lt { background:#dbeafe; color:#1d4ed8; }
+  .ptr.i  { background:#e0e7ff; color:#4338ca; }
+  .ptr.gt { background:#ffedd5; color:#c2410c; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .hl { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  .err { color:#b91c1c; font-size:13px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/kth-largest-element-in-an-array/" target="_blank" rel="noopener">LeetCode 215</a></span>
+  </div>
+
+  <h1>215. 数组中的第 K 个最大元素 · 快速选择（三路划分）动画</h1>
+  <div class="sub">升序下第 K 大在下标 <code>n − k</code>。<strong>随机基准 + 三路划分</strong>把区间切成「小于 / 等于 / 大于」三块，只往含目标的一侧继续。三路划分让大量重复元素也能一次归位，期望 O(n)（这也是能通过 LeetCode 全部用例的关键）。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="3,2,3,1,2,4,5,5,6" spellcheck="false" placeholder="数组，逗号分隔">
+      <label>k =</label>
+      <input type="number" id="kInput" value="4" min="1">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip" data-nums="3,2,1,5,6,4" data-k="2">[3,2,1,5,6,4] k=2</span>
+      <span class="chip" data-nums="3,2,3,1,2,4,5,5,6" data-k="4">[3,2,3,1,2,4,5,5,6] k=4</span>
+      <span class="chip" data-nums="2,2,2,2,2,2" data-k="3">[2,2,2,2,2,2] k=3（全重复）</span>
+      <span class="chip" data-nums="7,6,5,4,3,2,1" data-k="5">[7,6,5,4,3,2,1] k=5</span>
+    </div>
+    <div class="target-info" id="targetInfo"></div>
+    <div class="err" id="err" style="display:none;"></div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">nums（当前数组）</div>
+    <div class="arr-row" id="arrRow"></div>
+    <div class="arr-row" id="ptrRow" style="margin-top:2px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+    <div class="legend">
+      <span><span class="dot" style="background:#dbeafe;border:1px solid #bfdbfe"></span>小于区 (&lt; 基准)</span>
+      <span><span class="dot" style="background:#ede9fe;border:1px solid #c4b5fd"></span>等于区 (= 基准)</span>
+      <span><span class="dot" style="background:#ffedd5;border:1px solid #fed7aa"></span>大于区 (&gt; 基准)</span>
+      <span><span class="dot" style="background:#f8fafc;border:1px solid #e2e8f0"></span>待处理</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>交换中</span>
+      <span><span class="dot" style="background:#f1f2f4;border:1px solid #eceef1"></span>已排除</span>
+      <span><span class="dot" style="background:#22c55e"></span>答案</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 随机基准 + 三路划分 · 期望 O(N)
+import java.util.Random;
+class Solution {
+    private final Random rnd = new Random();
+    public int findKthLargest(int[] a, int k) {
+        int n = a.length, target = n - k;    <span class="cmt">// 升序第 target 个 = 第 k 大</span>
+        int lo = 0, hi = n - 1;
+        while (true) {
+            if (lo == hi) return a[lo];
+            swap(a, lo, lo + rnd.nextInt(hi - lo + 1)); <span class="cmt">// 随机基准放到区间首</span>
+            int pivot = a[lo], lt = lo, gt = hi, i = lo + 1;
+            while (i &lt;= gt) {                <span class="cmt">// 荷兰国旗三路划分</span>
+                if (a[i] &lt; pivot)      swap(a, lt++, i++);
+                else if (a[i] &gt; pivot) swap(a, i, gt--);
+                else                   i++;
+            }
+            <span class="cmt">// [lo,lt-1] &lt; pivot；[lt,gt] = pivot；[gt+1,hi] &gt; pivot</span>
+            if (target &lt; lt)      hi = lt - 1;   <span class="cmt">// 目标在小于区</span>
+            else if (target &gt; gt) lo = gt + 1;   <span class="cmt">// 目标在大于区</span>
+            else return pivot;                   <span class="cmt">// 目标落在等于区</span>
+        }
+    }
+    private void swap(int[] a, int x, int y){ int t=a[x]; a[x]=a[y]; a[y]=t; }
+}</code></pre>
+      <pre><code><span class="cmt"># Python · 随机基准 + 三路划分</span>
+import random
+class Solution:
+    def findKthLargest(self, a: List[int], k: int) -&gt; int:
+        target, lo, hi = len(a) - k, 0, len(a) - 1
+        while True:
+            if lo == hi: return a[lo]
+            r = random.randint(lo, hi)
+            a[lo], a[r] = a[r], a[lo]                 <span class="cmt"># 随机基准</span>
+            pivot, lt, gt, i = a[lo], lo, hi, lo + 1
+            while i &lt;= gt:                            <span class="cmt"># 三路划分</span>
+                if a[i] &lt; pivot:
+                    a[lt], a[i] = a[i], a[lt]; lt += 1; i += 1
+                elif a[i] &gt; pivot:
+                    a[i], a[gt] = a[gt], a[i]; gt -= 1
+                else:
+                    i += 1
+            if target &lt; lt:   hi = lt - 1
+            elif target &gt; gt: lo = gt + 1
+            else: return pivot</code></pre>
+    </details>
+  </div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:700;color:#4f46e5;margin-bottom:8px;">⏱ 复杂度说明</div>
+    <div style="font-size:13px;color:#4b5563;line-height:1.8;">
+      快速选择每趟只递归<strong>一侧</strong>，若基准把区间大致对半分，规模按 <code>n + n/2 + n/4 + … ≈ 2n</code> 收缩，得到<strong>期望 O(n)</strong>。<br>
+      两个关键优化缺一不可：<strong>①随机基准</strong>——固定取端点遇到有序输入会退化成 <code>O(n²)</code>；<strong>②三路划分</strong>——把 = 基准的元素一次性全部归位。若只用两路（&lt; / ≥）分区，遇到<strong>大量重复元素</strong>（如全相等数组）仍是 <code>O(n²)</code>，会在 LeetCode 超时；三路划分把这种情况也降到线性。<br>
+      <span style="color:#6b7280;">空间 O(1)（原地分区）。严格<strong>最坏 O(n)</strong> 需「中位数的中位数（BFPRT）」，但常数大，实践中随机基准 + 三路划分足矣。</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var kInput = document.getElementById('kInput');
+  var arrRow = document.getElementById('arrRow');
+  var ptrRow = document.getElementById('ptrRow');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var targetInfo = document.getElementById('targetInfo');
+  var errEl = document.getElementById('err');
+
+  var vals0 = [];
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function parseNums(s) {
+    return s.split(/[,\s]+/).map(function(x){return x.trim();})
+            .filter(function(x){return x.length;})
+            .map(Number).filter(function(x){return !isNaN(x);});
+  }
+
+  function buildSteps(a0, k) {
+    var a = a0.slice();
+    var n = a.length;
+    var target = n - k;
+    var snaps = [];
+
+    function snap(o) {
+      snaps.push({
+        vals: a.slice(),
+        lo: o.lo, hi: o.hi,
+        lt: (o.lt === undefined ? -1 : o.lt),
+        gt: (o.gt === undefined ? -1 : o.gt),
+        i:  (o.i  === undefined ? -1 : o.i),
+        swap: o.swap || null,
+        ansLo: (o.ansLo === undefined ? -1 : o.ansLo),
+        ansHi: (o.ansHi === undefined ? -1 : o.ansHi),
+        msg: o.msg, phase: o.phase, target: target
+      });
+    }
+
+    snap({ lo: 0, hi: n - 1, msg: '目标:第 <b>' + k + '</b> 大 = 升序下标 <b>target = n − k = ' + n + ' − ' + k + ' = ' + target + '</b>。用三路划分把这个下标归位。', phase: 'start' });
+
+    var lo = 0, hi = n - 1;
+    while (true) {
+      if (lo === hi) {
+        snap({ lo: lo, hi: hi, ansLo: lo, ansHi: lo, msg: '区间只剩下标 ' + lo + ' 一个元素 → 它就是答案:第 ' + k + ' 大 = <span class="hl">' + a[lo] + '</span>。', phase: 'found' });
+        break;
+      }
+      var r = lo + Math.floor(Math.random() * (hi - lo + 1));
+      var sw0 = null;
+      if (r !== lo) { var tr = a[lo]; a[lo] = a[r]; a[r] = tr; sw0 = [lo, r]; }
+      var pivot = a[lo];
+      snap({ lo: lo, hi: hi, lt: lo, gt: hi, i: lo + 1, swap: sw0,
+        msg: '区间 [' + lo + ', ' + hi + ']:<span class="op">随机</span>选下标 ' + r + ' 的 <b>' + pivot + '</b> 作基准(换到区间首)。三指针 lt=' + lo + ', i=' + (lo+1) + ', gt=' + hi + '。', phase: 'pivot' });
+
+      var lt = lo, gt = hi, i = lo + 1;
+      while (i <= gt) {
+        if (a[i] < pivot) {
+          var s1 = null; if (i !== lt) { var x = a[lt]; a[lt] = a[i]; a[i] = x; s1 = [lt, i]; }
+          snap({ lo: lo, hi: hi, lt: lt, gt: gt, i: i, swap: s1,
+            msg: 'a[i] = ' + a[lt] + ' &lt; 基准 ' + pivot + ' → 归入<span class="op">小于区</span>' + (s1 ? '(与 lt 交换)' : '') + ',lt、i 同时右移。', phase: 'lt' });
+          lt++; i++;
+        } else if (a[i] > pivot) {
+          var s2 = null; if (i !== gt) { var y = a[i]; a[i] = a[gt]; a[gt] = y; s2 = [i, gt]; }
+          snap({ lo: lo, hi: hi, lt: lt, gt: gt, i: i, swap: s2,
+            msg: 'a[i] = ' + a[gt] + ' &gt; 基准 ' + pivot + ' → 归入<span class="op">大于区</span>' + (s2 ? '(与 gt 交换)' : '') + ',gt 左移;i 不动(换来的值还没看)。', phase: 'gt' });
+          gt--;
+        } else {
+          snap({ lo: lo, hi: hi, lt: lt, gt: gt, i: i,
+            msg: 'a[i] = ' + a[i] + ' = 基准 ' + pivot + ' → 已在<span class="op">等于区</span>,i 右移。', phase: 'eq' });
+          i++;
+        }
+      }
+      snap({ lo: lo, hi: hi, lt: lt, gt: gt, i: i,
+        msg: '分区完成:[' + lo + ', ' + (lt-1) + '] &lt; ' + pivot + ' ｜ [' + lt + ', ' + gt + '] = ' + pivot + '(已归位) ｜ [' + (gt+1) + ', ' + hi + '] &gt; ' + pivot + '。', phase: 'done' });
+
+      if (target < lt) {
+        var oh = hi; hi = lt - 1;
+        snap({ lo: lo, hi: hi, msg: 'target = ' + target + ' &lt; lt = ' + lt + ' → 目标在<span class="op">小于区</span>,舍弃 [' + lt + ', ' + oh + '],继续 [' + lo + ', ' + hi + ']。', phase: 'narrow' });
+      } else if (target > gt) {
+        var ol = lo; lo = gt + 1;
+        snap({ lo: lo, hi: hi, msg: 'target = ' + target + ' &gt; gt = ' + gt + ' → 目标在<span class="op">大于区</span>,舍弃 [' + ol + ', ' + gt + '],继续 [' + lo + ', ' + hi + ']。', phase: 'narrow' });
+      } else {
+        snap({ lo: lo, hi: hi, lt: lt, gt: gt, ansLo: lt, ansHi: gt,
+          msg: 'lt = ' + lt + ' ≤ target = ' + target + ' ≤ gt = ' + gt + ' → 目标就落在<span class="op">等于区</span>!第 ' + k + ' 大 = <span class="hl">' + pivot + '</span>。', phase: 'found' });
+        break;
+      }
+    }
+    return snaps;
+  }
+
+  function load() {
+    errEl.style.display = 'none';
+    var a = parseNums(input.value);
+    var k = parseInt(kInput.value, 10);
+    if (!a.length) { showErr('请输入至少一个数字。'); return; }
+    if (isNaN(k) || k < 1 || k > a.length) { showErr('k 需在 1 到 ' + a.length + ' 之间。'); return; }
+    vals0 = a;
+    kInput.max = a.length;
+    targetInfo.innerHTML = '数组长度 n = <b>' + a.length + '</b>，求第 <b>' + k + '</b> 大 → 升序目标下标 target = n − k = <b>' + (a.length - k) + '</b>。';
+    steps = buildSteps(a, k);
+    stepIdx = 0;
+    renderSkeleton();
+    render();
+  }
+
+  function showErr(m) { errEl.textContent = m; errEl.style.display = 'block'; }
+
+  function renderSkeleton() {
+    arrRow.innerHTML = ''; ptrRow.innerHTML = '';
+    for (var i = 0; i < vals0.length; i++) {
+      var cell = document.createElement('div'); cell.className = 'cell';
+      var idx = document.createElement('div'); idx.className = 'idx'; idx.textContent = i;
+      var box = document.createElement('div'); box.className = 'box unknown'; box.dataset.idx = i;
+      cell.appendChild(idx); cell.appendChild(box); arrRow.appendChild(cell);
+      var pc = document.createElement('div'); pc.className = 'ptr-cell'; pc.dataset.idx = i; ptrRow.appendChild(pc);
+    }
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+    var swapSet = {};
+    if (st.swap) { swapSet[st.swap[0]] = true; swapSet[st.swap[1]] = true; }
+    var hasAns = st.ansLo >= 0;
+    var active = st.lt >= 0;   // 是否处于分区过程/结果
+
+    Array.prototype.forEach.call(arrRow.children, function(cell){
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.textContent = st.vals[idx];
+      box.className = 'box';
+      if (hasAns && idx >= st.ansLo && idx <= st.ansHi) { box.classList.add('answer'); return; }
+      if (swapSet[idx]) { box.classList.add('swap'); return; }
+      if (idx < st.lo || idx > st.hi) { box.classList.add('out'); return; }
+      if (active) {
+        if (idx < st.lt) box.classList.add('less');
+        else if (idx < st.i) box.classList.add('equal');
+        else if (idx <= st.gt) box.classList.add('unknown');
+        else box.classList.add('greater');
+      } else {
+        box.classList.add('unknown');
+      }
+    });
+
+    Array.prototype.forEach.call(ptrRow.children, function(pc){
+      var idx = +pc.dataset.idx;
+      pc.innerHTML = '';
+      if (idx === st.lt) pc.appendChild(mkPtr('lt', 'lt'));
+      if (idx === st.i)  pc.appendChild(mkPtr('i', 'i'));
+      if (idx === st.gt) pc.appendChild(mkPtr('gt', 'gt'));
+    });
+
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = (stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+  }
+
+  function mkPtr(cls, text) {
+    var e = document.createElement('span'); e.className = 'ptr ' + cls; e.textContent = text; return e;
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 800);
+  }
+
+  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = load;
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(); });
+  kInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.dataset.nums; kInput.value = ch.dataset.k; load(); };
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
