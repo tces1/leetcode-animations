@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>121. 买卖股票的最佳时机 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+
+  /* price chart */
+  .chart { position: relative; display:flex; align-items:flex-end; gap:10px; height: 252px; padding: 46px 0 26px; }
+  .bar-wrap { position: relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; }
+  .bar {
+    width: 100%; border-radius:6px 6px 0 0; background:#e5e7eb; position: relative;
+    transition: background .2s, box-shadow .2s;
+  }
+  .bar .bh {
+    position:absolute; bottom:100%; left:0; right:0; text-align:center; margin-bottom:3px;
+    font-family:"SF Mono",Menlo,monospace; font-size:13px; font-weight:700; color:#334155;
+  }
+  .bar.pending  { background:#e5e7eb; }
+  .bar.done     { background:#e0e7ff; }
+  .bar.cur      { background:#6366f1; }
+  .bar.cur .bh  { color:#4f46e5; }
+  .bar.minfloor { background:#fcd34d; }
+  .bar.buy      { background:#86efac; }
+  .bar.sell     { background:#34d399; }
+  .bar.active   { box-shadow:0 0 0 3px #4338ca; }
+  .bar-idx { position:absolute; top:100%; margin-top:6px; font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .mark { position:absolute; top:100%; margin-top:22px; font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; white-space:nowrap; }
+  .mark.buy  { background:#16a34a; color:#fff; }
+  .mark.sell { background:#059669; color:#fff; }
+
+  .min-line { position:absolute; left:0; right:0; height:0; border-top:2px dashed #f59e0b; pointer-events:none; }
+  .min-line .ml-lab {
+    position:absolute; right:0; bottom:2px; background:#f59e0b; color:#fff; font-size:11px; font-weight:700;
+    padding:1px 6px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
+  }
+  .profit-band {
+    position:absolute; background:rgba(16,185,129,.16); border:2px solid #10b981; border-bottom:none;
+    pointer-events:none; display:flex; align-items:center; justify-content:center;
+  }
+  .profit-band .pb-lab {
+    background:#059669; color:#fff; font-size:11px; font-weight:700; padding:1px 6px;
+    border-radius:5px; font-family:"SF Mono",Menlo,monospace;
+  }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:14px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; } .vars small { color:#9ca3af; }
+  .vars .flash { animation: flash .5s ease; }
+  @keyframes flash { 0%{color:#059669;transform:scale(1);} 40%{transform:scale(1.25);} 100%{transform:scale(1);} }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/" target="_blank" rel="noopener">LeetCode 121</a></span>
+  </div>
+
+  <h1>121. 买卖股票的最佳时机 · 一次遍历动画</h1>
+  <div class="sub">只能买一次、之后卖一次。边扫边记住<b>「到目前为止的最低价」</b>当买入点，每天都试着<b>「今天卖出」</b>：利润 = 今天价格 − 最低买入价，取全程最大值。时间 O(n)、空间 O(1)。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="7,1,5,3,6,4" spellcheck="false" placeholder="输入每天股价,逗号分隔">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">7,1,5,3,6,4</span>
+      <span class="chip">7,6,4,3,1</span>
+      <span class="chip">1,2,3,4,5</span>
+      <span class="chip">2,4,1,7</span>
+      <span class="chip">3,3,5,0,0,3,1,4</span>
+      <span class="chip">2,1,2,1,0,1,2</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前天 i</span>
+      <span><span class="dot" style="background:#fcd34d"></span>最低买入价(买入线)</span>
+      <span><span class="dot" style="background:#86efac"></span>最优买入日</span>
+      <span><span class="dot" style="background:#34d399"></span>最优卖出日</span>
+      <span><span class="dot" style="background:#10b981"></span>今日卖出利润</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">股价（横轴为第几天，柱高为价格）</div>
+    <div class="chart" id="chart"></div>
+    <div class="vars">
+      <span>最低买入价 minPrice = <b id="minP">—</b><small id="minD"></small></span>
+      <span>最大利润 maxProfit = <b id="maxP">0</b></span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 一次遍历 · 时间 O(n)、空间 O(1)
+class Solution {
+    public int maxProfit(int[] prices) {
+        int minPrice = Integer.MAX_VALUE, maxProfit = 0;
+        for (int p : prices) {
+            maxProfit = Math.max(maxProfit, p - minPrice); <span class="cmt">// 今天卖出能赚多少</span>
+            minPrice = Math.min(minPrice, p);              <span class="cmt">// 刷新最低买入价</span>
+        }
+        return maxProfit;
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python</span>
+class Solution:
+    def maxProfit(self, prices: List[int]) -&gt; int:
+        min_price = float('inf')
+        max_profit = 0
+        for p in prices:
+            max_profit = max(max_profit, p - min_price)  <span class="cmt"># 今天卖出能赚多少</span>
+            min_price = min(min_price, p)                <span class="cmt"># 刷新最低买入价</span>
+        return max_profit</code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var chartEl = document.getElementById('chart');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var minPEl = document.getElementById('minP');
+  var minDEl = document.getElementById('minD');
+  var maxPEl = document.getElementById('maxP');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+
+  var BAR_W = 46, GAP = 10, CHART_H = 180, BASE = 26;
+
+  var prices = [];
+  var maxPrice = 1;
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+  var minLineEl = null, bandEl = null;
+
+  function parseInput(s) {
+    return s.split(/[,\s]+/).map(function(x){ return x.trim(); })
+            .filter(function(x){ return x.length; })
+            .map(Number)
+            .filter(function(x){ return !isNaN(x) && x >= 0; });
+  }
+
+  function priceToPx(p) { return Math.max(Math.round(p / maxPrice * CHART_H), p === 0 ? 2 : 5); }
+
+  function buildSteps(a) {
+    var snaps = [];
+    var n = a.length;
+    var minPrice = a[0], minDay = 0;
+    var maxProfit = 0, bestBuy = -1, bestSell = -1;
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        processed: o.processed,
+        minPrice: minPrice, minDay: minDay,
+        maxProfit: maxProfit, bestBuy: bestBuy, bestSell: bestSell,
+        candProfit: (o.candProfit === undefined ? null : o.candProfit),
+        candSell: (o.candSell === undefined ? -1 : o.candSell),
+        newBest: !!o.newBest,
+        phase: o.phase, msg: o.msg
+      });
+    }
+
+    snap({ i: 0, processed: 1, phase: 'firstbuy',
+      msg: '第 <b>0</b> 天价格 <b>' + a[0] + '</b>。前面没有更早的日子可买，先把它当作当前<span class="op">最低买入价</span>(买入线⬇)。什么都不做时利润为 0。' });
+
+    for (var i = 1; i < n; i++) {
+      var p = a[i];
+      var cand = p - minPrice;
+      var prevMax = maxProfit;
+      var isNew = cand > maxProfit;
+      if (isNew) { maxProfit = cand; bestBuy = minDay; bestSell = i; }
+
+      var msg;
+      if (isNew) {
+        msg = '假设第 <b>' + minDay + '</b> 天买入(' + minPrice + ')、<b>今天(第 ' + i + ' 天)</b>卖出(' + p + ') → 利润 = ' + p + ' − ' + minPrice + ' = <span class="area">' + cand + '</span>，<span class="op">刷新最大利润!</span>（原来是 ' + prevMax + '）';
+      } else if (cand > 0) {
+        msg = '今天卖出利润 = ' + p + ' − ' + minPrice + ' = <b>' + cand + '</b>，没超过当前最大利润 <span class="area">' + maxProfit + '</span>，保持不变。';
+      } else {
+        msg = '今天价格 ' + p + ' ≤ 最低买入价 ' + minPrice + '，此刻卖出不赚钱(利润 ' + cand + ')，跳过。不过它可能成为更好的买入点 →';
+      }
+      snap({ i: i, processed: i, phase: 'check', candProfit: cand, candSell: i, newBest: isNew, msg: msg });
+
+      if (p < minPrice) {
+        var oldMin = minPrice;
+        minPrice = p; minDay = i;
+        snap({ i: i, processed: i + 1, phase: 'newmin',
+          msg: '第 ' + i + ' 天价格 ' + p + ' 比最低买入价 ' + oldMin + ' 还低 → <span class="op">更新买入线</span>到第 ' + i + ' 天。以后从这个更低点买更划算。' });
+      } else {
+        snap({ i: i, processed: i + 1, phase: 'keepmin',
+          msg: '第 ' + i + ' 天价格 ' + p + ' 不低于最低买入价 ' + minPrice + '(第 ' + minDay + ' 天) → 买入线不变。' });
+      }
+    }
+
+    snap({ i: -1, processed: n, phase: 'done',
+      msg: maxProfit > 0
+        ? '遍历结束 ✅ 最优方案：第 <b>' + bestBuy + '</b> 天买入(' + a[bestBuy] + ') → 第 <b>' + bestSell + '</b> 天卖出(' + a[bestSell] + ')，最大利润 = <span class="area">' + maxProfit + '</span>。'
+        : '遍历结束 ✅ 价格没有出现「先低后高」的机会，最大利润 = <span class="area">0</span>（选择不交易）。' });
+    return snaps;
+  }
+
+  function renderChart() {
+    chartEl.innerHTML = '';
+    for (var i = 0; i < prices.length; i++) {
+      var w = document.createElement('div'); w.className = 'bar-wrap'; w.style.width = BAR_W + 'px'; w.dataset.idx = i;
+      var bar = document.createElement('div'); bar.className = 'bar'; bar.style.height = priceToPx(prices[i]) + 'px';
+      var bh = document.createElement('div'); bh.className = 'bh'; bh.textContent = prices[i]; bar.appendChild(bh);
+      var idx = document.createElement('div'); idx.className = 'bar-idx'; idx.textContent = i;
+      var mark = document.createElement('div'); mark.className = 'mark'; mark.style.display = 'none';
+      w.appendChild(bar); w.appendChild(idx); w.appendChild(mark);
+      chartEl.appendChild(w);
+    }
+    var ml = document.createElement('div'); ml.className = 'min-line'; ml.style.display = 'none';
+    var mll = document.createElement('div'); mll.className = 'ml-lab'; ml.appendChild(mll);
+    chartEl.appendChild(ml); minLineEl = ml;
+
+    var band = document.createElement('div'); band.className = 'profit-band'; band.style.display = 'none';
+    var pbl = document.createElement('div'); pbl.className = 'pb-lab'; band.appendChild(pbl);
+    chartEl.appendChild(band); bandEl = band;
+  }
+
+  function load(s) {
+    var a = parseInput(s);
+    if (!a.length) return;
+    prices = a;
+    maxPrice = Math.max.apply(null, a.concat([1]));
+    steps = buildSteps(a);
+    stepIdx = 0;
+    renderChart();
+    render();
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+
+    Array.prototype.forEach.call(chartEl.querySelectorAll('.bar-wrap'), function(w){
+      var idx = +w.dataset.idx;
+      var bar = w.querySelector('.bar');
+      bar.className = 'bar';
+      if (idx === st.bestBuy) bar.classList.add('buy');
+      else if (idx === st.bestSell) bar.classList.add('sell');
+      else if (idx === st.minDay) bar.classList.add('minfloor');
+      else if (idx === st.i) bar.classList.add('cur');
+      else if (idx < st.processed) bar.classList.add('done');
+      else bar.classList.add('pending');
+      if (idx === st.i) bar.classList.add('active');
+
+      var mark = w.querySelector('.mark');
+      if (idx === st.bestBuy) { mark.textContent = '买 ' + prices[idx]; mark.className = 'mark buy'; mark.style.display = ''; }
+      else if (idx === st.bestSell) { mark.textContent = '卖 ' + prices[idx]; mark.className = 'mark sell'; mark.style.display = ''; }
+      else { mark.style.display = 'none'; }
+    });
+
+    if (st.minDay >= 0) {
+      minLineEl.style.display = '';
+      minLineEl.style.bottom = (BASE + priceToPx(st.minPrice)) + 'px';
+      minLineEl.querySelector('.ml-lab').textContent = '买入价 ' + st.minPrice;
+    } else { minLineEl.style.display = 'none'; }
+
+    if (st.phase === 'check' && st.candProfit != null && st.candProfit > 0) {
+      var lb = st.candSell;
+      var b0 = priceToPx(st.minPrice), b1 = priceToPx(prices[lb]);
+      bandEl.style.display = 'flex';
+      bandEl.style.left = (lb * (BAR_W + GAP)) + 'px';
+      bandEl.style.width = BAR_W + 'px';
+      bandEl.style.bottom = (BASE + b0) + 'px';
+      bandEl.style.height = Math.max(b1 - b0, 2) + 'px';
+      bandEl.querySelector('.pb-lab').textContent = '+' + st.candProfit;
+    } else { bandEl.style.display = 'none'; }
+
+    minPEl.textContent = st.minPrice;
+    minDEl.textContent = ' (第 ' + st.minDay + ' 天)';
+    maxPEl.textContent = st.maxProfit;
+    maxPEl.className = st.newBest ? 'flash' : '';
+
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 900);
+  }
+
+  nextBtn.onclick = function(){ stopPlay(); next(); };
+  prevBtn.onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
