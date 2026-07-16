@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>763. 划分字母区间 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; } .sub code { background:#eef0f4; padding:1px 5px; border-radius:4px; font-size:12px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+
+  /* string cells */
+  .board { position: relative; padding: 40px 0 30px; }
+  .cells { display:flex; gap:6px; flex-wrap:wrap; }
+  .cell-wrap { position: relative; display:flex; flex-direction:column; align-items:center; }
+  .cell {
+    width: 42px; height: 42px; border-radius: 9px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:19px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb; transition: background .18s, border-color .18s, box-shadow .18s, transform .18s;
+  }
+  .cell.window   { background:#dcfce7; border-color:#86efac; color:#166534; }   /* 当前区间已扫过的部分 */
+  .cell.cur      { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 3px rgba(99,102,241,.25); transform:translateY(-3px); }
+  .cell.samechar { background:#fcd34d; border-color:#f59e0b; color:#713f12; }   /* 与当前字符相同、决定 end 的位置 */
+  .cell.done     { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }   /* 已切走的区间 */
+  .cell-idx { margin-top:6px; font-size:10px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .cell-last {
+    position:absolute; bottom:100%; margin-bottom:5px; left:50%; transform:translateX(-50%);
+    font-size:9px; font-weight:700; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
+  }
+  .cell.cur .cell-last, .cell.samechar .cell-last { color:#b45309; }
+
+  /* end boundary line — 当前区间必须延伸到的右边界 */
+  .end-line {
+    position:absolute; top:26px; bottom:22px; width:0; border-left:3px solid #f59e0b; pointer-events:none;
+    transition: left .2s ease; display:none;
+  }
+  .end-line .el-lab {
+    position:absolute; top:-20px; left:3px; background:#f59e0b; color:#fff; font-size:11px; font-weight:700;
+    padding:2px 7px; border-radius:6px; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
+  }
+
+  /* last-occurrence table */
+  .lasttab { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+  .lt-item {
+    display:flex; flex-direction:column; align-items:center; font-family:"SF Mono",Menlo,monospace;
+    border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; min-width:34px;
+  }
+  .lt-item .lt-c { background:#f1f2f4; color:#374151; font-weight:700; font-size:14px; padding:2px 8px; width:100%; text-align:center; }
+  .lt-item .lt-v { color:#6b7280; font-size:12px; padding:2px 8px; }
+  .lt-item.hot .lt-c { background:#fcd34d; color:#713f12; }
+  .lt-item.hot .lt-v { color:#b45309; font-weight:700; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; } .vars small { color:#9ca3af; }
+  .vars .flash { animation: flash .5s ease; }
+  @keyframes flash { 0%{color:#b45309;transform:scale(1);} 40%{transform:scale(1.25);} 100%{transform:scale(1);} }
+
+  .parts { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; min-height:20px; }
+  .part-chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:14px; font-weight:700; padding:5px 11px; border-radius:8px;
+    background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe;
+  }
+  .part-chip small { color:#6366f1; font-weight:600; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; } .status .cnt { color:#a5b4fc; font-weight:700; }
+  .verdict { margin-top:14px; font-size:16px; font-weight:700; display:none; color:#059669; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/partition-labels/" target="_blank" rel="noopener">LeetCode 763</a></span>
+  </div>
+
+  <h1>763. 划分字母区间 · 贪心边界动画</h1>
+  <div class="sub">把字符串切成尽量多的片段，<b>同一个字母只能出现在一个片段里</b>。先记下每个字母<b>最后出现的下标</b>；再从左扫描，用 <code>end</code> 记录「当前片段必须延伸到的最右位置」（取片段内所有字母 last 的最大值），一旦 <b>i == end</b> 就地切一刀。时间 O(n)、空间 O(1)（字符集 ≤ 26）。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="ababcbacadefegdehijhklij" spellcheck="false" placeholder="输入小写字母字符串">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">ababcbacadefegdehijhklij</span>
+      <span class="chip">eccbbbbdec</span>
+      <span class="chip">abcabc</span>
+      <span class="chip">abcdef</span>
+      <span class="chip">aaaa</span>
+      <span class="chip">caedbdedda</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前字符 i</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>当前片段</span>
+      <span><span class="dot" style="background:#fcd34d"></span>决定 end 的字母 last</span>
+      <span><span class="dot" style="background:#f59e0b"></span>片段右边界 end</span>
+      <span><span class="dot" style="background:#e0e7ff;border:1px solid #c7d2fe"></span>已切出的片段</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">字符串（格子上方小字是该字母最后出现的下标）</div>
+    <div class="board">
+      <div class="cells" id="cells"></div>
+      <div class="end-line" id="endLine"><span class="el-lab" id="endLab"></span></div>
+    </div>
+    <div class="vars">
+      <span>当前位置 i = <b id="curI">—</b></span>
+      <span>片段起点 start = <b id="startV">0</b></span>
+      <span>片段右边界 end = <b id="endV">0</b></span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">每个字母最后出现的下标 last[]</div>
+    <div class="lasttab" id="lasttab"></div>
+
+    <div class="panel-title" style="margin-top:18px;">已切出的片段长度</div>
+    <div class="parts" id="parts"></div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 贪心 · 时间 O(n)、空间 O(1)
+class Solution {
+    public List&lt;Integer&gt; partitionLabels(String s) {
+        int[] last = new int[26];
+        for (int i = 0; i &lt; s.length(); i++)          <span class="cmt">// 记录每个字母最后出现的下标</span>
+            last[s.charAt(i) - 'a'] = i;
+        List&lt;Integer&gt; res = new ArrayList&lt;&gt;();
+        int start = 0, end = 0;
+        for (int i = 0; i &lt; s.length(); i++) {
+            end = Math.max(end, last[s.charAt(i) - 'a']); <span class="cmt">// 片段必须延伸到这里</span>
+            if (i == end) {                            <span class="cmt">// 片段内所有字母都收尾了 → 切一刀</span>
+                res.add(end - start + 1);
+                start = i + 1;
+            }
+        }
+        return res;
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python</span>
+class Solution:
+    def partitionLabels(self, s: str) -&gt; List[int]:
+        last = {c: i for i, c in enumerate(s)}   <span class="cmt"># 每个字母最后出现的下标</span>
+        res = []
+        start = end = 0
+        for i, c in enumerate(s):
+            end = max(end, last[c])              <span class="cmt"># 片段必须延伸到这里</span>
+            if i == end:                         <span class="cmt"># 收尾 → 切一刀</span>
+                res.append(end - start + 1)
+                start = i + 1
+        return res</code></pre>
+    </details>
+  </div>
+</div>
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var cellsEl = document.getElementById('cells');
+  var endLineEl = document.getElementById('endLine');
+  var endLabEl = document.getElementById('endLab');
+  var lasttabEl = document.getElementById('lasttab');
+  var partsEl = document.getElementById('parts');
+  var statusEl = document.getElementById('status');
+  var verdictEl = document.getElementById('verdict');
+  var progressEl = document.getElementById('progress');
+  var curIEl = document.getElementById('curI');
+  var startVEl = document.getElementById('startV');
+  var endVEl = document.getElementById('endV');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+
+  var CELL_W = 42, GAP = 6;
+
+  var s = '';
+  var last = {};
+  var order = [];        // 字母首次出现顺序，用于 last 表展示
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function parseInput(str) {
+    return (str || '').toLowerCase().replace(/[^a-z]/g, '');
+  }
+
+  function buildSteps(str) {
+    var snaps = [];
+    var n = str.length;
+    last = {}; order = [];
+    for (var k = 0; k < n; k++) {
+      var c = str[k];
+      if (!(c in last)) order.push(c);
+      last[c] = k;
+    }
+
+    var parts = [];        // 已切出的片段 [start,end]
+    var start = 0, end = 0;
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        start: start, end: end,
+        hotChar: (o.hotChar === undefined ? null : o.hotChar),
+        newEnd: !!o.newEnd,
+        cut: !!o.cut,
+        parts: parts.map(function(p){ return { s: p.s, e: p.e }; }),
+        result: (o.result === undefined ? null : o.result),
+        phase: o.phase, msg: o.msg
+      });
+    }
+
+    var lastList = order.map(function(c){ return c + '→' + last[c]; }).join(', ');
+    snap({ i: -1, phase: 'init',
+      msg: '第一遍先扫出每个字母<span class="op">最后出现的下标</span>：' + lastList + '。接下来从左往右扫，用 <b>end</b> 记录当前片段必须延伸到的最右位置。' });
+
+    for (var i = 0; i < n; i++) {
+      var ch = str[i];
+      var li = last[ch];
+      var prevEnd = end;
+      var isNew = li > end;
+      if (li > end) end = li;
+
+      var msg;
+      if (i === start) {
+        msg = '开一个新片段，起点 start = <b>' + i + '</b>。字符 <b>' + ch + '</b> 最后出现在下标 <span class="area">' + li + '</span> → end = ' + end + '。片段至少要延伸到这里。';
+      } else if (isNew) {
+        msg = '第 <b>' + i + '</b> 位是 <b>' + ch + '</b>，它最后出现在下标 <span class="area">' + li + '</span> &gt; 原 end ' + prevEnd + ' → <span class="op">把 end 扩到 ' + end + '</span>（这个片段必须把 ' + ch + ' 的最后一次也包进来）。';
+      } else {
+        msg = '第 <b>' + i + '</b> 位是 <b>' + ch + '</b>，它最后出现在下标 <b>' + li + '</b> ≤ 当前 end <span class="area">' + end + '</span> → end 不变，继续往右走。';
+      }
+      snap({ i: i, phase: 'scan', hotChar: ch, newEnd: (isNew && i !== start), msg: msg });
+
+      if (i === end) {
+        parts.push({ s: start, e: end });
+        var len = end - start + 1;
+        var m2 = '走到了 <b>i = end = ' + end + '</b> —— 片段 [' + start + '..' + end + '] 里所有字母的最后一次出现都在这里面了，<span class="op">切一刀！</span>片段 "' + str.slice(start, end + 1) + '" 长度 = <span class="cnt">' + len + '</span>。';
+        var finished = (i === n - 1);
+        snap({ i: i, phase: 'cut', cut: true, hotChar: ch,
+          result: finished ? parts.map(function(p){ return p.e - p.s + 1; }) : null, msg: m2 });
+        start = i + 1;
+      }
+    }
+
+    var lens = parts.map(function(p){ return p.e - p.s + 1; });
+    snap({ i: -1, phase: 'done', result: lens,
+      msg: '✅ 扫描结束，共切出 <span class="cnt">' + parts.length + '</span> 个片段，长度依次为 [' + lens.join(', ') + ']。' });
+    return snaps;
+  }
+
+  function renderCells() {
+    cellsEl.innerHTML = '';
+    for (var i = 0; i < s.length; i++) {
+      var w = document.createElement('div'); w.className = 'cell-wrap'; w.dataset.idx = i;
+      var lab = document.createElement('div'); lab.className = 'cell-last'; lab.textContent = last[s[i]];
+      var cell = document.createElement('div'); cell.className = 'cell'; cell.textContent = s[i];
+      cell.appendChild(lab);
+      var idx = document.createElement('div'); idx.className = 'cell-idx'; idx.textContent = i;
+      w.appendChild(cell); w.appendChild(idx);
+      cellsEl.appendChild(w);
+    }
+  }
+
+  function renderLastTab(st) {
+    lasttabEl.innerHTML = '';
+    order.forEach(function(c){
+      var it = document.createElement('div'); it.className = 'lt-item';
+      if (st.hotChar === c) it.className = 'lt-item hot';
+      var cc = document.createElement('div'); cc.className = 'lt-c'; cc.textContent = c;
+      var vv = document.createElement('div'); vv.className = 'lt-v'; vv.textContent = last[c];
+      it.appendChild(cc); it.appendChild(vv);
+      lasttabEl.appendChild(it);
+    });
+  }
+
+  function cellLeft(idx) { return idx * (CELL_W + GAP); }
+
+  function render() {
+    var st = steps[stepIdx];
+    var n = s.length;
+
+    Array.prototype.forEach.call(cellsEl.querySelectorAll('.cell-wrap'), function(w){
+      var idx = +w.dataset.idx;
+      var cell = w.querySelector('.cell');
+      // 只重置状态类，保留 .cell 上的 last 标注子元素
+      cell.className = 'cell';
+
+      var inDonePart = st.parts.some(function(p){ return idx >= p.s && idx <= p.e; });
+      var inCurWindow = (idx >= st.start && idx <= st.i && st.i >= 0);
+
+      if (idx === st.i && st.i >= 0) {
+        cell.classList.add('cur');
+      } else if (inDonePart) {
+        cell.classList.add('done');
+      } else if (st.hotChar && s[idx] === st.hotChar && idx === st.end && idx > st.start) {
+        cell.classList.add('samechar');
+      } else if (inCurWindow) {
+        cell.classList.add('window');
+      }
+    });
+
+    // end boundary line
+    if (n) {
+      var e = Math.min(st.end, n - 1);
+      endLineEl.style.display = '';
+      endLineEl.style.left = (cellLeft(e) + CELL_W) + 'px';
+      endLabEl.textContent = 'end ' + st.end;
+    } else {
+      endLineEl.style.display = 'none';
+    }
+
+    renderLastTab(st);
+
+    // parts chips
+    partsEl.innerHTML = '';
+    st.parts.forEach(function(p, k){
+      var chip = document.createElement('div'); chip.className = 'part-chip';
+      chip.innerHTML = '"' + s.slice(p.s, p.e + 1) + '" <small>(' + (p.e - p.s + 1) + ')</small>';
+      partsEl.appendChild(chip);
+    });
+
+    curIEl.textContent = st.i >= 0 ? st.i : '—';
+    startVEl.textContent = st.start;
+    endVEl.textContent = st.end;
+    endVEl.className = st.newEnd ? 'flash' : '';
+
+    statusEl.innerHTML = st.msg;
+
+    if (st.phase === 'done' && st.result) {
+      verdictEl.style.display = '';
+      verdictEl.textContent = '✅ partitionLabels = [' + st.result.join(', ') + ']';
+    } else {
+      verdictEl.style.display = 'none';
+    }
+
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(str) {
+    var a = parseInput(str);
+    if (!a.length) return;
+    if (a.length > 40) a = a.slice(0, 40);
+    s = a;
+    steps = buildSteps(a);
+    stepIdx = 0;
+    renderCells();
+    render();
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 800);
+  }
+
+  nextBtn.onclick = function(){ stopPlay(); next(); };
+  prevBtn.onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>

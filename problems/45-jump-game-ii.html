@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>45. 跳跃游戏 II — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+
+  /* array cells */
+  .board { position: relative; padding: 54px 0 46px; }
+  .cells { display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; }
+  .cell-wrap { position: relative; flex: 0 0 auto; display:flex; flex-direction:column; align-items:center; }
+  .cell {
+    width: 52px; height: 52px; border-radius: 10px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:19px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb; transition: background .18s, border-color .18s, box-shadow .18s, transform .18s;
+  }
+  .cell.window   { background:#dcfce7; border-color:#86efac; color:#166534; }   /* 当前这一跳的落点窗口 [i..curEnd] */
+  .cell.settled  { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }   /* 更早的跳已经覆盖过 */
+  .cell.cur      { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 3px rgba(99,102,241,.25); transform:translateY(-3px); }
+  .cell.best     { background:#fcd34d; border-color:#f59e0b; color:#713f12; }   /* 本轮里带来最远 farthest 的落点 */
+  .cell.goal     { background:#34d399; border-color:#059669; color:#053b26; }
+  .cell.goalcur  { background:#059669; border-color:#065f46; color:#fff; box-shadow:0 0 0 3px rgba(5,150,105,.3); transform:translateY(-3px); }
+  .cell-idx { margin-top:8px; font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .cell-tag {
+    position:absolute; bottom:100%; margin-bottom:8px; left:50%; transform:translateX(-50%);
+    font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap; display:none;
+  }
+  .cell-tag.start { background:#6366f1; color:#fff; }
+  .cell-tag.end   { background:#059669; color:#fff; }
+
+  /* curEnd boundary line — 当前这一跳最远能落到的边界 */
+  .end-line {
+    position:absolute; top:40px; bottom:38px; width:0; border-left:3px solid #16a34a; pointer-events:none;
+    transition: left .25s ease; display:none;
+  }
+  .end-line .el-lab {
+    position:absolute; top:-22px; left:3px; background:#16a34a; color:#fff; font-size:11px; font-weight:700;
+    padding:2px 7px; border-radius:6px; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
+  }
+  /* farthest frontier — 下一跳能达到的最远处（虚线） */
+  .far-line {
+    position:absolute; top:40px; bottom:38px; width:0; border-left:3px dashed #f59e0b; pointer-events:none;
+    transition: left .25s ease; display:none;
+  }
+  .far-line .fl-lab {
+    position:absolute; top:-42px; left:3px; background:#f59e0b; color:#fff; font-size:11px; font-weight:700;
+    padding:2px 7px; border-radius:6px; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
+  }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; } .vars small { color:#9ca3af; }
+  .vars .flash { animation: flash .5s ease; }
+  @keyframes flash { 0%{color:#b45309;transform:scale(1);} 40%{transform:scale(1.25);} 100%{transform:scale(1);} }
+  .jbadge { display:inline-block; min-width:20px; text-align:center; background:#6366f1; color:#fff; font-weight:700; padding:0 7px; border-radius:999px; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; } .status .cnt { color:#a5b4fc; font-weight:700; }
+  .verdict { margin-top:14px; font-size:16px; font-weight:700; display:none; color:#059669; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/jump-game-ii/" target="_blank" rel="noopener">LeetCode 45</a></span>
+  </div>
+
+  <h1>45. 跳跃游戏 II · 贪心分层动画</h1>
+  <div class="sub">保证能到终点，求<b>最少跳几次</b>。把每一跳看成一个「层」：在当前跳能落到的窗口 <b>[i .. curEnd]</b> 内边走边记录下一跳最远能到哪（<b>farthest</b>）；一旦走到窗口边界 curEnd，就必须再跳一次，并把边界推到 farthest。时间 O(n)、空间 O(1)。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="2,3,1,1,4" spellcheck="false" placeholder="输入非负整数数组,逗号分隔(保证可达终点)">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">2,3,1,1,4</span>
+      <span class="chip">2,3,0,1,4</span>
+      <span class="chip">1,2,3</span>
+      <span class="chip">1,1,1,1</span>
+      <span class="chip">5,1,1,1,1</span>
+      <span class="chip">3,4,3,2,5,4,3</span>
+      <span class="chip">0</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前位置 i</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>本跳窗口 [i..curEnd]</span>
+      <span><span class="dot" style="background:#16a34a"></span>窗口边界 curEnd</span>
+      <span><span class="dot" style="background:#f59e0b"></span>下一跳最远 farthest</span>
+      <span><span class="dot" style="background:#34d399"></span>终点</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">数组（格子里是该位置能跳的最大步数）</div>
+    <div class="board">
+      <div class="cells" id="cells"></div>
+      <div class="far-line" id="farLine"><span class="fl-lab" id="farLab"></span></div>
+      <div class="end-line" id="endLine"><span class="el-lab" id="endLab"></span></div>
+    </div>
+    <div class="vars">
+      <span>当前位置 i = <b id="curI">—</b></span>
+      <span>本跳边界 curEnd = <b id="curEnd">0</b></span>
+      <span>下一跳最远 farthest = <b id="far">0</b></span>
+      <span>已跳次数 jumps = <span class="jbadge" id="jumps">0</span></span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 贪心分层(隐式 BFS) · 时间 O(n)、空间 O(1)
+class Solution {
+    public int jump(int[] nums) {
+        int jumps = 0, curEnd = 0, farthest = 0;
+        for (int i = 0; i &lt; nums.length - 1; i++) {   <span class="cmt">// 注意到 n-2 即可</span>
+            farthest = Math.max(farthest, i + nums[i]); <span class="cmt">// 本跳窗口内，下一跳最远能到哪</span>
+            if (i == curEnd) {                          <span class="cmt">// 走到当前窗口边界，必须再跳一次</span>
+                jumps++;
+                curEnd = farthest;                      <span class="cmt">// 边界推进到下一层</span>
+            }
+        }
+        return jumps;
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python</span>
+class Solution:
+    def jump(self, nums: List[int]) -&gt; int:
+        n = len(nums)
+        jumps = cur_end = farthest = 0
+        for i in range(n - 1):                    <span class="cmt"># 到 n-2 即可</span>
+            farthest = max(farthest, i + nums[i]) <span class="cmt"># 下一跳最远能到哪</span>
+            if i == cur_end:                      <span class="cmt"># 走到窗口边界，必须再跳</span>
+                cur_end = farthest                <span class="cmt"># 边界推进到下一层</span>
+                jumps += 1
+        return jumps</code></pre>
+    </details>
+  </div>
+</div>
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var cellsEl = document.getElementById('cells');
+  var endLineEl = document.getElementById('endLine');
+  var endLabEl = document.getElementById('endLab');
+  var farLineEl = document.getElementById('farLine');
+  var farLabEl = document.getElementById('farLab');
+  var statusEl = document.getElementById('status');
+  var verdictEl = document.getElementById('verdict');
+  var progressEl = document.getElementById('progress');
+  var curIEl = document.getElementById('curI');
+  var curEndEl = document.getElementById('curEnd');
+  var farEl = document.getElementById('far');
+  var jumpsEl = document.getElementById('jumps');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+
+  var CELL_W = 52, GAP = 8;
+
+  var nums = [];
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function parseInput(s) {
+    return s.split(/[,\s]+/).map(function(x){ return x.trim(); })
+            .filter(function(x){ return x.length; })
+            .map(Number)
+            .filter(function(x){ return !isNaN(x) && x >= 0 && x === Math.floor(x); });
+  }
+
+  function buildSteps(a) {
+    var snaps = [];
+    var n = a.length;
+    var jumps = 0, curEnd = 0, farthest = 0, farFrom = 0;
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        jumps: jumps, curEnd: curEnd, farthest: farthest, farFrom: farFrom,
+        winStart: (o.winStart === undefined ? 0 : o.winStart),
+        newFar: !!o.newFar,
+        jumped: !!o.jumped,
+        result: (o.result === undefined ? null : o.result),
+        phase: o.phase, msg: o.msg
+      });
+    }
+
+    if (n <= 1) {
+      snap({ i: -1, phase: 'done', result: 0,
+        msg: '数组只有 <b>' + n + '</b> 个元素，起点即终点，<span class="op">无需跳跃</span>。返回 <span class="cnt">0</span>。' });
+      return snaps;
+    }
+
+    // 起始
+    snap({ i: -1, phase: 'init', winStart: 0,
+      msg: '起点在下标 <b>0</b>。<span class="cnt">jumps=0</span>，本跳窗口边界 <b>curEnd=0</b>（只站得到起点），下一跳最远 <b>farthest=0</b>。终点是下标 <b>' + (n - 1) + '</b>。' });
+
+    var winStart = 0;
+    // 只需遍历到 n-2：走到 n-1 时已到终点，无需再决定跳跃
+    for (var i = 0; i < n - 1; i++) {
+      var cand = i + a[i];
+      var isNew = cand > farthest;
+      var prevFar = farthest;
+      if (isNew) { farthest = cand; farFrom = i; }
+
+      var msg;
+      if (isNew) {
+        msg = '在下标 <b>' + i + '</b>（本跳窗口 [' + winStart + '..' + curEnd + '] 内）：从这里能跳到 ' + i + ' + ' + a[i] + ' = <span class="area">' + cand + '</span> &gt; 原 farthest ' + prevFar + ' → <span class="op">刷新 farthest = ' + farthest + '</span>（下一跳的候选落点更远了）。';
+      } else {
+        msg = '在下标 <b>' + i + '</b>（本跳窗口 [' + winStart + '..' + curEnd + '] 内）：从这里最远到 ' + i + ' + ' + a[i] + ' = <b>' + cand + '</b>，没超过 farthest <span class="area">' + farthest + '</span>，不更新。';
+      }
+      snap({ i: i, phase: 'scan', winStart: winStart, newFar: isNew, msg: msg });
+
+      if (i === curEnd) {
+        jumps++;
+        var oldEnd = curEnd;
+        curEnd = farthest;
+        var reachEnd = curEnd >= n - 1;
+        var m2 = '走到了窗口右边界 <b>i = curEnd = ' + oldEnd + '</b> → 本跳窗口已扫完，<span class="op">必须再跳一次</span>：<span class="cnt">jumps = ' + jumps + '</span>，把边界推进到 farthest → <b>curEnd = ' + curEnd + '</b>。';
+        if (reachEnd) {
+          m2 += ' 新边界已 <span class="op">覆盖终点 ' + (n - 1) + '</span>，可以收尾。';
+        }
+        snap({ i: i, phase: 'jump', jumped: true, winStart: oldEnd + 1, result: (reachEnd ? jumps : null), msg: m2 });
+        winStart = oldEnd + 1;
+        if (reachEnd) {
+          snap({ i: -1, phase: 'done', result: jumps,
+            msg: '✅ curEnd = <span class="area">' + curEnd + '</span> ≥ 终点 ' + (n - 1) + '，到达终点。最少跳跃次数 = <span class="cnt">' + jumps + '</span>。' });
+          return snaps;
+        }
+      }
+    }
+
+    // 理论上到 n-2 处一定已经收尾；兜底
+    snap({ i: -1, phase: 'done', result: jumps,
+      msg: '✅ 遍历结束，到达终点。最少跳跃次数 = <span class="cnt">' + jumps + '</span>。' });
+    return snaps;
+  }
+
+  function renderCells() {
+    cellsEl.innerHTML = '';
+    for (var i = 0; i < nums.length; i++) {
+      var w = document.createElement('div'); w.className = 'cell-wrap'; w.dataset.idx = i;
+      var tag = document.createElement('div'); tag.className = 'cell-tag';
+      if (i === 0) { tag.className = 'cell-tag start'; tag.textContent = '起点'; tag.style.display = ''; }
+      if (i === nums.length - 1) { tag.className = 'cell-tag end'; tag.textContent = '终点'; tag.style.display = ''; }
+      var cell = document.createElement('div'); cell.className = 'cell'; cell.textContent = nums[i];
+      var idx = document.createElement('div'); idx.className = 'cell-idx'; idx.textContent = i;
+      w.appendChild(tag); w.appendChild(cell); w.appendChild(idx);
+      cellsEl.appendChild(w);
+    }
+  }
+
+  function cellLeft(idx) { return idx * (CELL_W + GAP); }
+
+  function render() {
+    var st = steps[stepIdx];
+    var n = nums.length;
+    var last = n - 1;
+
+    Array.prototype.forEach.call(cellsEl.querySelectorAll('.cell-wrap'), function(w){
+      var idx = +w.dataset.idx;
+      var cell = w.querySelector('.cell');
+      cell.className = 'cell';
+
+      var isGoal = (idx === last);
+      var inWindow = (idx >= st.winStart && idx <= st.curEnd);
+      var settled = (idx < st.winStart);
+
+      if (idx === st.i && st.i >= 0) {
+        cell.classList.add(isGoal ? 'goalcur' : 'cur');
+      } else if (isGoal && st.curEnd >= last) {
+        cell.classList.add('goal');
+      } else if (!isGoal && idx === st.farFrom && st.farthest > 0 && st.farthest > st.curEnd) {
+        // 本轮带来最远落点的位置（仅在 farthest 尚未并入 curEnd 时高亮）
+        cell.classList.add('best');
+      } else if (inWindow) {
+        cell.classList.add('window');
+      } else if (settled) {
+        cell.classList.add('settled');
+      }
+    });
+
+    // curEnd 实线边界
+    if (nums.length) {
+      var ce = Math.min(st.curEnd, last);
+      endLineEl.style.display = '';
+      endLineEl.style.left = (cellLeft(ce) + CELL_W) + 'px';
+      endLabEl.textContent = 'curEnd ' + st.curEnd;
+
+      // farthest 虚线边界（超过 curEnd 时才单独显示，否则与实线重合）
+      if (st.farthest > st.curEnd) {
+        var ff = Math.min(st.farthest, last);
+        farLineEl.style.display = '';
+        farLineEl.style.left = (cellLeft(ff) + CELL_W) + 'px';
+        farLabEl.textContent = 'farthest ' + st.farthest;
+      } else {
+        farLineEl.style.display = 'none';
+      }
+    } else {
+      endLineEl.style.display = 'none';
+      farLineEl.style.display = 'none';
+    }
+
+    curIEl.textContent = st.i >= 0 ? st.i : '—';
+    curEndEl.textContent = st.curEnd;
+    farEl.textContent = st.farthest;
+    farEl.className = st.newFar ? 'flash' : '';
+    jumpsEl.textContent = st.jumps;
+    jumpsEl.className = st.jumped ? 'jbadge flash' : 'jbadge';
+
+    statusEl.innerHTML = st.msg;
+
+    if (st.phase === 'done') {
+      verdictEl.style.display = '';
+      verdictEl.textContent = '✅ 最少跳跃次数 jump = ' + st.result;
+    } else {
+      verdictEl.style.display = 'none';
+    }
+
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(s) {
+    var a = parseInput(s);
+    if (!a.length) return;
+    if (a.length > 20) a = a.slice(0, 20);
+    nums = a;
+    steps = buildSteps(a);
+    stepIdx = 0;
+    renderCells();
+    render();
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 900);
+  }
+
+  nextBtn.onclick = function(){ stopPlay(); next(); };
+  prevBtn.onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>

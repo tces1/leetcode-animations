@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>55. 跳跃游戏 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+
+  /* array cells */
+  .board { position: relative; padding: 40px 0 46px; }
+  .cells { display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; }
+  .cell-wrap { position: relative; flex: 0 0 auto; display:flex; flex-direction:column; align-items:center; }
+  .cell {
+    width: 52px; height: 52px; border-radius: 10px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:19px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb; transition: background .18s, border-color .18s, box-shadow .18s, transform .18s;
+  }
+  .cell.reach    { background:#dcfce7; border-color:#86efac; color:#166534; }   /* 已被判定可达 */
+  .cell.done     { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }   /* 已扫描过的位置 */
+  .cell.cur      { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 3px rgba(99,102,241,.25); transform:translateY(-3px); }
+  .cell.stuck    { background:#fee2e2; border-color:#fca5a5; color:#991b1b; box-shadow:0 0 0 3px rgba(239,68,68,.25); }
+  .cell.goal     { background:#34d399; border-color:#059669; color:#053b26; }
+  .cell.goalcur  { background:#059669; border-color:#065f46; color:#fff; box-shadow:0 0 0 3px rgba(5,150,105,.3); transform:translateY(-3px); }
+  .cell-idx { margin-top:8px; font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .cell-tag {
+    position:absolute; bottom:100%; margin-bottom:8px; left:50%; transform:translateX(-50%);
+    font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap; display:none;
+  }
+  .cell-tag.start { background:#6366f1; color:#fff; }
+  .cell-tag.end   { background:#059669; color:#fff; }
+
+  /* reach frontier */
+  .reach-line {
+    position:absolute; top:26px; bottom:38px; width:0; border-left:3px dashed #f59e0b; pointer-events:none;
+    transition: left .25s ease; display:none;
+  }
+  .reach-line .rl-lab {
+    position:absolute; top:-24px; left:2px; background:#f59e0b; color:#fff; font-size:11px; font-weight:700;
+    padding:2px 7px; border-radius:6px; font-family:"SF Mono",Menlo,monospace; white-space:nowrap;
+  }
+  .reach-span {
+    position:absolute; top:20px; height:6px; border-radius:3px; background:rgba(245,158,11,.28);
+    pointer-events:none; transition: width .25s ease, left .25s ease; display:none;
+  }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; } .vars small { color:#9ca3af; }
+  .vars .flash { animation: flash .5s ease; }
+  @keyframes flash { 0%{color:#b45309;transform:scale(1);} 40%{transform:scale(1.25);} 100%{transform:scale(1);} }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .verdict { margin-top:14px; font-size:16px; font-weight:700; display:none; }
+  .verdict.ok  { color:#059669; } .verdict.no { color:#dc2626; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/jump-game/" target="_blank" rel="noopener">LeetCode 55</a></span>
+  </div>
+
+  <h1>55. 跳跃游戏 · 贪心「最远可达」动画</h1>
+  <div class="sub">从下标 0 出发，每个位置 <code>nums[i]</code> 表示<b>最多</b>能往右跳几步。只需从左到右扫一遍，维护<b>「目前能到达的最远下标 maxReach」</b>：走到位置 i 时若 <code>i &gt; maxReach</code> 说明这里根本走不到，直接失败；否则用 <code>i + nums[i]</code> 刷新 maxReach。只要 maxReach 覆盖到最后一格就成功。时间 O(n)、空间 O(1)。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="2,3,1,1,4" spellcheck="false" placeholder="输入非负整数数组,逗号分隔">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">2,3,1,1,4</span>
+      <span class="chip">3,2,1,0,4</span>
+      <span class="chip">0</span>
+      <span class="chip">2,0,0</span>
+      <span class="chip">1,1,1,1,1</span>
+      <span class="chip">5,0,0,0,0,0</span>
+      <span class="chip">2,5,0,0</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前位置 i</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>maxReach 覆盖范围</span>
+      <span><span class="dot" style="background:#f59e0b"></span>最远可达线</span>
+      <span><span class="dot" style="background:#34d399"></span>终点</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>卡住(不可达)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">数组（格子里是该位置能跳的最大步数）</div>
+    <div class="board">
+      <div class="cells" id="cells"></div>
+      <div class="reach-span" id="reachSpan"></div>
+      <div class="reach-line" id="reachLine"><span class="rl-lab" id="reachLab"></span></div>
+    </div>
+    <div class="vars">
+      <span>当前位置 i = <b id="curI">—</b></span>
+      <span>最远可达 maxReach = <b id="maxR">0</b><small id="maxRfrom"></small></span>
+      <span>终点下标 = <b id="lastIdx">—</b></span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 贪心一次遍历 · 时间 O(n)、空间 O(1)
+class Solution {
+    public boolean canJump(int[] nums) {
+        int maxReach = 0;                       <span class="cmt">// 目前能到达的最远下标</span>
+        for (int i = 0; i &lt; nums.length; i++) {
+            if (i &gt; maxReach) return false;     <span class="cmt">// i 都到不了 → 被卡住</span>
+            maxReach = Math.max(maxReach, i + nums[i]); <span class="cmt">// 用 i 更新最远可达</span>
+        }
+        return true;                            <span class="cmt">// 走完全程都没卡住</span>
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python</span>
+class Solution:
+    def canJump(self, nums: List[int]) -&gt; bool:
+        max_reach = 0                           <span class="cmt"># 目前能到达的最远下标</span>
+        for i, step in enumerate(nums):
+            if i &gt; max_reach:                    <span class="cmt"># i 都到不了 → 被卡住</span>
+                return False
+            max_reach = max(max_reach, i + step) <span class="cmt"># 用 i 更新最远可达</span>
+        return True                             <span class="cmt"># 走完全程都没卡住</span></code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var cellsEl = document.getElementById('cells');
+  var reachLineEl = document.getElementById('reachLine');
+  var reachLabEl = document.getElementById('reachLab');
+  var reachSpanEl = document.getElementById('reachSpan');
+  var statusEl = document.getElementById('status');
+  var verdictEl = document.getElementById('verdict');
+  var progressEl = document.getElementById('progress');
+  var curIEl = document.getElementById('curI');
+  var maxREl = document.getElementById('maxR');
+  var maxRfromEl = document.getElementById('maxRfrom');
+  var lastIdxEl = document.getElementById('lastIdx');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+
+  var CELL_W = 52, GAP = 8;
+
+  var nums = [];
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function parseInput(s) {
+    return s.split(/[,\s]+/).map(function(x){ return x.trim(); })
+            .filter(function(x){ return x.length; })
+            .map(Number)
+            .filter(function(x){ return !isNaN(x) && x >= 0 && x === Math.floor(x); });
+  }
+
+  function buildSteps(a) {
+    var snaps = [];
+    var n = a.length;
+    var maxReach = 0;      // 最远可达下标
+    var reachFrom = 0;     // maxReach 由哪个下标贡献
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        maxReach: maxReach,
+        reachFrom: reachFrom,
+        stuck: !!o.stuck,
+        newReach: !!o.newReach,
+        arrived: !!o.arrived,
+        result: (o.result === undefined ? null : o.result),
+        phase: o.phase, msg: o.msg
+      });
+    }
+
+    // 初始
+    snap({ i: -1, phase: 'init',
+      msg: '起点在下标 <b>0</b>。初始 <span class="op">maxReach = 0</span>（还没走，只保证站得到起点）。终点是下标 <b>' + (n - 1) + '</b>，目标是让 maxReach 覆盖到它。' });
+
+    for (var i = 0; i < n; i++) {
+      // 先检查 i 是否可达
+      if (i > maxReach) {
+        snap({ i: i, phase: 'stuck', stuck: true, result: false,
+          msg: '走到下标 <b>' + i + '</b>，但 maxReach 只有 <span class="area">' + maxReach + '</span>，<b>' + i + ' &gt; ' + maxReach + '</b> → 前面的位置<span class="op">谁也跳不到这里</span>，被卡住。返回 <b>false</b>。' });
+        return snaps;
+      }
+
+      var cand = i + a[i];
+      var isNew = cand > maxReach;
+      var prev = maxReach;
+      if (isNew) { maxReach = cand; reachFrom = i; }
+
+      var msg;
+      if (i === 0) {
+        msg = '在下标 <b>0</b>：能跳 ' + a[0] + ' 步 → 最远可达 0 + ' + a[0] + ' = <span class="area">' + cand + '</span>。';
+        msg += isNew ? ' <span class="op">刷新 maxReach</span>（原来 ' + prev + '）。' : ' 没超过 maxReach ' + maxReach + '，不变。';
+      } else if (isNew) {
+        msg = '下标 <b>' + i + '</b> 可达(' + i + ' ≤ ' + prev + ')。从这里能跳 ' + a[i] + ' 步 → ' + i + ' + ' + a[i] + ' = <span class="area">' + cand + '</span> &gt; ' + prev + '，<span class="op">刷新 maxReach = ' + maxReach + '</span>。';
+      } else {
+        msg = '下标 <b>' + i + '</b> 可达(' + i + ' ≤ ' + maxReach + ')。从这里最远到 ' + i + ' + ' + a[i] + ' = <b>' + cand + '</b>，没超过当前 maxReach <span class="area">' + maxReach + '</span>，保持不变。';
+      }
+
+      var arrived = maxReach >= n - 1;
+      if (arrived) {
+        msg += ' 此时 maxReach ' + maxReach + ' 已 <span class="op">覆盖终点 ' + (n - 1) + '</span> —— 剩下的位置必定都能到，可提前收尾。';
+        snap({ i: i, phase: 'reach', newReach: isNew, arrived: true, result: true, msg: msg });
+        // 提前成功返回
+        snap({ i: -1, phase: 'done', result: true, arrived: true,
+          msg: '✅ maxReach = <span class="area">' + maxReach + '</span> ≥ 终点 ' + (n - 1) + '，能够到达最后一个下标。返回 <b>true</b>。' });
+        return snaps;
+      }
+
+      snap({ i: i, phase: 'reach', newReach: isNew, msg: msg });
+    }
+
+    // 走完全程都没被卡住
+    snap({ i: -1, phase: 'done', result: true,
+      msg: '✅ 从头扫到尾都没被卡住，maxReach = <span class="area">' + maxReach + '</span> ≥ 终点 ' + (n - 1) + '。返回 <b>true</b>。' });
+    return snaps;
+  }
+
+  function renderCells() {
+    cellsEl.innerHTML = '';
+    for (var i = 0; i < nums.length; i++) {
+      var w = document.createElement('div'); w.className = 'cell-wrap'; w.dataset.idx = i;
+      var tag = document.createElement('div'); tag.className = 'cell-tag';
+      if (i === 0) { tag.className = 'cell-tag start'; tag.textContent = '起点'; tag.style.display = ''; }
+      if (i === nums.length - 1) { tag.className = 'cell-tag end'; tag.textContent = '终点'; tag.style.display = ''; }
+      var cell = document.createElement('div'); cell.className = 'cell'; cell.textContent = nums[i];
+      var idx = document.createElement('div'); idx.className = 'cell-idx'; idx.textContent = i;
+      w.appendChild(tag); w.appendChild(cell); w.appendChild(idx);
+      cellsEl.appendChild(w);
+    }
+  }
+
+  function cellLeft(idx) { return idx * (CELL_W + GAP); }
+
+  function render() {
+    var st = steps[stepIdx];
+    var n = nums.length;
+    var last = n - 1;
+
+    Array.prototype.forEach.call(cellsEl.querySelectorAll('.cell-wrap'), function(w){
+      var idx = +w.dataset.idx;
+      var cell = w.querySelector('.cell');
+      cell.className = 'cell';
+
+      var isGoal = (idx === last);
+      var covered = (idx <= st.maxReach);
+
+      if (st.stuck && idx === st.i) { cell.classList.add('stuck'); return; }
+
+      if (idx === st.i && st.i >= 0) {
+        cell.classList.add(isGoal ? 'goalcur' : 'cur');
+      } else if (isGoal && (st.arrived || st.result === true)) {
+        cell.classList.add('goal');
+      } else if (isGoal) {
+        // 终点未覆盖时保持中性；已覆盖则显示可达绿
+        if (covered) cell.classList.add('goal');
+      } else if (covered) {
+        cell.classList.add('reach');
+      }
+    });
+
+    // reach frontier line & span
+    if (st.maxReach >= 0 && nums.length) {
+      var clamped = Math.min(st.maxReach, last);
+      reachLineEl.style.display = '';
+      // line sits at the right edge of the maxReach cell
+      reachLineEl.style.left = (cellLeft(clamped) + CELL_W) + 'px';
+      var overshoot = st.maxReach > last ? ' (可达 ' + st.maxReach + ' ≥ 终点)' : '';
+      reachLabEl.textContent = 'maxReach ' + st.maxReach + overshoot;
+
+      reachSpanEl.style.display = '';
+      reachSpanEl.style.left = '0px';
+      reachSpanEl.style.width = (cellLeft(clamped) + CELL_W) + 'px';
+    } else {
+      reachLineEl.style.display = 'none';
+      reachSpanEl.style.display = 'none';
+    }
+
+    curIEl.textContent = st.i >= 0 ? st.i : '—';
+    maxREl.textContent = st.maxReach;
+    maxREl.className = st.newReach ? 'flash' : '';
+    maxRfromEl.textContent = st.maxReach > 0 ? ' (来自下标 ' + st.reachFrom + ')' : '';
+    lastIdxEl.textContent = last;
+
+    statusEl.innerHTML = st.msg;
+
+    if (st.result === true && st.phase === 'done') {
+      verdictEl.style.display = ''; verdictEl.className = 'verdict ok'; verdictEl.textContent = '✅ canJump = true —— 能到达最后一个下标';
+    } else if (st.result === false) {
+      verdictEl.style.display = ''; verdictEl.className = 'verdict no'; verdictEl.textContent = '❌ canJump = false —— 被卡在下标 ' + st.i + '，到不了终点';
+    } else {
+      verdictEl.style.display = 'none';
+    }
+
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(s) {
+    var a = parseInput(s);
+    if (!a.length) return;
+    if (a.length > 20) a = a.slice(0, 20);
+    nums = a;
+    steps = buildSteps(a);
+    stepIdx = 0;
+    renderCells();
+    render();
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 900);
+  }
+
+  nextBtn.onclick = function(){ stopPlay(); next(); };
+  prevBtn.onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
