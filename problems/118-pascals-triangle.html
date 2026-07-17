@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>118. 杨辉三角 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 160px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  /* triangle */
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px 8px; }
+  .triangle { display:flex; flex-direction:column; align-items:center; gap:8px; width:max-content; margin:0 auto; }
+  .trow { display:flex; gap:8px; }
+  .tcell {
+    min-width:46px; height:44px; padding:0 6px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .tcell.done   { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }
+  .tcell.edge   { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .tcell.parent { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.22); }
+  .tcell.cur    { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.25); transform:translateY(-3px) scale(1.06); }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/pascals-triangle/" target="_blank" rel="noopener">LeetCode 118</a></span>
+  </div>
+
+  <h1>118. 杨辉三角 · 逐行逐格递推动画</h1>
+  <div class="sub">给定行数 <code>numRows</code>，生成杨辉三角的前若干行。规律：每行<b>两端都是 1</b>；中间每个数 = 它<b>左上方</b>与<b>右上方</b>两个数之和，即 <code>t[i][j] = t[i-1][j-1] + t[i-1][j]</code>。逐行、逐格填出整张表。时间 O(numRows²)、空间 O(numRows²)（即输出本身的大小）。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="5" spellcheck="false" placeholder="输入 1 到 14 的整数 numRows">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例 numRows =</span>
+      <span class="chip">1</span>
+      <span class="chip">3</span>
+      <span class="chip">5</span>
+      <span class="chip">8</span>
+      <span class="chip">14</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="panel-title">杨辉三角（内部格 = 左上 + 右上，两端恒为 1）</div>
+    <div class="stage">
+      <div class="triangle" id="triangle"></div>
+    </div>
+    <div class="vars">
+      <span id="vPos">当前位置 = <b>—</b></span>
+      <span id="vFormula">当前计算 = <b>—</b></span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>正在填的格子</span>
+      <span><span class="dot" style="background:#fef3c7;border:1px solid #f59e0b"></span>左上 + 右上（来源）</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>边界 = 1</span>
+      <span><span class="dot" style="background:#e0e7ff;border:1px solid #c7d2fe"></span>已生成</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或先在上方载入一个 numRows。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code><span class="cmt">// Java · 逐行递推 · 时间 O(n²)、空间 O(n²)（输出本身）</span>
+class Solution {
+    public List&lt;List&lt;Integer&gt;&gt; generate(int numRows) {
+        List&lt;List&lt;Integer&gt;&gt; tri = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; numRows; i++) {
+            List&lt;Integer&gt; row = new ArrayList&lt;&gt;();
+            for (int j = 0; j &lt;= i; j++) {
+                if (j == 0 || j == i) {
+                    row.add(1);                       <span class="cmt">// 两端恒为 1</span>
+                } else {
+                    row.add(tri.get(i - 1).get(j - 1) <span class="cmt">// 左上</span>
+                          + tri.get(i - 1).get(j));    <span class="cmt">// 右上</span>
+                }
+            }
+            tri.add(row);
+        }
+        return tri;
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python · 逐行递推</span>
+class Solution:
+    def generate(self, numRows: int) -&gt; List[List[int]]:
+        tri = []
+        for i in range(numRows):
+            row = []
+            for j in range(i + 1):
+                if j == 0 or j == i:
+                    row.append(1)                     <span class="cmt"># 两端恒为 1</span>
+                else:
+                    row.append(tri[i - 1][j - 1]      <span class="cmt"># 左上</span>
+                             + tri[i - 1][j])          <span class="cmt"># 右上</span>
+            tri.append(row)
+        return tri</code></pre>
+    </details>
+  </div>
+</div>
+
+<script data-pascals-triangle-app>
+  (function () {
+    'use strict';
+
+    function parseInput(value) {
+      if (typeof value !== 'string' || !/^(?:[1-9]|1[0-4])$/.test(value.trim())) {
+        return null;
+      }
+      return Number(value.trim());
+    }
+
+    function generate(numRows) {
+      var tri = [];
+      for (var i = 0; i < numRows; i += 1) {
+        var row = [];
+        for (var j = 0; j <= i; j += 1) {
+          if (j === 0 || j === i) {
+            row.push(1);
+          } else {
+            row.push(tri[i - 1][j - 1] + tri[i - 1][j]);
+          }
+        }
+        tri.push(row);
+      }
+      return tri;
+    }
+
+    function buildSteps(numRows) {
+      var steps = [];
+      var tri = [];
+
+      function snap(o) {
+        steps.push({
+          phase: o.phase,
+          message: o.message,
+          rows: tri.map(function (r) { return r.slice(); }),
+          i: (o.i == null ? -1 : o.i),
+          j: (o.j == null ? -1 : o.j),
+          value: (o.value == null ? null : o.value),
+          p1: o.p1 || null,
+          p2: o.p2 || null,
+          numRows: numRows,
+          answer: o.answer
+        });
+      }
+
+      snap({
+        phase: 'intro',
+        message: '杨辉三角：第一行是 <span class="op">[1]</span>。每一行的<b>两端都是 1</b>，中间每个数 = 它<b>左上方</b> + <b>右上方</b> 两个数之和。下面逐行、逐格生成。'
+      });
+
+      for (var i = 0; i < numRows; i += 1) {
+        tri.push([]);
+        for (var j = 0; j <= i; j += 1) {
+          if (j === 0 || j === i) {
+            tri[i].push(1);
+            snap({
+              phase: 'edge', i: i, j: j, value: 1,
+              message: '第 <b>' + (i + 1) + '</b> 行第 <b>' + (j + 1) + '</b> 个位于<b>边界</b>（行首或行尾），直接填 <span class="op">1</span>。'
+            });
+          } else {
+            var left = tri[i - 1][j - 1];
+            var right = tri[i - 1][j];
+            var v = left + right;
+            tri[i].push(v);
+            snap({
+              phase: 'sum', i: i, j: j, value: v,
+              p1: { i: i - 1, j: j - 1 }, p2: { i: i - 1, j: j },
+              message: '第 <b>' + (i + 1) + '</b> 行第 <b>' + (j + 1) + '</b> 个是内部格：左上 <span class="area">' + left + '</span> + 右上 <span class="area">' + right + '</span> = <span class="op">' + v + '</span>。'
+            });
+          }
+        }
+        snap({
+          phase: 'rowdone', i: i,
+          message: '第 <b>' + (i + 1) + '</b> 行完成：[' + tri[i].join(', ') + ']。'
+        });
+      }
+
+      snap({
+        phase: 'done',
+        answer: numRows,
+        message: '✅ 前 <b>' + numRows + '</b> 行全部生成完毕。每个内部数都等于上一行相邻两数之和，两端恒为 1。'
+      });
+      return steps;
+    }
+
+    window.PascalsTriangleApp = {
+      parseInput: parseInput,
+      generate: generate,
+      buildSteps: buildSteps
+    };
+
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.pascalsTriangleReady = 'true';
+    }
+  }());
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.PascalsTriangleApp;
+
+  var input = document.getElementById('input');
+  var errEl = document.getElementById('err');
+  var statsEl = document.getElementById('stats');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var playBtn = document.getElementById('playBtn');
+  var triangleEl = document.getElementById('triangle');
+  var vPos = document.getElementById('vPos');
+  var vFormula = document.getElementById('vFormula');
+
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function showError(msg) { errEl.textContent = msg; errEl.classList.add('show'); }
+  function clearError() { errEl.textContent = ''; errEl.classList.remove('show'); }
+
+  function stopPlay() {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+
+  function isParent(step, i, j) {
+    return (step.p1 && step.p1.i === i && step.p1.j === j) ||
+           (step.p2 && step.p2.i === i && step.p2.j === j);
+  }
+
+  function renderTriangle(step) {
+    triangleEl.innerHTML = '';
+    for (var i = 0; i < step.rows.length; i += 1) {
+      var rowEl = document.createElement('div');
+      rowEl.className = 'trow';
+      var row = step.rows[i];
+      for (var j = 0; j < row.length; j += 1) {
+        var cell = document.createElement('div');
+        var cls = 'tcell';
+        if (i === step.i && j === step.j) {
+          cls += ' cur';
+        } else if (isParent(step, i, j)) {
+          cls += ' parent';
+        } else if (j === 0 || j === i) {
+          cls += ' edge';
+        } else {
+          cls += ' done';
+        }
+        cell.className = cls;
+        cell.textContent = row[j];
+        rowEl.appendChild(cell);
+      }
+      triangleEl.appendChild(rowEl);
+    }
+  }
+
+  function renderStats(step) {
+    var maxRow = step.i >= 0 ? (step.i + 1) : (step.phase === 'done' ? step.numRows : 0);
+    statsEl.innerHTML =
+      '<div class="stat">方法<b>逐行递推</b></div>' +
+      '<div class="stat">已生成行数<b>' + maxRow + ' / ' + step.numRows + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n²)</b></div>' +
+      '<div class="stat">空间复杂度<b>O(n²)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    if (!step) { return; }
+
+    renderTriangle(step);
+    renderStats(step);
+
+    if (step.i >= 0 && step.j >= 0) {
+      vPos.innerHTML = '当前位置 = <b>第 ' + (step.i + 1) + ' 行 · 第 ' + (step.j + 1) + ' 个</b>';
+    } else {
+      vPos.innerHTML = '当前位置 = <b>—</b>';
+    }
+    if (step.phase === 'sum') {
+      vFormula.innerHTML = '当前计算 = <b>左上 + 右上 = ' + step.value + '</b>';
+    } else if (step.phase === 'edge') {
+      vFormula.innerHTML = '当前计算 = <b>边界 → 1</b>';
+    } else {
+      vFormula.innerHTML = '当前计算 = <b>—</b>';
+    }
+
+    statusEl.innerHTML = step.message;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(raw) {
+    var n = App.parseInput(raw);
+    if (n === null) {
+      showError('请输入 1 到 14 之间的整数（超过 14 行数字太宽，不利于观察）。当前动画保持不变。');
+      return false;
+    }
+    clearError();
+    stopPlay();
+    steps = App.buildSteps(n);
+    stepIdx = 0;
+    render();
+    return true;
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx += 1; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx -= 1; render(); } }
+
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 650);
+  }
+
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  playBtn.onclick = togglePlay;
+  document.getElementById('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  document.getElementById('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { load(input.value); } });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>

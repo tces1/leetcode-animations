@@ -1,122 +1,915 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>70. 爬楼梯 — 动画演示</title>
-  <style>
-    body {
-      max-width: 760px;
-      margin: 40px auto;
-      padding: 0 20px;
-      color: #1f2937;
-      background: #f3f4f6;
-      font-family: system-ui, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>70. 爬楼梯 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
 
-    main {
-      padding: 24px;
-      border-radius: 12px;
-      background: #fff;
-    }
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 160px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
 
-    .difftag {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      color: #166534;
-      background: #dcfce7;
-    }
-  </style>
+  /* chapter tabs */
+  .chapters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .chapter-tab {
+    flex:1; min-width:150px; text-align:left; padding:10px 12px; border-radius:10px; cursor:pointer;
+    border:1px solid #e5e7eb; background:#f8fafc; transition:all .15s;
+  }
+  .chapter-tab .ct-no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#9ca3af; }
+  .chapter-tab .ct-name { font-size:14px; font-weight:700; color:#374151; }
+  .chapter-tab .ct-cx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .chapter-tab.rec.active { background:#eef2ff; border-color:#c7d2fe; }
+  .chapter-tab.rec.active .ct-no { color:#6366f1; }
+  .chapter-tab.memo.active { background:#ecfeff; border-color:#a5f3fc; }
+  .chapter-tab.memo.active .ct-no { color:#0891b2; }
+  .chapter-tab.dp.active { background:#ecfdf5; border-color:#a7f3d0; }
+  .chapter-tab.dp.active .ct-no { color:#059669; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  /* recursion / memo tree */
+  #treePanel .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); }
+  .tree-inner { position:relative; margin:0 auto; }
+  .tree-inner svg { position:absolute; left:0; top:0; overflow:visible; pointer-events:none; }
+  .tnode {
+    position:absolute; transform:translate(-50%,-50%); width:46px; height:46px; border-radius:10px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; border:2px solid #e5e7eb; background:#eef0f4; color:#334155;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s; z-index:2;
+  }
+  .tnode .tk { font-size:12px; font-weight:700; line-height:1.1; }
+  .tnode .tv { font-size:12px; font-weight:700; line-height:1.1; opacity:.85; }
+  .tnode.active     { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.22); transform:translate(-50%,-50%) scale(1.08); }
+  .tnode.repeat     { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 4px rgba(245,158,11,.28); transform:translate(-50%,-50%) scale(1.08); }
+  .tnode.done       { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }
+  .tnode.base       { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .tnode.hit        { background:#cffafe; border-color:#22d3ee; color:#155e75; border-style:dashed; }
+  .edge { stroke:#d1d5db; stroke-width:2; transition:opacity .18s, stroke .18s; }
+  .edge.on { stroke:#a5b4fc; }
+
+  .stackbar { margin-top:14px; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; min-height:20px; }
+  .stackbar b { color:#4338ca; }
+  .cachebar { margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:13px; color:#6b7280; }
+  .cachebar .mc { font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:3px 8px; border-radius:6px; background:#cffafe; color:#155e75; border:1px solid #a5f3fc; }
+  .cachebar .mc.flash { animation:flash .5s ease; }
+
+  /* DP staircase */
+  #dpPanel .stairs { display:flex; align-items:flex-end; gap:10px; overflow-x:auto; padding:10px 4px 0; min-height:150px; }
+  .stair { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .stair .bar {
+    width:52px; border-radius:8px 8px 0 0; background:#eef0f4; border:2px solid #e5e7eb; border-bottom:none;
+    display:flex; align-items:flex-start; justify-content:center; padding-top:6px;
+    font-family:"SF Mono",Menlo,monospace; font-weight:700; font-size:15px; color:#334155;
+    transition:background .18s,border-color .18s,box-shadow .18s;
+  }
+  .stair .fl { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .stair.win     .bar { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }
+  .stair.cur     .bar { background:#059669; border-color:#047857; color:#fff; box-shadow:0 0 0 3px rgba(5,150,105,.25); }
+  .stair.filled  .bar { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; }
+  .vars .flash b { animation:flash .5s ease; display:inline-block; }
+  @keyframes flash { 0%{color:#b45309;transform:scale(1);} 40%{transform:scale(1.3);} 100%{transform:scale(1);} }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
 </head>
 <body>
-  <main>
+<div class="wrap">
+  <div class="navbar">
     <span class="difftag">简单</span>
-    <h1>70. 爬楼梯</h1>
-    <p>依次比较递归、记忆化搜索和滚动动态规划。</p>
-    <a href="https://leetcode.cn/problems/climbing-stairs/">查看 LeetCode 原题</a>
-  </main>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/climbing-stairs/" target="_blank" rel="noopener">LeetCode 70</a></span>
+  </div>
 
-  <script data-climbing-stairs-app>
-    (function () {
-      'use strict';
+  <h1>70. 爬楼梯 · 从递归到滚动 DP 的三步优化</h1>
+  <div class="sub">每次可以爬 <b>1</b> 或 <b>2</b> 个台阶，问爬到第 <code>n</code> 阶有多少种不同方法。答案满足 <code>f(n) = f(n-1) + f(n-2)</code>，基例 <code>f(1)=1、f(2)=2</code>。同一道题用三种解法逐帧对比：<b>朴素递归</b>（大量重复子问题）→ <b>记忆化搜索</b>（缓存去重，O(n)）→ <b>滚动 DP</b>（只留两个变量，空间 O(1)）。</div>
 
-      function parseInput(value) {
-        if (typeof value !== 'string' || !/^(?:[1-9]|10)$/.test(value)) {
-          return null;
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="5" spellcheck="false" placeholder="输入 1 到 10 的整数 n">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例 n =</span>
+      <span class="chip">1</span>
+      <span class="chip">2</span>
+      <span class="chip">3</span>
+      <span class="chip">5</span>
+      <span class="chip">7</span>
+      <span class="chip">10</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="chapters">
+    <div class="chapter-tab rec" data-chapter="recursive">
+      <div class="ct-no">第一章</div>
+      <div class="ct-name">朴素递归</div>
+      <div class="ct-cx">时间 O(2ⁿ) · 空间 O(n)</div>
+    </div>
+    <div class="chapter-tab memo" data-chapter="memo">
+      <div class="ct-no">第二章</div>
+      <div class="ct-name">记忆化搜索</div>
+      <div class="ct-cx">时间 O(n) · 空间 O(n)</div>
+    </div>
+    <div class="chapter-tab dp" data-chapter="dp">
+      <div class="ct-no">第三章</div>
+      <div class="ct-name">滚动 DP</div>
+      <div class="ct-cx">时间 O(n) · 空间 O(1)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <!-- 递归 / 记忆化 树视图 -->
+    <div id="treePanel">
+      <div class="panel-title" id="treeTitle">调用树（节点里是 f(k)，下方是返回值）</div>
+      <div class="stage">
+        <div class="tree-inner" id="treeInner"></div>
+      </div>
+      <div class="stackbar" id="stackbar"></div>
+      <div class="cachebar" id="cachebar" style="display:none;"></div>
+      <div class="legend" id="treeLegend"></div>
+    </div>
+
+    <!-- DP 楼梯视图 -->
+    <div id="dpPanel" style="display:none;">
+      <div class="panel-title">楼梯状态 f(1..n)（每格只依赖它前面两格）</div>
+      <div class="stairs" id="stairs"></div>
+      <div class="vars">
+        <span id="vPrev">prev = <b>—</b></span>
+        <span id="vCur">cur = <b>—</b></span>
+        <span id="vI">当前阶 i = <b>—</b></span>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:#e0e7ff;border:1px solid #c7d2fe"></span>参与相加的 f(i-1)、f(i-2)</span>
+        <span><span class="dot" style="background:#059669"></span>正在求的 f(i)</span>
+        <span><span class="dot" style="background:#ecfdf5;border:1px solid #a7f3d0"></span>已求出</span>
+      </div>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或先在上方载入一个 n。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）· 三种解法</summary>
+      <pre><code><span class="cmt">// Java · 三种解法，基例与递推式完全一致</span>
+class Solution {
+    <span class="cmt">// ① 朴素递归 —— 时间 O(2ⁿ)，重复子问题爆炸</span>
+    public int climbRecursive(int n) {
+        if (n &lt;= 2) return n;
+        return climbRecursive(n - 1) + climbRecursive(n - 2);
+    }
+
+    <span class="cmt">// ② 记忆化搜索 —— 缓存去重，时间 O(n)、空间 O(n)</span>
+    public int climbMemo(int n) {
+        int[] memo = new int[n + 1];
+        return dfs(n, memo);
+    }
+    private int dfs(int n, int[] memo) {
+        if (n &lt;= 2) return n;
+        if (memo[n] != 0) return memo[n];       <span class="cmt">// 命中缓存直接返回</span>
+        return memo[n] = dfs(n - 1, memo) + dfs(n - 2, memo);
+    }
+
+    <span class="cmt">// ③ 滚动 DP —— 只留前两个状态，空间 O(1)</span>
+    public int climbStairs(int n) {
+        if (n &lt;= 2) return n;
+        int prev = 1, cur = 2;                   <span class="cmt">// f(1)=1, f(2)=2</span>
+        for (int i = 3; i &lt;= n; i++) {
+            int next = prev + cur;               <span class="cmt">// f(i)=f(i-1)+f(i-2)</span>
+            prev = cur;
+            cur = next;                          <span class="cmt">// 窗口右移一格</span>
         }
-        return Number(value);
-      }
+        return cur;
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python · 三种解法</span>
+class Solution:
+    <span class="cmt"># ① 朴素递归</span>
+    def climb_recursive(self, n: int) -&gt; int:
+        if n &lt;= 2:
+            return n
+        return self.climb_recursive(n - 1) + self.climb_recursive(n - 2)
 
-      function solveRecursive(n) {
-        if (n <= 2) {
-          return n;
+    <span class="cmt"># ② 记忆化搜索</span>
+    def climb_memo(self, n: int) -&gt; int:
+        from functools import lru_cache
+        @lru_cache(maxsize=None)
+        def dfs(k: int) -&gt; int:
+            if k &lt;= 2:
+                return k
+            return dfs(k - 1) + dfs(k - 2)       <span class="cmt"># 相同 k 只算一次</span>
+        return dfs(n)
+
+    <span class="cmt"># ③ 滚动 DP · 空间 O(1)</span>
+    def climb_stairs(self, n: int) -&gt; int:
+        if n &lt;= 2:
+            return n
+        prev, cur = 1, 2                         <span class="cmt"># f(1), f(2)</span>
+        for _ in range(3, n + 1):
+            prev, cur = cur, prev + cur          <span class="cmt"># 窗口右移一格</span>
+        return cur</code></pre>
+    </details>
+  </div>
+</div>
+
+<script data-climbing-stairs-app>
+  (function () {
+    'use strict';
+
+    function parseInput(value) {
+      if (typeof value !== 'string' || !/^(?:[1-9]|10)$/.test(value.trim())) {
+        return null;
+      }
+      return Number(value.trim());
+    }
+
+    function solveRecursive(n) {
+      if (n <= 2) {
+        return n;
+      }
+      return solveRecursive(n - 1) + solveRecursive(n - 2);
+    }
+
+    function solveMemo(n) {
+      var memo = { 1: 1, 2: 2 };
+      function solve(current) {
+        if (memo[current] === undefined) {
+          memo[current] = solve(current - 1) + solve(current - 2);
         }
-        return solveRecursive(n - 1) + solveRecursive(n - 2);
+        return memo[current];
       }
+      return solve(n);
+    }
 
-      function solveMemo(n) {
-        const memo = { 1: 1, 2: 2 };
+    function solveRolling(n) {
+      if (n <= 2) {
+        return n;
+      }
+      var previous = 1;
+      var current = 2;
+      for (var stair = 3; stair <= n; stair += 1) {
+        var next = previous + current;
+        previous = current;
+        current = next;
+      }
+      return current;
+    }
 
-        function solve(current) {
-          if (memo[current] === undefined) {
-            memo[current] = solve(current - 1) + solve(current - 2);
-          }
-          return memo[current];
+    // 给一棵调用树分配坐标：叶子从左到右排开，父节点居中于子节点。
+    function layoutTree(root) {
+      var nodes = [];
+      var leaf = 0;
+      var maxDepth = 0;
+      (function assign(node) {
+        nodes.push(node);
+        if (node.depth > maxDepth) { maxDepth = node.depth; }
+        if (!node.children || node.children.length === 0) {
+          node.x = leaf;
+          leaf += 1;
+        } else {
+          node.children.forEach(assign);
+          var first = node.children[0].x;
+          var last = node.children[node.children.length - 1].x;
+          node.x = (first + last) / 2;
         }
+      }(root));
+      return { nodes: nodes, leaves: Math.max(leaf, 1), maxDepth: maxDepth };
+    }
 
-        return solve(n);
-      }
-
-      function solveRolling(n) {
-        if (n <= 2) {
-          return n;
+    // 第一章：朴素递归，展开完整调用树并逐个 call/return。
+    function buildRecursiveSteps(n) {
+      var id = 0;
+      function build(k, depth) {
+        var node = { id: id, k: k, depth: depth, children: [], base: k <= 2 };
+        id += 1;
+        if (!node.base) {
+          node.children = [build(k - 1, depth + 1), build(k - 2, depth + 1)];
         }
+        return node;
+      }
+      var root = build(n, 0);
+      var layout = layoutTree(root);
+      var tree = { key: 'rec', root: root, nodes: layout.nodes, leaves: layout.leaves, maxDepth: layout.maxDepth };
 
-        let previous = 1;
-        let current = 2;
-        for (let stair = 3; stair <= n; stair += 1) {
-          const next = previous + current;
-          previous = current;
-          current = next;
+      var steps = [];
+      var state = {};
+      var values = {};
+      var stack = [];
+      var seen = {};
+      var calls = 0;
+
+      function snap(o) {
+        steps.push({
+          chapter: 'recursive',
+          phase: o.phase,
+          message: o.message,
+          tree: tree,
+          treeKey: 'rec',
+          nodeStates: Object.assign({}, state),
+          values: Object.assign({}, values),
+          stack: stack.slice(),
+          calls: calls,
+          activeId: (o.activeId == null ? -1 : o.activeId),
+          answer: o.answer
+        });
+      }
+
+      snap({ phase: 'intro', message: '第一章 · 朴素递归：直接照定义 <span class="op">f(n) = f(n-1) + f(n-2)</span> 递归展开。留意调用树里会冒出很多<b>一模一样的子问题</b>。' });
+
+      function walk(node) {
+        calls += 1;
+        stack.push(node.id);
+        var repeat = !!seen[node.k];
+        state[node.id] = repeat ? 'repeat' : 'active';
+        snap({
+          phase: 'call',
+          activeId: node.id,
+          message: '调用 <b>f(' + node.k + ')</b>。' + (repeat
+            ? ' <span class="area">⚠ 这个子问题之前已经算过</span> —— 朴素递归又要从头重算一整棵子树！'
+            : (node.base ? ' 它是基例，可直接返回。' : ''))
+        });
+        var val;
+        if (node.base) {
+          val = node.k;
+        } else {
+          walk(node.children[0]);
+          walk(node.children[1]);
+          val = values[node.children[0].id] + values[node.children[1].id];
         }
-        return current;
+        values[node.id] = val;
+        seen[node.k] = (seen[node.k] || 0) + 1;
+        state[node.id] = node.base ? 'base' : 'done';
+        stack.pop();
+        snap({
+          phase: 'return',
+          activeId: node.id,
+          message: '<b>f(' + node.k + ')</b> 返回 <span class="op">' + val + '</span>' +
+            (node.base ? '（基例）。' : '（= f(' + (node.k - 1) + ') + f(' + (node.k - 2) + ')）。')
+        });
       }
 
-      function buildSteps(n) {
-        const answer = solveRolling(n);
-        return [
-          {
-            chapter: 'recursive',
-            phase: 'start',
-            message: '从朴素递归开始观察重复子问题。',
-          },
-          {
-            chapter: 'memo',
-            phase: 'start',
-            message: '加入缓存，避免重复计算。',
-          },
-          {
-            chapter: 'dp',
-            phase: 'done',
-            message: '滚动保存前两个状态即可得到答案。',
-            answer,
-          },
-        ];
+      walk(root);
+      snap({
+        phase: 'summary',
+        activeId: -1,
+        answer: values[root.id],
+        message: '朴素递归总共调用了 <span class="area">' + calls + '</span> 次 f()，却只有 ' + n + ' 个不同的子问题。n 越大重复计算越离谱（约 O(φⁿ)）。答案 f(' + n + ') = <span class="op">' + values[root.id] + '</span>。'
+      });
+      return steps;
+    }
+
+    // 第二章:记忆化搜索,相同子问题只算一次,其余命中缓存。
+    function buildMemoSteps(n) {
+      var id = 0;
+      var steps = [];
+      var state = {};
+      var values = {};
+      var stack = [];
+      var memo = {};
+      var calls = 0;
+      var tree = { key: 'memo', root: null, nodes: null, leaves: 1, maxDepth: 0 };
+
+      function snap(o) {
+        steps.push({
+          chapter: 'memo',
+          phase: o.phase,
+          message: o.message,
+          tree: tree,
+          treeKey: 'memo',
+          nodeStates: Object.assign({}, state),
+          values: Object.assign({}, values),
+          stack: stack.slice(),
+          calls: calls,
+          memo: Object.assign({}, memo),
+          hitKey: (o.hitKey == null ? -1 : o.hitKey),
+          activeId: (o.activeId == null ? -1 : o.activeId),
+          answer: o.answer
+        });
       }
 
-      window.ClimbingStairsApp = {
-        parseInput,
-        solveRecursive,
-        solveMemo,
-        solveRolling,
-        buildSteps,
-      };
-
-      if (typeof document !== 'undefined') {
-        document.documentElement.dataset.climbingStairsReady = 'true';
+      function solve(k, depth) {
+        var node = { id: id, k: k, depth: depth, children: [], base: false, hit: false };
+        id += 1;
+        calls += 1;
+        stack.push(node.id);
+        if (memo[k] !== undefined) {
+          node.hit = true;
+          state[node.id] = 'hit';
+          values[node.id] = memo[k];
+          snap({
+            phase: 'hit',
+            activeId: node.id,
+            hitKey: k,
+            message: '<b>f(' + k + ')</b> 直接命中缓存 <span class="op">memo[' + k + '] = ' + memo[k] + '</span>，不再往下展开。'
+          });
+          stack.pop();
+          return node;
+        }
+        state[node.id] = 'active';
+        snap({
+          phase: 'call',
+          activeId: node.id,
+          message: '调用 <b>f(' + k + ')</b>，缓存里还没有它。' + (k <= 2 ? ' 它是基例。' : '')
+        });
+        var val;
+        if (k <= 2) {
+          node.base = true;
+          val = k;
+        } else {
+          node.children.push(solve(k - 1, depth + 1));
+          node.children.push(solve(k - 2, depth + 1));
+          val = values[node.children[0].id] + values[node.children[1].id];
+        }
+        memo[k] = val;
+        values[node.id] = val;
+        state[node.id] = node.base ? 'base' : 'done';
+        stack.pop();
+        snap({
+          phase: 'write',
+          activeId: node.id,
+          hitKey: k,
+          message: '算出 <b>f(' + k + ') = ' + val + '</b>，写入缓存 <span class="op">memo[' + k + ']</span>。以后再遇到 f(' + k + ') 就能秒取。'
+        });
+        return node;
       }
-    }());
-  </script>
+
+      snap({ phase: 'intro', message: '第二章 · 记忆化搜索：递推式和基例都不变，但每算完一个 <span class="op">f(k)</span> 就存进缓存 memo；再遇到相同子问题<b>直接取缓存</b>，不再重复递归。' });
+      var root = solve(n, 0);
+      tree.root = root;
+      var layout = layoutTree(root);
+      tree.nodes = layout.nodes;
+      tree.leaves = layout.leaves;
+      tree.maxDepth = layout.maxDepth;
+      snap({
+        phase: 'summary',
+        activeId: -1,
+        answer: memo[n],
+        message: '加了缓存后只有 <span class="op">' + calls + '</span> 次调用（对比朴素递归的爆炸式增长），每个子问题最多算一次。时间降到 <b>O(n)</b>，额外空间 <b>O(n)</b>（缓存 + 递归栈）。答案 f(' + n + ') = <span class="op">' + memo[n] + '</span>。'
+      });
+      return steps;
+    }
+
+    // 第三章:滚动 DP,只保留前两个状态。
+    function buildDpSteps(n) {
+      var steps = [];
+      var vals = {};
+
+      function snap(o) {
+        steps.push({
+          chapter: 'dp',
+          phase: o.phase,
+          message: o.message,
+          n: n,
+          vals: Object.assign({}, vals),
+          i: (o.i == null ? -1 : o.i),
+          hiA: (o.hiA == null ? -1 : o.hiA),
+          hiB: (o.hiB == null ? -1 : o.hiB),
+          prev: (o.prev == null ? null : o.prev),
+          cur: (o.cur == null ? null : o.cur),
+          rollPrev: !!o.rollPrev,
+          rollCur: !!o.rollCur,
+          answer: o.answer
+        });
+      }
+
+      snap({ phase: 'intro', message: '第三章 · 滚动 DP：既然 <span class="op">f(i)</span> 只依赖前两个 f(i-1)、f(i-2)，那就没必要存整张表 —— 用两个变量 <b>prev</b>、<b>cur</b> 从低到高递推，空间压到 <b>O(1)</b>。' });
+
+      vals[1] = 1;
+      if (n === 1) {
+        snap({ phase: 'base', i: 1, cur: 1, message: '只有 1 阶：唯一走法就是走 1 步。f(1) = <span class="op">1</span>。' });
+        snap({ phase: 'done', i: 1, cur: 1, answer: 1, message: '✅ 答案 f(1) = <span class="op">1</span>。' });
+        return steps;
+      }
+
+      vals[2] = 2;
+      snap({
+        phase: 'base', i: 2, prev: 1, cur: 2, hiA: 1, hiB: 2, rollPrev: true, rollCur: true,
+        message: '基例：f(1) = 1（走 1 步），f(2) = 2（1+1 或 一次 2 步）。令 <b>prev = f(1) = 1</b>，<b>cur = f(2) = 2</b>。'
+      });
+      var prev = 1;
+      var cur = 2;
+      for (var i = 3; i <= n; i += 1) {
+        var next = prev + cur;
+        snap({
+          phase: 'calc', i: i, hiA: i - 2, hiB: i - 1, prev: prev, cur: cur,
+          message: '第 <b>' + i + '</b> 阶：<span class="op">f(' + i + ') = f(' + (i - 1) + ') + f(' + (i - 2) + ') = ' + cur + ' + ' + prev + ' = ' + next + '</span>。'
+        });
+        vals[i] = next;
+        prev = cur;
+        cur = next;
+        snap({
+          phase: 'roll', i: i, hiA: i - 1, hiB: i, prev: prev, cur: cur, rollPrev: true, rollCur: true,
+          message: '滚动更新：<b>prev ← ' + prev + '</b>（原来的 cur），<b>cur ← ' + cur + '</b>。两变量的窗口右移一格。'
+        });
+      }
+      snap({
+        phase: 'done', i: n, prev: prev, cur: cur, answer: cur,
+        message: '✅ 递推到第 <b>' + n + '</b> 阶，答案 f(' + n + ') = <span class="op">' + cur + '</span>。全程只用了 prev、cur 两个变量，空间 <b>O(1)</b>。'
+      });
+      return steps;
+    }
+
+    function buildSteps(n) {
+      var answer = solveRolling(n);
+      var steps = [].concat(
+        buildRecursiveSteps(n),
+        buildMemoSteps(n),
+        buildDpSteps(n)
+      );
+      var lastStep = steps[steps.length - 1];
+      lastStep.phase = 'done';
+      lastStep.answer = answer;
+      return steps;
+    }
+
+    window.ClimbingStairsApp = {
+      parseInput: parseInput,
+      solveRecursive: solveRecursive,
+      solveMemo: solveMemo,
+      solveRolling: solveRolling,
+      layoutTree: layoutTree,
+      buildSteps: buildSteps
+    };
+
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.climbingStairsReady = 'true';
+    }
+  }());
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.ClimbingStairsApp;
+  var NS = 'http://www.w3.org/2000/svg';
+  var XGAP = 56, YGAP = 70, PAD = 32, R = 23;
+
+  var input = document.getElementById('input');
+  var errEl = document.getElementById('err');
+  var statsEl = document.getElementById('stats');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var playBtn = document.getElementById('playBtn');
+  var treePanel = document.getElementById('treePanel');
+  var treeInner = document.getElementById('treeInner');
+  var treeTitle = document.getElementById('treeTitle');
+  var treeLegend = document.getElementById('treeLegend');
+  var stackbar = document.getElementById('stackbar');
+  var cachebar = document.getElementById('cachebar');
+  var dpPanel = document.getElementById('dpPanel');
+  var stairsEl = document.getElementById('stairs');
+  var vPrev = document.getElementById('vPrev');
+  var vCur = document.getElementById('vCur');
+  var vI = document.getElementById('vI');
+  var tabs = {};
+  Array.prototype.forEach.call(document.querySelectorAll('.chapter-tab'), function (t) {
+    tabs[t.dataset.chapter] = t;
+  });
+
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+  var chapterStart = {};
+  var drawnTreeKey = null;
+  var nodeEls = {};
+  var edgeEls = {};
+
+  var LEGEND_REC = '<span><span class="dot" style="background:#6366f1"></span>正在计算</span>' +
+    '<span><span class="dot" style="background:#fef3c7;border:1px solid #f59e0b"></span>重复子问题</span>' +
+    '<span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>基例 f(1)/f(2)</span>' +
+    '<span><span class="dot" style="background:#e0e7ff;border:1px solid #c7d2fe"></span>已返回</span>';
+  var LEGEND_MEMO = LEGEND_REC + '<span><span class="dot" style="background:#cffafe;border:1px dashed #22d3ee"></span>命中缓存</span>';
+
+  var META = {
+    recursive: { method: '朴素递归', time: 'O(2ⁿ)', space: 'O(n)', unit: '调用次数' },
+    memo: { method: '记忆化搜索', time: 'O(n)', space: 'O(n)', unit: '调用次数' },
+    dp: { method: '滚动 DP', time: 'O(n)', space: 'O(1)', unit: '当前阶 i' }
+  };
+
+  function showError(msg) {
+    errEl.textContent = msg;
+    errEl.classList.add('show');
+  }
+  function clearError() {
+    errEl.textContent = '';
+    errEl.classList.remove('show');
+  }
+
+  function stopPlay() {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+
+  function buildTreeDOM(tree) {
+    treeInner.innerHTML = '';
+    nodeEls = {};
+    edgeEls = {};
+    var width = tree.leaves * XGAP;
+    var height = (tree.maxDepth + 1) * YGAP;
+    treeInner.style.width = (width + PAD * 2) + 'px';
+    treeInner.style.height = (height + PAD) + 'px';
+
+    tree.nodes.forEach(function (node) {
+      node._cx = PAD + node.x * XGAP + XGAP / 2;
+      node._cy = PAD / 2 + node.depth * YGAP + R;
+    });
+
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('width', width + PAD * 2);
+    svg.setAttribute('height', height + PAD);
+    tree.nodes.forEach(function (node) {
+      (node.children || []).forEach(function (ch) {
+        var line = document.createElementNS(NS, 'line');
+        line.setAttribute('x1', node._cx);
+        line.setAttribute('y1', node._cy);
+        line.setAttribute('x2', ch._cx);
+        line.setAttribute('y2', ch._cy);
+        line.setAttribute('class', 'edge');
+        line.style.opacity = 0;
+        edgeEls[ch.id] = line;
+        svg.appendChild(line);
+      });
+    });
+    treeInner.appendChild(svg);
+
+    tree.nodes.forEach(function (node) {
+      var el = document.createElement('div');
+      el.className = 'tnode';
+      el.style.left = node._cx + 'px';
+      el.style.top = node._cy + 'px';
+      el.style.display = 'none';
+      el.innerHTML = '<span class="tk">f' + node.k + '</span><span class="tv"></span>';
+      nodeEls[node.id] = el;
+      treeInner.appendChild(el);
+    });
+
+    drawnTreeKey = tree.key;
+  }
+
+  function renderTree(step) {
+    var tree = step.tree;
+    if (drawnTreeKey !== step.treeKey || !tree.nodes) {
+      buildTreeDOM(tree);
+    }
+    var idToK = {};
+    tree.nodes.forEach(function (node) {
+      idToK[node.id] = node.k;
+      var el = nodeEls[node.id];
+      var st = step.nodeStates[node.id];
+      var edge = edgeEls[node.id];
+      if (!st) {
+        el.style.display = 'none';
+        if (edge) { edge.style.opacity = 0; }
+        return;
+      }
+      el.style.display = '';
+      el.className = 'tnode ' + st;
+      var tv = el.querySelector('.tv');
+      if (st === 'active') {
+        tv.textContent = '…';
+      } else if (step.values[node.id] != null) {
+        tv.textContent = '=' + step.values[node.id];
+      } else {
+        tv.textContent = '';
+      }
+      if (edge) {
+        edge.style.opacity = 1;
+        edge.setAttribute('class', 'edge on');
+      }
+    });
+
+    if (step.stack && step.stack.length) {
+      var chain = step.stack.map(function (sid) { return 'f(' + idToK[sid] + ')'; }).join(' → ');
+      stackbar.innerHTML = '调用栈：<b>' + chain + '</b>';
+    } else {
+      stackbar.innerHTML = '调用栈：<b>（空）</b>';
+    }
+
+    if (step.chapter === 'memo') {
+      cachebar.style.display = '';
+      var keys = Object.keys(step.memo).map(Number).sort(function (a, b) { return a - b; });
+      var html = '<span>缓存 memo：</span>';
+      if (!keys.length) {
+        html += '<span style="color:#9ca3af">（空）</span>';
+      } else {
+        keys.forEach(function (k) {
+          var flash = (k === step.hitKey) ? ' flash' : '';
+          html += '<span class="mc' + flash + '">' + k + '→' + step.memo[k] + '</span>';
+        });
+      }
+      cachebar.innerHTML = html;
+      treeLegend.innerHTML = LEGEND_MEMO;
+    } else {
+      cachebar.style.display = 'none';
+      treeLegend.innerHTML = LEGEND_REC;
+    }
+  }
+
+  function renderDp(step) {
+    stairsEl.innerHTML = '';
+    for (var f = 1; f <= step.n; f += 1) {
+      var wrap = document.createElement('div');
+      wrap.className = 'stair';
+      if (f === step.i && (step.phase === 'calc' || step.phase === 'base' || step.phase === 'done' || step.phase === 'roll')) {
+        wrap.className += ' cur';
+      } else if (f === step.hiA || f === step.hiB) {
+        wrap.className += ' win';
+      } else if (step.vals[f] != null) {
+        wrap.className += ' filled';
+      }
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = (34 + f * 11) + 'px';
+      bar.textContent = step.vals[f] != null ? step.vals[f] : '';
+      var fl = document.createElement('div');
+      fl.className = 'fl';
+      fl.textContent = 'f(' + f + ')';
+      wrap.appendChild(bar);
+      wrap.appendChild(fl);
+      stairsEl.appendChild(wrap);
+    }
+    vPrev.innerHTML = 'prev = <b>' + (step.prev == null ? '—' : step.prev) + '</b>';
+    vCur.innerHTML = 'cur = <b>' + (step.cur == null ? '—' : step.cur) + '</b>';
+    vI.innerHTML = '当前阶 i = <b>' + (step.i >= 0 ? step.i : '—') + '</b>';
+    vPrev.className = step.rollPrev ? 'flash' : '';
+    vCur.className = step.rollCur ? 'flash' : '';
+  }
+
+  function renderStats(step) {
+    var meta = META[step.chapter];
+    var count;
+    if (step.chapter === 'dp') {
+      count = step.i >= 0 ? step.i : '—';
+    } else {
+      count = step.calls != null ? step.calls : '—';
+    }
+    var answer = step.answer != null ? step.answer : '—';
+    statsEl.innerHTML =
+      '<div class="stat">方法<b>' + meta.method + '</b></div>' +
+      '<div class="stat">' + meta.unit + '<b>' + count + '</b></div>' +
+      '<div class="stat">时间复杂度<b>' + meta.time + '</b></div>' +
+      '<div class="stat">空间复杂度<b>' + meta.space + '</b></div>' +
+      '<div class="stat">当前答案<b>' + answer + '</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    if (!step) { return; }
+
+    Object.keys(tabs).forEach(function (c) {
+      tabs[c].classList.toggle('active', c === step.chapter);
+    });
+
+    if (step.chapter === 'dp') {
+      treePanel.style.display = 'none';
+      dpPanel.style.display = '';
+      renderDp(step);
+    } else {
+      dpPanel.style.display = 'none';
+      treePanel.style.display = '';
+      treeTitle.textContent = step.chapter === 'memo'
+        ? '记忆化调用树（命中缓存的分支不再展开）'
+        : '朴素递归调用树（节点里是 f(k)，下方是返回值）';
+      renderTree(step);
+    }
+
+    renderStats(step);
+    statusEl.innerHTML = step.message;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function computeChapterStarts() {
+    chapterStart = {};
+    steps.forEach(function (s, i) {
+      if (chapterStart[s.chapter] === undefined) {
+        chapterStart[s.chapter] = i;
+      }
+    });
+  }
+
+  function load(raw) {
+    var n = App.parseInput(raw);
+    if (n === null) {
+      showError('请输入 1 到 10 之间的整数（这个范围能完整展示递归树又不至于爆炸）。当前动画保持不变。');
+      return false;
+    }
+    clearError();
+    stopPlay();
+    steps = App.buildSteps(n);
+    computeChapterStarts();
+    stepIdx = 0;
+    drawnTreeKey = null;
+    render();
+    return true;
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx += 1; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx -= 1; render(); } }
+
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 850);
+  }
+
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  playBtn.onclick = togglePlay;
+  document.getElementById('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  document.getElementById('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { load(input.value); } });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+  Object.keys(tabs).forEach(function (c) {
+    tabs[c].onclick = function () {
+      if (chapterStart[c] === undefined) { return; }
+      stopPlay();
+      stepIdx = chapterStart[c];
+      render();
+    };
+  });
+
+  load(input.value);
+})();
+</script>
 </body>
 </html>
