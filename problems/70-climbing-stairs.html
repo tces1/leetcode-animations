@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>70. 爬楼梯 — 动画演示</title>
+  <style>
+    body {
+      max-width: 760px;
+      margin: 40px auto;
+      padding: 0 20px;
+      color: #1f2937;
+      background: #f3f4f6;
+      font-family: system-ui, sans-serif;
+    }
+
+    main {
+      padding: 24px;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .difftag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: #166534;
+      background: #dcfce7;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="difftag">简单</span>
+    <h1>70. 爬楼梯</h1>
+    <p>依次比较递归、记忆化搜索和滚动动态规划。</p>
+    <a href="https://leetcode.cn/problems/climbing-stairs/">查看 LeetCode 原题</a>
+  </main>
+
+  <script data-climbing-stairs-app>
+    (function () {
+      'use strict';
+
+      function parseInput(value) {
+        if (typeof value !== 'string' || !/^(?:[1-9]|10)$/.test(value)) {
+          return null;
+        }
+        return Number(value);
+      }
+
+      function solveRecursive(n) {
+        if (n <= 2) {
+          return n;
+        }
+        return solveRecursive(n - 1) + solveRecursive(n - 2);
+      }
+
+      function solveMemo(n) {
+        const memo = { 1: 1, 2: 2 };
+
+        function solve(current) {
+          if (memo[current] === undefined) {
+            memo[current] = solve(current - 1) + solve(current - 2);
+          }
+          return memo[current];
+        }
+
+        return solve(n);
+      }
+
+      function solveRolling(n) {
+        if (n <= 2) {
+          return n;
+        }
+
+        let previous = 1;
+        let current = 2;
+        for (let stair = 3; stair <= n; stair += 1) {
+          const next = previous + current;
+          previous = current;
+          current = next;
+        }
+        return current;
+      }
+
+      function buildSteps(n) {
+        const answer = solveRolling(n);
+        return [
+          {
+            chapter: 'recursive',
+            phase: 'start',
+            message: '从朴素递归开始观察重复子问题。',
+          },
+          {
+            chapter: 'memo',
+            phase: 'start',
+            message: '加入缓存，避免重复计算。',
+          },
+          {
+            chapter: 'dp',
+            phase: 'done',
+            message: '滚动保存前两个状态即可得到答案。',
+            answer,
+          },
+        ];
+      }
+
+      window.ClimbingStairsApp = {
+        parseInput,
+        solveRecursive,
+        solveMemo,
+        solveRolling,
+        buildSteps,
+      };
+
+      if (typeof document !== 'undefined') {
+        document.documentElement.dataset.climbingStairsReady = 'true';
+      }
+    }());
+  </script>
+</body>
+</html>
