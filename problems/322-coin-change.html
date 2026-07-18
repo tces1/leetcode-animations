@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>322. 零钱兑换 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9;
+    color: #1d2129;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; }
+  .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px;
+    padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
+    padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb;
+    border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  /* dp table */
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell { width: 46px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .box {
+    width: 100%; height: 44px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:600;
+    border-radius:8px; background:#f1f2f4; color:#4b5563; border:2px solid transparent;
+    transition: all .2s;
+  }
+  .box.done   { background:#eef2ff; color:#4f46e5; }
+  .box.active { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .box.src    { background:#fef9c3; color:#854d0e; border-color:#fde047; }
+  .box.unreach{ background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }
+  .box.empty  { color:#c7cbd1; }
+
+  /* coins strip */
+  .sq-row { display:flex; flex-wrap:wrap; gap:8px; }
+  .sq {
+    font-family:"SF Mono",Menlo,monospace; font-size:13px; padding:6px 11px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:8px; color:#4b5563;
+    transition: all .15s;
+  }
+  .sq.on { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-2px); box-shadow:0 4px 10px rgba(99,102,241,.3); }
+  .sq.skip { opacity:.4; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .status {
+    background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
+  }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .status .no { color:#fca5a5; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/coin-change/" target="_blank" rel="noopener">LeetCode 322</a></span>
+  </div>
+
+  <h1>322. 零钱兑换 · 动态规划填表动画</h1>
+  <div class="sub"><code>dp[i]</code> = 凑出金额 <code>i</code> 所需最少的硬币数。填 <code>dp[i]</code> 时，枚举「最后一枚硬币 <code>c</code>」（需 <code>c ≤ i</code>），答案就是 <code>min(dp[i − c]) + 1</code>。凑不出则记为 <code>∞</code>，最终 <code>∞</code> 返回 <code>−1</code>。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="1,2,5 | 11" spellcheck="false" placeholder="硬币列表 | 目标金额，例如 1,2,5 | 11">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">1,2,5 | 11</span>
+      <span class="chip">2 | 3</span>
+      <span class="chip">1 | 0</span>
+      <span class="chip">2,5,10,1 | 27</span>
+      <span class="chip">3,7 | 17</span>
+      <span class="chip">186,419,83,408 | 63</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前正在算 dp[i]</span>
+      <span><span class="dot" style="background:#fef9c3;border:1px solid #fde047"></span>来源 dp[i − c]</span>
+      <span><span class="dot" style="background:#eef2ff;border:1px solid #c7d2fe"></span>已确定</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>凑不出(∞)</span>
+    </div>
+    <div class="hint">提示：格式为「硬币，逗号分隔 | 金额」。金额较大时格子会自动换行；为便于观看，金额会被限制在 120 以内。</div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">coins（可用硬币面值）</div>
+    <div class="sq-row" id="sqRow"></div>
+    <div class="panel-title" style="margin-top:16px;">dp 表（上标 = 金额 i，格内 = dp[i]）</div>
+    <div class="arr-row" id="dpRow"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 自底向上填表 · 时间 O(amount × coins) 空间 O(amount)
+class Solution {
+    public int coinChange(int[] coins, int amount) {
+        int[] dp = new int[amount + 1];
+        Arrays.fill(dp, amount + 1);         <span class="cmt">// amount+1 当作 ∞(硬币数不可能超过 amount)</span>
+        dp[0] = 0;                           <span class="cmt">// 凑出 0 需要 0 枚</span>
+        for (int i = 1; i &lt;= amount; i++)
+            for (int c : coins)              <span class="cmt">// 枚举最后一枚硬币 c</span>
+                if (c &lt;= i)
+                    dp[i] = Math.min(dp[i], dp[i - c] + 1);
+        return dp[amount] &gt; amount ? -1 : dp[amount];
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python · 记忆化搜索 · @cache 必须放在方法内(coins 因用例而异)</span>
+class Solution:
+    def coinChange(self, coins: List[int], amount: int) -&gt; int:
+        @cache
+        def dfs(i):
+            if i == 0:
+                return 0
+            step = inf
+            for c in coins:
+                if i - c &gt;= 0:               # 提前剪枝,不递归到负数
+                    step = min(step, dfs(i - c) + 1)
+            return step
+        res = dfs(amount)
+        return -1 if res == inf else res</code></pre>
+      <pre><code><span class="cmt"># Python · 自底向上填表(与本页动画一致,无递归、不会爆栈)</span>
+class Solution:
+    def coinChange(self, coins: List[int], amount: int) -&gt; int:
+        dp = [0] + [inf] * amount           # dp[i] = 凑出 i 的最少硬币数
+        for i in range(1, amount + 1):
+            for c in coins:
+                if c &lt;= i:                   # 最后一枚用 c
+                    dp[i] = min(dp[i], dp[i - c] + 1)
+        return dp[amount] if dp[amount] != inf else -1</code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var sqRow = document.getElementById('sqRow');
+  var dpRow = document.getElementById('dpRow');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var INF = Infinity;
+  var MAX_AMOUNT = 120;
+
+  var coins = [];
+  var amount = 0;
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function parseInput(s) {
+    s = s || '';
+    var parts = s.split('|');
+    var coinStr = parts[0] || '';
+    var amtStr = parts.length > 1 ? parts[1] : '';
+    var cs = coinStr.split(/[,\s]+/)
+              .map(function (x) { return x.trim(); })
+              .filter(function (x) { return x.length; })
+              .map(Number)
+              .filter(function (x) { return !isNaN(x) && x > 0; });
+    // 去重 + 升序,便于观看
+    cs = cs.filter(function (v, i, a) { return a.indexOf(v) === i; })
+           .sort(function (a, b) { return a - b; });
+    var m = amtStr.match(/-?\d+/);
+    var amt = m ? parseInt(m[0], 10) : NaN;
+    return { coins: cs, amount: amt };
+  }
+
+  function fmt(v) { return v === INF ? '∞' : v; }
+
+  function buildSteps(coins, amount) {
+    var snaps = [];
+    var dp = new Array(amount + 1).fill(INF);
+    var from = new Array(amount + 1).fill(-1);   // 记录最优的最后一枚硬币
+    dp[0] = 0;
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        dp: dp.slice(),
+        src: (o.src === undefined ? -1 : o.src),
+        coin: (o.coin === undefined ? 0 : o.coin),
+        done: (o.done === undefined ? false : o.done),
+        msg: o.msg, phase: o.phase
+      });
+    }
+
+    snap({ msg: '初始化：dp[0] = <b>0</b>（凑出金额 0 需要 0 枚），其余 dp 全设为 <b>∞</b>（暂时凑不出）。硬币面值为 [' + coins.join(', ') + ']。', phase: 'start' });
+
+    for (var i = 1; i <= amount; i++) {
+      snap({ i: i, msg: '开始计算 dp[<b>' + i + '</b>]：枚举「最后一枚硬币 c」，在所有 c ≤ ' + i + ' 的方案里取最少。', phase: 'visit' });
+      for (var k = 0; k < coins.length; k++) {
+        var c = coins[k];
+        if (c > i) {
+          snap({ i: i, coin: c,
+            msg: '硬币 <b>' + c + '</b> &gt; 当前金额 ' + i + '，放不下，<span class="no">跳过</span>。',
+            phase: 'skip' });
+          continue;
+        }
+        var src = i - c;
+        var cand = dp[src] === INF ? INF : dp[src] + 1;
+        var better = cand < dp[i];
+        if (better) { dp[i] = cand; from[i] = c; }
+        snap({ i: i, src: src, coin: c,
+          msg: '试最后一枚 = <b>' + c + '</b>：dp[' + src + '] + 1 = ' + fmt(dp[src]) + ' + 1 = ' + fmt(cand) + '。' +
+               (better ? ' <span class="op">更优 → 更新</span> dp[' + i + '] = ' + fmt(cand) + '。'
+                       : ' 不比当前 dp[' + i + '] = ' + fmt(dp[i]) + ' 更好，保留。'),
+          phase: 'try' });
+      }
+      snap({ i: i,
+        msg: 'dp[' + i + '] 已确定为 <b>' + fmt(dp[i]) + '</b>' + (dp[i] === INF ? '（这些硬币凑不出金额 ' + i + '）' : '') + '。',
+        phase: 'set' });
+    }
+
+    // 回溯一种最优方案
+    var msg;
+    if (amount === 0) {
+      msg = '完成 ✅ 目标金额为 0，无需任何硬币，dp[0] = <b>0</b>。';
+    } else if (dp[amount] === INF) {
+      msg = '完成 ❌ 用这些硬币<span class="no">无法</span>凑出金额 <b>' + amount + '</b>，dp[' + amount + '] = ∞ → 返回 <b>−1</b>。';
+    } else {
+      var path = [], k2 = amount;
+      while (k2 > 0) { path.push(from[k2]); k2 -= from[k2]; }
+      msg = '完成 ✅ 凑出金额 <b>' + amount + '</b> 最少需要 <b>' + dp[amount] + '</b> 枚硬币，例如：' + amount + ' = ' + path.join(' + ') + '。';
+    }
+    snap({ done: true, msg: msg, phase: 'end' });
+    return snaps;
+  }
+
+  function load(s) {
+    var r = parseInput(s);
+    if (!r.coins.length || isNaN(r.amount) || r.amount < 0) return;
+    var amt = r.amount > MAX_AMOUNT ? MAX_AMOUNT : r.amount;
+    coins = r.coins;
+    amount = amt;
+    input.value = coins.join(',') + ' | ' + amount;
+    steps = buildSteps(coins, amount);
+    stepIdx = 0;
+    renderStatic();
+    render();
+  }
+
+  function makeCell(idx, val) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = idx;
+    var box = document.createElement('div'); box.className = 'box';
+    box.textContent = val;
+    box.dataset.idx = idx;
+    cell.appendChild(lab); cell.appendChild(box);
+    return cell;
+  }
+
+  function renderStatic() {
+    dpRow.innerHTML = '';
+    for (var i = 0; i <= amount; i++) dpRow.appendChild(makeCell(i, ''));
+    sqRow.innerHTML = '';
+    for (var k = 0; k < coins.length; k++) {
+      var el = document.createElement('div');
+      el.className = 'sq';
+      el.dataset.coin = coins[k];
+      el.textContent = '¥' + coins[k];
+      sqRow.appendChild(el);
+    }
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+
+    Array.prototype.forEach.call(dpRow.children, function (cell) {
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.textContent = fmt(st.dp[idx]);
+      box.className = 'box';
+      if (st.done) {
+        if (st.dp[idx] === INF) box.classList.add('unreach');
+        else box.classList.add('done');
+      } else if (idx === st.i) {
+        box.classList.add('active');
+      } else if (idx === st.src) {
+        box.classList.add('src');
+      } else if (idx < st.i) {
+        if (st.dp[idx] === INF) box.classList.add('unreach');
+        else box.classList.add('done');
+      } else {
+        box.classList.add('empty');
+      }
+    });
+
+    Array.prototype.forEach.call(sqRow.children, function (el) {
+      el.className = 'sq';
+      if (+el.dataset.coin === st.coin) {
+        el.classList.add(st.phase === 'skip' ? 'skip' : 'on');
+      }
+    });
+
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = (stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 700);
+  }
+
+  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>

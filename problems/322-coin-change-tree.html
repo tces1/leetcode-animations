@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>322. 零钱兑换（记忆化递归树） — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9;
+    color: #1d2129;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .altlink { font-size:12px; color:#6b7280; }
+  .altlink a { color:#6366f1; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; }
+  .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px;
+    padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
+    padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb;
+    border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .tree-wrap { width:100%; overflow:auto; border:1px solid #eef0f4; border-radius:10px; background:#fbfbfc; }
+  svg { display:block; }
+
+  /* edges */
+  .edge { stroke:#d1d5db; stroke-width:2; }
+  .edge.active { stroke:#6366f1; stroke-width:3; }
+  .edge-lab { font: 600 11px "SF Mono", Menlo, monospace; fill:#9ca3af; }
+  .edge-lab.active { fill:#4f46e5; }
+
+  /* nodes */
+  .node circle { fill:#f1f2f4; stroke:#d1d5db; stroke-width:2; transition: all .15s; }
+  .node .n-amt { font: 700 14px "SF Mono", Menlo, monospace; fill:#4b5563; }
+  .node .n-val { font: 700 12px "SF Mono", Menlo, monospace; fill:#6b7280; }
+
+  .node.done circle    { fill:#eef2ff; stroke:#c7d2fe; }
+  .node.done .n-amt    { fill:#4f46e5; }
+  .node.success circle { fill:#dcfce7; stroke:#86efac; }
+  .node.success .n-amt { fill:#166534; }
+  .node.cache circle   { fill:#ffedd5; stroke:#fdba74; }
+  .node.cache .n-amt   { fill:#9a3412; }
+  .node.dead circle    { fill:#fee2e2; stroke:#fca5a5; }
+  .node.dead .n-amt    { fill:#b91c1c; }
+  .node.active circle  { fill:#6366f1; stroke:#4338ca; stroke-width:3; }
+  .node.active .n-amt  { fill:#fff; }
+  .node.active .n-val  { fill:#4338ca; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .status {
+    background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
+  }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .status .hit { color:#fdba74; font-weight:700; } .status .no { color:#fca5a5; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:5px; vertical-align:-1px; border:1px solid rgba(0,0,0,.1);}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  .warn { color:#b91c1c; font-size:13px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/coin-change/" target="_blank" rel="noopener">LeetCode 322</a></span>
+    <span class="altlink">· 另一视角：<a href="322-coin-change.html">自底向上填表动画</a></span>
+  </div>
+
+  <h1>322. 零钱兑换 · 记忆化递归树动画</h1>
+  <div class="sub"><code>dfs(i)</code> = 凑出金额 <code>i</code> 的最少硬币数。每个节点按「最后一枚硬币 <code>c</code>」向下分叉成 <code>dfs(i − c)</code>；<code>dfs(0)=0</code> 是凑齐（成功），子结果回传时取 <code>min(子) + 1</code>。同一个金额<b>第二次</b>出现时直接读缓存（<span style="color:#9a3412">↺</span>），不再展开 —— 这就是记忆化把指数级递归压成线性的原因。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="1,2,5 | 6" spellcheck="false" placeholder="硬币列表 | 目标金额，例如 1,2,5 | 6">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">1,2,5 | 6</span>
+      <span class="chip">1,3,4 | 6</span>
+      <span class="chip">2,5 | 11</span>
+      <span class="chip">1,2 | 4</span>
+      <span class="chip">2 | 3</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前节点</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>成功叶 dfs(0)=0</span>
+      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>缓存命中 ↺</span>
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>已算出</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#fca5a5"></span>死路 ∞</span>
+    </div>
+    <div class="hint">提示：递归树会随 amount 迅速变大；本页金额上限 12，太大或树太宽时请换更小的样本观看。</div>
+    <div class="warn" id="warn" style="display:none;"></div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">记忆化递归树（节点内上=金额 i，下=dfs(i) 的值；边标注减去的硬币）</div>
+    <div class="tree-wrap" id="treeWrap">
+      <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Python 记忆化搜索 · 与本页动画一致）</summary>
+      <pre><code><span class="cmt"># @cache 必须放在方法内：coins 因用例而异，缓存不能跨用例共享</span>
+class Solution:
+    def coinChange(self, coins: List[int], amount: int) -&gt; int:
+        @cache
+        def dfs(i):
+            if i == 0:
+                return 0                     <span class="cmt"># 凑齐,成功叶</span>
+            step = inf
+            for c in coins:
+                if i - c &gt;= 0:               <span class="cmt"># 提前剪枝,不递归到负数</span>
+                    step = min(step, dfs(i - c) + 1)   <span class="cmt"># 最后一枚用 c</span>
+            return step                      <span class="cmt"># @cache: 同一个 i 只真正算一次</span>
+        res = dfs(amount)
+        return -1 if res == inf else res</code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var svg = document.getElementById('svg');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var warnEl = document.getElementById('warn');
+  var INF = Infinity;
+  var MAX_AMOUNT = 12;
+  var MAX_NODES = 160;
+
+  var R = 22, XGAP = 66, YGAP = 92, PADX = 34, PADY = 34;
+
+  var coins = [];
+  var amount = 0;
+  var nodeList = [];
+  var edges = [];
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+  var nodeEls = {};
+  var edgeEls = {};
+
+  function fmt(v) { return v === INF ? '∞' : v; }
+
+  function parseInput(s) {
+    s = s || '';
+    var parts = s.split('|');
+    var cs = (parts[0] || '').split(/[,\s]+/)
+              .map(function (x) { return x.trim(); })
+              .filter(function (x) { return x.length; })
+              .map(Number)
+              .filter(function (x) { return !isNaN(x) && x > 0; });
+    cs = cs.filter(function (v, i, a) { return a.indexOf(v) === i; })
+           .sort(function (a, b) { return a - b; });
+    var m = (parts.length > 1 ? parts[1] : '').match(/-?\d+/);
+    var amt = m ? parseInt(m[0], 10) : NaN;
+    return { coins: cs, amount: amt };
+  }
+
+  function computeMemo() {
+    var memo = new Array(amount + 1).fill(INF);
+    memo[0] = 0;
+    for (var i = 1; i <= amount; i++)
+      for (var k = 0; k < coins.length; k++) {
+        var c = coins[k];
+        if (c <= i && memo[i - c] !== INF) memo[i] = Math.min(memo[i], memo[i - c] + 1);
+      }
+    return memo;
+  }
+
+  // 构建带记忆化的递归树：同一金额只有首次出现会展开，其余记为 cache
+  function buildTree() {
+    nodeList = []; edges = [];
+    var memo = computeMemo();
+    var expanded = {};
+
+    function build(i) {
+      var node = { id: nodeList.length, i: i, kind: null, val: memo[i], children: [] };
+      nodeList.push(node);
+      if (i === 0) { node.kind = 'success'; node.val = 0; return node; }
+      if (expanded[i]) { node.kind = 'cache'; return node; }
+      expanded[i] = true;
+      node.kind = 'expand';
+      for (var k = 0; k < coins.length; k++) {
+        var c = coins[k];
+        if (c > i) continue;
+        var child = build(i - c);
+        node.children.push({ coin: c, id: child.id });
+        edges.push({ from: node.id, to: child.id, coin: c });
+      }
+      return node;
+    }
+    build(amount);
+    return nodeList[0];
+  }
+
+  function layout(root) {
+    var leaf = 0, maxDepth = 0;
+    function place(node, depth) {
+      node.depth = depth;
+      if (depth > maxDepth) maxDepth = depth;
+      if (!node.children.length) { node._lx = leaf++; }
+      else {
+        for (var k = 0; k < node.children.length; k++) place(nodeList[node.children[k].id], depth + 1);
+        var first = nodeList[node.children[0].id]._lx;
+        var last = nodeList[node.children[node.children.length - 1].id]._lx;
+        node._lx = (first + last) / 2;
+      }
+    }
+    place(root, 0);
+    nodeList.forEach(function (nd) {
+      nd.x = PADX + nd._lx * XGAP + R;
+      nd.y = PADY + nd.depth * YGAP + R;
+    });
+    return {
+      w: PADX * 2 + Math.max(1, leaf) * XGAP + R * 2,
+      h: PADY * 2 + (maxDepth + 1) * YGAP
+    };
+  }
+
+  // 模拟递归执行，产出逐帧快照
+  function buildSteps(root) {
+    var snaps = [];
+    var N = nodeList.length;
+    var states = new Array(N).fill('idle');
+    var vals = new Array(N).fill(null);
+
+    function snap(o) {
+      snaps.push({
+        states: states.slice(),
+        vals: vals.slice(),
+        activeId: (o.activeId === undefined ? -1 : o.activeId),
+        edge: o.edge || null,
+        msg: o.msg
+      });
+    }
+
+    function run(node) {
+      snap({ activeId: node.id, msg: '进入 <b>dfs(' + node.i + ')</b>：求凑出金额 ' + node.i + ' 的最少硬币数。' });
+      if (node.kind === 'success') {
+        vals[node.id] = 0; states[node.id] = 'success';
+        snap({ activeId: node.id, msg: '金额为 0 ✅ 已凑齐，<span class="op">返回 0</span>。' });
+        return 0;
+      }
+      if (node.kind === 'cache') {
+        vals[node.id] = node.val;
+        states[node.id] = (node.val === INF ? 'dead' : 'cache');
+        snap({ activeId: node.id, msg: 'dfs(' + node.i + ') 之前已经算过 = <b>' + fmt(node.val) + '</b> <span class="hit">↺ 记忆化命中</span>，直接返回，不再展开子树。' });
+        return node.val;
+      }
+      // expand
+      var best = INF;
+      for (var k = 0; k < coins.length; k++) {
+        var c = coins[k];
+        if (c > node.i) {
+          snap({ activeId: node.id, msg: '硬币 <b>' + c + '</b> &gt; 当前金额 ' + node.i + '，放不下，<span class="no">跳过</span>。' });
+          continue;
+        }
+        var childId = -1;
+        for (var e = 0; e < node.children.length; e++) if (node.children[e].coin === c) { childId = node.children[e].id; break; }
+        snap({ activeId: node.id, edge: { from: node.id, to: childId },
+          msg: '试最后一枚 = <b>' + c + '</b>：向下递归求 dfs(' + (node.i - c) + ')。' });
+        var v = run(nodeList[childId]);
+        var cand = v === INF ? INF : v + 1;
+        if (cand < best) best = cand;
+        vals[node.id] = best;
+        snap({ activeId: node.id, edge: { from: node.id, to: childId },
+          msg: 'dfs(' + (node.i - c) + ') = ' + fmt(v) + '，加上这枚 ' + c + ' → ' + fmt(cand) + '。当前 dfs(' + node.i + ') 最优 = <b>' + fmt(best) + '</b>。' });
+      }
+      vals[node.id] = best;
+      states[node.id] = (best === INF ? 'dead' : 'done');
+      snap({ activeId: node.id, msg: 'dfs(' + node.i + ') 所有硬币试完，取最小 = <b>' + fmt(best) + '</b>' + (best === INF ? '（凑不出 → ∞）' : '') + '。' });
+      return best;
+    }
+
+    run(root);
+
+    var rv = nodeList[0].val;
+    var endMsg;
+    if (amount === 0) endMsg = '完成 ✅ 目标金额为 0，dfs(0) = <b>0</b>，无需硬币。';
+    else if (rv === INF) endMsg = '完成 ❌ 用这些硬币<span class="no">无法</span>凑出金额 <b>' + amount + '</b>，dfs(' + amount + ') = ∞ → 返回 <b>−1</b>。';
+    else endMsg = '完成 ✅ dfs(' + amount + ') = <b>' + rv + '</b>，即最少需要 ' + rv + ' 枚硬币。橙色节点就是被记忆化「省下」的重复子问题。';
+    snap({ activeId: 0, msg: endMsg });
+    return snaps;
+  }
+
+  function svgEl(name, attrs) {
+    var el = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  function renderStatic(size) {
+    svg.innerHTML = '';
+    svg.setAttribute('viewBox', '0 0 ' + size.w + ' ' + size.h);
+    svg.setAttribute('width', size.w);
+    svg.setAttribute('height', size.h);
+    edgeEls = {}; nodeEls = {};
+
+    edges.forEach(function (ed) {
+      var p = nodeList[ed.from], c = nodeList[ed.to];
+      var line = svgEl('line', { x1: p.x, y1: p.y, x2: c.x, y2: c.y, class: 'edge' });
+      var lab = svgEl('text', { x: (p.x + c.x) / 2 + 6, y: (p.y + c.y) / 2, class: 'edge-lab' });
+      lab.textContent = '−' + ed.coin;
+      svg.appendChild(line); svg.appendChild(lab);
+      edgeEls[ed.from + '-' + ed.to] = { line: line, lab: lab };
+    });
+
+    nodeList.forEach(function (nd) {
+      var g = svgEl('g', { class: 'node' });
+      var circle = svgEl('circle', { cx: nd.x, cy: nd.y, r: R });
+      var amt = svgEl('text', { x: nd.x, y: nd.y + 1, 'text-anchor': 'middle', 'dominant-baseline': 'middle', class: 'n-amt' });
+      amt.textContent = nd.i;
+      var val = svgEl('text', { x: nd.x, y: nd.y + R + 14, 'text-anchor': 'middle', class: 'n-val' });
+      g.appendChild(circle); g.appendChild(amt); g.appendChild(val);
+      svg.appendChild(g);
+      nodeEls[nd.id] = { g: g, val: val };
+    });
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+    nodeList.forEach(function (nd) {
+      var refs = nodeEls[nd.id];
+      var cls = 'node ' + st.states[nd.id];
+      if (nd.id === st.activeId) cls = 'node active';
+      refs.g.setAttribute('class', cls);
+      var v = st.vals[nd.id];
+      refs.val.textContent = (v === null || v === undefined) ? '' :
+        (st.states[nd.id] === 'cache' ? '↺ ' + fmt(v) : fmt(v));
+    });
+
+    for (var key in edgeEls) {
+      edgeEls[key].line.setAttribute('class', 'edge');
+      edgeEls[key].lab.setAttribute('class', 'edge-lab');
+    }
+    if (st.edge) {
+      var k = st.edge.from + '-' + st.edge.to;
+      if (edgeEls[k]) {
+        edgeEls[k].line.setAttribute('class', 'edge active');
+        edgeEls[k].lab.setAttribute('class', 'edge-lab active');
+      }
+    }
+
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = (stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(s) {
+    var r = parseInput(s);
+    warnEl.style.display = 'none';
+    if (!r.coins.length || isNaN(r.amount) || r.amount < 0) return;
+    var amt = r.amount;
+    if (amt > MAX_AMOUNT) { amt = MAX_AMOUNT; }
+    coins = r.coins; amount = amt;
+    input.value = coins.join(',') + ' | ' + amount;
+
+    var root = buildTree();
+    if (nodeList.length > MAX_NODES) {
+      warnEl.style.display = 'block';
+      warnEl.textContent = '这棵递归树有 ' + nodeList.length + ' 个节点，太大了，换更小的金额或更少的硬币看会更清楚。';
+    }
+    var size = layout(root);
+    steps = buildSteps(root);
+    stepIdx = 0;
+    renderStatic(size);
+    render();
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 650);
+  }
+
+  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
