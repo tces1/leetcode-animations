@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>279. 完全平方数 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9;
+    color: #1d2129;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; }
+  .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px;
+    padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
+    padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb;
+    border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  /* dp table */
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell { width: 46px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .box {
+    width: 100%; height: 44px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:600;
+    border-radius:8px; background:#f1f2f4; color:#4b5563; border:2px solid transparent;
+    transition: all .2s;
+  }
+  .box.done   { background:#eef2ff; color:#4f46e5; }
+  .box.active { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .box.src    { background:#fef9c3; color:#854d0e; border-color:#fde047; }
+  .box.empty  { color:#c7cbd1; }
+
+  /* squares strip */
+  .sq-row { display:flex; flex-wrap:wrap; gap:8px; }
+  .sq {
+    font-family:"SF Mono",Menlo,monospace; font-size:13px; padding:6px 11px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:8px; color:#4b5563;
+    transition: all .15s;
+  }
+  .sq.on { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-2px); box-shadow:0 4px 10px rgba(99,102,241,.3); }
+  .sq.used { background:#dcfce7; color:#166534; border-color:#86efac; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .status {
+    background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
+  }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/perfect-squares/" target="_blank" rel="noopener">LeetCode 279</a></span>
+  </div>
+
+  <h1>279. 完全平方数 · 动态规划填表动画</h1>
+  <div class="sub"><code>dp[i]</code> = 凑出 <code>i</code> 所需最少的完全平方数个数。填 <code>dp[i]</code> 时，枚举「最后加上的那块平方数 <code>j²</code>」，答案就是 <code>min(dp[i − j²]) + 1</code>。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="12" spellcheck="false" placeholder="输入一个正整数 n">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">12</span>
+      <span class="chip">13</span>
+      <span class="chip">7</span>
+      <span class="chip">43</span>
+      <span class="chip">48</span>
+      <span class="chip">28</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前正在算 dp[i]</span>
+      <span><span class="dot" style="background:#fef9c3;border:1px solid #fde047"></span>来源 dp[i − j²]</span>
+      <span><span class="dot" style="background:#eef2ff;border:1px solid #c7d2fe"></span>已确定</span>
+    </div>
+    <div class="hint">提示：n 较大时格子会自动换行；为便于观看，n 会被限制在 120 以内。</div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">候选平方数 j²（不超过 n）</div>
+    <div class="sq-row" id="sqRow"></div>
+    <div class="panel-title" style="margin-top:16px;">dp 表（上标 = 整数 i，格内 = dp[i]）</div>
+    <div class="arr-row" id="dpRow"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 记忆化搜索(自顶向下 DP) · 时间 O(n√n) 空间 O(n)
+class Solution {
+    private static int[] memo = new int[0];      <span class="cmt">// 跨用例共享,避免重复计算</span>
+
+    public int numSquares(int n) {
+        if (memo.length &lt; n + 1) memo = new int[n + 1];  <span class="cmt">// 0 表示尚未计算</span>
+        return dfs(n);
+    }
+
+    private int dfs(int i) {
+        if (i &lt; 1) return 0;
+        if (memo[i] != 0) return memo[i];        <span class="cmt">// 命中缓存</span>
+        int step = Integer.MAX_VALUE;
+        for (int j = 1; j * j &lt;= i; j++)          <span class="cmt">// 枚举最后减去的那块 j²</span>
+            step = Math.min(step, dfs(i - j * j) + 1);
+        return memo[i] = step;
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python · 记忆化搜索 · @cache 放到类外,多个用例共享缓存</span>
+from functools import cache
+from math import inf
+
+@cache
+def dfs(i):
+    if i &lt; 1:
+        return 0
+    j = 0
+    step = inf
+    while True:
+        j += 1
+        if j * j &gt; i:
+            break
+        step = min(step, dfs(i - j * j) + 1)   # 最后一块用 j²
+    return step
+
+class Solution:
+    def numSquares(self, n: int) -&gt; int:
+        return dfs(n)</code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var sqRow = document.getElementById('sqRow');
+  var dpRow = document.getElementById('dpRow');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var INF = Infinity;
+  var MAX_N = 120;
+
+  var n = 0;
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function parseInput(s) {
+    var m = (s || '').match(/-?\d+/);
+    return m ? parseInt(m[0], 10) : NaN;
+  }
+
+  function fmt(v) { return v === INF ? '∞' : v; }
+
+  function buildSteps(n) {
+    var snaps = [];
+    var dp = new Array(n + 1).fill(INF);
+    var from = new Array(n + 1).fill(0);
+    dp[0] = 0;
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        dp: dp.slice(),
+        src: (o.src === undefined ? -1 : o.src),
+        sq: (o.sq === undefined ? 0 : o.sq),
+        done: (o.done === undefined ? false : o.done),
+        msg: o.msg, phase: o.phase
+      });
+    }
+
+    snap({ msg: '初始化：dp[0] = <b>0</b>（凑出 0 需要 0 个），其余 dp 全设为 <b>∞</b>（暂不可达）。', phase: 'start' });
+
+    for (var i = 1; i <= n; i++) {
+      snap({ i: i, msg: '开始计算 dp[<b>' + i + '</b>]：枚举「最后加上的那块平方数 j²」，取所有方案里最少的。', phase: 'visit' });
+      for (var j = 1; j * j <= i; j++) {
+        var sq = j * j;
+        var src = i - sq;
+        var cand = dp[src] + 1;
+        var better = cand < dp[i];
+        if (better) { dp[i] = cand; from[i] = sq; }
+        snap({ i: i, src: src, sq: sq,
+          msg: '试最后一块 = <b>' + j + '² = ' + sq + '</b>：dp[' + src + '] + 1 = ' + fmt(dp[src]) + ' + 1 = ' + fmt(cand) + '。' +
+               (better ? ' <span class="op">更优 → 更新</span> dp[' + i + '] = ' + cand + '。'
+                       : ' 不比当前 dp[' + i + '] = ' + fmt(dp[i]) + ' 更好，保留。'),
+          phase: 'try' });
+      }
+      snap({ i: i, msg: 'dp[' + i + '] 已确定为 <b>' + dp[i] + '</b>。', phase: 'set' });
+    }
+
+    // 回溯一种最优拆分
+    var path = [], k = n;
+    while (k > 0) { path.push(from[k]); k -= from[k]; }
+    var decomp = n === 0 ? '0' : n + ' = ' + path.join(' + ');
+    snap({ done: true,
+      msg: '完成 ✅ 凑出 <b>' + n + '</b> 最少需要 <b>' + dp[n] + '</b> 个完全平方数，例如：' + decomp + '。',
+      phase: 'end' });
+    return snaps;
+  }
+
+  function load(s) {
+    var v = parseInput(s);
+    if (isNaN(v) || v < 1) return;
+    if (v > MAX_N) v = MAX_N;
+    n = v;
+    input.value = n;
+    steps = buildSteps(n);
+    stepIdx = 0;
+    renderStatic();
+    render();
+  }
+
+  function makeCell(idx, val) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = idx;
+    var box = document.createElement('div'); box.className = 'box';
+    box.textContent = val;
+    box.dataset.idx = idx;
+    cell.appendChild(lab); cell.appendChild(box);
+    return cell;
+  }
+
+  function renderStatic() {
+    dpRow.innerHTML = '';
+    for (var i = 0; i <= n; i++) dpRow.appendChild(makeCell(i, ''));
+    sqRow.innerHTML = '';
+    for (var j = 1; j * j <= n; j++) {
+      var el = document.createElement('div');
+      el.className = 'sq';
+      el.dataset.sq = j * j;
+      el.textContent = j + '² = ' + (j * j);
+      sqRow.appendChild(el);
+    }
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+
+    Array.prototype.forEach.call(dpRow.children, function (cell) {
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.textContent = fmt(st.dp[idx]);
+      box.className = 'box';
+      if (st.done) box.classList.add('done');
+      else if (idx === st.i) box.classList.add('active');
+      else if (idx === st.src) box.classList.add('src');
+      else if (idx < st.i) box.classList.add('done');
+      else box.classList.add('empty');
+    });
+
+    Array.prototype.forEach.call(sqRow.children, function (el) {
+      el.className = 'sq';
+      if (+el.dataset.sq === st.sq) el.classList.add('on');
+    });
+
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = (stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 700);
+  }
+
+  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
