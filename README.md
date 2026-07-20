@@ -62,6 +62,8 @@ leetcode-animations/
 | 45 | [跳跃游戏 II](problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
 | 70 | [爬楼梯](problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
 | 55 | [跳跃游戏](problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
+| 62 | [不同路径](problems/62-unique-paths.html) | 中等 | 动态规划 · 二维 DP · 网格 |
+| 64 | [最小路径和](problems/64-minimum-path-sum.html) | 中等 | 动态规划 · 二维 DP · 网格 |
 | 84 | [柱状图中最大的矩形](problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
 | 118 | [杨辉三角](problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
 | 121 | [买卖股票的最佳时机](problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |

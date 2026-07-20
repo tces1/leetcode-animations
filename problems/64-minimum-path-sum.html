@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>64. 最小路径和 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 160px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  /* five-step method */
+  .steps5 { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; }
+  .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  /* grid */
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px; }
+  .grid-dp { display:inline-grid; gap:8px; margin:0 auto; }
+  .gcell {
+    position:relative; width:58px; height:56px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:17px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .gcell .cost {
+    position:absolute; top:3px; right:5px; font-size:10px; font-weight:700;
+    color:#9ca3af; letter-spacing:.02em;
+  }
+  .gcell.blank  { background:#f8fafc; border-style:dashed; border-color:#e5e7eb; color:#c7cbd1; }
+  .gcell.blank .cost { color:#cbd0d6; }
+  .gcell.done   { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }
+  .gcell.edge   { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .gcell.parent { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.22); }
+  .gcell.chosen { background:#fde68a; border-color:#d97706; box-shadow:0 0 0 4px rgba(217,119,6,.32); }
+  .gcell.cur    { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.25); transform:scale(1.08); }
+  .gcell.cur .cost { color:#c7d2fe; }
+  .gcell.goal   { outline:2px dashed #059669; outline-offset:2px; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab {
+    font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer;
+    background:#f1f2f4; border:1px solid #e5e7eb; color:#374151;
+  }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/minimum-path-sum/" target="_blank" rel="noopener">LeetCode 64</a></span>
+  </div>
+
+  <h1>64. 最小路径和 · 二维 DP 填表动画</h1>
+  <div class="sub">网格每格有非负代价，从左上角走到右下角（每步只能<b>向右</b>或<b>向下</b>），求路径上数字和的最小值。定义 <code>dp[i][j]</code> = 走到 <code>(i,j)</code> 的最小路径和；每格 = 本格代价 + <b>上方</b>与<b>左方</b>中较小的那个，即 <code>dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">动态规划五步法</div>
+    <div class="steps5">
+      <div class="s5"><div class="no">① 含义</div><code>dp[i][j]</code> = 从起点到 <b>(i,j)</b> 的<b>最小路径和</b>。</div>
+      <div class="s5"><div class="no">② 递推</div><code>dp[i][j] = grid[i][j] + min(上, 左)</code>。</div>
+      <div class="s5"><div class="no">③ 初始化</div><code>dp[0][0]=grid[0][0]</code>；第一行向右<b>累加</b>，第一列向下<b>累加</b>。</div>
+      <div class="s5"><div class="no">④ 遍历顺序</div>从上到下、从左到右（先算好上方和左方）。</div>
+      <div class="s5"><div class="no">⑤ 举例</div>[[1,3,1],[1,5,1],[4,2,1]] → 右下角 <b>7</b>。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="1,3,1;1,5,1;4,2,1" spellcheck="false" placeholder="每行逗号分隔、行间用分号，例如 1,3,1;1,5,1;4,2,1">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例 grid =</span>
+      <span class="chip">1,3,1;1,5,1;4,2,1</span>
+      <span class="chip">1,2,3;4,5,6</span>
+      <span class="chip">1,2,5;3,2,1</span>
+      <span class="chip">5</span>
+      <span class="chip">3,8,1,4;2,1,9,5;6,3,2,7</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="panel-title">dp 表（大字 = 最小路径和 dp，右上角小字 = 本格代价 grid）</div>
+    <div class="stage">
+      <div class="grid-dp" id="grid"></div>
+    </div>
+    <div class="vars">
+      <span id="vPos">当前位置 = <b>—</b></span>
+      <span id="vFormula">当前计算 = <b>—</b></span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>正在填的格子</span>
+      <span><span class="dot" style="background:#fde68a;border:1px solid #d97706"></span>被选中的较小来源</span>
+      <span><span class="dot" style="background:#fef3c7;border:1px solid #f59e0b"></span>候选来源（上 / 左）</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>第一行/列（累加）</span>
+      <span><span class="dot" style="background:#e0e7ff;border:1px solid #c7d2fe"></span>已填</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或先在上方载入一个网格。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="java">Java</span>
+        <span class="code-tab" data-lang="python">Python</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-min-path-sum-app>
+  (function () {
+    'use strict';
+
+    // 解析网格：行间用 ; 或换行，行内用 , 分隔；非负整数
+    function parseInput(value) {
+      if (typeof value !== 'string') { return null; }
+      var rows = value.split(/[;\n]+/).map(function (r) { return r.trim(); })
+                      .filter(function (r) { return r.length; });
+      if (!rows.length) { return null; }
+      var grid = [];
+      var width = null;
+      for (var r = 0; r < rows.length; r += 1) {
+        var parts = rows[r].split(/[,\s]+/).filter(function (x) { return x.length; });
+        if (!parts.length) { return null; }
+        var nums = [];
+        for (var c = 0; c < parts.length; c += 1) {
+          var v = Number(parts[c]);
+          if (!Number.isInteger(v) || v < 0 || v > 999) { return null; }
+          nums.push(v);
+        }
+        if (width === null) { width = nums.length; }
+        else if (nums.length !== width) { return null; }   // 必须是矩形
+        grid.push(nums);
+      }
+      if (grid.length > 8 || width > 8) { return null; }     // 动画清晰度上限
+      return grid;
+    }
+
+    function minPathSum(grid) {
+      var m = grid.length, n = grid[0].length;
+      var dp = [];
+      for (var i = 0; i < m; i += 1) {
+        dp.push([]);
+        for (var j = 0; j < n; j += 1) {
+          if (i === 0 && j === 0) { dp[i].push(grid[0][0]); }
+          else if (i === 0) { dp[i].push(dp[0][j - 1] + grid[0][j]); }
+          else if (j === 0) { dp[i].push(dp[i - 1][0] + grid[i][0]); }
+          else { dp[i].push(grid[i][j] + Math.min(dp[i - 1][j], dp[i][j - 1])); }
+        }
+      }
+      return dp[m - 1][n - 1];
+    }
+
+    function buildSteps(grid) {
+      var m = grid.length, n = grid[0].length;
+      var steps = [];
+      var dp = [];
+      for (var r = 0; r < m; r += 1) { dp.push(new Array(n).fill(null)); }
+
+      function snap(o) {
+        steps.push({
+          phase: o.phase,
+          message: o.message,
+          m: m, n: n,
+          grid: grid.map(function (row) { return row.slice(); }),
+          dp: dp.map(function (row) { return row.slice(); }),
+          i: (o.i == null ? -1 : o.i),
+          j: (o.j == null ? -1 : o.j),
+          value: (o.value == null ? null : o.value),
+          up: o.up || null,
+          left: o.left || null,
+          chosen: o.chosen || null,
+          answer: o.answer
+        });
+      }
+
+      snap({
+        phase: 'intro',
+        message: '定义 <b>dp[i][j]</b> = 从起点 (0,0) 走到 (i,j) 的最小路径和。目标是右下角 <span class="op">dp[' + (m - 1) + '][' + (n - 1) + ']</span>。右上角小字是每格代价 <b>grid</b>，下面逐格把 dp 填出来。'
+      });
+
+      for (var i = 0; i < m; i += 1) {
+        for (var j = 0; j < n; j += 1) {
+          if (i === 0 && j === 0) {
+            dp[0][0] = grid[0][0];
+            snap({
+              phase: 'origin', i: 0, j: 0, value: dp[0][0],
+              message: '起点 <b>(0,0)</b>：没有别的来路，dp = 本格代价 = <span class="op">' + grid[0][0] + '</span>。'
+            });
+          } else if (i === 0) {
+            var lv = dp[0][j - 1];
+            dp[0][j] = lv + grid[0][j];
+            snap({
+              phase: 'edge', i: 0, j: j, value: dp[0][j],
+              left: { i: 0, j: j - 1 }, chosen: { i: 0, j: j - 1 },
+              message: '第一行 <b>(0,' + j + ')</b>：只能从<b>左方</b>过来，dp = 左方 <span class="area">' + lv + '</span> + 本格 <span class="area">' + grid[0][j] + '</span> = <span class="op">' + dp[0][j] + '</span>（累加）。'
+            });
+          } else if (j === 0) {
+            var uv = dp[i - 1][0];
+            dp[i][0] = uv + grid[i][0];
+            snap({
+              phase: 'edge', i: i, j: 0, value: dp[i][0],
+              up: { i: i - 1, j: 0 }, chosen: { i: i - 1, j: 0 },
+              message: '第一列 <b>(' + i + ',0)</b>：只能从<b>上方</b>过来，dp = 上方 <span class="area">' + uv + '</span> + 本格 <span class="area">' + grid[i][0] + '</span> = <span class="op">' + dp[i][0] + '</span>（累加）。'
+            });
+          } else {
+            var up = dp[i - 1][j];
+            var left = dp[i][j - 1];
+            var best = Math.min(up, left);
+            var v = grid[i][j] + best;
+            dp[i][j] = v;
+            var fromUp = up <= left;
+            snap({
+              phase: 'sum', i: i, j: j, value: v,
+              up: { i: i - 1, j: j }, left: { i: i, j: j - 1 },
+              chosen: fromUp ? { i: i - 1, j: j } : { i: i, j: j - 1 },
+              message: '格子 <b>(' + i + ',' + j + ')</b>：min(上 <span class="area">' + up + '</span>, 左 <span class="area">' + left + '</span>) = <b>' + best + '</b>（走' + (fromUp ? '上' : '左') + '更省）+ 本格 <span class="area">' + grid[i][j] + '</span> = <span class="op">' + v + '</span>。'
+            });
+          }
+        }
+      }
+
+      snap({
+        phase: 'done',
+        answer: dp[m - 1][n - 1],
+        message: '✅ 填表完成。右下角 <b>dp[' + (m - 1) + '][' + (n - 1) + '] = <span class="op">' + dp[m - 1][n - 1] + '</span></b>，就是最小路径和。'
+      });
+      return steps;
+    }
+
+    window.MinPathSumApp = {
+      parseInput: parseInput,
+      minPathSum: minPathSum,
+      buildSteps: buildSteps
+    };
+
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.minPathSumReady = 'true';
+    }
+  }());
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.MinPathSumApp;
+
+  var input = document.getElementById('input');
+  var errEl = document.getElementById('err');
+  var statsEl = document.getElementById('stats');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var playBtn = document.getElementById('playBtn');
+  var gridEl = document.getElementById('grid');
+  var vPos = document.getElementById('vPos');
+  var vFormula = document.getElementById('vFormula');
+
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function showError(msg) { errEl.textContent = msg; errEl.classList.add('show'); }
+  function clearError() { errEl.textContent = ''; errEl.classList.remove('show'); }
+
+  function stopPlay() {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+
+  function renderGrid(step) {
+    gridEl.innerHTML = '';
+    gridEl.style.gridTemplateColumns = 'repeat(' + step.n + ', 58px)';
+    for (var i = 0; i < step.m; i += 1) {
+      for (var j = 0; j < step.n; j += 1) {
+        var cell = document.createElement('div');
+        var val = step.dp[i][j];
+        var cls = 'gcell';
+        var isUp = step.up && step.up.i === i && step.up.j === j;
+        var isLeft = step.left && step.left.i === i && step.left.j === j;
+        var isChosen = step.chosen && step.chosen.i === i && step.chosen.j === j;
+        if (i === step.i && j === step.j) { cls += ' cur'; }
+        else if (isChosen) { cls += ' parent chosen'; }
+        else if (isUp || isLeft) { cls += ' parent'; }
+        else if (val === null) { cls += ' blank'; }
+        else if (i === 0 || j === 0) { cls += ' edge'; }
+        else { cls += ' done'; }
+        if (i === step.m - 1 && j === step.n - 1) { cls += ' goal'; }
+        cell.className = cls;
+
+        var costEl = document.createElement('span');
+        costEl.className = 'cost';
+        costEl.textContent = step.grid[i][j];
+        cell.appendChild(costEl);
+        cell.appendChild(document.createTextNode(val === null ? '·' : val));
+        gridEl.appendChild(cell);
+      }
+    }
+  }
+
+  function renderStats(step) {
+    statsEl.innerHTML =
+      '<div class="stat">方法<b>二维 DP</b></div>' +
+      '<div class="stat">网格<b>' + step.m + ' × ' + step.n + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(m·n)</b></div>' +
+      '<div class="stat">空间复杂度<b>O(m·n)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    if (!step) { return; }
+
+    renderGrid(step);
+    renderStats(step);
+
+    if (step.i >= 0 && step.j >= 0) {
+      vPos.innerHTML = '当前位置 = <b>(' + step.i + ', ' + step.j + ')</b>';
+    } else {
+      vPos.innerHTML = '当前位置 = <b>—</b>';
+    }
+    if (step.phase === 'sum') {
+      vFormula.innerHTML = '当前计算 = <b>本格 + min(上, 左) = ' + step.value + '</b>';
+    } else if (step.phase === 'edge') {
+      vFormula.innerHTML = '当前计算 = <b>累加得 ' + step.value + '</b>';
+    } else if (step.phase === 'origin') {
+      vFormula.innerHTML = '当前计算 = <b>起点 = ' + step.value + '</b>';
+    } else if (step.phase === 'done') {
+      vFormula.innerHTML = '答案 = <b>' + step.answer + '</b>';
+    } else {
+      vFormula.innerHTML = '当前计算 = <b>—</b>';
+    }
+
+    statusEl.innerHTML = step.message;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(raw) {
+    var grid = App.parseInput(raw);
+    if (grid === null) {
+      showError('请输入矩形网格：行内用逗号、行间用分号，非负整数，最多 8×8。例如 "1,3,1;1,5,1;4,2,1"。当前动画保持不变。');
+      return false;
+    }
+    clearError();
+    stopPlay();
+    steps = App.buildSteps(grid);
+    stepIdx = 0;
+    render();
+    return true;
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx += 1; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx -= 1; render(); } }
+
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 600);
+  }
+
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  playBtn.onclick = togglePlay;
+  document.getElementById('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  document.getElementById('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { load(input.value); } });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  // ---- reference code ----
+  var codes = {
+    java:
+'<span class="cmt">// Java · 二维 DP · 时间 O(m·n) 空间 O(m·n)</span>\n' +
+'class Solution {\n' +
+'    public int minPathSum(int[][] grid) {\n' +
+'        int m = grid.length, n = grid[0].length;\n' +
+'        int[][] dp = new int[m][n];\n' +
+'        dp[0][0] = grid[0][0];\n' +
+'        for (int j = 1; j &lt; n; j++) dp[0][j] = dp[0][j - 1] + grid[0][j]; <span class="cmt">// 第一行累加</span>\n' +
+'        for (int i = 1; i &lt; m; i++) dp[i][0] = dp[i - 1][0] + grid[i][0]; <span class="cmt">// 第一列累加</span>\n' +
+'        for (int i = 1; i &lt; m; i++)\n' +
+'            for (int j = 1; j &lt; n; j++)\n' +
+'                dp[i][j] = grid[i][j] + Math.min(dp[i - 1][j], dp[i][j - 1]); <span class="cmt">// 本格 + min(上,左)</span>\n' +
+'        return dp[m - 1][n - 1];\n' +
+'    }\n' +
+'}',
+    python:
+'<span class="cmt"># Python · 二维 DP · 时间 O(m·n) 空间 O(m·n)</span>\n' +
+'class Solution:\n' +
+'    def minPathSum(self, grid: List[List[int]]) -&gt; int:\n' +
+'        m, n = len(grid), len(grid[0])\n' +
+'        dp = [[0] * n for _ in range(m)]\n' +
+'        dp[0][0] = grid[0][0]\n' +
+'        for j in range(1, n):\n' +
+'            dp[0][j] = dp[0][j - 1] + grid[0][j]      <span class="cmt"># 第一行累加</span>\n' +
+'        for i in range(1, m):\n' +
+'            dp[i][0] = dp[i - 1][0] + grid[i][0]      <span class="cmt"># 第一列累加</span>\n' +
+'        for i in range(1, m):\n' +
+'            for j in range(1, n):\n' +
+'                dp[i][j] = grid[i][j] + min(dp[i - 1][j], dp[i][j - 1])  <span class="cmt"># 本格 + min(上,左)</span>\n' +
+'        return dp[m - 1][n - 1]'
+  };
+  var codeBlock = document.getElementById('codeBlock');
+  function showCode(lang) { codeBlock.innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('java');
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
