@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>300. 最长递增子序列 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9;
+    color: #1d2129;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; }
+  .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px;
+    padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
+    padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb;
+    border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  /* view tabs */
+  .tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .tab {
+    background:#eef0f4; color:#4b5563; padding:8px 18px; font-size:14px; font-weight:600;
+    border-radius:999px; border:1px solid transparent;
+  }
+  .tab:hover { background:#e2e5eb; }
+  .tab.active { background:#6366f1; color:#fff; }
+  .view { display:none; }
+  .view.show { display:block; }
+
+  /* array rows (table view) */
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell { width: 50px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .box {
+    width: 100%; height: 44px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:600;
+    border-radius:8px; background:#f1f2f4; color:#4b5563; border:2px solid transparent;
+    transition: all .2s;
+  }
+  .box.cur    { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .box.ok     { background:#dcfce7; color:#166534; border-color:#86efac; }
+  .box.bad    { background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }
+  .box.active { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .box.src    { background:#fef9c3; color:#854d0e; border-color:#fde047; }
+  .box.done   { background:#eef2ff; color:#4f46e5; }
+  .box.best   { background:#dcfce7; color:#166534; border-color:#22c55e; }
+  .box.empty  { color:#c7cbd1; }
+
+  /* tree view */
+  .tree-wrap { width:100%; overflow:auto; border:1px solid #eef0f4; border-radius:10px; background:#fbfbfc; }
+  svg { display:block; }
+  .edge { stroke:#d1d5db; stroke-width:2; }
+  .edge.active { stroke:#6366f1; stroke-width:3; }
+  .node circle { fill:#f1f2f4; stroke:#d1d5db; stroke-width:2; transition: all .15s; }
+  .node .n-amt { font: 700 15px "SF Mono", Menlo, monospace; fill:#4b5563; }
+  .node .n-idx { font: 600 10px "SF Mono", Menlo, monospace; fill:#9ca3af; }
+  .node .n-val { font: 700 12px "SF Mono", Menlo, monospace; fill:#6b7280; }
+  .node.done circle    { fill:#eef2ff; stroke:#c7d2fe; }
+  .node.done .n-amt    { fill:#4f46e5; }
+  .node.base circle    { fill:#dcfce7; stroke:#86efac; }
+  .node.base .n-amt    { fill:#166534; }
+  .node.cache circle   { fill:#ffedd5; stroke:#fdba74; }
+  .node.cache .n-amt   { fill:#9a3412; }
+  .node.root circle    { fill:#faf5ff; stroke:#d8b4fe; }
+  .node.root .n-amt    { fill:#7e22ce; font-size:13px; }
+  .node.best circle    { fill:#dcfce7; stroke:#22c55e; stroke-width:3; }
+  .node.best .n-amt    { fill:#166534; }
+  .node.active circle  { fill:#6366f1; stroke:#4338ca; stroke-width:3; }
+  .node.active .n-amt  { fill:#fff; }
+  .node.active .n-idx  { fill:#c7d2fe; }
+  .node.active .n-val  { fill:#4338ca; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .maxbadge { font-family:"SF Mono",Menlo,monospace; font-size:13px; color:#166534; background:#dcfce7; border:1px solid #86efac; border-radius:999px; padding:3px 12px; margin-left:10px; }
+
+  .status {
+    background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
+  }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .status .hit { color:#fdba74; font-weight:700; } .status .no { color:#fca5a5; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+  .dot.rd { border-radius:50%; }
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  .warn { color:#b91c1c; font-size:13px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/longest-increasing-subsequence/" target="_blank" rel="noopener">LeetCode 300</a></span>
+  </div>
+
+  <h1>300. 最长递增子序列 · 双视角动画</h1>
+  <div class="sub">同一个递归：<code>dfs(i)</code> = 以 <code>nums[i]</code> <b>结尾</b>的最长递增子序列长度。内部 <code>res</code> 从 0 开始，遍历前面每个 <code>j</code>，若 <code>nums[j] &lt; nums[i]</code> 就 <code>res = max(res, dfs(j))</code>，最后 <code>return res + 1</code>（加上自己）。因为子序列能在<b>任意位置结尾</b>，答案是 <code>max(dfs(i) for i)</code>，不是某个固定点。<b>下面两个视角是同一份递归的两种展开方式</b>：填表 = 自底向上，递归树 = 自顶向下 + 记忆化。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="3,1,2,4" spellcheck="false" placeholder="输入整数数组，逗号分隔">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">3,1,2,4</span>
+      <span class="chip">10,9,2,5,3,7,101,18</span>
+      <span class="chip">1,2,3,4,5,0</span>
+      <span class="chip">7,7,7,7</span>
+      <span class="chip">1,3,2,4</span>
+      <span class="chip">4,3,2,1</span>
+    </div>
+    <div class="hint" id="hint">提示：填表视角数组上限 24；递归树视角为避免爆炸，数组上限 7。</div>
+    <div class="warn" id="warn" style="display:none;"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-view="table">📊 填表视角（自底向上 DP）</button>
+    <button class="tab" data-view="tree">🌳 递归树视角（自顶向下 + 记忆化）</button>
+  </div>
+
+  <!-- ===================== TABLE VIEW ===================== -->
+  <div class="view show" id="tableView">
+    <div class="card">
+      <div class="legend">
+        <span><span class="dot" style="background:#6366f1"></span>当前 i</span>
+        <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>能接上 nums[j]&lt;nums[i]</span>
+        <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>接不上</span>
+        <span><span class="dot" style="background:#fef9c3;border:1px solid #fde047"></span>来源 dp[j]</span>
+        <span><span class="dot" style="background:#dcfce7;border:1px solid #22c55e"></span>全局最大所在</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="panel-title">nums（原数组，上标 = 下标 i）</div>
+      <div class="arr-row" id="numRow"></div>
+      <div class="panel-title" style="margin-top:16px;">dp 表（dp[i] = 以 nums[i] 结尾的 LIS 长度 = res + 1）<span class="maxbadge" id="maxBadge">当前最大 = 0</span></div>
+      <div class="arr-row" id="dpRow"></div>
+    </div>
+  </div>
+
+  <!-- ===================== TREE VIEW ===================== -->
+  <div class="view" id="treeView">
+    <div class="card">
+      <div class="legend">
+        <span><span class="dot rd" style="background:#6366f1"></span>当前节点</span>
+        <span><span class="dot rd" style="background:#faf5ff;border:1px solid #d8b4fe"></span>虚拟 max 根</span>
+        <span><span class="dot rd" style="background:#dcfce7;border:1px solid #86efac"></span>叶子 = 1</span>
+        <span><span class="dot rd" style="background:#ffedd5;border:1px solid #fdba74"></span>缓存命中 ↺</span>
+        <span><span class="dot rd" style="background:#eef2ff;border:1px solid #c7d2fe"></span>已算出</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="panel-title">记忆化递归树（节点内=nums[i]，上标 #i 是下标，下=dfs(i) 的值）</div>
+      <div class="tree-wrap" id="treeWrap">
+        <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- shared controls -->
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code" open>
+      <summary>查看参考代码（记忆化搜索 · 两个视角都对应这份递归）</summary>
+      <pre><code><span class="cmt"># dfs(i) = 以 nums[i] 结尾的最长递增子序列长度</span>
+class Solution:
+    def lengthOfLIS(self, nums: List[int]) -&gt; int:
+
+        @cache
+        def dfs(i):
+            res = 0
+            for j in range(i):
+                if nums[j] &lt; nums[i]:        <span class="cmt"># nums[j] 能接在 nums[i] 前面</span>
+                    res = max(res, dfs(j))    <span class="cmt"># 取最长的前驱链</span>
+            return res + 1                    <span class="cmt"># +1 把 nums[i] 自己算上</span>
+
+        ans = -inf
+        for i in range(len(nums)):            <span class="cmt"># 结尾可以是任意位置</span>
+            ans = max(ans, dfs(i))            <span class="cmt"># 所以对每个 dfs(i) 取最大</span>
+        return ans</code></pre>
+      <div class="hint" style="margin-top:10px;">填表视角就是把这份递归<b>自底向上</b>展开成 <code>dp</code> 数组（<code>dp[i]=dfs(i)</code>）；递归树视角就是<b>自顶向下</b>真正跑这份递归，<code>@cache</code> 把重复的 <code>dfs(i)</code> 挡成橙色 ↺ 节点。</div>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var warnEl = document.getElementById('warn');
+
+  // table view refs
+  var numRow = document.getElementById('numRow');
+  var dpRow = document.getElementById('dpRow');
+  var maxBadge = document.getElementById('maxBadge');
+  // tree view refs
+  var svg = document.getElementById('svg');
+
+  var MAX_N_TABLE = 24, MAX_N_TREE = 7, MAX_NODES = 200;
+  var R = 22, XGAP = 62, YGAP = 92, PADX = 34, PADY = 34;
+
+  var view = 'table';
+  var nums = [];
+  var playTimer = null;
+
+  // per-view state
+  var T = { steps: [], stepIdx: 0 };   // table
+  var G = { steps: [], stepIdx: 0 };   // tree
+  // tree structures
+  var nodeList = [], edges = [], nodeEls = {}, edgeEls = {};
+
+  function parseInput(s) {
+    return (s || '').split(/[,\s]+/)
+      .map(function (x) { return x.trim(); })
+      .filter(function (x) { return x.length; })
+      .map(Number)
+      .filter(function (x) { return !isNaN(x); });
+  }
+
+  /* ============ shared memo (the recurrence) ============ */
+  function computeMemo(arr) {
+    var n = arr.length, memo = new Array(n).fill(1);
+    for (var i = 0; i < n; i++) {
+      var res = 0;
+      for (var j = 0; j < i; j++) if (arr[j] < arr[i]) res = Math.max(res, memo[j]);
+      memo[i] = res + 1;
+    }
+    return memo;
+  }
+
+  /* ============================================================
+     TABLE VIEW — bottom-up
+     ============================================================ */
+  function buildTableSteps() {
+    var snaps = [];
+    var n = nums.length;
+    var dp = new Array(n).fill(0);
+    var best = 0;
+
+    function snap(o) {
+      snaps.push({
+        dp: dp.slice(),
+        i: (o.i === undefined ? -1 : o.i),
+        j: (o.j === undefined ? -1 : o.j),
+        jState: o.jState || null,
+        src: (o.src === undefined ? -1 : o.src),
+        best: best,
+        done: (o.done === undefined ? false : o.done),
+        msg: o.msg
+      });
+    }
+
+    snap({ msg: '开始：dp[i] = dfs(i) = 以 nums[i] 结尾的 LIS 长度。从左往右逐个填。' });
+
+    for (var i = 0; i < n; i++) {
+      var res = 0;
+      snap({ i: i, msg: '计算 dp[<b>' + i + '</b>]（以 nums[' + i + '] = <b>' + nums[i] + '</b> 结尾）：res 从 <b>0</b> 开始，回头看每个 j &lt; ' + i + '。' });
+      for (var j = 0; j < i; j++) {
+        if (nums[j] < nums[i]) {
+          var better = dp[j] > res;
+          if (better) res = dp[j];
+          snap({ i: i, j: j, jState: 'ok', src: j,
+            msg: 'nums[' + j + '] = ' + nums[j] + ' &lt; ' + nums[i] + ' ✅ 能接上：dp[' + j + '] = ' + dp[j] + '。' +
+                 (better ? ' <span class="op">更大 → res = ' + res + '</span>。' : ' 不比当前 res = ' + res + ' 大，保留。') });
+        } else {
+          snap({ i: i, j: j, jState: 'bad',
+            msg: 'nums[' + j + '] = ' + nums[j] + ' ≥ ' + nums[i] + ' ❌ 接不上（不能构成递增），<span class="no">跳过</span>。' });
+        }
+      }
+      dp[i] = res + 1;
+      if (dp[i] > best) best = dp[i];
+      snap({ i: i, src: -1,
+        msg: 'dp[' + i + '] = res + 1 = ' + res + ' + 1 = <b>' + dp[i] + '</b>。当前全局最大 = <b>' + best + '</b>。' });
+    }
+
+    var endMsg = n === 0 ? '数组为空，答案为 0。'
+      : '完成 ✅ 答案 = 全表 dp 的最大值 = <b>' + best + '</b>（注意：不是最后一格 dp[' + (n - 1) + '] = ' + dp[n - 1] + '）。';
+    snap({ done: true, msg: endMsg });
+    return snaps;
+  }
+
+  function makeCell(idx, val) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = idx;
+    var box = document.createElement('div'); box.className = 'box';
+    box.textContent = val; box.dataset.idx = idx;
+    cell.appendChild(lab); cell.appendChild(box);
+    return cell;
+  }
+
+  function renderStaticTable() {
+    numRow.innerHTML = ''; dpRow.innerHTML = '';
+    for (var i = 0; i < nums.length; i++) {
+      numRow.appendChild(makeCell(i, nums[i]));
+      dpRow.appendChild(makeCell(i, ''));
+    }
+  }
+
+  function renderTable() {
+    var st = T.steps[T.stepIdx];
+    Array.prototype.forEach.call(numRow.children, function (cell) {
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.className = 'box';
+      if (idx === st.i) box.classList.add('cur');
+      else if (idx === st.j) box.classList.add(st.jState === 'ok' ? 'ok' : 'bad');
+    });
+    Array.prototype.forEach.call(dpRow.children, function (cell) {
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      var v = st.dp[idx];
+      box.textContent = (v === 0 ? '' : v);
+      box.className = 'box';
+      if (st.done) {
+        if (v === st.best && v > 0) box.classList.add('best');
+        else if (v > 0) box.classList.add('done');
+        else box.classList.add('empty');
+        return;
+      }
+      if (idx === st.i) box.classList.add('active');
+      else if (idx === st.src) box.classList.add('src');
+      else if (v > 0) box.classList.add('done');
+      else box.classList.add('empty');
+    });
+    maxBadge.textContent = '当前最大 = ' + st.best;
+    statusEl.innerHTML = st.msg;
+    updateNav(T);
+  }
+
+  /* ============================================================
+     TREE VIEW — top-down + memo
+     ============================================================ */
+  function buildTree() {
+    nodeList = []; edges = [];
+    var memo = computeMemo(nums);
+    var expanded = {};
+
+    function build(i) {
+      var node = { id: nodeList.length, i: i, kind: null, val: memo[i], children: [] };
+      nodeList.push(node);
+      if (expanded[i]) { node.kind = 'cache'; return node; }
+      expanded[i] = true;
+      var kids = [];
+      for (var j = 0; j < i; j++) {
+        if (nums[j] < nums[i]) { var child = build(j); kids.push({ j: j, id: child.id }); }
+      }
+      node.kind = kids.length ? 'expand' : 'base';
+      for (var k = 0; k < kids.length; k++) {
+        node.children.push(kids[k]);
+        edges.push({ from: node.id, to: kids[k].id, j: kids[k].j });
+      }
+      return node;
+    }
+
+    var n = nums.length;
+    var root = { id: 0, i: -1, kind: 'root', val: 0, children: [] };
+    nodeList.push(root);
+    for (var i = 0; i < n; i++) {
+      var child = build(i);
+      root.children.push({ j: i, id: child.id });
+      edges.push({ from: 0, to: child.id, j: i });
+    }
+    root.val = n ? Math.max.apply(null, memo) : 0;
+    return root;
+  }
+
+  function layout(root) {
+    var leaf = 0, maxDepth = 0;
+    function place(node, depth) {
+      node.depth = depth;
+      if (depth > maxDepth) maxDepth = depth;
+      if (!node.children.length) { node._lx = leaf++; }
+      else {
+        for (var k = 0; k < node.children.length; k++) place(nodeList[node.children[k].id], depth + 1);
+        var first = nodeList[node.children[0].id]._lx;
+        var last = nodeList[node.children[node.children.length - 1].id]._lx;
+        node._lx = (first + last) / 2;
+      }
+    }
+    place(root, 0);
+    nodeList.forEach(function (nd) {
+      nd.x = PADX + nd._lx * XGAP + R;
+      nd.y = PADY + nd.depth * YGAP + R;
+    });
+    return { w: PADX * 2 + Math.max(1, leaf) * XGAP + R * 2, h: PADY * 2 + (maxDepth + 1) * YGAP };
+  }
+
+  function buildTreeSteps(root) {
+    var snaps = [];
+    var N = nodeList.length;
+    var states = new Array(N).fill('idle');
+    var vals = new Array(N).fill(null);
+
+    function snap(o) {
+      snaps.push({
+        states: states.slice(), vals: vals.slice(),
+        activeId: (o.activeId === undefined ? -1 : o.activeId),
+        edge: o.edge || null,
+        bestNodeId: (o.bestNodeId === undefined ? -1 : o.bestNodeId),
+        msg: o.msg
+      });
+    }
+
+    function run(node) {
+      if (node.kind === 'root') {
+        snap({ activeId: node.id, msg: '从虚拟 <span style="color:#c4b5fd">max</span> 根出发：LIS 可能以<b>任意</b>位置结尾，所以对每个 dfs(i) 都算一遍，最后取最大（对应代码里的 ans = max(ans, dfs(i))）。' });
+        var gbest = 0, gbestId = -1;
+        for (var k = 0; k < node.children.length; k++) {
+          var cid = node.children[k].id, ci = node.children[k].j;
+          snap({ activeId: node.id, edge: { from: node.id, to: cid },
+            msg: '考察以下标 <b>' + ci + '</b>（nums[' + ci + '] = ' + nums[ci] + '）结尾：递归 dfs(' + ci + ')。' });
+          var v = run(nodeList[cid]);
+          if (v > gbest) { gbest = v; gbestId = cid; }
+          snap({ activeId: node.id, edge: { from: node.id, to: cid },
+            msg: 'dfs(' + ci + ') = ' + v + '。当前全局最长 = <b>' + gbest + '</b>。' });
+        }
+        vals[node.id] = gbest; states[node.id] = 'root';
+        return gbest;
+      }
+
+      snap({ activeId: node.id, msg: '进入 <b>dfs(' + node.i + ')</b>：求以 nums[' + node.i + '] = ' + nums[node.i] + ' 结尾的最长长度。' });
+
+      if (node.kind === 'cache') {
+        vals[node.id] = node.val; states[node.id] = 'cache';
+        snap({ activeId: node.id, msg: 'dfs(' + node.i + ') 之前算过 = <b>' + node.val + '</b> <span class="hit">↺ 记忆化命中</span>，直接返回，不再展开子树。' });
+        return node.val;
+      }
+
+      if (node.kind === 'base') {
+        vals[node.id] = 1; states[node.id] = 'base';
+        snap({ activeId: node.id, msg: '前面没有比 ' + nums[node.i] + ' 更小的数能接上，res = 0，dfs(' + node.i + ') = res + 1 = <b>1</b>（只有它自己）。' });
+        return 1;
+      }
+
+      // expand
+      var res = 0;
+      snap({ activeId: node.id, msg: 'dfs(' + node.i + ')：res 从 <b>0</b> 开始，看前面每个 j。' });
+      for (var j = 0; j < node.i; j++) {
+        if (nums[j] >= nums[node.i]) {
+          snap({ activeId: node.id, msg: 'nums[' + j + '] = ' + nums[j] + ' ≥ ' + nums[node.i] + '，接不上，<span class="no">跳过</span>。' });
+          continue;
+        }
+        var childId = -1;
+        for (var e = 0; e < node.children.length; e++) if (node.children[e].j === j) { childId = node.children[e].id; break; }
+        snap({ activeId: node.id, edge: { from: node.id, to: childId },
+          msg: 'nums[' + j + '] = ' + nums[j] + ' &lt; ' + nums[node.i] + '，能接上：向下递归 dfs(' + j + ')。' });
+        var v = run(nodeList[childId]);
+        if (v > res) res = v;
+        snap({ activeId: node.id, edge: { from: node.id, to: childId },
+          msg: 'dfs(' + j + ') = ' + v + '，res = max(res, ' + v + ') = <b>' + res + '</b>。' });
+      }
+      vals[node.id] = res + 1; states[node.id] = 'done';
+      snap({ activeId: node.id, msg: 'dfs(' + node.i + ') = res + 1 = ' + res + ' + 1 = <b>' + (res + 1) + '</b>。' });
+      return res + 1;
+    }
+
+    var rv = run(root);
+    var endMsg;
+    if (!nums.length) endMsg = '数组为空，答案为 0。';
+    else endMsg = '完成 ✅ 最长递增子序列长度 = <b>' + rv + '</b>（所有 dfs(i) 里的最大值）。绿色描边=取到最大值的结尾节点；橙色=被记忆化省下的重复子问题。';
+    var bestId = -1;
+    for (var k = 0; k < root.children.length; k++) {
+      var cid = root.children[k].id;
+      if (vals[cid] === rv) { bestId = cid; break; }
+    }
+    snap({ activeId: 0, bestNodeId: bestId, msg: endMsg });
+    return snaps;
+  }
+
+  function svgEl(name, attrs) {
+    var el = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  function renderStaticTree(size) {
+    svg.innerHTML = '';
+    svg.setAttribute('viewBox', '0 0 ' + size.w + ' ' + size.h);
+    svg.setAttribute('width', size.w);
+    svg.setAttribute('height', size.h);
+    edgeEls = {}; nodeEls = {};
+    edges.forEach(function (ed) {
+      var p = nodeList[ed.from], c = nodeList[ed.to];
+      var line = svgEl('line', { x1: p.x, y1: p.y, x2: c.x, y2: c.y, class: 'edge' });
+      svg.appendChild(line);
+      edgeEls[ed.from + '-' + ed.to] = { line: line };
+    });
+    nodeList.forEach(function (nd) {
+      var g = svgEl('g', { class: 'node' });
+      g.appendChild(svgEl('circle', { cx: nd.x, cy: nd.y, r: R }));
+      if (nd.kind !== 'root') {
+        var idx = svgEl('text', { x: nd.x, y: nd.y - R - 5, 'text-anchor': 'middle', class: 'n-idx' });
+        idx.textContent = '#' + nd.i; g.appendChild(idx);
+      }
+      var amt = svgEl('text', { x: nd.x, y: nd.y + 1, 'text-anchor': 'middle', 'dominant-baseline': 'middle', class: 'n-amt' });
+      amt.textContent = nd.kind === 'root' ? 'max' : nums[nd.i];
+      g.appendChild(amt);
+      var val = svgEl('text', { x: nd.x, y: nd.y + R + 15, 'text-anchor': 'middle', class: 'n-val' });
+      g.appendChild(val);
+      svg.appendChild(g);
+      nodeEls[nd.id] = { g: g, val: val };
+    });
+  }
+
+  function renderTree() {
+    var st = G.steps[G.stepIdx];
+    nodeList.forEach(function (nd) {
+      var refs = nodeEls[nd.id];
+      var cls = 'node ' + st.states[nd.id];
+      if (nd.id === st.bestNodeId) cls = 'node best';
+      if (nd.id === st.activeId) cls = 'node active';
+      refs.g.setAttribute('class', cls);
+      var v = st.vals[nd.id];
+      refs.val.textContent = (v === null || v === undefined) ? '' :
+        (st.states[nd.id] === 'cache' ? '↺ ' + v : v);
+    });
+    for (var key in edgeEls) edgeEls[key].line.setAttribute('class', 'edge');
+    if (st.edge) {
+      var k = st.edge.from + '-' + st.edge.to;
+      if (edgeEls[k]) edgeEls[k].line.setAttribute('class', 'edge active');
+    }
+    statusEl.innerHTML = st.msg;
+    updateNav(G);
+  }
+
+  /* ============ shared nav / view switching ============ */
+  function activeState() { return view === 'table' ? T : G; }
+  function renderActive() { if (view === 'table') renderTable(); else renderTree(); }
+
+  function updateNav(s) {
+    progressEl.textContent = '步骤 ' + (s.stepIdx + 1) + ' / ' + s.steps.length;
+    document.getElementById('prevBtn').disabled = (s.stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (s.stepIdx === s.steps.length - 1);
+  }
+
+  function next(){ var s = activeState(); if (s.stepIdx < s.steps.length - 1){ s.stepIdx++; renderActive(); } }
+  function prev(){ var s = activeState(); if (s.stepIdx > 0){ s.stepIdx--; renderActive(); } }
+  function reset(){ stopPlay(); activeState().stepIdx = 0; renderActive(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ var s = activeState(); if (s.stepIdx >= s.steps.length - 1){ stopPlay(); return; } next(); }, 650);
+  }
+
+  function switchView(v) {
+    if (v === view) return;
+    stopPlay();
+    view = v;
+    document.getElementById('tableView').classList.toggle('show', v === 'table');
+    document.getElementById('treeView').classList.toggle('show', v === 'tree');
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) {
+      t.classList.toggle('active', t.dataset.view === v);
+    });
+    checkWarn();
+    renderActive();
+  }
+
+  function checkWarn() {
+    warnEl.style.display = 'none';
+    if (view === 'tree') {
+      if (nums.length > MAX_N_TREE)
+        showWarn('递归树视角为避免爆炸，只取了前 ' + MAX_N_TREE + ' 个元素；想看完整数组请切到填表视角。');
+      else if (nodeList.length > MAX_NODES)
+        showWarn('这棵递归树有 ' + nodeList.length + ' 个节点，太大了，换更短的数组会更清楚。');
+    }
+  }
+  function showWarn(t) { warnEl.style.display = 'block'; warnEl.textContent = t; }
+
+  function load(s) {
+    var arr = parseInput(s);
+    if (!arr.length) return;
+    warnEl.style.display = 'none';
+    input.value = arr.join(',');
+
+    // table uses up to 24
+    nums = arr.slice(0, MAX_N_TABLE);
+    T.steps = buildTableSteps();
+    T.stepIdx = 0;
+    renderStaticTable();
+
+    // tree uses up to 7 (of the same array prefix)
+    var treeNums = nums;
+    if (nums.length > MAX_N_TREE) {
+      // build tree on a shorter prefix so it stays readable
+      treeNums = nums.slice(0, MAX_N_TREE);
+    }
+    // temporarily point nums to treeNums for tree construction, then restore
+    var full = nums;
+    nums = treeNums;
+    var root = buildTree();
+    var size = layout(root);
+    G.steps = buildTreeSteps(root);
+    G.stepIdx = 0;
+    renderStaticTree(size);
+    nums = full;
+
+    checkWarn();
+    renderActive();
+  }
+
+  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(tab){
+    tab.onclick = function(){ switchView(tab.dataset.view); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>

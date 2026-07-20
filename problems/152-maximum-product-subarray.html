@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>152. 乘积最大子数组 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9;
+    color: #1d2129;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; }
+  .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px;
+    padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
+    padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb;
+    border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  /* view tabs */
+  .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .tab {
+    background:#eef0f4; color:#4b5563; padding:8px 18px; font-size:14px; font-weight:600;
+    border-radius:999px; border:1px solid transparent;
+  }
+  .tab:hover { background:#e2e5eb; }
+  .tab.active { background:#6366f1; color:#fff; }
+  .view { display:none; }
+  .view.show { display:block; }
+
+  /* nums / dp rows */
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell { width: 56px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .box {
+    width: 100%; height: 44px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:15px; font-weight:600;
+    border-radius:8px; background:#f1f2f4; color:#4b5563; border:2px solid transparent;
+    transition: all .2s;
+  }
+  .box.cur    { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .box.done   { background:#eef2ff; color:#4f46e5; }
+  .box.best   { background:#dcfce7; color:#166534; border-color:#22c55e; }
+  .box.empty  { color:#c7cbd1; }
+  /* dp cell states */
+  .box.active { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .box.srcmax { background:#f0fdf4; color:#166534; border-color:#86efac; }
+  .box.srcmin { background:#fffbeb; color:#92400e; border-color:#fcd34d; }
+  .rowlab { font-size:12px; font-weight:700; color:#6b7280; width:64px; flex-shrink:0; font-family:"SF Mono",Menlo,monospace; display:flex; align-items:center; }
+  .dp-line { display:flex; align-items:flex-start; gap:8px; margin-top:12px; }
+
+  /* candidate cards */
+  .cands { display:flex; flex-wrap:wrap; gap:12px; }
+  .cand {
+    flex:1; min-width:180px; border:2px solid #e5e7eb; border-radius:10px; padding:12px 14px;
+    background:#fafafa; transition: all .2s;
+  }
+  .cand .lab { font-size:12px; color:#6b7280; margin-bottom:4px; }
+  .cand .expr { font-family:"SF Mono",Menlo,monospace; font-size:14px; color:#374151; }
+  .cand .res { font-family:"SF Mono",Menlo,monospace; font-size:22px; font-weight:700; margin-top:6px; color:#1d2129; }
+  .cand.winmax { border-color:#22c55e; background:#f0fdf4; }
+  .cand.winmin { border-color:#f59e0b; background:#fffbeb; }
+  .cand .tag { display:none; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; margin-top:8px; }
+  .cand.winmax .tag { display:inline-block; background:#dcfce7; color:#166534; }
+  .cand.winmin .tag { display:inline-block; background:#fef3c7; color:#92400e; }
+  .cand.winmax .tag::after { content:"✓ 选为新 mx"; }
+  .cand.winmin .tag::after { content:"✓ 选为新 mn"; }
+
+  /* mx / mn / ans state boxes */
+  .state-row { display:flex; flex-wrap:wrap; gap:12px; }
+  .state {
+    flex:1; min-width:140px; border-radius:10px; padding:12px 14px; text-align:center;
+    font-family:"SF Mono",Menlo,monospace;
+  }
+  .state .lab { font-size:12px; font-family:-apple-system,sans-serif; margin-bottom:4px; }
+  .state .v { font-size:24px; font-weight:700; }
+  .state.mx  { background:#f0fdf4; border:1px solid #86efac; } .state.mx .lab { color:#166534; } .state.mx .v { color:#166534; }
+  .state.mn  { background:#fffbeb; border:1px solid #fcd34d; } .state.mn .lab { color:#92400e; } .state.mn .v { color:#92400e; }
+  .state.ans { background:#eef2ff; border:1px solid #c7d2fe; } .state.ans .lab { color:#4338ca; } .state.ans .v { color:#4338ca; }
+  .state.flash { transform:scale(1.06); box-shadow:0 6px 16px rgba(0,0,0,.12); }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .maxbadge { font-family:"SF Mono",Menlo,monospace; font-size:13px; color:#4338ca; background:#eef2ff; border:1px solid #c7d2fe; border-radius:999px; padding:3px 12px; margin-left:10px; }
+
+  .status {
+    background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
+  }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .status .flip { color:#fdba74; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/maximum-product-subarray/" target="_blank" rel="noopener">LeetCode 152</a></span>
+  </div>
+
+  <h1>152. 乘积最大子数组 · 双视角动画</h1>
+  <div class="sub">因为<b>负负得正</b>，只盯最大值会漏掉「负最小值翻身」的情况。所以同时维护「以 <code>nums[i]</code> 结尾的最大乘积和最小乘积」。每一步有三个候选：<code>nums[i]</code> 自己、<code>前面的最大 × nums[i]</code>、<code>前面的最小 × nums[i]</code>；新最大取三者最大，新最小取三者最小。<b>下面两个视角是同一份递推</b>：滚动变量 = 只留上一格的 <code>mx/mn</code>；DP 填表 = 把每一格都记进 <code>dpMax[]</code> / <code>dpMin[]</code> 两张表。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="2,3,-2,4" spellcheck="false" placeholder="输入整数数组，逗号分隔">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">2,3,-2,4</span>
+      <span class="chip">-2,3,-4</span>
+      <span class="chip">-2,0,-1</span>
+      <span class="chip">2,-5,-2,-4,3</span>
+      <span class="chip">-4,-3,-2</span>
+    </div>
+    <div class="hint">提示：数组较长时格子会自动换行；为便于观看，长度会被限制在 20 以内。</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-view="roll">🎞️ 滚动变量视角（O(1) 空间）</button>
+    <button class="tab" data-view="dp">📊 DP 填表视角（dpMax / dpMin 两张表）</button>
+  </div>
+
+  <!-- ===================== ROLLING VIEW ===================== -->
+  <div class="view show" id="rollView">
+    <div class="card">
+      <div class="legend">
+        <span><span class="dot" style="background:#6366f1"></span>当前 nums[i]</span>
+        <span><span class="dot" style="background:#f0fdf4;border:1px solid #22c55e"></span>被选为新 mx</span>
+        <span><span class="dot" style="background:#fffbeb;border:1px solid #f59e0b"></span>被选为新 mn</span>
+        <span><span class="dot" style="background:#dcfce7;border:1px solid #22c55e"></span>答案所在子数组结尾</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="panel-title">nums（原数组，上标 = 下标 i）</div>
+      <div class="arr-row" id="numRow"></div>
+    </div>
+
+    <div class="card">
+      <div class="panel-title">三个候选（以 nums[i] 结尾的乘积）</div>
+      <div class="cands">
+        <div class="cand" id="candSelf">
+          <div class="lab">① nums[i] 自己（重新开始）</div>
+          <div class="expr" id="exprSelf">—</div>
+          <div class="res" id="resSelf">—</div>
+          <div class="tag"></div>
+        </div>
+        <div class="cand" id="candMax">
+          <div class="lab">② 前面的 mx × nums[i]</div>
+          <div class="expr" id="exprMax">—</div>
+          <div class="res" id="resMax">—</div>
+          <div class="tag"></div>
+        </div>
+        <div class="cand" id="candMin">
+          <div class="lab">③ 前面的 mn × nums[i]</div>
+          <div class="expr" id="exprMin">—</div>
+          <div class="res" id="resMin">—</div>
+          <div class="tag"></div>
+        </div>
+      </div>
+      <div class="state-row" style="margin-top:14px;">
+        <div class="state mx" id="boxMx"><div class="lab">mx（以 i 结尾的最大乘积）</div><div class="v" id="vMx">—</div></div>
+        <div class="state mn" id="boxMn"><div class="lab">mn（以 i 结尾的最小乘积）</div><div class="v" id="vMn">—</div></div>
+        <div class="state ans" id="boxAns"><div class="lab">ans（全局答案）</div><div class="v" id="vAns">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DP TABLE VIEW ===================== -->
+  <div class="view" id="dpView">
+    <div class="card">
+      <div class="legend">
+        <span><span class="dot" style="background:#6366f1"></span>正在填的 i</span>
+        <span><span class="dot" style="background:#f0fdf4;border:1px solid #86efac"></span>来源 dpMax[i-1]</span>
+        <span><span class="dot" style="background:#fffbeb;border:1px solid #fcd34d"></span>来源 dpMin[i-1]</span>
+        <span><span class="dot" style="background:#dcfce7;border:1px solid #22c55e"></span>答案所在格</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="panel-title">nums（原数组）</div>
+      <div class="dp-line"><div class="rowlab">nums</div><div class="arr-row" id="numRowDp" style="flex:1;"></div></div>
+      <div class="panel-title" style="margin-top:18px;">DP 两张表
+        <span class="maxbadge" id="ansBadge">ans = —</span>
+      </div>
+      <div class="dp-line"><div class="rowlab">dpMax</div><div class="arr-row" id="dpMaxRow" style="flex:1;"></div></div>
+      <div class="dp-line"><div class="rowlab">dpMin</div><div class="arr-row" id="dpMinRow" style="flex:1;"></div></div>
+    </div>
+  </div>
+
+  <!-- shared controls -->
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（滚动变量 O(1) / DP 双数组 O(n)）</summary>
+      <pre><code><span class="cmt"># 滚动变量版 · 三候选（最直白，O(1) 空间）</span>
+class Solution:
+    def maxProduct(self, nums: List[int]) -&gt; int:
+        ans = mx = mn = nums[0]
+        for x in nums[1:]:
+            cands = (x, mx * x, mn * x)   # 三个候选：自己、最大×x、最小×x
+            mx = max(cands)
+            mn = min(cands)               # 最小值是「负负得正」的后备
+            ans = max(ans, mx)
+        return ans</code></pre>
+      <pre><code><span class="cmt"># DP 双数组版 · 把每一格都记下来（O(n) 空间，思路完全一样）</span>
+class Solution:
+    def maxProduct(self, nums: List[int]) -&gt; int:
+        n = len(nums)
+        dpMax = [0] * n
+        dpMin = [0] * n
+        dpMax[0] = dpMin[0] = nums[0]
+        for i in range(1, n):
+            x = nums[i]
+            dpMax[i] = max(x, dpMax[i-1] * x, dpMin[i-1] * x)   <span class="cmt"># 以 i 结尾的最大乘积</span>
+            dpMin[i] = min(x, dpMax[i-1] * x, dpMin[i-1] * x)   <span class="cmt"># 以 i 结尾的最小乘积</span>
+        return max(dpMax)                                       <span class="cmt"># 答案是 dpMax 整张表的最大值</span></code></pre>
+      <div class="hint" style="margin-top:10px;">滚动变量版就是 DP 版的<b>空间优化</b>：注意到 <code>dpMax[i]</code> 只用到 <code>dpMax[i-1]</code> / <code>dpMin[i-1]</code>，于是不必留整张表，两个变量 <code>mx</code> / <code>mn</code> 滚动即可。</div>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  // rolling refs
+  var numRow = document.getElementById('numRow');
+  // dp refs
+  var numRowDp = document.getElementById('numRowDp');
+  var dpMaxRow = document.getElementById('dpMaxRow');
+  var dpMinRow = document.getElementById('dpMinRow');
+  var ansBadge = document.getElementById('ansBadge');
+
+  var MAX_N = 20;
+  var view = 'roll';
+  var nums = [];
+  var playTimer = null;
+
+  var R = { steps: [], stepIdx: 0 };   // rolling
+  var D = { steps: [], stepIdx: 0 };   // dp table
+
+  function parseInput(s) {
+    return (s || '').split(/[,\s]+/)
+      .map(function (x) { return x.trim(); })
+      .filter(function (x) { return x.length; })
+      .map(Number)
+      .filter(function (x) { return !isNaN(x); });
+  }
+
+  /* ============================================================
+     ROLLING VIEW — O(1) variables
+     ============================================================ */
+  function buildRollSteps(nums) {
+    var snaps = [];
+    var n = nums.length;
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        mx: o.mx, mn: o.mn, ans: o.ans,
+        cand: o.cand || null,
+        flip: (o.flip === undefined ? false : o.flip),
+        flash: o.flash || null,
+        bestEnd: (o.bestEnd === undefined ? -1 : o.bestEnd),
+        done: (o.done === undefined ? false : o.done),
+        msg: o.msg
+      });
+    }
+
+    if (!n) { snap({ msg: '数组为空。', done: true }); return snaps; }
+
+    var mx = nums[0], mn = nums[0], ans = nums[0];
+    var bestEnd = 0;
+    snap({ i: 0, mx: mx, mn: mn, ans: ans,
+      msg: '初始化：以 nums[0] = <b>' + nums[0] + '</b> 结尾，mx = mn = ans = <b>' + nums[0] + '</b>（第一个元素既是最大也是最小）。' });
+
+    for (var i = 1; i < n; i++) {
+      var x = nums[i];
+      var viaMax = mx * x;
+      var viaMin = mn * x;
+      var newMx = Math.max(x, viaMax, viaMin);
+      var newMn = Math.min(x, viaMin, viaMax);
+      var winMax = (newMx === x) ? 'self' : (newMx === viaMax ? 'viaMax' : 'viaMin');
+      var winMin = (newMn === x) ? 'self' : (newMn === viaMin ? 'viaMin' : 'viaMax');
+      var flip = (winMax === 'viaMin');
+
+      var cand = { self: x, viaMax: viaMax, viaMin: viaMin, winMax: winMax, winMin: winMin, x: x, prevMx: mx, prevMn: mn };
+
+      snap({ i: i, mx: mx, mn: mn, ans: ans, cand: cand,
+        msg: '来到 nums[' + i + '] = <b>' + x + '</b>。列出三个候选：① 自己 = ' + x +
+             '，② 前面 mx×x = ' + mx + '×' + x + ' = ' + viaMax +
+             '，③ 前面 mn×x = ' + mn + '×' + x + ' = ' + viaMin + '。' });
+
+      mx = newMx; mn = newMn;
+      var flipMsg = flip
+        ? ' <span class="flip">⚡ 负负得正翻身</span>：新的最大值 <b>' + mx + '</b> 竟然来自「前面的最小值 ' + cand.prevMn + ' × ' + x + '」！这正是必须保留 mn 的原因。'
+        : '';
+      snap({ i: i, mx: mx, mn: mn, ans: ans, cand: cand, flip: flip, flash: 'mx',
+        msg: '取三候选最大 → mx = <b>' + mx + '</b>；取三候选最小 → mn = <b>' + mn + '</b>。' + flipMsg });
+
+      var better = mx > ans;
+      if (better) { ans = mx; bestEnd = i; }
+      snap({ i: i, mx: mx, mn: mn, ans: ans, cand: cand, flash: better ? 'ans' : null,
+        msg: better
+          ? '用 mx 更新全局答案：ans = max(ans, ' + mx + ') = <b>' + ans + '</b>。'
+          : 'mx = ' + mx + ' 不比当前 ans = ' + ans + ' 大，答案保持 <b>' + ans + '</b>。' });
+    }
+
+    snap({ i: -1, mx: mx, mn: mn, ans: ans, bestEnd: bestEnd, done: true,
+      msg: '完成 ✅ 乘积最大的子数组结果 = <b>' + ans + '</b>。' });
+    return snaps;
+  }
+
+  /* ============================================================
+     DP TABLE VIEW — dpMax[] / dpMin[]
+     ============================================================ */
+  function buildDpSteps(nums) {
+    var snaps = [];
+    var n = nums.length;
+
+    function snap(o) {
+      snaps.push({
+        i: (o.i === undefined ? -1 : o.i),
+        dpMax: o.dpMax.slice(), dpMin: o.dpMin.slice(),
+        filled: (o.filled === undefined ? -1 : o.filled),  // 本帧已填到哪一格（含）
+        src: (o.src === undefined ? -1 : o.src),           // 高亮来源 i-1
+        ans: o.ans, bestEnd: (o.bestEnd === undefined ? -1 : o.bestEnd),
+        flip: (o.flip === undefined ? false : o.flip),
+        done: (o.done === undefined ? false : o.done),
+        msg: o.msg
+      });
+    }
+
+    if (!n) { snap({ dpMax: [], dpMin: [], ans: undefined, msg: '数组为空。', done: true }); return snaps; }
+
+    var dpMax = new Array(n).fill(null);
+    var dpMin = new Array(n).fill(null);
+    dpMax[0] = dpMin[0] = nums[0];
+    var ans = nums[0], bestEnd = 0;
+
+    snap({ i: 0, dpMax: dpMax, dpMin: dpMin, filled: 0, ans: ans,
+      msg: '初始化：dpMax[0] = dpMin[0] = nums[0] = <b>' + nums[0] + '</b>。ans 先记作 <b>' + ans + '</b>。' });
+
+    for (var i = 1; i < n; i++) {
+      var x = nums[i];
+      var viaMax = dpMax[i - 1] * x;
+      var viaMin = dpMin[i - 1] * x;
+
+      snap({ i: i, dpMax: dpMax, dpMin: dpMin, filled: i - 1, src: i - 1, ans: ans,
+        msg: '填第 <b>' + i + '</b> 格（nums[' + i + '] = ' + x + '）：看三个候选 —— 自己 = ' + x +
+             '，dpMax[' + (i - 1) + ']×x = ' + dpMax[i - 1] + '×' + x + ' = ' + viaMax +
+             '，dpMin[' + (i - 1) + ']×x = ' + dpMin[i - 1] + '×' + x + ' = ' + viaMin + '。' });
+
+      var newMax = Math.max(x, viaMax, viaMin);
+      var newMin = Math.min(x, viaMin, viaMax);
+      var flip = (newMax !== x && newMax === viaMin);
+      dpMax[i] = newMax; dpMin[i] = newMin;
+
+      var flipMsg = flip
+        ? ' <span class="flip">⚡ 负负得正翻身</span>：dpMax[' + i + '] = <b>' + newMax + '</b> 来自「dpMin[' + (i - 1) + '] = ' + dpMin[i - 1] + ' × ' + x + '」，负最小值翻身成了最大值！'
+        : '';
+      snap({ i: i, dpMax: dpMax, dpMin: dpMin, filled: i, src: i - 1, ans: ans, flip: flip,
+        msg: 'dpMax[' + i + '] = max(三候选) = <b>' + newMax + '</b>；dpMin[' + i + '] = min(三候选) = <b>' + newMin + '</b>。' + flipMsg });
+
+      var better = dpMax[i] > ans;
+      if (better) { ans = dpMax[i]; bestEnd = i; }
+      snap({ i: i, dpMax: dpMax, dpMin: dpMin, filled: i, ans: ans,
+        msg: better
+          ? 'dpMax[' + i + '] = ' + dpMax[i] + ' &gt; 旧 ans，更新 ans = <b>' + ans + '</b>。'
+          : 'dpMax[' + i + '] = ' + dpMax[i] + ' 不比 ans = ' + ans + ' 大，答案保持 <b>' + ans + '</b>。' });
+    }
+
+    snap({ i: -1, dpMax: dpMax, dpMin: dpMin, filled: n - 1, ans: ans, bestEnd: bestEnd, done: true,
+      msg: '完成 ✅ 答案 = dpMax 整张表的最大值 = <b>' + ans + '</b>。' });
+    return snaps;
+  }
+
+  /* ============================================================
+     rendering
+     ============================================================ */
+  function makeCell(idx, val, showIdx) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    var lab = document.createElement('div'); lab.className = 'idx';
+    lab.textContent = (showIdx === false) ? '' : idx;
+    var box = document.createElement('div'); box.className = 'box';
+    box.textContent = val;
+    box.dataset.idx = idx;
+    cell.appendChild(lab); cell.appendChild(box);
+    return cell;
+  }
+
+  function renderStaticRoll() {
+    numRow.innerHTML = '';
+    for (var i = 0; i < nums.length; i++) numRow.appendChild(makeCell(i, nums[i]));
+  }
+
+  function renderStaticDp() {
+    numRowDp.innerHTML = ''; dpMaxRow.innerHTML = ''; dpMinRow.innerHTML = '';
+    for (var i = 0; i < nums.length; i++) {
+      numRowDp.appendChild(makeCell(i, nums[i]));
+      dpMaxRow.appendChild(makeCell(i, '', false));
+      dpMinRow.appendChild(makeCell(i, '', false));
+    }
+  }
+
+  function setCand(exprId, resId, expr, res) {
+    document.getElementById(exprId).textContent = expr;
+    document.getElementById(resId).textContent = res;
+  }
+
+  function renderRoll() {
+    var st = R.steps[R.stepIdx];
+
+    Array.prototype.forEach.call(numRow.children, function (cell) {
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.className = 'box';
+      if (st.done) {
+        if (idx === st.bestEnd) box.classList.add('best');
+        else box.classList.add('done');
+      } else if (idx === st.i) box.classList.add('cur');
+      else if (idx < st.i) box.classList.add('done');
+      else box.classList.add('empty');
+    });
+
+    var cSelf = document.getElementById('candSelf');
+    var cMax = document.getElementById('candMax');
+    var cMin = document.getElementById('candMin');
+    cSelf.className = cMax.className = cMin.className = 'cand';
+    if (st.cand) {
+      var c = st.cand;
+      setCand('exprSelf', 'resSelf', 'nums[' + st.i + '] = ' + c.x, c.self);
+      setCand('exprMax', 'resMax', c.prevMx + ' × ' + c.x, c.viaMax);
+      setCand('exprMin', 'resMin', c.prevMn + ' × ' + c.x, c.viaMin);
+      // 只在「取最值」帧及「更新答案」帧揭晓赢家；「列候选」帧先不剧透
+      if (st.flash === 'mx' || st.flash === 'ans') {
+        var mapId = { self: cSelf, viaMax: cMax, viaMin: cMin };
+        if (mapId[c.winMax]) mapId[c.winMax].classList.add('winmax');
+        if (mapId[c.winMin] && c.winMin !== c.winMax) mapId[c.winMin].classList.add('winmin');
+      }
+    } else {
+      setCand('exprSelf', 'resSelf', '—', '—');
+      setCand('exprMax', 'resMax', '—', '—');
+      setCand('exprMin', 'resMin', '—', '—');
+    }
+
+    document.getElementById('vMx').textContent = (st.mx === undefined ? '—' : st.mx);
+    document.getElementById('vMn').textContent = (st.mn === undefined ? '—' : st.mn);
+    document.getElementById('vAns').textContent = (st.ans === undefined ? '—' : st.ans);
+    ['boxMx', 'boxMn', 'boxAns'].forEach(function (id) { document.getElementById(id).classList.remove('flash'); });
+    if (st.flash === 'mx') document.getElementById('boxMx').classList.add('flash');
+    if (st.flash === 'ans') document.getElementById('boxAns').classList.add('flash');
+
+    statusEl.innerHTML = st.msg;
+    updateNav(R);
+  }
+
+  function fillDpRow(rowEl, arr, st, srcClass) {
+    Array.prototype.forEach.call(rowEl.children, function (cell) {
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      var v = arr[idx];
+      box.textContent = (v === null || v === undefined) ? '' : v;
+      box.className = 'box';
+      if (st.done) {
+        if (idx === st.bestEnd && rowEl === dpMaxRow) box.classList.add('best');
+        else if (v !== null && v !== undefined) box.classList.add('done');
+        else box.classList.add('empty');
+        return;
+      }
+      if (idx === st.i && idx <= st.filled) box.classList.add('active');
+      else if (idx === st.src) box.classList.add(srcClass);
+      else if (v !== null && v !== undefined && idx <= st.filled) box.classList.add('done');
+      else box.classList.add('empty');
+    });
+  }
+
+  function renderDp() {
+    var st = D.steps[D.stepIdx];
+
+    Array.prototype.forEach.call(numRowDp.children, function (cell) {
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.className = 'box';
+      if (st.done) box.classList.add(idx === st.bestEnd ? 'best' : 'done');
+      else if (idx === st.i) box.classList.add('cur');
+      else if (idx <= st.filled) box.classList.add('done');
+      else box.classList.add('empty');
+    });
+
+    fillDpRow(dpMaxRow, st.dpMax, st, 'srcmax');
+    fillDpRow(dpMinRow, st.dpMin, st, 'srcmin');
+
+    ansBadge.textContent = 'ans = ' + (st.ans === undefined ? '—' : st.ans);
+    statusEl.innerHTML = st.msg;
+    updateNav(D);
+  }
+
+  /* ============ shared nav / view switching ============ */
+  function activeState() { return view === 'roll' ? R : D; }
+  function renderActive() { if (view === 'roll') renderRoll(); else renderDp(); }
+
+  function updateNav(s) {
+    progressEl.textContent = '步骤 ' + (s.stepIdx + 1) + ' / ' + s.steps.length;
+    document.getElementById('prevBtn').disabled = (s.stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (s.stepIdx === s.steps.length - 1);
+  }
+
+  function next() { var s = activeState(); if (s.stepIdx < s.steps.length - 1) { s.stepIdx++; renderActive(); } }
+  function prev() { var s = activeState(); if (s.stepIdx > 0) { s.stepIdx--; renderActive(); } }
+  function reset() { stopPlay(); activeState().stepIdx = 0; renderActive(); }
+  function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function () { var s = activeState(); if (s.stepIdx >= s.steps.length - 1) { stopPlay(); return; } next(); }, 800);
+  }
+
+  function switchView(v) {
+    if (v === view) return;
+    stopPlay();
+    view = v;
+    document.getElementById('rollView').classList.toggle('show', v === 'roll');
+    document.getElementById('dpView').classList.toggle('show', v === 'dp');
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) {
+      t.classList.toggle('active', t.dataset.view === v);
+    });
+    renderActive();
+  }
+
+  function load(s) {
+    var arr = parseInput(s);
+    if (!arr.length) return;
+    if (arr.length > MAX_N) arr = arr.slice(0, MAX_N);
+    nums = arr;
+    input.value = nums.join(',');
+    R.steps = buildRollSteps(nums); R.stepIdx = 0;
+    D.steps = buildDpSteps(nums); D.stepIdx = 0;
+    renderStaticRoll();
+    renderStaticDp();
+    renderActive();
+  }
+
+  document.getElementById('nextBtn').onclick = function () { stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function () { stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (tab) {
+    tab.onclick = function () { switchView(tab.dataset.view); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
