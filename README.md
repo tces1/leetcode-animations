@@ -58,6 +58,7 @@ leetcode-animations/
 
 | # | 题目 | 难度 | 考点 |
 |---|------|------|------|
+| 32 | [最长有效括号](problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
 | 45 | [跳跃游戏 II](problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
 | 70 | [爬楼梯](problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
 | 55 | [跳跃游戏](problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
