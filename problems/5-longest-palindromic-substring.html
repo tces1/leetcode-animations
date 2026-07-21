@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5. 最长回文子串 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9;
+    color: #1d2129;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .link-lc { font-size:12px; color:#6b7280; }
+  .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 200px;
+    padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
+    padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb;
+    border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  /* string row */
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .scell { width: 40px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .scell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .schar {
+    width:100%; height:40px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:18px; font-weight:700;
+    border-radius:8px; background:#f1f2f4; color:#4b5563; border:2px solid transparent; transition: all .2s;
+  }
+  .schar.endi { background:#6366f1; color:#fff; border-color:#4338ca; }
+  .schar.endj { background:#0ea5e9; color:#fff; border-color:#0369a1; }
+  .schar.inpal { background:#dcfce7; color:#166534; border-color:#86efac; }
+
+  /* dp matrix */
+  .matrix-wrap { overflow-x:auto; }
+  table.dp { border-collapse:collapse; font-family:"SF Mono",Menlo,monospace; }
+  table.dp th { font-size:11px; font-weight:700; color:#9ca3af; padding:4px 6px; }
+  table.dp th.rowh { color:#4b5563; }
+  table.dp td {
+    width:38px; height:38px; text-align:center; vertical-align:middle;
+    border:1px solid #eef0f4; font-size:15px; font-weight:600; transition: all .15s;
+    background:#fff; color:#c7cbd1;
+  }
+  td.na { background:#fafafa; color:#e5e7eb; }         /* i>j 不用 */
+  td.pal { background:#dcfce7; color:#166534; }          /* true */
+  td.no  { background:#fee2e2; color:#dc2626; }          /* false */
+  td.cur { outline:3px solid #6366f1; outline-offset:-3px; box-shadow:0 0 0 3px rgba(99,102,241,.2); z-index:1; position:relative; }
+  td.dep { outline:3px solid #f59e0b; outline-offset:-3px; }
+  td.best { background:#bbf7d0; color:#14532d; box-shadow:inset 0 0 0 2px #22c55e; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .ansbadge { font-family:"SF Mono",Menlo,monospace; font-size:14px; color:#166534; background:#dcfce7; border:1px solid #86efac; border-radius:999px; padding:3px 12px; margin-left:10px; }
+
+  .status {
+    background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
+  }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .status .no { color:#fca5a5; font-weight:700; } .status .dep { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/longest-palindromic-substring/" target="_blank" rel="noopener">LeetCode 5</a></span>
+  </div>
+
+  <h1>5. 最长回文子串 · 二维 DP 动画</h1>
+  <div class="sub"><code>dp[i][j]</code> = 子串 <code>s[i..j]</code> 是否回文。递推：<code>s[i]==s[j]</code> 且里面 <code>dp[i+1][j-1]</code> 也回文 → <code>dp[i][j]=true</code>。因为要用到「更靠里」的格子，必须<b>按子串长度从小到大</b>填。边界：长度 1 一定回文；长度 2 两端相等即可。</div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="babad" spellcheck="false" placeholder="输入字符串">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="chip">babad</span>
+      <span class="chip">cbbd</span>
+      <span class="chip">aaaa</span>
+      <span class="chip">abccba</span>
+      <span class="chip">forgeeksskeegfor</span>
+      <span class="chip">abcda</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前格 (i,j) / s[i]</span>
+      <span><span class="dot" style="background:#0ea5e9"></span>s[j]</span>
+      <span><span class="dot" style="background:#f59e0b"></span>依赖的内格 (i+1,j-1)</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>是回文</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>不是</span>
+    </div>
+    <div class="hint">提示：字符串较长时表格可横向滚动；为便于观看，长度会被限制在 14 以内。</div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">s（字符串，上标 = 下标）</div>
+    <div class="arr-row" id="strRow"></div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">dp 表（行 = i 起点，列 = j 终点；只用上三角 i ≤ j）
+      <span class="ansbadge" id="ansBadge">最长 = —</span>
+    </div>
+    <div class="matrix-wrap"><table class="dp" id="dpTable"></table></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <pre><code>// Java · 二维 DP(区间) · 时间/空间 O(n²)
+class Solution {
+    public String longestPalindrome(String s) {
+        int n = s.length();
+        boolean[][] dp = new boolean[n][n];
+        int start = 0, maxLen = 1;
+        for (int i = 0; i &lt; n; i++) dp[i][i] = true;   <span class="cmt">// 长度 1</span>
+        for (int L = 2; L &lt;= n; L++) {                  <span class="cmt">// 按长度从小到大</span>
+            for (int i = 0; i + L - 1 &lt; n; i++) {
+                int j = i + L - 1;
+                if (s.charAt(i) != s.charAt(j)) dp[i][j] = false;
+                else if (L == 2) dp[i][j] = true;         <span class="cmt">// 两端相等且长度 2</span>
+                else dp[i][j] = dp[i + 1][j - 1];         <span class="cmt">// 看里面那格</span>
+                if (dp[i][j] &amp;&amp; L &gt; maxLen) { start = i; maxLen = L; }
+            }
+        }
+        return s.substring(start, start + maxLen);
+    }
+}</code></pre>
+      <pre><code><span class="cmt"># Python · 二维 DP(区间) · 时间/空间 O(n²)</span>
+class Solution:
+    def longestPalindrome(self, s: str) -&gt; str:
+        n = len(s)
+        dp = [[False] * n for _ in range(n)]
+        start, maxLen = 0, 1
+        for i in range(n):
+            dp[i][i] = True                 # 长度 1
+        for L in range(2, n + 1):           # 按长度从小到大
+            for i in range(n - L + 1):
+                j = i + L - 1
+                if s[i] != s[j]:
+                    dp[i][j] = False
+                elif L == 2:
+                    dp[i][j] = True         # 两端相等且长度 2
+                else:
+                    dp[i][j] = dp[i + 1][j - 1]   # 看里面那格
+                if dp[i][j] and L &gt; maxLen:
+                    start, maxLen = i, L
+        return s[start:start + maxLen]</code></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var strRow = document.getElementById('strRow');
+  var dpTable = document.getElementById('dpTable');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var ansBadge = document.getElementById('ansBadge');
+  var MAX_N = 14;
+
+  var s = '';
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function buildSteps(s) {
+    var snaps = [];
+    var n = s.length;
+    // dp[i][j]: -1 未定, 0 false, 1 true
+    var dp = [];
+    for (var a = 0; a < n; a++) { dp.push(new Array(n).fill(-1)); }
+    var start = 0, maxLen = (n ? 1 : 0);
+
+    function snap(o) {
+      var flat = dp.map(function (row) { return row.slice(); });
+      snaps.push({
+        dp: flat,
+        i: (o.i === undefined ? -1 : o.i),
+        j: (o.j === undefined ? -1 : o.j),
+        depI: (o.depI === undefined ? -1 : o.depI),
+        depJ: (o.depJ === undefined ? -1 : o.depJ),
+        start: start, maxLen: maxLen,
+        done: (o.done === undefined ? false : o.done),
+        msg: o.msg
+      });
+    }
+
+    if (!n) { snap({ msg: '字符串为空。', done: true }); return snaps; }
+
+    snap({ msg: '初始化：dp 全部未定；答案先取任意单个字符（长度 1）。接下来先填长度 1，再按长度递增。' });
+
+    // 长度 1
+    for (var i = 0; i < n; i++) dp[i][i] = 1;
+    snap({ msg: '<b>长度 1</b>：对角线 dp[i][i] 全部设为 <span class="op">回文</span>（单个字符一定是回文）。' });
+
+    for (var L = 2; L <= n; L++) {
+      for (var i2 = 0; i2 + L - 1 < n; i2++) {
+        var j = i2 + L - 1;
+        if (s[i2] !== s[j]) {
+          dp[i2][j] = 0;
+          snap({ i: i2, j: j,
+            msg: '长度 ' + L + '，看 dp[' + i2 + '][' + j + '] = s[' + i2 + '..' + j + '] = "' + s.slice(i2, j + 1) + '"：两端 s[' + i2 + ']=<b>' + s[i2] + '</b> ≠ s[' + j + ']=<b>' + s[j] + '</b> → <span class="no">不是回文</span>。' });
+        } else if (L === 2) {
+          dp[i2][j] = 1;
+          if (L > maxLen) { start = i2; maxLen = L; }
+          snap({ i: i2, j: j,
+            msg: '长度 2，dp[' + i2 + '][' + j + '] = "' + s.slice(i2, j + 1) + '"：两端 s[' + i2 + ']=s[' + j + ']=<b>' + s[i2] + '</b> 相等，中间为空 → <span class="op">回文</span>。' });
+        } else {
+          dp[i2][j] = dp[i2 + 1][j - 1];
+          var innerPal = dp[i2 + 1][j - 1] === 1;
+          if (dp[i2][j] === 1 && L > maxLen) { start = i2; maxLen = L; }
+          snap({ i: i2, j: j, depI: i2 + 1, depJ: j - 1,
+            msg: '长度 ' + L + '，dp[' + i2 + '][' + j + '] = "' + s.slice(i2, j + 1) + '"：两端 s[' + i2 + ']=s[' + j + ']=<b>' + s[i2] + '</b> 相等，再看<span class="dep">里面那格</span> dp[' + (i2 + 1) + '][' + (j - 1) + '] = "' + s.slice(i2 + 1, j) + '" → ' + (innerPal ? '<span class="op">回文</span>，所以整体也<span class="op">回文</span>。' : '<span class="no">不是回文</span>，所以整体也<span class="no">不是</span>。') });
+        }
+      }
+    }
+
+    snap({ done: true,
+      msg: '完成 ✅ 最长回文子串 = "<b>' + s.slice(start, start + maxLen) + '</b>"（下标 ' + start + '..' + (start + maxLen - 1) + '，长度 ' + maxLen + '）。' });
+    return snaps;
+  }
+
+  function load(str) {
+    str = (str || '').trim();
+    if (!str.length) return;
+    if (str.length > MAX_N) str = str.slice(0, MAX_N);
+    s = str;
+    input.value = s;
+    steps = buildSteps(s);
+    stepIdx = 0;
+    renderStatic();
+    render();
+  }
+
+  function renderStatic() {
+    // string row
+    strRow.innerHTML = '';
+    for (var i = 0; i < s.length; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'scell';
+      var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = i;
+      var ch = document.createElement('div'); ch.className = 'schar'; ch.textContent = s[i]; ch.dataset.idx = i;
+      cell.appendChild(lab); cell.appendChild(ch);
+      strRow.appendChild(cell);
+    }
+    // dp table
+    var n = s.length;
+    var html = '<tr><th></th>';
+    for (var c = 0; c < n; c++) html += '<th>j=' + c + '<br>' + s[c] + '</th>';
+    html += '</tr>';
+    for (var r = 0; r < n; r++) {
+      html += '<tr><th class="rowh">i=' + r + ' ' + s[r] + '</th>';
+      for (var cc = 0; cc < n; cc++) {
+        html += '<td data-i="' + r + '" data-j="' + cc + '"></td>';
+      }
+      html += '</tr>';
+    }
+    dpTable.innerHTML = html;
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+    var n = s.length;
+
+    // string row
+    Array.prototype.forEach.call(strRow.children, function (cell) {
+      var ch = cell.querySelector('.schar');
+      var idx = +ch.dataset.idx;
+      ch.className = 'schar';
+      if (st.done) {
+        if (idx >= st.start && idx < st.start + st.maxLen) ch.classList.add('inpal');
+      } else {
+        if (idx === st.i) ch.classList.add('endi');
+        else if (idx === st.j) ch.classList.add('endj');
+      }
+    });
+
+    // dp table cells
+    Array.prototype.forEach.call(dpTable.querySelectorAll('td'), function (td) {
+      var i = +td.dataset.i, j = +td.dataset.j;
+      td.className = '';
+      if (i > j) { td.classList.add('na'); td.textContent = ''; return; }
+      var v = st.dp[i][j];
+      if (v === 1) { td.classList.add('pal'); td.textContent = 'T'; }
+      else if (v === 0) { td.classList.add('no'); td.textContent = 'F'; }
+      else { td.textContent = ''; }
+      // best-substring cells at end
+      if (st.done && v === 1 && i === st.start && j === st.start + st.maxLen - 1) td.classList.add('best');
+      if (!st.done) {
+        if (i === st.i && j === st.j) td.classList.add('cur');
+        else if (i === st.depI && j === st.depJ) td.classList.add('dep');
+      }
+    });
+
+    ansBadge.textContent = '最长 = ' + (st.maxLen ? '"' + s.slice(st.start, st.start + st.maxLen) + '" (长' + st.maxLen + ')' : '—');
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = (stepIdx === 0);
+    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+  }
+
+  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
+  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
+  function reset(){ stopPlay(); stepIdx = 0; render(); }
+  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
+  function togglePlay(){
+    if (playTimer){ stopPlay(); return; }
+    document.getElementById('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 750);
+  }
+
+  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
+  document.getElementById('resetBtn').onclick = reset;
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
+    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
