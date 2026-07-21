@@ -73,6 +73,7 @@ leetcode-animations/
 | 322 | [零钱兑换](problems/322-coin-change.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 322 | [零钱兑换（记忆化递归树）](problems/322-coin-change-tree.html) | 中等 | 记忆化搜索 · 递归树 · 重复子问题 |
 | 394 | [字符串解码](problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
+| 718 | [最长重复子数组](problems/718-maximum-length-of-repeated-subarray.html) | 中等 | 动态规划 · 二维 DP · 数组 |
 | 739 | [每日温度](problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
 | 763 | [划分字母区间](problems/763-partition-labels.html) | 中等 | 贪心 · 双指针 · 哈希 |
 
