@@ -76,6 +76,7 @@ leetcode-animations/
 | 718 | [最长重复子数组](problems/718-maximum-length-of-repeated-subarray.html) | 中等 | 动态规划 · 二维 DP · 数组 |
 | 739 | [每日温度](problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
 | 763 | [划分字母区间](problems/763-partition-labels.html) | 中等 | 贪心 · 双指针 · 哈希 |
+| 1143 | [最长公共子序列](problems/1143-longest-common-subsequence.html) | 中等 | 动态规划 · 二维 DP · 字符串 |
 
 ---
 
