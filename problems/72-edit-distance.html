@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>72. 编辑距离 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .sub code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:220px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 120px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  /* five-step method */
+  .steps5 { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; }
+  .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  /* grid */
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px; }
+  .grid-dp { display:inline-grid; gap:6px; margin:0 auto; }
+  .gcell {
+    position:relative; width:50px; height:48px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;
+  }
+  /* header cells (word1 / word2 labels + corner) */
+  .hcell { background:transparent; border:none; color:#94a3b8; font-size:15px; font-weight:700; }
+  .hcell.axis { color:#c7cbd1; font-weight:600; }
+  .hcell.h1 { color:#7c3aed; }   /* word1 row labels */
+  .hcell.h2 { color:#0e7490; }   /* word2 col labels */
+  .hcell.h1.hot { background:#ede9fe; border-radius:8px; box-shadow:0 0 0 2px #c4b5fd inset; }
+  .hcell.h2.hot { background:#cffafe; border-radius:8px; box-shadow:0 0 0 2px #67e8f9 inset; }
+  .hcell.h1.hot.miss, .hcell.h2.hot.miss { background:#ffedd5; box-shadow:0 0 0 2px #fdba74 inset; }
+
+  .gcell.blank  { background:#f8fafc; border-style:dashed; border-color:#e5e7eb; color:#c7cbd1; }
+  .gcell.base   { background:#f1f5f9; border-color:#e2e8f0; color:#94a3b8; }   /* i=0 / j=0 边界 */
+  .gcell.pos    { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }   /* 已填 */
+  .gcell.parent { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.22); }
+  .gcell.chosen { background:#fde68a; border-color:#d97706; box-shadow:0 0 0 4px rgba(217,119,6,.32); }
+  .gcell.diag   { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.22); }
+  .gcell.cur    { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.25); transform:scale(1.08); }
+  .gcell.curmiss{ background:#f97316; border-color:#c2410c; color:#fff; box-shadow:0 0 0 4px rgba(249,115,22,.25); transform:scale(1.08); }
+  .gcell.goal   { outline:3px dashed #059669; outline-offset:2px; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab {
+    font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer;
+    background:#f1f2f4; border:1px solid #e5e7eb; color:#374151;
+  }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/edit-distance/" target="_blank" rel="noopener">LeetCode 72</a></span>
+  </div>
+
+  <h1>72. 编辑距离 · 二维 DP 填表动画</h1>
+  <div class="sub">给两个单词 <b>word1</b>、<b>word2</b>，每次可<b>插入</b>、<b>删除</b>或<b>替换</b>一个字符，求把 word1 变成 word2 的最少操作次数。定义 <code>dp[i][j]</code> = 把 <code>word1</code> 前 <b>i</b> 个字符变成 <code>word2</code> 前 <b>j</b> 个字符的最少操作数；末字符相等则直接继承左上 <code>dp[i-1][j-1]</code>，不等则 <code>dp[i][j] = 1 + min(左上替换, 上删除, 左插入)</code>，答案在<b>右下角</b> <code>dp[m][n]</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">动态规划五步法</div>
+    <div class="steps5">
+      <div class="s5"><div class="no">① 含义</div><code>dp[i][j]</code> = 把 <b>word1[0..i-1]</b> 变成 <b>word2[0..j-1]</b> 的最少编辑操作数。</div>
+      <div class="s5"><div class="no">② 递推</div>末字符相等 → <code>dp[i-1][j-1]</code>；不等 → <code>1 + min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1])</code>（替换 / 删除 / 插入）。</div>
+      <div class="s5"><div class="no">③ 初始化</div>第 0 列 <code>dp[i][0]=i</code>（删 i 次），第 0 行 <code>dp[0][j]=j</code>（插 j 次）。</div>
+      <div class="s5"><div class="no">④ 遍历顺序</div>从上到下、从左到右（依赖<b>左上、上、左</b>三个方向）。</div>
+      <div class="s5"><div class="no">⑤ 举例</div>"horse" → "ros" 需 <b>3</b> 步：horse→rorse→rose→ros。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="field"><span class="lab">word1 =</span><input type="text" id="input1" value="horse" spellcheck="false" placeholder="如 horse"></div>
+      <div class="field"><span class="lab">word2 =</span><input type="text" id="input2" value="ros" spellcheck="false" placeholder="如 ros"></div>
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-a="horse" data-b="ros">horse &amp; ros</span>
+      <span class="chip" data-a="intention" data-b="execution">intention &amp; execution</span>
+      <span class="chip" data-a="abc" data-b="abc">abc &amp; abc</span>
+      <span class="chip" data-a="" data-b="abc">"" &amp; abc</span>
+      <span class="chip" data-a="sea" data-b="eat">sea &amp; eat</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="panel-title">dp 表（行 = word1，列 = word2；格内数字 = 对应前缀间的最少编辑操作数）</div>
+    <div class="stage">
+      <div class="grid-dp" id="grid"></div>
+    </div>
+    <div class="vars">
+      <span id="vPos">当前位置 = <b>—</b></span>
+      <span id="vFormula">当前计算 = <b>—</b></span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>末字符相等·继承左上</span>
+      <span><span class="dot" style="background:#f97316"></span>不等·1 + min(三方向)</span>
+      <span><span class="dot" style="background:#fde68a;border:1px solid #d97706"></span>被选中的来源</span>
+      <span><span class="dot" style="background:#fef3c7;border:1px solid #f59e0b"></span>候选来源（左上 / 上 / 左）</span>
+      <span><span class="dot" style="border:2px dashed #059669"></span>答案格 dp[m][n]</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或先在上方载入两个字符串。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="java">Java</span>
+        <span class="code-tab" data-lang="python">Python</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-ed-app>
+  (function () {
+    'use strict';
+
+    // 解析单个字符串：去掉首尾空白，长度 0..8，不含内部空白（允许空串）
+    function parseStr(value) {
+      if (typeof value !== 'string') { return null; }
+      var s = value.trim();
+      if (/\s/.test(s)) { return null; }
+      if (s.length > 8) { return null; }   // 动画清晰度上限
+      return s;
+    }
+
+    function parseInput(rawA, rawB) {
+      var a = parseStr(rawA);
+      var b = parseStr(rawB);
+      if (a === null || b === null) { return null; }
+      if (a.length === 0 && b.length === 0) { return null; }  // 两个都空没意义
+      return { word1: a, word2: b };
+    }
+
+    function minDistance(word1, word2) {
+      var m = word1.length, n = word2.length;
+      var dp = [];
+      for (var i = 0; i <= m; i += 1) { dp.push(new Array(n + 1).fill(0)); }
+      for (var i1 = 0; i1 <= m; i1 += 1) { dp[i1][0] = i1; }
+      for (var j1 = 0; j1 <= n; j1 += 1) { dp[0][j1] = j1; }
+      for (var i2 = 1; i2 <= m; i2 += 1) {
+        for (var j = 1; j <= n; j += 1) {
+          if (word1[i2 - 1] === word2[j - 1]) {
+            dp[i2][j] = dp[i2 - 1][j - 1];
+          } else {
+            dp[i2][j] = 1 + Math.min(dp[i2 - 1][j - 1], dp[i2 - 1][j], dp[i2][j - 1]);
+          }
+        }
+      }
+      return dp[m][n];
+    }
+
+    function buildSteps(word1, word2) {
+      var m = word1.length, n = word2.length;
+      var steps = [];
+      // dp 用 null 表示尚未填写，边界行/列预填 i / j
+      var dp = [];
+      for (var r = 0; r <= m; r += 1) { dp.push(new Array(n + 1).fill(null)); }
+      for (var j0 = 0; j0 <= n; j0 += 1) { dp[0][j0] = j0; }
+      for (var i0 = 0; i0 <= m; i0 += 1) { dp[i0][0] = i0; }
+
+      function snap(o) {
+        steps.push({
+          phase: o.phase,
+          message: o.message,
+          m: m, n: n,
+          word1: word1, word2: word2,
+          dp: dp.map(function (row) { return row.slice(); }),
+          i: (o.i == null ? -1 : o.i),
+          j: (o.j == null ? -1 : o.j),
+          value: (o.value == null ? null : o.value),
+          diag: o.diag || null,
+          up: o.up || null,
+          left: o.left || null,
+          chosen: o.chosen || null,
+          answer: o.answer
+        });
+      }
+
+      snap({
+        phase: 'intro',
+        message: '定义 <b>dp[i][j]</b> = 把 word1 前 <b>i</b> 个字符变成 word2 前 <b>j</b> 个字符的最少编辑操作数。边界：第 0 列 <span class="op">dp[i][0]=i</span>（把 i 个字符全删光），第 0 行 <span class="op">dp[0][j]=j</span>（从空串插入 j 个字符）。下面从上到下、从左到右逐格填表，答案在右下角 <span class="op">dp[' + m + '][' + n + ']</span>。'
+      });
+
+      for (var i = 1; i <= m; i += 1) {
+        for (var j = 1; j <= n; j += 1) {
+          var a = word1[i - 1], b = word2[j - 1];
+          if (a === b) {
+            var prev = dp[i - 1][j - 1];
+            dp[i][j] = prev;
+            snap({
+              phase: 'match', i: i, j: j, value: dp[i][j],
+              diag: { i: i - 1, j: j - 1 },
+              chosen: { i: i - 1, j: j - 1 },
+              message: '格子 <b>(' + i + ',' + j + ')</b>：末字符 word1[' + (i - 1) + ']=<b>' + a + '</b> == word2[' + (j - 1) + ']=<b>' + b + '</b>，无需任何操作 → 直接继承左上 dp = <span class="op">' + prev + '</span>。'
+            });
+          } else {
+            var rep = dp[i - 1][j - 1];  // 替换
+            var del = dp[i - 1][j];      // 删除
+            var ins = dp[i][j - 1];      // 插入
+            var best = Math.min(rep, del, ins);
+            dp[i][j] = best + 1;
+            var chosen, opName;
+            if (rep <= del && rep <= ins) { chosen = { i: i - 1, j: j - 1 }; opName = '替换'; }
+            else if (del <= ins) { chosen = { i: i - 1, j: j }; opName = '删除'; }
+            else { chosen = { i: i, j: j - 1 }; opName = '插入'; }
+            snap({
+              phase: 'diff', i: i, j: j, value: dp[i][j],
+              diag: { i: i - 1, j: j - 1 }, up: { i: i - 1, j: j }, left: { i: i, j: j - 1 },
+              chosen: chosen,
+              message: '格子 <b>(' + i + ',' + j + ')</b>：word1[' + (i - 1) + ']=<b>' + a + '</b> ≠ word2[' + (j - 1) + ']=<b>' + b + '</b> → dp = 1 + min(左上替换 <span class="area">' + rep + '</span>, 上删除 <span class="area">' + del + '</span>, 左插入 <span class="area">' + ins + '</span>) = 1 + <span class="area">' + best + '</span> = <span class="op">' + dp[i][j] + '</span>（选<b>' + opName + '</b>）。'
+            });
+          }
+        }
+      }
+
+      snap({
+        phase: 'done',
+        answer: dp[m][n],
+        message: '✅ 填表完成。右下角 <b>dp[' + m + '][' + n + '] = <span class="op">' + dp[m][n] + '</span></b>，就是把 word1 变成 word2 的最少编辑操作数。'
+      });
+      return steps;
+    }
+
+    window.EditApp = {
+      parseStr: parseStr,
+      parseInput: parseInput,
+      minDistance: minDistance,
+      buildSteps: buildSteps
+    };
+
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.edReady = 'true';
+    }
+  }());
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.EditApp;
+
+  var input1 = document.getElementById('input1');
+  var input2 = document.getElementById('input2');
+  var errEl = document.getElementById('err');
+  var statsEl = document.getElementById('stats');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var playBtn = document.getElementById('playBtn');
+  var gridEl = document.getElementById('grid');
+  var vPos = document.getElementById('vPos');
+  var vFormula = document.getElementById('vFormula');
+
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function showError(msg) { errEl.textContent = msg; errEl.classList.add('show'); }
+  function clearError() { errEl.textContent = ''; errEl.classList.remove('show'); }
+
+  function stopPlay() {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+
+  function makeCell(cls, text) {
+    var el = document.createElement('div');
+    el.className = cls;
+    el.textContent = text;
+    return el;
+  }
+
+  function renderGrid(step) {
+    gridEl.innerHTML = '';
+    gridEl.style.gridTemplateColumns = 'repeat(' + (step.n + 2) + ', 50px)';
+
+    // 第一行：word2 标签行
+    gridEl.appendChild(makeCell('gcell hcell', ''));            // 角落
+    gridEl.appendChild(makeCell('gcell hcell axis', '∅'));       // dp j=0 的列头
+    for (var jc = 0; jc < step.n; jc += 1) {
+      var h2 = 'gcell hcell h2';
+      if (step.j === jc + 1) { h2 += ' hot' + (step.phase === 'diff' ? ' miss' : ''); }
+      gridEl.appendChild(makeCell(h2, step.word2[jc]));
+    }
+
+    for (var i = 0; i <= step.m; i += 1) {
+      // 行标签列
+      if (i === 0) {
+        gridEl.appendChild(makeCell('gcell hcell axis', '∅'));
+      } else {
+        var h1 = 'gcell hcell h1';
+        if (step.i === i) { h1 += ' hot' + (step.phase === 'diff' ? ' miss' : ''); }
+        gridEl.appendChild(makeCell(h1, step.word1[i - 1]));
+      }
+      // dp 列
+      for (var j = 0; j <= step.n; j += 1) {
+        var val = step.dp[i][j];
+        var cls = 'gcell';
+        var isCur = (i === step.i && j === step.j);
+        var isChosen = step.chosen && step.chosen.i === i && step.chosen.j === j;
+        var isCand = (step.diag && step.diag.i === i && step.diag.j === j) ||
+                     (step.up && step.up.i === i && step.up.j === j) ||
+                     (step.left && step.left.i === i && step.left.j === j);
+        var isGoal = (i === step.m && j === step.n);
+        if (isCur) { cls += (step.phase === 'diff' ? ' curmiss' : ' cur'); }
+        else if (isChosen) { cls += ' parent chosen'; }
+        else if (isCand) { cls += ' parent'; }
+        else if (val === null) { cls += ' blank'; }
+        else if (i === 0 || j === 0) { cls += ' base'; }
+        else { cls += ' pos'; }
+        if (isGoal && !isCur) { cls += ' goal'; }
+        gridEl.appendChild(makeCell(cls, val === null ? '·' : val));
+      }
+    }
+  }
+
+  function renderStats(step) {
+    statsEl.innerHTML =
+      '<div class="stat">方法<b>二维 DP</b></div>' +
+      '<div class="stat">规模<b>' + step.m + ' × ' + step.n + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(m·n)</b></div>' +
+      '<div class="stat">空间复杂度<b>O(m·n)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    if (!step) { return; }
+
+    renderGrid(step);
+    renderStats(step);
+
+    if (step.i >= 0 && step.j >= 0) {
+      vPos.innerHTML = '当前位置 = <b>(' + step.i + ', ' + step.j + ')</b>';
+    } else {
+      vPos.innerHTML = '当前位置 = <b>—</b>';
+    }
+    if (step.phase === 'match') {
+      vFormula.innerHTML = '当前计算 = <b>继承左上 = ' + step.value + '</b>';
+    } else if (step.phase === 'diff') {
+      vFormula.innerHTML = '当前计算 = <b>1 + min(左上, 上, 左) = ' + step.value + '</b>';
+    } else if (step.phase === 'done') {
+      vFormula.innerHTML = '答案 = <b>' + step.answer + '</b>';
+    } else {
+      vFormula.innerHTML = '当前计算 = <b>—</b>';
+    }
+
+    statusEl.innerHTML = step.message;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(rawA, rawB) {
+    var parsed = App.parseInput(rawA, rawB);
+    if (parsed === null) {
+      showError('两个字符串都需不含空格、长度 0..8（动画上限），且不能同时为空。例如 word1 = "horse"，word2 = "ros"。当前动画保持不变。');
+      return false;
+    }
+    clearError();
+    stopPlay();
+    steps = App.buildSteps(parsed.word1, parsed.word2);
+    stepIdx = 0;
+    render();
+    return true;
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx += 1; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx -= 1; render(); } }
+
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 550);
+  }
+
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  playBtn.onclick = togglePlay;
+  document.getElementById('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  document.getElementById('loadBtn').onclick = function () { load(input1.value, input2.value); };
+  input1.addEventListener('keydown', function (e) { if (e.key === 'Enter') { load(input1.value, input2.value); } });
+  input2.addEventListener('keydown', function (e) { if (e.key === 'Enter') { load(input1.value, input2.value); } });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () {
+      input1.value = ch.dataset.a;
+      input2.value = ch.dataset.b;
+      load(ch.dataset.a, ch.dataset.b);
+    };
+  });
+
+  // ---- reference code ----
+  var codes = {
+    java:
+'<span class="cmt">// Java · 二维 DP · 时间 O(m·n) 空间 O(m·n)</span>\n' +
+'class Solution {\n' +
+'    public int minDistance(String word1, String word2) {\n' +
+'        int m = word1.length(), n = word2.length();\n' +
+'        int[][] dp = new int[m + 1][n + 1];\n' +
+'        for (int i = 0; i &lt;= m; i++) dp[i][0] = i;    <span class="cmt">// 删 i 次</span>\n' +
+'        for (int j = 0; j &lt;= n; j++) dp[0][j] = j;    <span class="cmt">// 插 j 次</span>\n' +
+'        for (int i = 1; i &lt;= m; i++) {\n' +
+'            for (int j = 1; j &lt;= n; j++) {\n' +
+'                if (word1.charAt(i - 1) == word2.charAt(j - 1)) {\n' +
+'                    dp[i][j] = dp[i - 1][j - 1];       <span class="cmt">// 相等：继承左上</span>\n' +
+'                } else {\n' +
+'                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], <span class="cmt">// 替换</span>\n' +
+'                                   Math.min(dp[i - 1][j],      <span class="cmt">// 删除</span>\n' +
+'                                            dp[i][j - 1]));    <span class="cmt">// 插入</span>\n' +
+'                }\n' +
+'            }\n' +
+'        }\n' +
+'        return dp[m][n];                              <span class="cmt">// 答案在右下角</span>\n' +
+'    }\n' +
+'}',
+    python:
+'<span class="cmt"># Python · 二维 DP · 时间 O(m·n) 空间 O(m·n)</span>\n' +
+'class Solution:\n' +
+'    def minDistance(self, word1: str, word2: str) -&gt; int:\n' +
+'        m, n = len(word1), len(word2)\n' +
+'        dp = [[0] * (n + 1) for _ in range(m + 1)]\n' +
+'        for i in range(m + 1): dp[i][0] = i          <span class="cmt"># 删 i 次</span>\n' +
+'        for j in range(n + 1): dp[0][j] = j          <span class="cmt"># 插 j 次</span>\n' +
+'        for i in range(1, m + 1):\n' +
+'            for j in range(1, n + 1):\n' +
+'                if word1[i - 1] == word2[j - 1]:\n' +
+'                    dp[i][j] = dp[i - 1][j - 1]       <span class="cmt"># 相等：继承左上</span>\n' +
+'                else:\n' +
+'                    dp[i][j] = 1 + min(dp[i - 1][j - 1],  <span class="cmt"># 替换</span>\n' +
+'                                       dp[i - 1][j],       <span class="cmt"># 删除</span>\n' +
+'                                       dp[i][j - 1])       <span class="cmt"># 插入</span>\n' +
+'        return dp[m][n]                              <span class="cmt"># 答案在右下角</span>'
+  };
+  var codeBlock = document.getElementById('codeBlock');
+  function showCode(lang) { codeBlock.innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('java');
+
+  load(input1.value, input2.value);
+})();
+</script>
+</body>
+</html>
