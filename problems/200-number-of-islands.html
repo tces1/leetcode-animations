@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>200. 岛屿数量 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 160px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .steps5 { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; }
+  .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px; }
+  .grid-wrap { display:inline-grid; gap:6px; margin:0 auto; }
+  .gcell {
+    width:48px; height:48px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:18px; font-weight:700;
+    border:2px solid #e5e7eb; background:#f8fafc; color:#334155;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .gcell.water   { background:#f0f9ff; border-color:#bae6fd; color:#94a3b8; }
+  .gcell.land    { background:#f8fafc; border-style:dashed; color:#334155; }
+  .gcell.cur     { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.25); transform:scale(1.08); }
+  .gcell.stack   { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.22); }
+  .gcell.island-1{ background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
+  .gcell.island-2{ background:#dcfce7; border-color:#86efac; color:#166534; }
+  .gcell.island-3{ background:#f3e8ff; border-color:#c084fc; color:#6b21a8; }
+  .gcell.island-4{ background:#ffedd5; border-color:#fdba74; color:#9a3412; }
+  .gcell.island-5{ background:#fce7f3; border-color:#f9a8d4; color:#9d174d; }
+  .gcell.island-6{ background:#ccfbf1; border-color:#5eead4; color:#115e59; }
+  .gcell.island-7{ background:#fef9c3; border-color:#fde047; color:#854d0e; }
+  .gcell.island-8{ background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab {
+    font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer;
+    background:#f1f2f4; border:1px solid #e5e7eb; color:#374151;
+  }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/number-of-islands/" target="_blank" rel="noopener">LeetCode 200</a></span>
+  </div>
+
+  <h1>200. 岛屿数量 · DFS 洪水填充动画</h1>
+  <div class="sub">给定一个由 <b>'1'</b>（陆地）和 <b>'0'</b>（水域）组成的二维网格，计算<b>岛屿数量</b>。岛屿由水平/垂直方向相邻的陆地连通而成，四周被水域包围。从左上角逐格扫描，遇到未访问的 '1' 就启动 <b>DFS</b> 递归，将连通陆地全部标记为 <code>'X'</code>；每次启动 DFS = 发现一个新岛屿。</div>
+
+  <div class="card">
+    <div class="panel-title">算法思路</div>
+    <div class="steps5">
+      <div class="s5"><div class="no">① 扫描</div>从左上角按<b>行</b>按<b>列</b>逐格调用 <code>dfs(i,j)</code>。</div>
+      <div class="s5"><div class="no">② 发现</div>若 <code>grid[i][j]=='1'</code>，说明踩到新岛，计数 <b>+1</b>。</div>
+      <div class="s5"><div class="no">③ DFS</div>将当前格标记为 <code>'X'</code>，递归向<b>下、上、右、左</b>扩展。</div>
+      <div class="s5"><div class="no">④ 回溯</div>递归返回后继续其他方向，直到整块岛屿全部标记。</div>
+      <div class="s5"><div class="no">⑤ 完成</div>扫描结束后，计数器就是岛屿总数。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="1,1,0,0,0;1,1,0,0,0;0,0,1,0,0;0,0,0,1,1" spellcheck="false" placeholder="行内逗号、行间分号，例如 1,1,0;0,1,0">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例 grid =</span>
+      <span class="chip">1,1,1,1,0;1,1,0,1,0;1,1,0,0,0;0,0,0,0,0</span>
+      <span class="chip">1,1,0,0,0;1,1,0,0,0;0,0,1,0,0;0,0,0,1,1</span>
+      <span class="chip">1,0,1,0,1;0,1,0,1,0;1,0,1,0,1</span>
+      <span class="chip">1,1,1;0,0,0;1,1,1</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="panel-title">网格（蓝 = 水域 '0'，虚线 = 未访问陆地 '1'，X = 已标记）</div>
+    <div class="stage">
+      <div class="grid-wrap" id="grid"></div>
+    </div>
+    <div class="vars">
+      <span id="vOp">当前操作 = <b>—</b></span>
+      <span id="vCount">岛屿计数 = <b>0</b></span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>正在访问</span>
+      <span><span class="dot" style="background:#fef3c7;border:1px solid #f59e0b"></span>DFS 递归栈</span>
+      <span><span class="dot" style="background:#dbeafe;border:1px solid #93c5fd"></span>岛屿 #1</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>岛屿 #2</span>
+      <span><span class="dot" style="background:#f3e8ff;border:1px solid #c084fc"></span>岛屿 #3…</span>
+      <span><span class="dot" style="background:#f0f9ff;border:1px solid #bae6fd"></span>水域</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或先在上方载入一个网格。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="java">Java</span>
+        <span class="code-tab" data-lang="python">Python</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-num-islands-app>
+  (function () {
+    'use strict';
+
+    function parseInput(value) {
+      if (typeof value !== 'string') { return null; }
+      var rows = value.split(/[;\n]+/).map(function (r) { return r.trim(); })
+                      .filter(function (r) { return r.length; });
+      if (!rows.length) { return null; }
+      var grid = [];
+      var width = null;
+      for (var r = 0; r < rows.length; r += 1) {
+        var parts = rows[r].split(/[,\s]+/).filter(function (x) { return x.length; });
+        if (!parts.length) { return null; }
+        var nums = [];
+        for (var c = 0; c < parts.length; c += 1) {
+          var v = Number(parts[c]);
+          if (v !== 0 && v !== 1) { return null; }
+          nums.push(v);
+        }
+        if (width === null) { width = nums.length; }
+        else if (nums.length !== width) { return null; }
+        grid.push(nums);
+      }
+      if (grid.length > 10 || width > 10) { return null; }
+      return grid;
+    }
+
+    function numIslands(grid) {
+      var m = grid.length, n = grid[0].length;
+      var g = grid.map(function (row) { return row.slice(); });
+      var ans = 0;
+      function dfs(i, j) {
+        if (g[i][j] !== 1) { return false; }
+        g[i][j] = 2;
+        if (i < m - 1) { dfs(i + 1, j); }
+        if (i > 0)     { dfs(i - 1, j); }
+        if (j < n - 1) { dfs(i, j + 1); }
+        if (j > 0)     { dfs(i, j - 1); }
+        return true;
+      }
+      for (var i = 0; i < m; i += 1) {
+        for (var j = 0; j < n; j += 1) {
+          if (dfs(i, j)) { ans += 1; }
+        }
+      }
+      return ans;
+    }
+
+    function buildSteps(grid) {
+      var m = grid.length, n = grid[0].length;
+      var steps = [];
+      var visited = [];
+      var islandMap = [];
+      for (var r = 0; r < m; r += 1) {
+        visited.push(new Array(n).fill(false));
+        islandMap.push(new Array(n).fill(0));
+      }
+      var islandCount = 0;
+      var stack = [];
+
+      function snap(o) {
+        steps.push({
+          phase: o.phase,
+          message: o.message,
+          m: m, n: n,
+          grid: grid.map(function (row) { return row.slice(); }),
+          visited: visited.map(function (row) { return row.slice(); }),
+          islandMap: islandMap.map(function (row) { return row.slice(); }),
+          scanPos: o.scanPos || null,
+          curDfs: o.curDfs || null,
+          stack: stack.map(function (p) { return { i: p.i, j: p.j }; }),
+          islandCount: islandCount,
+          answer: o.answer != null ? o.answer : null
+        });
+      }
+
+      function dfs(i, j) {
+        if (i < 0 || i >= m || j < 0 || j >= n) { return; }
+        if (grid[i][j] !== 1 || visited[i][j]) { return; }
+        visited[i][j] = true;
+        islandMap[i][j] = islandCount;
+        stack.push({ i: i, j: j });
+
+        snap({
+          phase: 'dfs',
+          curDfs: { i: i, j: j },
+          message: 'DFS 访问 <b>(' + i + ',' + j + ')</b>：grid[' + i + '][' + j + '] = <span class="op">\'X\'</span>，递归深度 = <span class="area">' + stack.length + '</span>。'
+        });
+
+        if (i < m - 1) { dfs(i + 1, j); }
+        if (i > 0)     { dfs(i - 1, j); }
+        if (j < n - 1) { dfs(i, j + 1); }
+        if (j > 0)     { dfs(i, j - 1); }
+
+        stack.pop();
+      }
+
+      snap({
+        phase: 'intro',
+        message: '从左到右、从上到下逐格调用 <b>dfs(i,j)</b>。遇到 <span class="op">\'1\'</span> 就递归标记整块岛屿为 <b>\'X\'</b>；每次成功 = 一个新岛屿。'
+      });
+
+      for (var i = 0; i < m; i += 1) {
+        for (var j = 0; j < n; j += 1) {
+          if (grid[i][j] === 0) {
+            snap({
+              phase: 'scan-water',
+              scanPos: { i: i, j: j },
+              message: '扫描 <b>(' + i + ',' + j + ')</b>：水域 <b>0</b>，dfs 返回 False，跳过。'
+            });
+          } else if (visited[i][j]) {
+            snap({
+              phase: 'scan-visited',
+              scanPos: { i: i, j: j },
+              message: '扫描 <b>(' + i + ',' + j + ')</b>：已标记 <b>X</b>（属于岛屿 #<span class="area">' + islandMap[i][j] + '</span>），dfs 返回 False，跳过。'
+            });
+          } else {
+            islandCount += 1;
+
+            snap({
+              phase: 'discover',
+              scanPos: { i: i, j: j },
+              message: '扫描 <b>(' + i + ',' + j + ')</b>：发现陆地 <b>1</b>！dfs 返回 True，岛屿数 +1 → <span class="op">' + islandCount + '</span>。开始 DFS 递归。'
+            });
+
+            dfs(i, j);
+
+            var cellCount = 0;
+            for (var ri = 0; ri < m; ri += 1) {
+              for (var ci = 0; ci < n; ci += 1) {
+                if (islandMap[ri][ci] === islandCount) { cellCount += 1; }
+              }
+            }
+
+            snap({
+              phase: 'island-done',
+              message: '第 <span class="op">' + islandCount + '</span> 个岛屿探索完毕，共 <span class="area">' + cellCount + '</span> 个格子。继续扫描剩余网格。'
+            });
+          }
+        }
+      }
+
+      snap({
+        phase: 'done',
+        answer: islandCount,
+        message: '✅ 扫描完成。共发现 <span class="op">' + islandCount + '</span> 个岛屿。'
+      });
+
+      return steps;
+    }
+
+    window.NumIslandsApp = {
+      parseInput: parseInput,
+      numIslands: numIslands,
+      buildSteps: buildSteps
+    };
+
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.numIslandsReady = 'true';
+    }
+  }());
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.NumIslandsApp;
+
+  var input = document.getElementById('input');
+  var errEl = document.getElementById('err');
+  var statsEl = document.getElementById('stats');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var playBtn = document.getElementById('playBtn');
+  var gridEl = document.getElementById('grid');
+  var vOp = document.getElementById('vOp');
+  var vCount = document.getElementById('vCount');
+
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function showError(msg) { errEl.textContent = msg; errEl.classList.add('show'); }
+  function clearError() { errEl.textContent = ''; errEl.classList.remove('show'); }
+
+  function stopPlay() {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+
+  function renderGrid(step) {
+    gridEl.innerHTML = '';
+    gridEl.style.gridTemplateColumns = 'repeat(' + step.n + ', 48px)';
+
+    var stackSet = {};
+    for (var s = 0; s < step.stack.length; s += 1) {
+      stackSet[step.stack[s].i + ',' + step.stack[s].j] = true;
+    }
+
+    for (var i = 0; i < step.m; i += 1) {
+      for (var j = 0; j < step.n; j += 1) {
+        var cell = document.createElement('div');
+        var cls = 'gcell';
+        var key = i + ',' + j;
+        var isCur = (step.curDfs && step.curDfs.i === i && step.curDfs.j === j) ||
+                    (step.scanPos && step.scanPos.i === i && step.scanPos.j === j);
+        var inStack = stackSet[key];
+        var island = step.islandMap[i][j];
+
+        if (isCur) {
+          cls += ' cur';
+        } else if (inStack) {
+          cls += ' stack';
+        } else if (island > 0) {
+          cls += ' island-' + ((island - 1) % 8 + 1);
+        } else if (step.grid[i][j] === 0) {
+          cls += ' water';
+        } else {
+          cls += ' land';
+        }
+
+        cell.className = cls;
+        if (step.grid[i][j] === 0) {
+          cell.textContent = '0';
+        } else if (step.visited[i][j]) {
+          cell.textContent = 'X';
+        } else {
+          cell.textContent = '1';
+        }
+        gridEl.appendChild(cell);
+      }
+    }
+  }
+
+  function renderStats(step) {
+    statsEl.innerHTML =
+      '<div class="stat">方法<b>DFS 递归</b></div>' +
+      '<div class="stat">网格<b>' + step.m + ' × ' + step.n + '</b></div>' +
+      '<div class="stat">岛屿数<b>' + step.islandCount + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(m·n)</b></div>' +
+      '<div class="stat">空间复杂度<b>O(m·n)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    if (!step) { return; }
+
+    renderGrid(step);
+    renderStats(step);
+
+    var opText = '—';
+    if (step.phase === 'scan-water' || step.phase === 'scan-visited') { opText = '扫描'; }
+    else if (step.phase === 'discover') { opText = '发现新岛'; }
+    else if (step.phase === 'dfs') { opText = 'DFS 递归'; }
+    else if (step.phase === 'island-done') { opText = '岛屿完成'; }
+    else if (step.phase === 'done') { opText = '结束'; }
+    vOp.innerHTML = '当前操作 = <b>' + opText + '</b>';
+    vCount.innerHTML = '岛屿计数 = <b>' + step.islandCount + '</b>';
+
+    statusEl.innerHTML = step.message;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(raw) {
+    var grid = App.parseInput(raw);
+    if (grid === null) {
+      showError('请输入矩形网格：行内用逗号、行间用分号，值只能为 0 或 1，最多 10×10。例如 "1,1,0;0,1,0"。');
+      return false;
+    }
+    clearError();
+    stopPlay();
+    steps = App.buildSteps(grid);
+    stepIdx = 0;
+    render();
+    return true;
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx += 1; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx -= 1; render(); } }
+
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 450);
+  }
+
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  playBtn.onclick = togglePlay;
+  document.getElementById('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  document.getElementById('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { load(input.value); } });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  // ---- reference code ----
+  var codes = {
+    java:
+'<span class="cmt">// Java · DFS 递归 · 时间 O(m·n) 空间 O(m·n)</span>\n' +
+'class Solution {\n' +
+'    public int numIslands(char[][] grid) {\n' +
+'        int m = grid.length, n = grid[0].length, count = 0;\n' +
+'        for (int i = 0; i &lt; m; i++)\n' +
+'            for (int j = 0; j &lt; n; j++)\n' +
+'                if (dfs(grid, i, j, m, n)) count++;\n' +
+'        return count;\n' +
+'    }\n' +
+'\n' +
+'    boolean dfs(char[][] grid, int i, int j, int m, int n) {\n' +
+'        if (grid[i][j] != \'1\') return false;\n' +
+'        grid[i][j] = \'X\';                <span class="cmt">// 标记已访问</span>\n' +
+'        if (i &lt; m-1) dfs(grid, i+1, j, m, n);  <span class="cmt">// 下</span>\n' +
+'        if (i &gt; 0)   dfs(grid, i-1, j, m, n);  <span class="cmt">// 上</span>\n' +
+'        if (j &lt; n-1) dfs(grid, i, j+1, m, n);  <span class="cmt">// 右</span>\n' +
+'        if (j &gt; 0)   dfs(grid, i, j-1, m, n);  <span class="cmt">// 左</span>\n' +
+'        return true;\n' +
+'    }\n' +
+'}',
+    python:
+'<span class="cmt"># Python · DFS 递归 · 时间 O(m·n) 空间 O(m·n)</span>\n' +
+'class Solution:\n' +
+'    def numIslands(self, grid: List[List[str]]) -&gt; int:\n' +
+'        m = len(grid)\n' +
+'        n = len(grid[0])\n' +
+'        ans = 0\n' +
+'\n' +
+'        def dfs(i, j):\n' +
+'            res = False\n' +
+'            if grid[i][j] == "1":\n' +
+'                res = True\n' +
+'                grid[i][j] = "X"      <span class="cmt"># 标记已访问</span>\n' +
+'                if i &lt; m-1:\n' +
+'                    dfs(i+1, j)       <span class="cmt"># 下</span>\n' +
+'                if 0 &lt; i:\n' +
+'                    dfs(i-1, j)       <span class="cmt"># 上</span>\n' +
+'                if j &lt; n-1:\n' +
+'                    dfs(i, j+1)       <span class="cmt"># 右</span>\n' +
+'                if 0 &lt; j:\n' +
+'                    dfs(i, j-1)       <span class="cmt"># 左</span>\n' +
+'            return res\n' +
+'\n' +
+'        for i in range(m):\n' +
+'            for j in range(n):\n' +
+'                if dfs(i, j): ans += 1\n' +
+'\n' +
+'        return ans'
+  };
+  var codeBlock = document.getElementById('codeBlock');
+  function showCode(lang) { codeBlock.innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('java');
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
