@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>994. 腐烂的橘子 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] {
+    flex: 1; min-width: 160px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .steps5 { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; }
+  .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .why { background:#f5f3ff; border:1px solid #ddd6fe; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; }
+  .why b { color:#5b21b6; }
+  .why code { background:#ede9fe; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px; }
+  .grid-wrap { display:inline-grid; gap:6px; margin:0 auto; }
+  .gcell {
+    position:relative;
+    width:52px; height:52px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:20px; font-weight:700;
+    border:2px solid #e5e7eb; background:#f8fafc; color:#334155;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .gcell .tag { position:absolute; top:2px; right:5px; font-size:10px; font-weight:700; opacity:.85; }
+  .gcell.empty  { background:#f3f4f6; border-color:#e5e7eb; color:#cbd5e1; }
+  .gcell.fresh  { background:#dcfce7; border-color:#86efac; color:#166534; }
+  /* 腐烂橘子：按“第几分钟腐烂”着色，形成一圈圈扩散的波纹 */
+  .gcell.rot0 { background:#7c2d12; border-color:#7c2d12; color:#fff; }
+  .gcell.rot1 { background:#9a3412; border-color:#9a3412; color:#fff; }
+  .gcell.rot2 { background:#c2410c; border-color:#c2410c; color:#fff; }
+  .gcell.rot3 { background:#ea580c; border-color:#ea580c; color:#fff; }
+  .gcell.rot4 { background:#f97316; border-color:#f97316; color:#fff; }
+  .gcell.rot5 { background:#fb923c; border-color:#fb923c; color:#7c2d12; }
+  .gcell.rot6 { background:#fdba74; border-color:#fdba74; color:#7c2d12; }
+  .gcell.rot7 { background:#fed7aa; border-color:#fed7aa; color:#7c2d12; }
+  .gcell.rot8 { background:#ffedd5; border-color:#ffedd5; color:#7c2d12; }
+  .gcell.inqueue { box-shadow:0 0 0 3px rgba(99,102,241,.35); }
+  .gcell.cur     { box-shadow:0 0 0 4px rgba(99,102,241,.9); transform:scale(1.08); z-index:2; }
+  .gcell.infect  { box-shadow:0 0 0 4px rgba(234,179,8,.9); transform:scale(1.08); z-index:2; animation:pop .3s; }
+  @keyframes pop { 0%{transform:scale(.7);} 60%{transform:scale(1.15);} 100%{transform:scale(1.08);} }
+
+  .queuebar { margin-top:14px; }
+  .queuebar .qlab { font-size:12px; color:#6b7280; margin-bottom:6px; }
+  .qchips { display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-height:30px;
+            background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:8px 10px; }
+  .qchip { font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:3px 8px; border-radius:6px;
+           background:#eef2ff; border:1px solid #c7d2fe; color:#3730a3; }
+  .qchip.head { background:#6366f1; border-color:#4338ca; color:#fff; }
+  .qarrow { font-size:12px; color:#9ca3af; }
+  .qempty { font-size:12px; color:#9ca3af; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab {
+    font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer;
+    background:#f1f2f4; border:1px solid #e5e7eb; color:#374151;
+  }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/rotting-oranges/" target="_blank" rel="noopener">LeetCode 994</a></span>
+  </div>
+
+  <h1>994. 腐烂的橘子 · 多源 BFS 分层扩散动画</h1>
+  <div class="sub">网格里 <b>0</b>=空格、<b>1</b>=新鲜橘子、<b>2</b>=腐烂橘子。每分钟，腐烂橘子会让它<b>上下左右相邻</b>的新鲜橘子一起腐烂。求让所有橘子腐烂的<b>最少分钟数</b>；若有橘子永远烂不到，返回 <code>-1</code>。这类「一圈圈同时扩散、求最短时间」的问题正是 <b>BFS（广度优先搜索）</b>的主场。</div>
+
+  <div class="card">
+    <div class="panel-title">为什么用 BFS 而不是 DFS？</div>
+    <div class="why">
+      腐烂是<b>一层一层同时向外扩散</b>的（像水波纹），题目要的是<b>最少分钟数</b>=扩散了多少圈。BFS 天生「先近后远、逐层推进」，用<b>队列</b>就能保证这个顺序；而 DFS 是「一条路走到黑」，不按距离顺序访问，很难算准最短时间。<br>
+      本题有多个起点（一开始可能有多个烂橘子），所以是 <b>多源 BFS</b>：把所有初始烂橘子<b>一起</b>放进队列，同时向外扩。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">算法思路</div>
+    <div class="steps5">
+      <div class="s5"><div class="no">① 建队</div>扫描网格，把所有<b>初始烂橘子(2)</b>全部入队作为<b>起点</b>，并统计<b>新鲜橘子(1)</b>的数量 <code>fresh</code>。</div>
+      <div class="s5"><div class="no">② 分层</div>每轮只处理<b>队列里当前这一整层</b>（同一分钟一起腐烂的橘子），关键是 <code>for _ in range(len(queue))</code>。</div>
+      <div class="s5"><div class="no">③ 扩散</div>取出队首，感染它<b>上下左右</b>的新鲜橘子 → 变 2、<code>fresh--</code>、入队（属于下一层）。</div>
+      <div class="s5"><div class="no">④ 计时</div>每处理完一整层，<code>minute += 1</code>，代表又过了一分钟。</div>
+      <div class="s5"><div class="no">⑤ 判定</div>队列空后，<code>fresh==0</code> 返回 <code>minute</code>；否则有橘子烂不到，返回 <code>-1</code>。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="2,1,1;1,1,0;0,1,1" spellcheck="false" placeholder="行内逗号、行间分号，0/1/2，例如 2,1,1;1,1,0;0,1,1">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例 grid =</span>
+      <span class="chip">2,1,1;1,1,0;0,1,1</span>
+      <span class="chip">2,1,1;0,1,1;1,0,1</span>
+      <span class="chip">0,2</span>
+      <span class="chip">2,1,1,0,0;1,1,0,1,1;0,0,0,1,2</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="panel-title">网格（灰=空 0，绿=新鲜 1，橙/棕=腐烂 2，颜色越深=越早腐烂；角标数字=第几分钟烂的）</div>
+    <div class="stage">
+      <div class="grid-wrap" id="grid"></div>
+    </div>
+
+    <div class="queuebar">
+      <div class="qlab">队列 queue（队首在左，先进先出；蓝框 = 正在处理的这一层）</div>
+      <div class="qchips" id="qchips"></div>
+    </div>
+
+    <div class="vars">
+      <span id="vMinute">已用时间 minute = <b>0</b></span>
+      <span id="vFresh">剩余新鲜 fresh = <b>0</b></span>
+      <span id="vQ">队列大小 = <b>0</b></span>
+      <span id="vAns">答案 = <b>—</b></span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>新鲜 1</span>
+      <span><span class="dot" style="background:#7c2d12"></span>较早腐烂</span>
+      <span><span class="dot" style="background:#fdba74"></span>较晚腐烂</span>
+      <span><span class="dot" style="background:#f3f4f6;border:1px solid #e5e7eb"></span>空格 0</span>
+      <span><span class="dot" style="box-shadow:0 0 0 3px rgba(99,102,241,.6)"></span>在队列/正处理</span>
+      <span><span class="dot" style="box-shadow:0 0 0 3px rgba(234,179,8,.9)"></span>本步新感染</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或先在上方载入一个网格。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="java">Java</span>
+        <span class="code-tab" data-lang="python">Python</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-rotting-oranges-app>
+  (function () {
+    'use strict';
+
+    function parseInput(value) {
+      if (typeof value !== 'string') { return null; }
+      var rows = value.split(/[;\n]+/).map(function (r) { return r.trim(); })
+                      .filter(function (r) { return r.length; });
+      if (!rows.length) { return null; }
+      var grid = [];
+      var width = null;
+      for (var r = 0; r < rows.length; r += 1) {
+        var parts = rows[r].split(/[,\s]+/).filter(function (x) { return x.length; });
+        if (!parts.length) { return null; }
+        var nums = [];
+        for (var c = 0; c < parts.length; c += 1) {
+          var v = Number(parts[c]);
+          if (v !== 0 && v !== 1 && v !== 2) { return null; }
+          nums.push(v);
+        }
+        if (width === null) { width = nums.length; }
+        else if (nums.length !== width) { return null; }
+        grid.push(nums);
+      }
+      if (grid.length > 10 || width > 10) { return null; }
+      return grid;
+    }
+
+    // 纯计算版：返回最少分钟数或 -1
+    function orangesRotting(grid) {
+      var m = grid.length, n = grid[0].length;
+      var g = grid.map(function (row) { return row.slice(); });
+      var queue = [];
+      var fresh = 0;
+      for (var i = 0; i < m; i += 1) {
+        for (var j = 0; j < n; j += 1) {
+          if (g[i][j] === 2) { queue.push([i, j]); }
+          else if (g[i][j] === 1) { fresh += 1; }
+        }
+      }
+      var dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+      var minute = 0;
+      while (queue.length && fresh > 0) {
+        minute += 1;
+        var size = queue.length;
+        for (var k = 0; k < size; k += 1) {
+          var cell = queue.shift();
+          for (var d = 0; d < 4; d += 1) {
+            var nr = cell[0] + dirs[d][0], nc = cell[1] + dirs[d][1];
+            if (nr >= 0 && nr < m && nc >= 0 && nc < n && g[nr][nc] === 1) {
+              g[nr][nc] = 2;
+              fresh -= 1;
+              queue.push([nr, nc]);
+            }
+          }
+        }
+      }
+      return fresh === 0 ? minute : -1;
+    }
+
+    // 动画版：逐步记录每一帧
+    function buildSteps(grid) {
+      var m = grid.length, n = grid[0].length;
+      var steps = [];
+      var g = grid.map(function (row) { return row.slice(); });
+      var rotMin = [];
+      for (var r = 0; r < m; r += 1) { rotMin.push(new Array(n).fill(-1)); }
+
+      var queue = [];   // 元素 {i,j}
+      var fresh = 0;
+      var minute = 0;
+
+      function snap(o) {
+        steps.push({
+          phase: o.phase,
+          message: o.message,
+          m: m, n: n,
+          grid: g.map(function (row) { return row.slice(); }),
+          rotMin: rotMin.map(function (row) { return row.slice(); }),
+          queue: queue.map(function (p) { return { i: p.i, j: p.j }; }),
+          layerCount: o.layerCount != null ? o.layerCount : 0,
+          cur: o.cur || null,
+          infected: o.infected ? o.infected.slice() : [],
+          minute: minute,
+          fresh: fresh,
+          answer: o.answer != null ? o.answer : null
+        });
+      }
+
+      snap({
+        phase: 'intro',
+        message: '思路：把「腐烂」看成从多个起点<b>一圈圈同时向外扩散</b>。用 <span class="op">BFS</span> 逐层推进，扩散了几圈 = 过了几分钟。'
+      });
+
+      // ① 建队：收集所有初始烂橘子，统计新鲜数
+      for (var i = 0; i < m; i += 1) {
+        for (var j = 0; j < n; j += 1) {
+          if (g[i][j] === 2) { queue.push({ i: i, j: j }); rotMin[i][j] = 0; }
+          else if (g[i][j] === 1) { fresh += 1; }
+        }
+      }
+
+      snap({
+        phase: 'init',
+        layerCount: queue.length,
+        message: '① 建队：扫描网格，把 <span class="op">' + queue.length + '</span> 个初始烂橘子全部入队作为起点；统计新鲜橘子 fresh = <span class="area">' + fresh + '</span>。'
+      });
+
+      if (fresh === 0) {
+        snap({
+          phase: 'done',
+          answer: 0,
+          message: '✅ 一开始就没有新鲜橘子，无需等待，答案 = <span class="op">0</span> 分钟。'
+        });
+        return steps;
+      }
+
+      var dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+      var dirName = ['下', '上', '右', '左'];
+
+      // ②③④ 分层 BFS
+      while (queue.length && fresh > 0) {
+        minute += 1;
+        var size = queue.length;
+
+        snap({
+          phase: 'minute-start',
+          layerCount: size,
+          message: '⏱ 第 <span class="op">' + minute + '</span> 分钟开始：队列里当前这一层有 <span class="area">' + size + '</span> 个烂橘子，它们将<b>同时</b>向四周扩散。（只处理这 ' + size + ' 个，新烂的留到下一分钟）'
+        });
+
+        var infectedThisMinute = 0;
+
+        for (var k = 0; k < size; k += 1) {
+          var cell = queue.shift();
+          var newlyInfected = [];
+          var infoParts = [];
+          for (var d = 0; d < 4; d += 1) {
+            var nr = cell.i + dirs[d][0], nc = cell.j + dirs[d][1];
+            if (nr >= 0 && nr < m && nc >= 0 && nc < n && g[nr][nc] === 1) {
+              g[nr][nc] = 2;
+              rotMin[nr][nc] = minute;
+              fresh -= 1;
+              infectedThisMinute += 1;
+              queue.push({ i: nr, j: nc });
+              newlyInfected.push({ i: nr, j: nc });
+              infoParts.push(dirName[d] + '(' + nr + ',' + nc + ')');
+            }
+          }
+
+          var msg;
+          if (newlyInfected.length) {
+            msg = '取出队首 <b>(' + cell.i + ',' + cell.j + ')</b>，感染 <span class="area">' + newlyInfected.length + '</span> 个新鲜橘子：' + infoParts.join('、') + ' → 变腐烂并入队（下一层），fresh = <span class="op">' + fresh + '</span>。';
+          } else {
+            msg = '取出队首 <b>(' + cell.i + ',' + cell.j + ')</b>，四周没有可感染的新鲜橘子，跳过。';
+          }
+
+          snap({
+            phase: 'process',
+            cur: { i: cell.i, j: cell.j },
+            infected: newlyInfected,
+            layerCount: 0,
+            message: msg
+          });
+        }
+
+        snap({
+          phase: 'minute-end',
+          layerCount: queue.length,
+          message: '第 <span class="op">' + minute + '</span> 分钟结束：本分钟共新腐烂 <span class="area">' + infectedThisMinute + '</span> 个，剩余新鲜 fresh = <span class="op">' + fresh + '</span>。队列里现在是下一层的 ' + queue.length + ' 个橘子。'
+        });
+      }
+
+      // ⑤ 判定
+      if (fresh === 0) {
+        snap({
+          phase: 'done',
+          answer: minute,
+          message: '✅ 所有橘子都腐烂了！最少用时 = <span class="op">' + minute + '</span> 分钟。'
+        });
+      } else {
+        snap({
+          phase: 'done',
+          answer: -1,
+          message: '❌ 队列已空但仍有 <span class="area">' + fresh + '</span> 个新鲜橘子被空格隔开、永远烂不到，返回 <span class="op">-1</span>。'
+        });
+      }
+
+      return steps;
+    }
+
+    window.RottingOrangesApp = {
+      parseInput: parseInput,
+      orangesRotting: orangesRotting,
+      buildSteps: buildSteps
+    };
+
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.rottingOrangesReady = 'true';
+    }
+  }());
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.RottingOrangesApp;
+
+  var input = document.getElementById('input');
+  var errEl = document.getElementById('err');
+  var statsEl = document.getElementById('stats');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var playBtn = document.getElementById('playBtn');
+  var gridEl = document.getElementById('grid');
+  var qchipsEl = document.getElementById('qchips');
+  var vMinute = document.getElementById('vMinute');
+  var vFresh = document.getElementById('vFresh');
+  var vQ = document.getElementById('vQ');
+  var vAns = document.getElementById('vAns');
+
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function showError(msg) { errEl.textContent = msg; errEl.classList.add('show'); }
+  function clearError() { errEl.textContent = ''; errEl.classList.remove('show'); }
+
+  function stopPlay() {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+
+  function renderGrid(step) {
+    gridEl.innerHTML = '';
+    gridEl.style.gridTemplateColumns = 'repeat(' + step.n + ', 52px)';
+
+    var queueSet = {};
+    for (var s = 0; s < step.queue.length; s += 1) {
+      queueSet[step.queue[s].i + ',' + step.queue[s].j] = true;
+    }
+    var infectSet = {};
+    for (var t = 0; t < step.infected.length; t += 1) {
+      infectSet[step.infected[t].i + ',' + step.infected[t].j] = true;
+    }
+
+    for (var i = 0; i < step.m; i += 1) {
+      for (var j = 0; j < step.n; j += 1) {
+        var cell = document.createElement('div');
+        var cls = 'gcell';
+        var key = i + ',' + j;
+        var val = step.grid[i][j];
+
+        if (val === 0) {
+          cls += ' empty';
+        } else if (val === 1) {
+          cls += ' fresh';
+        } else {
+          cls += ' rot' + (step.rotMin[i][j] % 9);
+        }
+
+        if (queueSet[key]) { cls += ' inqueue'; }
+        if (infectSet[key]) { cls += ' infect'; }
+        if (step.cur && step.cur.i === i && step.cur.j === j) { cls += ' cur'; }
+
+        cell.className = cls;
+        cell.textContent = String(val);
+
+        if (val === 2 && step.rotMin[i][j] >= 0) {
+          var tag = document.createElement('span');
+          tag.className = 'tag';
+          tag.textContent = step.rotMin[i][j];
+          cell.appendChild(tag);
+        }
+
+        gridEl.appendChild(cell);
+      }
+    }
+  }
+
+  function renderQueue(step) {
+    qchipsEl.innerHTML = '';
+    if (!step.queue.length) {
+      var e = document.createElement('span');
+      e.className = 'qempty';
+      e.textContent = '（空）';
+      qchipsEl.appendChild(e);
+      return;
+    }
+    for (var i = 0; i < step.queue.length; i += 1) {
+      var chip = document.createElement('span');
+      chip.className = 'qchip' + (i < step.layerCount ? ' head' : '');
+      chip.textContent = '(' + step.queue[i].i + ',' + step.queue[i].j + ')';
+      qchipsEl.appendChild(chip);
+      if (i < step.queue.length - 1) {
+        var arr = document.createElement('span');
+        arr.className = 'qarrow';
+        arr.textContent = '→';
+        qchipsEl.appendChild(arr);
+      }
+    }
+  }
+
+  function renderStats(step) {
+    statsEl.innerHTML =
+      '<div class="stat">方法<b>多源 BFS</b></div>' +
+      '<div class="stat">网格<b>' + step.m + ' × ' + step.n + '</b></div>' +
+      '<div class="stat">已用分钟<b>' + step.minute + '</b></div>' +
+      '<div class="stat">剩余新鲜<b>' + step.fresh + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(m·n)</b></div>' +
+      '<div class="stat">空间复杂度<b>O(m·n)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    if (!step) { return; }
+
+    renderGrid(step);
+    renderQueue(step);
+    renderStats(step);
+
+    vMinute.innerHTML = '已用时间 minute = <b>' + step.minute + '</b>';
+    vFresh.innerHTML = '剩余新鲜 fresh = <b>' + step.fresh + '</b>';
+    vQ.innerHTML = '队列大小 = <b>' + step.queue.length + '</b>';
+    vAns.innerHTML = '答案 = <b>' + (step.answer != null ? step.answer : '—') + '</b>';
+
+    statusEl.innerHTML = step.message;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(raw) {
+    var grid = App.parseInput(raw);
+    if (grid === null) {
+      showError('请输入矩形网格：行内用逗号、行间用分号，值只能为 0 / 1 / 2，最多 10×10。例如 "2,1,1;1,1,0;0,1,1"。');
+      return false;
+    }
+    clearError();
+    stopPlay();
+    steps = App.buildSteps(grid);
+    stepIdx = 0;
+    render();
+    return true;
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx += 1; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx -= 1; render(); } }
+
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 650);
+  }
+
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  playBtn.onclick = togglePlay;
+  document.getElementById('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  document.getElementById('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { load(input.value); } });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+
+  // ---- reference code ----
+  var codes = {
+    java:
+'<span class="cmt">// Java · 多源 BFS · 时间 O(m·n) 空间 O(m·n)</span>\n' +
+'class Solution {\n' +
+'    public int orangesRotting(int[][] grid) {\n' +
+'        int m = grid.length, n = grid[0].length, fresh = 0;\n' +
+'        Queue&lt;int[]&gt; queue = new LinkedList&lt;&gt;();\n' +
+'        <span class="cmt">// ① 所有初始烂橘子入队，统计新鲜数</span>\n' +
+'        for (int i = 0; i &lt; m; i++)\n' +
+'            for (int j = 0; j &lt; n; j++) {\n' +
+'                if (grid[i][j] == 2) queue.offer(new int[]{i, j});\n' +
+'                else if (grid[i][j] == 1) fresh++;\n' +
+'            }\n' +
+'        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n' +
+'        int minute = 0;\n' +
+'        <span class="cmt">// ②③④ 一层一层扩散</span>\n' +
+'        while (!queue.isEmpty() &amp;&amp; fresh &gt; 0) {\n' +
+'            minute++;\n' +
+'            int size = queue.size();          <span class="cmt">// 关键：只处理当前这一层</span>\n' +
+'            for (int k = 0; k &lt; size; k++) {\n' +
+'                int[] c = queue.poll();\n' +
+'                for (int[] d : dirs) {\n' +
+'                    int nr = c[0]+d[0], nc = c[1]+d[1];\n' +
+'                    if (nr&gt;=0 &amp;&amp; nr&lt;m &amp;&amp; nc&gt;=0 &amp;&amp; nc&lt;n &amp;&amp; grid[nr][nc]==1) {\n' +
+'                        grid[nr][nc] = 2;     <span class="cmt">// 感染</span>\n' +
+'                        fresh--;\n' +
+'                        queue.offer(new int[]{nr, nc});\n' +
+'                    }\n' +
+'                }\n' +
+'            }\n' +
+'        }\n' +
+'        <span class="cmt">// ⑤ 还有新鲜的说明烂不到</span>\n' +
+'        return fresh == 0 ? minute : -1;\n' +
+'    }\n' +
+'}',
+    python:
+'<span class="cmt"># Python · 多源 BFS · 时间 O(m·n) 空间 O(m·n)</span>\n' +
+'from collections import deque\n' +
+'\n' +
+'class Solution:\n' +
+'    def orangesRotting(self, grid: List[List[int]]) -&gt; int:\n' +
+'        m, n = len(grid), len(grid[0])\n' +
+'        queue = deque()\n' +
+'        fresh = 0\n' +
+'        <span class="cmt"># ① 所有初始烂橘子入队，统计新鲜数</span>\n' +
+'        for i in range(m):\n' +
+'            for j in range(n):\n' +
+'                if grid[i][j] == 2:\n' +
+'                    queue.append((i, j))\n' +
+'                elif grid[i][j] == 1:\n' +
+'                    fresh += 1\n' +
+'\n' +
+'        minute = 0\n' +
+'        dirs = [(1,0), (-1,0), (0,1), (0,-1)]\n' +
+'        <span class="cmt"># ②③④ 一层一层扩散</span>\n' +
+'        while queue and fresh &gt; 0:\n' +
+'            minute += 1\n' +
+'            for _ in range(len(queue)):      <span class="cmt"># 关键：只处理当前这一层</span>\n' +
+'                r, c = queue.popleft()\n' +
+'                for dr, dc in dirs:\n' +
+'                    nr, nc = r + dr, c + dc\n' +
+'                    if 0 &lt;= nr &lt; m and 0 &lt;= nc &lt; n and grid[nr][nc] == 1:\n' +
+'                        grid[nr][nc] = 2     <span class="cmt"># 感染</span>\n' +
+'                        fresh -= 1\n' +
+'                        queue.append((nr, nc))\n' +
+'\n' +
+'        <span class="cmt"># ⑤ 还有新鲜的说明烂不到</span>\n' +
+'        return minute if fresh == 0 else -1'
+  };
+  var codeBlock = document.getElementById('codeBlock');
+  function showCode(lang) { codeBlock.innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('java');
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>

@@ -69,6 +69,7 @@ leetcode-animations/
 | 118 | [杨辉三角](problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
 | 121 | [买卖股票的最佳时机](problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
 | 152 | [乘积最大子数组](problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
+| 200 | [岛屿数量](problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
 | 215 | [数组中的第 K 个最大元素](problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
 | 279 | [完全平方数](problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 295 | [数据流的中位数](problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
@@ -79,6 +80,7 @@ leetcode-animations/
 | 718 | [最长重复子数组](problems/718-maximum-length-of-repeated-subarray.html) | 中等 | 动态规划 · 二维 DP · 数组 |
 | 739 | [每日温度](problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
 | 763 | [划分字母区间](problems/763-partition-labels.html) | 中等 | 贪心 · 双指针 · 哈希 |
+| 994 | [腐烂的橘子](problems/994-rotting-oranges.html) | 中等 | BFS · 多源 · 分层扩散 · 网格 |
 | 1143 | [最长公共子序列](problems/1143-longest-common-subsequence.html) | 中等 | 动态规划 · 二维 DP · 字符串 |
 
 ---
