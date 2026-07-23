@@ -21,7 +21,8 @@ const items = fs.readdirSync(dir)
       .replace(/^\d+\.\s*/, '')
       .trim() || m[2];
     const diff = ((html.match(/class="difftag"[^>]*>([^<]*)</) || [])[1] || '').trim();
-    return { num: parseInt(m[1], 10), slug: m[2], file: name, title, diff };
+    const tags = ((html.match(/name="tags"\s+content="([^"]*)"/) || [])[1] || '').trim();
+    return { num: parseInt(m[1], 10), slug: m[2], file: name, title, diff, tags };
   })
   .sort((a, b) => a.num - b.num);
 

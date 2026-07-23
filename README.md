@@ -24,9 +24,11 @@ leetcode-animations/
 ├── index.html                    # 首页：读取 problems.json 渲染题目卡片
 ├── .nojekyll                     # 让 GitHub Pages 原样托管静态文件
 ├── scripts/
-│   └── gen-manifest.js           # 扫描 problems/ 生成 problems.json
+│   ├── gen-manifest.js           # 扫描 problems/ 生成 problems.json（供首页用）
+│   └── gen-readme.js             # 扫描 problems/ 自动生成本文件的题目清单表格
 ├── .github/workflows/
-│   └── static.yml                # 部署前生成 problems.json，再发布到 Pages
+│   ├── static.yml                # 部署前生成 problems.json，再发布到 Pages
+│   └── sync-readme.yml           # problems/ 变动时自动重生成并回写 README 清单
 ├── README.md                     # 本文件
 └── problems/                     # 所有动画，一题一个文件
     ├── 84-largest-rectangle-in-histogram.html  # 84. 柱状图中最大的矩形
@@ -48,7 +50,13 @@ leetcode-animations/
 
 ## 如何新增一道题
 
-在 `problems/` 下新建 `题号-英文题名.html`（复制现有文件当模板最快，保留顶部导航栏即可）。**无需改动 `index.html` 或本文件** —— push 后，GitHub Actions 会在部署前自动扫描目录、从每个题目文件的 `<title>` 和难度标签生成 `problems.json` 并一起发布，首页随即多出一张卡片。
+在 `problems/` 下新建 `题号-英文题名.html`（复制现有文件当模板最快，保留顶部导航栏即可）。**无需改动 `index.html` 或本文件的题目清单**：
+
+- 首页：push 后 GitHub Actions 会在部署前扫描目录、从每个题目文件的 `<title>` 和难度标签生成 `problems.json` 并一起发布，首页随即多出一张卡片。
+- README 清单：`sync-readme.yml` 会在 `problems/` 变动时自动重新生成「题目清单」小节里两个 `PROBLEMS` 注释标记之间的表格并回写。
+
+> 💡 为了让清单里的「考点」列有内容，请在题目 html 的 `<head>` 里加一行标签，例如：
+> `<meta name="tags" content="BFS · 多源 · 分层扩散 · 网格">`。
 
 > 首页优先读取同源的 `problems.json`（秒开、无访问限额）；只有在清单尚未生成时，才会临时回退到 GitHub API 列目录（每小时 60 次限额）。
 >
@@ -56,32 +64,37 @@ leetcode-animations/
 
 ## 题目清单
 
+> 下表由 `scripts/gen-readme.js` 从 `problems/` 目录自动生成（题名/难度/考点取自各题 html 的 `<title>`、`.difftag`、`<meta name="tags">`），**请勿手动编辑标记之间的内容**；push 后 CI 会自动同步。
+
+<!-- PROBLEMS:START -->
 | # | 题目 | 难度 | 考点 |
 |---|------|------|------|
 | 5 | [最长回文子串](problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 字符串 |
 | 32 | [最长有效括号](problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
 | 45 | [跳跃游戏 II](problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
-| 70 | [爬楼梯](problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
 | 55 | [跳跃游戏](problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
 | 62 | [不同路径](problems/62-unique-paths.html) | 中等 | 动态规划 · 二维 DP · 网格 |
 | 64 | [最小路径和](problems/64-minimum-path-sum.html) | 中等 | 动态规划 · 二维 DP · 网格 |
+| 70 | [爬楼梯](problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
+| 72 | [编辑距离](problems/72-edit-distance.html) | 困难 | 动态规划 · 二维 DP · 字符串 |
 | 84 | [柱状图中最大的矩形](problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
 | 118 | [杨辉三角](problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
 | 121 | [买卖股票的最佳时机](problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
 | 152 | [乘积最大子数组](problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
 | 200 | [岛屿数量](problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
-| 215 | [数组中的第 K 个最大元素](problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
+| 215 | [数组中的第K个最大元素](problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
 | 279 | [完全平方数](problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 295 | [数据流的中位数](problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
 | 300 | [最长递增子序列](problems/300-longest-increasing-subsequence.html) | 中等 | 动态规划 · 填表 + 记忆化递归树双视角 |
-| 322 | [零钱兑换](problems/322-coin-change.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 322 | [零钱兑换（记忆化递归树）](problems/322-coin-change-tree.html) | 中等 | 记忆化搜索 · 递归树 · 重复子问题 |
+| 322 | [零钱兑换](problems/322-coin-change.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 394 | [字符串解码](problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
 | 718 | [最长重复子数组](problems/718-maximum-length-of-repeated-subarray.html) | 中等 | 动态规划 · 二维 DP · 数组 |
 | 739 | [每日温度](problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
 | 763 | [划分字母区间](problems/763-partition-labels.html) | 中等 | 贪心 · 双指针 · 哈希 |
 | 994 | [腐烂的橘子](problems/994-rotting-oranges.html) | 中等 | BFS · 多源 · 分层扩散 · 网格 |
 | 1143 | [最长公共子序列](problems/1143-longest-common-subsequence.html) | 中等 | 动态规划 · 二维 DP · 字符串 |
+<!-- PROBLEMS:END -->
 
 ---
 
