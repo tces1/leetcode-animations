@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="Trie · 前缀树 · 字符串">
+<title>208. 实现 Trie（前缀树）— 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] { flex: 1; min-width: 160px; padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none; }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button { padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #6366f1; color: #fff; transition: background .15s; }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151; }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .steps5 { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; }
+  .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px; min-height:200px; }
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  svg text { user-select:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/implement-trie-prefix-tree/" target="_blank" rel="noopener">LeetCode 208</a></span>
+  </div>
+
+  <h1>208. 实现 Trie（前缀树）· 动画演示</h1>
+  <div class="sub">Trie 是一棵多叉树，每个节点存储一个字符，根节点为空。<b>insert</b> 沿路径插入字符，末尾标记 isEnd；<b>search</b> 沿路径查找且末尾 isEnd=true 才成功；<b>startsWith</b> 沿路径走到末尾即可。</div>
+
+  <div class="card">
+    <div class="panel-title">算法思路</div>
+    <div class="steps5">
+      <div class="s5"><div class="no">① 结构</div>每个节点有 <code>children[26]</code> 和 <code>isEnd</code> 标志。</div>
+      <div class="s5"><div class="no">② insert</div>逐字符沿路径走，不存在则<b>新建节点</b>，末尾置 <code>isEnd=true</code>。</div>
+      <div class="s5"><div class="no">③ search</div>逐字符沿路径走，路径断则返回 <b>false</b>，末尾需 <code>isEnd=true</code>。</div>
+      <div class="s5"><div class="no">④ startsWith</div>同 search，但末尾<b>不检查</b> isEnd，能走完即返回 <b>true</b>。</div>
+      <div class="s5"><div class="no">⑤ 复杂度</div>时间 <b>O(L)</b>，空间 <b>O(L)</b>，L 为字符串长度。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="insert:apple;insert:app;search:apple;search:app;startsWith:ap;search:ap" spellcheck="false" placeholder="操作序列，例如 insert:apple;search:apple">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例 =</span>
+      <span class="chip">insert:apple;insert:app;search:apple;search:app;startsWith:ap;search:ap</span>
+      <span class="chip">insert:hello;insert:help;insert:world;search:hello;startsWith:hel;search:hel</span>
+      <span class="chip">insert:a;insert:ab;insert:abc;search:abc;search:ab;startsWith:a</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="panel-title">Trie 树形结构</div>
+    <div class="stage">
+      <svg id="trie-svg" width="100%" style="min-height:220px;display:block;"></svg>
+    </div>
+    <div class="vars">
+      <span id="vOp">当前操作 = <b>—</b></span>
+      <span id="vPath">当前路径 = <b>—</b></span>
+      <span id="vResult">结果 = <b>—</b></span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#eef0f4;border:1px solid #d1d5db"></span>普通节点</span>
+      <span><span class="dot" style="background:#6366f1"></span>当前路径</span>
+      <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>isEnd 节点</span>
+      <span><span class="dot" style="background:#fef3c7;border:1px solid #f59e0b"></span>新插入节点</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>查找失败</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:18px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或先在上方载入操作序列。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Java / Python）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="java">Java</span>
+        <span class="code-tab" data-lang="python">Python</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ── Trie logic ──────────────────────────────────────────────────────────────
+function makeNode() { return { children: {}, isEnd: false }; }
+
+function parseInput(raw) {
+  var ops = raw.split(/[;\n]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  if (!ops.length) return null;
+  var parsed = [];
+  for (var i = 0; i < ops.length; i++) {
+    var m = ops[i].match(/^(insert|search|startsWith):([a-z]+)$/i);
+    if (!m) return null;
+    parsed.push({ op: m[1].toLowerCase(), word: m[2].toLowerCase() });
+  }
+  return parsed;
+}
+
+function buildSteps(ops) {
+  var root = makeNode();
+  var steps = [];
+
+  // initial state
+  steps.push({ root: cloneNode(root), highlight: [], newNodes: [], op: null, word: '', result: null, msg: '初始状态：Trie 只有根节点（空）。' });
+
+  for (var i = 0; i < ops.length; i++) {
+    var op = ops[i].op, word = ops[i].word;
+
+    if (op === 'insert') {
+      var node = root;
+      var path = [];
+      var newN = [];
+      for (var j = 0; j < word.length; j++) {
+        var c = word[j];
+        var isNew = !node.children[c];
+        if (isNew) { node.children[c] = makeNode(); newN.push(pathKey(path, c)); }
+        path.push(c);
+        node = node.children[c];
+        steps.push({
+          root: cloneNode(root),
+          highlight: path.slice(),
+          newNodes: newN.slice(),
+          op: 'insert', word: word,
+          result: null,
+          msg: 'insert(<span class="op">' + word + '</span>)：处理字符 <span class="area">' + c + '</span>' + (isNew ? '，<b>新建节点</b>' : '，节点已存在') + '。当前路径：' + path.join(' → ')
+        });
+      }
+      node.isEnd = true;
+      steps.push({
+        root: cloneNode(root),
+        highlight: path.slice(),
+        newNodes: [],
+        op: 'insert', word: word,
+        result: 'done',
+        msg: 'insert(<span class="op">' + word + '</span>)：插入完成，末尾节点标记 <b>isEnd = true</b>。'
+      });
+
+    } else if (op === 'search') {
+      var node2 = root, path2 = [], failed = false;
+      for (var j2 = 0; j2 < word.length; j2++) {
+        var c2 = word[j2];
+        if (!node2.children[c2]) {
+          steps.push({
+            root: cloneNode(root), highlight: path2.concat([c2 + '?']), newNodes: [],
+            op: 'search', word: word, result: false,
+            msg: 'search(<span class="op">' + word + '</span>)：字符 <span class="area">' + c2 + '</span> 不存在，<b>返回 false</b>。'
+          });
+          failed = true; break;
+        }
+        path2.push(c2);
+        node2 = node2.children[c2];
+        steps.push({
+          root: cloneNode(root), highlight: path2.slice(), newNodes: [],
+          op: 'search', word: word, result: null,
+          msg: 'search(<span class="op">' + word + '</span>)：找到字符 <span class="area">' + c2 + '</span>，继续。路径：' + path2.join(' → ')
+        });
+      }
+      if (!failed) {
+        var ok = node2.isEnd;
+        steps.push({
+          root: cloneNode(root), highlight: path2.slice(), newNodes: [],
+          op: 'search', word: word, result: ok,
+          msg: 'search(<span class="op">' + word + '</span>)：路径走完，isEnd = <b>' + ok + '</b>，返回 <b>' + ok + '</b>。'
+        });
+      }
+
+    } else { // startsWith
+      var node3 = root, path3 = [], failed3 = false;
+      for (var j3 = 0; j3 < word.length; j3++) {
+        var c3 = word[j3];
+        if (!node3.children[c3]) {
+          steps.push({
+            root: cloneNode(root), highlight: path3.concat([c3 + '?']), newNodes: [],
+            op: 'startsWith', word: word, result: false,
+            msg: 'startsWith(<span class="op">' + word + '</span>)：字符 <span class="area">' + c3 + '</span> 不存在，<b>返回 false</b>。'
+          });
+          failed3 = true; break;
+        }
+        path3.push(c3);
+        node3 = node3.children[c3];
+        steps.push({
+          root: cloneNode(root), highlight: path3.slice(), newNodes: [],
+          op: 'startsWith', word: word, result: null,
+          msg: 'startsWith(<span class="op">' + word + '</span>)：找到字符 <span class="area">' + c3 + '</span>，继续。路径：' + path3.join(' → ')
+        });
+      }
+      if (!failed3) {
+        steps.push({
+          root: cloneNode(root), highlight: path3.slice(), newNodes: [],
+          op: 'startsWith', word: word, result: true,
+          msg: 'startsWith(<span class="op">' + word + '</span>)：前缀路径完整，<b>返回 true</b>。'
+        });
+      }
+    }
+  }
+  return steps;
+}
+
+function pathKey(path, c) { return path.join('') + c; }
+
+function cloneNode(n) {
+  var out = { children: {}, isEnd: n.isEnd };
+  for (var k in n.children) out.children[k] = cloneNode(n.children[k]);
+  return out;
+}
+</script>
+
+<script>
+'use strict';
+// ── UI ───────────────────────────────────────────────────────────────────────
+var CODES = {
+  java: '<span class="cmt">// Java · Trie · 时间 O(L) 空间 O(L)</span>\nclass Trie {\n    private Trie[] children = new Trie[26];\n    private boolean isEnd = false;\n\n    public void insert(String word) {\n        Trie node = this;\n        for (char c : word.toCharArray()) {\n            int i = c - \'a\';\n            if (node.children[i] == null) node.children[i] = new Trie();\n            node = node.children[i];\n        }\n        node.isEnd = true;\n    }\n\n    public boolean search(String word) {\n        Trie node = this;\n        for (char c : word.toCharArray()) {\n            int i = c - \'a\';\n            if (node.children[i] == null) return false;\n            node = node.children[i];\n        }\n        return node.isEnd;\n    }\n\n    public boolean startsWith(String prefix) {\n        Trie node = this;\n        for (char c : prefix.toCharArray()) {\n            int i = c - \'a\';\n            if (node.children[i] == null) return false;\n            node = node.children[i];\n        }\n        return true;\n    }\n}',
+  python: '<span class="cmt"># Python · Trie · 时间 O(L) 空间 O(L)</span>\nclass Trie:\n    def __init__(self):\n        self.children = {}\n        self.is_end = False\n\n    def insert(self, word: str) -> None:\n        node = self\n        for c in word:\n            if c not in node.children:\n                node.children[c] = Trie()\n            node = node.children[c]\n        node.is_end = True\n\n    def search(self, word: str) -> bool:\n        node = self\n        for c in word:\n            if c not in node.children:\n                return False\n            node = node.children[c]\n        return node.is_end\n\n    def startsWith(self, prefix: str) -> bool:\n        node = self\n        for c in prefix:\n            if c not in node.children:\n                return False\n            node = node.children[c]\n        return True'
+};
+
+var steps = [], cur = 0, timer = null;
+
+function load() {
+  var raw = document.getElementById('input').value.trim();
+  var err = document.getElementById('err');
+  var ops = parseInput(raw);
+  if (!ops) { err.textContent = '格式错误，请使用 insert:word;search:word 格式，仅含小写字母。'; err.classList.add('show'); return; }
+  err.classList.remove('show');
+  steps = buildSteps(ops);
+  cur = 0;
+  stopPlay();
+  render();
+}
+
+function render() {
+  if (!steps.length) return;
+  var s = steps[cur];
+  document.getElementById('progress').textContent = '步骤 ' + (cur + 1) + ' / ' + steps.length;
+  document.getElementById('prevBtn').disabled = cur === 0;
+  document.getElementById('nextBtn').disabled = cur === steps.length - 1;
+
+  // vars
+  document.getElementById('vOp').innerHTML = '当前操作 = <b>' + (s.op ? s.op + '("' + s.word + '")' : '—') + '</b>';
+  document.getElementById('vPath').innerHTML = '当前路径 = <b>' + (s.highlight.length ? s.highlight.join(' → ') : '—') + '</b>';
+  var rText = s.result === null ? '—' : (s.result === 'done' ? '插入完成' : String(s.result));
+  var rColor = s.result === true ? '#16a34a' : s.result === false ? '#dc2626' : '#1d2129';
+  document.getElementById('vResult').innerHTML = '结果 = <b style="color:' + rColor + '">' + rText + '</b>';
+
+  // status
+  document.getElementById('status').innerHTML = s.msg;
+
+  // stats
+  var statsEl = document.getElementById('stats');
+  statsEl.innerHTML = '<div class="stat"><b>' + (cur) + '</b>已执行步骤</div>' +
+    '<div class="stat"><b>' + countNodes(s.root) + '</b>节点总数</div>';
+
+  // svg
+  drawTrie(s);
+}
+
+function countNodes(n) {
+  var c = 1;
+  for (var k in n.children) c += countNodes(n.children[k]);
+  return c;
+}
+
+// ── SVG tree layout ──────────────────────────────────────────────────────────
+function drawTrie(s) {
+  var svg = document.getElementById('trie-svg');
+  var W = svg.parentElement.clientWidth || 700;
+  var R = 20, YGAP = 70;
+
+  // BFS to assign positions
+  var nodes = []; // {id, char, x, y, isEnd, parentId, pathStr}
+  var queue = [{ node: s.root, char: 'root', path: [], parentId: -1 }];
+  var idCounter = 0;
+  var levelGroups = {}; // level -> [nodeObj]
+
+  while (queue.length) {
+    var item = queue.shift();
+    var id = idCounter++;
+    var level = item.path.length;
+    var obj = { id: id, char: item.char, level: level, isEnd: item.node.isEnd, parentId: item.parentId, pathStr: item.path.join(''), children: [] };
+    nodes.push(obj);
+    if (!levelGroups[level]) levelGroups[level] = [];
+    levelGroups[level].push(obj);
+    var keys = Object.keys(item.node.children).sort();
+    for (var ki = 0; ki < keys.length; ki++) {
+      var ch = keys[ki];
+      queue.push({ node: item.node.children[ch], char: ch, path: item.path.concat([ch]), parentId: id });
+    }
+  }
+
+  // assign x by level
+  var maxLevel = Object.keys(levelGroups).length - 1;
+  var svgH = (maxLevel + 1) * YGAP + 60;
+  svg.setAttribute('height', svgH);
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + svgH);
+
+  for (var lv in levelGroups) {
+    var grp = levelGroups[lv];
+    var total = grp.length;
+    for (var gi = 0; gi < total; gi++) {
+      grp[gi].x = W * (gi + 1) / (total + 1);
+      grp[gi].y = parseInt(lv) * YGAP + 40;
+    }
+  }
+
+  // build id->obj map
+  var idMap = {};
+  for (var ni = 0; ni < nodes.length; ni++) idMap[nodes[ni].id] = nodes[ni];
+
+  // highlight set: path chars joined
+  var hlSet = {};
+  var hlPath = s.highlight.filter(function(c){ return c.length === 1; });
+  for (var hi = 0; hi <= hlPath.length; hi++) {
+    hlSet[hlPath.slice(0, hi).join('')] = true;
+  }
+  var newSet = {};
+  for (var nni = 0; nni < s.newNodes.length; nni++) newSet[s.newNodes[nni]] = true;
+
+  var html = '';
+  // edges first
+  for (var ei = 1; ei < nodes.length; ei++) {
+    var nd = nodes[ei];
+    var par = idMap[nd.parentId];
+    if (!par) continue;
+    var isHl = hlSet[nd.pathStr];
+    html += '<line x1="' + par.x + '" y1="' + par.y + '" x2="' + nd.x + '" y2="' + nd.y + '" stroke="' + (isHl ? '#6366f1' : '#d1d5db') + '" stroke-width="' + (isHl ? 2.5 : 1.5) + '"/>';
+  }
+
+  // nodes
+  for (var ndi = 0; ndi < nodes.length; ndi++) {
+    var nd2 = nodes[ndi];
+    var isHl2 = hlSet[nd2.pathStr];
+    var isNew2 = newSet[nd2.pathStr];
+    var isFailChar = s.highlight.length && s.highlight[s.highlight.length-1].endsWith('?') && nd2.pathStr === s.highlight.slice(0,-1).join('');
+
+    var fill, stroke, textColor;
+    if (nd2.char === 'root') {
+      fill = '#f1f2f4'; stroke = '#9ca3af'; textColor = '#6b7280';
+    } else if (isNew2) {
+      fill = '#fef3c7'; stroke = '#f59e0b'; textColor = '#92400e';
+    } else if (isHl2 && s.result === false) {
+      fill = '#fee2e2'; stroke = '#fca5a5'; textColor = '#dc2626';
+    } else if (isHl2) {
+      fill = '#6366f1'; stroke = '#4338ca'; textColor = '#fff';
+    } else if (nd2.isEnd) {
+      fill = '#dcfce7'; stroke = '#86efac'; textColor = '#166534';
+    } else {
+      fill = '#eef0f4'; stroke = '#d1d5db'; textColor = '#374151';
+    }
+
+    // isEnd ring
+    if (nd2.isEnd && !isHl2 && !isNew2) {
+      html += '<circle cx="' + nd2.x + '" cy="' + nd2.y + '" r="' + (R+4) + '" fill="none" stroke="#86efac" stroke-width="2"/>';
+    }
+    html += '<circle cx="' + nd2.x + '" cy="' + nd2.y + '" r="' + R + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2"/>';
+    html += '<text x="' + nd2.x + '" y="' + (nd2.y + 5) + '" text-anchor="middle" font-size="14" font-weight="700" fill="' + textColor + '" font-family="SF Mono,Menlo,monospace">' + (nd2.char === 'root' ? '·' : nd2.char) + '</text>';
+  }
+
+  svg.innerHTML = html;
+}
+
+// ── controls ─────────────────────────────────────────────────────────────────
+document.getElementById('loadBtn').addEventListener('click', load);
+document.getElementById('prevBtn').addEventListener('click', function(){ if(cur>0){cur--;render();} });
+document.getElementById('nextBtn').addEventListener('click', function(){ if(cur<steps.length-1){cur++;render();} });
+document.getElementById('resetBtn').addEventListener('click', function(){ stopPlay(); cur=0; render(); });
+document.getElementById('playBtn').addEventListener('click', function(){
+  if (timer) { stopPlay(); return; }
+  document.getElementById('playBtn').textContent = '⏸ 暂停';
+  timer = setInterval(function(){
+    if (cur >= steps.length-1) { stopPlay(); return; }
+    cur++; render();
+  }, 700);
+});
+
+function stopPlay() {
+  clearInterval(timer); timer = null;
+  document.getElementById('playBtn').textContent = '▶ 自动播放';
+}
+
+// chips
+document.querySelectorAll('.chip').forEach(function(el){
+  el.addEventListener('click', function(){ document.getElementById('input').value = el.textContent; load(); });
+});
+
+// code tabs
+var curLang = 'java';
+document.getElementById('codeBlock').innerHTML = CODES[curLang];
+document.querySelectorAll('.code-tab').forEach(function(tab){
+  tab.addEventListener('click', function(){
+    document.querySelectorAll('.code-tab').forEach(function(t){ t.classList.remove('active'); });
+    tab.classList.add('active');
+    curLang = tab.dataset.lang;
+    document.getElementById('codeBlock').innerHTML = CODES[curLang];
+  });
+});
+
+// init
+load();
+</script>
+</body>
+</html>

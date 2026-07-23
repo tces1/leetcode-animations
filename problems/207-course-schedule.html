@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>207. 课程表 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  input[type=text] { flex: 1; min-width: 160px; padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none; }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button { padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #6366f1; color: #fff; transition: background .15s; }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151; }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .steps5 { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; }
+  .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px; }
+  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars b { color:#1d2129; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  .nav-row { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
+  #graph-svg { width:100%; min-height:320px; }
+  .node-circle { transition: fill .25s, stroke .25s; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc"><a href="https://leetcode.cn/problems/course-schedule/" target="_blank">#207 课程表</a></span>
+  </div>
+  <h1>207. 课程表</h1>
+  <p class="sub">拓扑排序 BFS（Kahn 算法）· <b>时间 O(V+E)</b> · <b>空间 O(V+E)</b></p>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="inp" value="4,[[1,0],[2,0],[3,1],[3,2]]" placeholder="numCourses,[[a,b],...]">
+      <button id="btnBuild">构建</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" onclick="setEx('2,[[1,0]]')">2,[[1,0]]</span>
+      <span class="chip" onclick="setEx('4,[[1,0],[2,0],[3,1],[3,2]]')">4,[[1,0],[2,0],[3,1],[3,2]]</span>
+      <span class="chip" onclick="setEx('3,[[0,1],[1,2],[2,0]]')">3,[[0,1],[1,2],[2,0]] (有环)</span>
+      <span class="chip" onclick="setEx('6,[[1,0],[2,1],[3,1],[4,2],[4,3],[5,4]]')">6,[[1,0],[2,1],[3,1],[4,2],[4,3],[5,4]]</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card" id="animCard" style="display:none">
+    <div class="panel-title">动画演示</div>
+    <div class="stats">
+      <div class="stat">已处理<b id="stCount">0</b></div>
+      <div class="stat">队列<b id="stQueue">[]</b></div>
+      <div class="stat">结果<b id="stResult">—</b></div>
+    </div>
+    <div class="stage">
+      <svg id="graph-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="vars" id="varsRow"></div>
+    <div class="status" id="statusBox">准备开始</div>
+    <div class="nav-row">
+      <button class="ghost" id="btnPrev" disabled>◀ 上一步</button>
+      <button class="ghost" id="btnNext">下一步 ▶</button>
+      <button class="ghost" id="btnAuto">自动播放</button>
+      <button class="ghost" id="btnReset">重置</button>
+      <span class="progress" id="progTxt"></span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#e5e7eb;border:2px dashed #9ca3af"></span>未处理</span>
+      <span><span class="dot" style="background:#fef3c7;border:2px solid #f59e0b"></span>在队列中</span>
+      <span><span class="dot" style="background:#6366f1"></span>正在处理</span>
+      <span><span class="dot" style="background:#dcfce7;border:2px solid #86efac"></span>已完成</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>参考代码</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" onclick="switchTab(this,'java')">Java</span>
+        <span class="code-tab" onclick="switchTab(this,'python')">Python</span>
+      </div>
+      <pre id="codeJava"><span class="cmt">// Java · 拓扑排序 BFS · 时间 O(V+E) 空间 O(V+E)</span>
+class Solution {
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        int[] inDegree = new int[numCourses];
+        List&lt;List&lt;Integer&gt;&gt; graph = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; numCourses; i++) graph.add(new ArrayList&lt;&gt;());
+        for (int[] p : prerequisites) {
+            graph.get(p[1]).add(p[0]);
+            inDegree[p[0]]++;
+        }
+        Queue&lt;Integer&gt; q = new LinkedList&lt;&gt;();
+        for (int i = 0; i &lt; numCourses; i++)
+            if (inDegree[i] == 0) q.offer(i);
+        int count = 0;
+        while (!q.isEmpty()) {
+            int cur = q.poll();
+            count++;
+            for (int next : graph.get(cur)) {
+                if (--inDegree[next] == 0) q.offer(next);
+            }
+        }
+        return count == numCourses;
+    }
+}</pre>
+      <pre id="codePython" style="display:none"><span class="cmt"># Python · 拓扑排序 BFS · 时间 O(V+E) 空间 O(V+E)</span>
+from collections import deque
+class Solution:
+    def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
+        in_degree = [0] * numCourses
+        graph = [[] for _ in range(numCourses)]
+        for a, b in prerequisites:
+            graph[b].append(a)
+            in_degree[a] += 1
+        q = deque(i for i in range(numCourses) if in_degree[i] == 0)
+        count = 0
+        while q:
+            cur = q.popleft()
+            count += 1
+            for nxt in graph[cur]:
+                in_degree[nxt] -= 1
+                if in_degree[nxt] == 0:
+                    q.append(nxt)
+        return count == numCourses</pre>
+    </details>
+  </div>
+
+</div>
+
+<script>
+// ── Script 1: pure logic ──────────────────────────────────────────────
+function parseInput(raw) {
+  raw = raw.trim();
+  const commaIdx = raw.indexOf(',');
+  if (commaIdx === -1) throw new Error('格式错误');
+  const numCourses = parseInt(raw.slice(0, commaIdx));
+  if (isNaN(numCourses) || numCourses < 1) throw new Error('numCourses 无效');
+  const arrStr = raw.slice(commaIdx + 1).trim();
+  let prereqs;
+  try { prereqs = JSON.parse(arrStr); } catch(e) { throw new Error('先修关系格式错误'); }
+  if (!Array.isArray(prereqs)) throw new Error('先修关系必须是数组');
+  return { numCourses, prereqs };
+}
+
+function buildSteps(numCourses, prereqs) {
+  const steps = [];
+  const graph = Array.from({length: numCourses}, () => []);
+  const inDegree = new Array(numCourses).fill(0);
+
+  for (const [a, b] of prereqs) {
+    graph[b].push(a);
+    inDegree[a]++;
+  }
+
+  const snap = (nodeStates, queue, processing, msg, count) => {
+    steps.push({
+      nodeStates: nodeStates.slice(),
+      queue: queue.slice(),
+      processing,
+      msg,
+      count,
+      inDegree: inDegree.slice()
+    });
+  };
+
+  // STATE: 0=unvisited, 1=inQueue, 2=processing, 3=done
+  const nodeStates = new Array(numCourses).fill(0);
+  const queue = [];
+  let count = 0;
+
+  snap(nodeStates, queue, -1, '建图完成，初始化入度数组', count);
+
+  for (let i = 0; i < numCourses; i++) {
+    if (inDegree[i] === 0) {
+      queue.push(i);
+      nodeStates[i] = 1;
+    }
+  }
+  snap(nodeStates, queue, -1, `将入度为 0 的节点入队：[${queue.join(', ')}]`, count);
+
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    nodeStates[cur] = 2;
+    snap(nodeStates, queue, cur, `出队节点 <b>${cur}</b>，处理其邻居`, count);
+
+    count++;
+    nodeStates[cur] = 3;
+
+    const newlyAdded = [];
+    for (const next of graph[cur]) {
+      inDegree[next]--;
+      if (inDegree[next] === 0) {
+        queue.push(next);
+        nodeStates[next] = 1;
+        newlyAdded.push(next);
+      }
+    }
+    const addMsg = newlyAdded.length
+      ? `节点 <b>${cur}</b> 已完成，邻居 [${newlyAdded.join(', ')}] 入度变为 0，入队`
+      : `节点 <b>${cur}</b> 已完成，无新节点入队`;
+    snap(nodeStates, queue, -1, addMsg, count);
+  }
+
+  const canFinish = count === numCourses;
+  const finalMsg = canFinish
+    ? `<span class="op">✓ 可以完成所有课程</span>（处理节点数 ${count} == ${numCourses}）`
+    : `<b>✗ 存在环，无法完成所有课程</b>（处理节点数 ${count} ≠ ${numCourses}）`;
+  snap(nodeStates, queue, -1, finalMsg, count);
+
+  return { steps, graph, canFinish };
+}
+</script>
+
+<script>
+// ── Script 2: UI rendering ────────────────────────────────────────────
+let steps = [], stepIdx = 0, autoTimer = null;
+let numCourses = 0, graph = [], prereqs = [];
+
+function setEx(v) {
+  document.getElementById('inp').value = v;
+  doBuild();
+}
+
+function doBuild() {
+  clearAuto();
+  const raw = document.getElementById('inp').value;
+  const errEl = document.getElementById('err');
+  try {
+    const parsed = parseInput(raw);
+    numCourses = parsed.numCourses;
+    prereqs = parsed.prereqs;
+    errEl.className = 'err';
+    const result = buildSteps(numCourses, prereqs);
+    steps = result.steps;
+    graph = result.graph;
+    stepIdx = 0;
+    document.getElementById('animCard').style.display = '';
+    renderSVG();
+    renderStep();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.className = 'err show';
+  }
+}
+
+function nodePos(i, n, cx, cy, r) {
+  const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+  return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+}
+
+function renderSVG() {
+  const svg = document.getElementById('graph-svg');
+  const W = svg.clientWidth || 600, H = 320;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+
+  const cx = W / 2, cy = H / 2, r = Math.min(W, H) * 0.35;
+  const NODE_R = 26;
+
+  // defs for arrowhead
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  defs.innerHTML = `<marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#9ca3af"/>
+  </marker>
+  <marker id="arr-active" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#6366f1"/>
+  </marker>`;
+  svg.appendChild(defs);
+
+  // edges
+  for (let b = 0; b < numCourses; b++) {
+    for (const a of graph[b]) {
+      const p1 = nodePos(b, numCourses, cx, cy, r);
+      const p2 = nodePos(a, numCourses, cx, cy, r);
+      const dx = p2.x - p1.x, dy = p2.y - p1.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const ex = p2.x - (dx/dist) * (NODE_R + 2);
+      const ey = p2.y - (dy/dist) * (NODE_R + 2);
+      const sx = p1.x + (dx/dist) * NODE_R;
+      const sy = p1.y + (dy/dist) * NODE_R;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', sx); line.setAttribute('y1', sy);
+      line.setAttribute('x2', ex); line.setAttribute('y2', ey);
+      line.setAttribute('stroke', '#d1d5db'); line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('marker-end', 'url(#arr)');
+      line.dataset.from = b; line.dataset.to = a;
+      svg.appendChild(line);
+    }
+  }
+
+  // nodes
+  for (let i = 0; i < numCourses; i++) {
+    const pos = nodePos(i, numCourses, cx, cy, r);
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.dataset.node = i;
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y);
+    circle.setAttribute('r', NODE_R);
+    circle.setAttribute('fill', '#f8fafc');
+    circle.setAttribute('stroke', '#9ca3af'); circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('stroke-dasharray', '5,3');
+    circle.classList.add('node-circle');
+    g.appendChild(circle);
+
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', pos.x); txt.setAttribute('y', pos.y - 5);
+    txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('dominant-baseline', 'middle');
+    txt.setAttribute('font-size', '14'); txt.setAttribute('font-weight', '700');
+    txt.setAttribute('fill', '#374151'); txt.setAttribute('font-family', 'SF Mono, Menlo, monospace');
+    txt.textContent = i;
+    g.appendChild(txt);
+
+    const deg = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    deg.setAttribute('x', pos.x); deg.setAttribute('y', pos.y + 10);
+    deg.setAttribute('text-anchor', 'middle'); deg.setAttribute('dominant-baseline', 'middle');
+    deg.setAttribute('font-size', '10'); deg.setAttribute('fill', '#6b7280');
+    deg.setAttribute('font-family', 'SF Mono, Menlo, monospace');
+    deg.classList.add('node-deg');
+    g.appendChild(deg);
+
+    svg.appendChild(g);
+  }
+}
+
+function renderStep() {
+  if (!steps.length) return;
+  const s = steps[stepIdx];
+
+  // update nodes
+  for (let i = 0; i < numCourses; i++) {
+    const g = document.querySelector(`[data-node="${i}"]`);
+    if (!g) continue;
+    const circle = g.querySelector('.node-circle');
+    const deg = g.querySelector('.node-deg');
+    deg.textContent = `in:${s.inDegree[i]}`;
+
+    circle.setAttribute('stroke-dasharray', '');
+    switch(s.nodeStates[i]) {
+      case 0: // unvisited
+        circle.setAttribute('fill', '#f8fafc');
+        circle.setAttribute('stroke', '#9ca3af');
+        circle.setAttribute('stroke-dasharray', '5,3');
+        g.querySelector('text').setAttribute('fill', '#374151');
+        break;
+      case 1: // in queue
+        circle.setAttribute('fill', '#fef3c7');
+        circle.setAttribute('stroke', '#f59e0b');
+        g.querySelector('text').setAttribute('fill', '#92400e');
+        break;
+      case 2: // processing
+        circle.setAttribute('fill', '#6366f1');
+        circle.setAttribute('stroke', '#4338ca');
+        g.querySelector('text').setAttribute('fill', '#fff');
+        break;
+      case 3: // done
+        circle.setAttribute('fill', '#dcfce7');
+        circle.setAttribute('stroke', '#86efac');
+        g.querySelector('text').setAttribute('fill', '#166534');
+        break;
+    }
+  }
+
+  document.getElementById('stCount').textContent = s.count;
+  document.getElementById('stQueue').textContent = s.queue.length ? `[${s.queue.join(', ')}]` : '[]';
+  const isLast = stepIdx === steps.length - 1;
+  if (isLast) {
+    const canFinish = s.count === numCourses;
+    document.getElementById('stResult').textContent = canFinish ? '✓ true' : '✗ false';
+    document.getElementById('stResult').style.color = canFinish ? '#16a34a' : '#dc2626';
+  } else {
+    document.getElementById('stResult').textContent = '—';
+    document.getElementById('stResult').style.color = '';
+  }
+
+  document.getElementById('statusBox').innerHTML = s.msg;
+  document.getElementById('progTxt').textContent = `${stepIdx + 1} / ${steps.length}`;
+  document.getElementById('btnPrev').disabled = stepIdx === 0;
+  document.getElementById('btnNext').disabled = isLast;
+}
+
+function clearAuto() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  document.getElementById('btnAuto').textContent = '自动播放';
+}
+
+document.getElementById('btnBuild').onclick = doBuild;
+document.getElementById('btnPrev').onclick = () => { if (stepIdx > 0) { stepIdx--; renderStep(); } };
+document.getElementById('btnNext').onclick = () => { if (stepIdx < steps.length - 1) { stepIdx++; renderStep(); } };
+document.getElementById('btnReset').onclick = () => { clearAuto(); stepIdx = 0; renderStep(); };
+document.getElementById('btnAuto').onclick = () => {
+  if (autoTimer) { clearAuto(); return; }
+  document.getElementById('btnAuto').textContent = '暂停';
+  autoTimer = setInterval(() => {
+    if (stepIdx < steps.length - 1) { stepIdx++; renderStep(); }
+    else clearAuto();
+  }, 900);
+};
+
+document.getElementById('inp').addEventListener('keydown', e => { if (e.key === 'Enter') doBuild(); });
+
+function switchTab(el, lang) {
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('codeJava').style.display = lang === 'java' ? '' : 'none';
+  document.getElementById('codePython').style.display = lang === 'python' ? '' : 'none';
+}
+
+window.addEventListener('resize', () => { if (steps.length) { renderSVG(); renderStep(); } });
+
+// auto-build default
+doBuild();
+</script>
+</body>
+</html>
