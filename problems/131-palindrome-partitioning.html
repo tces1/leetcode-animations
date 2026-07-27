@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="回溯 · 剪枝 · 回文预处理 DP">
+<title>131. 分割回文串 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; } .sub code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:220px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 120px; padding: 9px 12px; font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .warn { color:#b91c1c; font-size:13px; margin-top:8px; display:none; }
+  .warn.show { display:block; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  /* view toggle */
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; }
+  .tab {
+    font-size:13px; font-weight:600; padding:8px 16px; border-radius:9px; cursor:pointer;
+    background:#f1f2f4; border:1px solid #e5e7eb; color:#374151;
+  }
+  .tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+
+  /* five-step */
+  .steps5 { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; } .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  /* string panel */
+  .strwrap { display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:"SF Mono",Menlo,monospace; }
+  .seg { display:inline-flex; border-radius:8px; padding:3px; gap:2px; }
+  .seg.piece { background:#e0e7ff; box-shadow:0 0 0 1px #c7d2fe inset; }
+  .seg.pieceB { background:#dcfce7; box-shadow:0 0 0 1px #bbf7d0 inset; }
+  .seg.test-ok { background:#dcfce7; box-shadow:0 0 0 2px #4ade80 inset; }
+  .seg.test-no { background:#fee2e2; box-shadow:0 0 0 2px #f87171 inset; }
+  .seg.rest { background:transparent; }
+  .ch {
+    width:30px; height:34px; display:flex; align-items:center; justify-content:center;
+    font-size:17px; font-weight:700; border-radius:5px; background:#fff; color:#334155; border:1px solid #e5e7eb;
+  }
+  .seg.rest .ch { background:#f8fafc; color:#94a3b8; border-color:#eef0f4; }
+  .segtag { font-size:10px; color:#4338ca; margin-top:2px; text-align:center; font-weight:700; }
+  .checkbox { margin-top:12px; font-size:13px; color:#4b5563; min-height:22px; }
+  .checkbox .ok { color:#16a34a; font-weight:700; } .checkbox .no { color:#dc2626; font-weight:700; }
+  .checkbox code { background:#0f172a; color:#e2e8f0; padding:2px 6px; border-radius:5px; font-size:13px; }
+
+  /* tree */
+  .tree-wrap { width:100%; overflow:auto; border:1px solid #eef0f4; border-radius:10px; background:#fbfbfc; }
+  svg { display:block; }
+  .edge { stroke:#d1d5db; stroke-width:2; }
+  .edge.dead { stroke:#fca5a5; stroke-dasharray:4 3; }
+  .edge.active { stroke:#6366f1; stroke-width:3; }
+  .edge-lab { font: 700 11px "SF Mono", Menlo, monospace; fill:#9ca3af; }
+  .edge-lab.active { fill:#4f46e5; }
+  .edge-lab.dead { fill:#f87171; }
+  .node rect { fill:#f1f2f4; stroke:#d1d5db; stroke-width:2; transition: all .15s; }
+  .node .n-idx { font: 700 13px "SF Mono", Menlo, monospace; fill:#4b5563; }
+  .node .n-sfx { font: 600 11px "SF Mono", Menlo, monospace; fill:#94a3b8; }
+  .node.done rect     { fill:#eef2ff; stroke:#c7d2fe; }
+  .node.done .n-idx   { fill:#4f46e5; }
+  .node.success rect  { fill:#dcfce7; stroke:#86efac; }
+  .node.success .n-idx{ fill:#166534; }
+  .node.dead rect     { fill:#fee2e2; stroke:#fca5a5; }
+  .node.dead .n-idx   { fill:#b91c1c; }
+  .node.active rect   { fill:#6366f1; stroke:#4338ca; stroke-width:3; }
+  .node.active .n-idx { fill:#fff; }
+  .node.active .n-sfx { fill:#e0e7ff; }
+
+  /* dp table */
+  .grid-dp { display:inline-grid; gap:5px; }
+  .gcell {
+    width:42px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:14px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb; transition:all .15s;
+  }
+  .gcell.hcell { background:transparent; border:none; color:#94a3b8; font-size:13px; }
+  .gcell.na    { background:#fafbfc; border-style:dashed; border-color:#eef0f4; color:#d1d5db; }
+  .gcell.blank { background:#f8fafc; border-color:#eef0f4; color:#c7cbd1; }
+  .gcell.tt    { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .gcell.ff    { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
+  .gcell.dep   { box-shadow:0 0 0 3px rgba(245,158,11,.35); border-color:#f59e0b; }
+  .gcell.cur   { box-shadow:0 0 0 4px rgba(99,102,241,.3); transform:scale(1.08); border-color:#4338ca; }
+  .gcell.look  { box-shadow:0 0 0 4px rgba(99,102,241,.45); transform:scale(1.1); }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .status .ok { color:#86efac; font-weight:700; } .status .no { color:#fca5a5; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px; border:1px solid rgba(0,0,0,.1);}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/palindrome-partitioning/" target="_blank" rel="noopener">LeetCode 131</a></span>
+  </div>
+
+  <h1>131. 分割回文串 · 回溯动画</h1>
+  <div class="sub">把字符串 <b>s</b> 切成若干段，要求<b>每一段都是回文串</b>，返回所有切法。核心是<b>回溯</b>：从左端不断尝试切出一个前缀，若前缀是回文就把它作为一段、递归分割剩余部分；若不是回文就<b>剪枝</b>。当剩余部分为空时，走过的这条路径就是一个合法方案。视角 B 额外用一张 <code>isPal[i][j]</code> 表把「是否回文」的判断预处理成 <b>O(1) 查表</b>。</div>
+
+  <div class="card">
+    <div class="panel-title">回溯三要素</div>
+    <div class="steps5">
+      <div class="s5"><div class="no">① 状态</div>用 <code>start</code> 表示「剩余待分割的子串从下标 start 开始」，已选的若干回文段记在 <code>path</code> 里。</div>
+      <div class="s5"><div class="no">② 选择</div>枚举前缀结束位置 <code>end</code>：取子串 <code>s[start:end]</code>。只有当它<b>是回文</b>时才是一个合法选择。</div>
+      <div class="s5"><div class="no">③ 递归 / 回退</div>选了就 <code>dfs(end)</code> 分割剩余；返回后<b>撤销</b>这段，换更长的前缀继续试（回溯）。</div>
+      <div class="s5"><div class="no">④ 终止</div><code>start == n</code>：剩余为空，<code>path</code> 就是一个完整方案，收集它。</div>
+      <div class="s5"><div class="no">⑤ 优化</div>先用二维 DP 预处理 <code>isPal[i][j]</code>，回溯中判断回文从 O(len) 降到 <b>O(1)</b>。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <div class="field"><span class="lab">s =</span><input type="text" id="input" value="aab" spellcheck="false" placeholder="仅小写字母，长度 1..7，如 aab"></div>
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip">aab</span>
+      <span class="chip">aba</span>
+      <span class="chip">efe</span>
+      <span class="chip">abba</span>
+      <span class="chip">noon</span>
+      <span class="chip">aaa</span>
+      <span class="chip">abccba</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div style="margin-top:16px;" class="tabs">
+      <div class="tab active" data-mode="tree">视角 A · 回溯决策树</div>
+      <div class="tab" data-mode="dp">视角 B · 回溯 + 二维 DP 预处理</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">当前字符串切割（蓝=已选回文段；绿框=正在检查且回文；红框=正在检查但非回文；灰=剩余）</div>
+    <div class="strwrap" id="strPanel"></div>
+    <div class="checkbox" id="checkBox"></div>
+  </div>
+
+  <div class="card" id="dpCard">
+    <div class="panel-title">isPal 表（行 i、列 j；格 = 子串 s[i..j] 是否回文，T=是 / F=否；只用右上三角 i ≤ j）</div>
+    <div class="tree-wrap" style="padding:14px;"><div class="grid-dp" id="dpGrid"></div></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>T 回文</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#fca5a5"></span>F 非回文</span>
+      <span><span class="dot" style="background:#fff;border-color:#4338ca"></span>当前格 (i,j)</span>
+      <span><span class="dot" style="background:#fff;border-color:#f59e0b"></span>依赖 isPal[i+1][j-1]</span>
+    </div>
+  </div>
+
+  <div class="card" id="treeCard">
+    <div class="panel-title">回溯决策树（节点内=起点 start，下方=剩余子串；边=切出的前缀）</div>
+    <div class="tree-wrap"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前调用</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>成功叶·完整方案</span>
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>已返回</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#fca5a5"></span>剪枝·非回文前缀 ✗</span>
+    </div>
+    <div class="warn" id="warn"></div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或在上方载入一个字符串。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Python / Java）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python · 回溯</span>
+        <span class="code-tab" data-lang="pydp">Python · 回溯 + DP</span>
+        <span class="code-tab" data-lang="java">Java · 回溯</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心（已离线对拍验证：方案数与暴力枚举一致） ==== */
+(function (root) {
+  'use strict';
+  function parseStr(value) {
+    if (typeof value !== 'string') return null;
+    var s = value.trim().toLowerCase();
+    if (!/^[a-z]*$/.test(s)) return null;
+    if (s.length < 1 || s.length > 7) return null;
+    return s;
+  }
+  function isPal(s, i, j) { while (i < j) { if (s[i] !== s[j]) return false; i++; j--; } return true; }
+  function allPartitions(s) {
+    var res = [], n = s.length, path = [];
+    (function dfs(start) {
+      if (start === n) { res.push(path.slice()); return; }
+      for (var end = start + 1; end <= n; end++)
+        if (isPal(s, start, end - 1)) { path.push(s.slice(start, end)); dfs(end); path.pop(); }
+    })(0);
+    return res;
+  }
+  function buildTree(s) {
+    var n = s.length, nodes = [], edges = [];
+    function build(start, pieces) {
+      var node = { id: nodes.length, start: start, kind: null, pieces: pieces.slice(), children: [] };
+      nodes.push(node);
+      if (start === n) { node.kind = 'solution'; return node; }
+      node.kind = 'call';
+      for (var end = start + 1; end <= n; end++) {
+        var sub = s.slice(start, end), pal = isPal(s, start, end - 1);
+        if (pal) {
+          var child = build(end, pieces.concat([sub]));
+          node.children.push({ id: child.id, piece: sub, start: start, end: end, dead: false });
+          edges.push({ from: node.id, to: child.id, piece: sub, dead: false });
+        } else {
+          var dead = { id: nodes.length, start: end, kind: 'dead', piece: sub, pieces: pieces.slice(), children: [] };
+          nodes.push(dead);
+          node.children.push({ id: dead.id, piece: sub, start: start, end: end, dead: true });
+          edges.push({ from: node.id, to: dead.id, piece: sub, dead: true });
+        }
+      }
+      return node;
+    }
+    var rootNode = build(0, []);
+    return { nodes: nodes, edges: edges, root: rootNode, n: n, s: s };
+  }
+  function buildBacktrackSteps(tree) {
+    var nodes = tree.nodes, s = tree.s, snaps = [], states = {}, solutions = [];
+    nodes.forEach(function (nd) { states[nd.id] = 'idle'; });
+    function snap(o) {
+      snaps.push({
+        kind: 'bt', states: JSON.parse(JSON.stringify(states)),
+        activeId: (o.activeId == null ? -1 : o.activeId), edge: o.edge || null,
+        test: o.test || null, pieces: o.pieces ? o.pieces.slice() : [],
+        solCount: solutions.length, msg: o.msg
+      });
+    }
+    function run(node) {
+      states[node.id] = 'active';
+      if (node.kind === 'solution') {
+        solutions.push(node.pieces.slice()); states[node.id] = 'success';
+        snap({ activeId: node.id, pieces: node.pieces,
+          msg: '剩余部分为空 ✅ 得到一个完整分割方案：<span class="op">[' +
+               node.pieces.map(function (p) { return '"' + p + '"'; }).join(', ') + ']</span>（第 ' + solutions.length + ' 个）。' });
+        return;
+      }
+      snap({ activeId: node.id, pieces: node.pieces,
+        msg: '进入 <b>dfs(' + node.start + ')</b>：分割剩余子串 <b>"' + s.slice(node.start) + '"</b>，依次尝试每种前缀切法。' });
+      for (var k = 0; k < node.children.length; k++) {
+        var ch = node.children[k], test = { start: ch.start, end: ch.end, sub: ch.piece, pal: !ch.dead };
+        if (!ch.dead) {
+          snap({ activeId: node.id, pieces: node.pieces, test: test, edge: { from: node.id, to: ch.id },
+            msg: '切出前缀 <b>"' + ch.piece + '"</b> → <span class="ok">是回文 ✓</span>，作为一段，递归分割剩余 "' + s.slice(ch.end) + '"。' });
+          run(nodes[ch.id]);
+          states[nodes[ch.id].id] = (nodes[ch.id].kind === 'solution') ? 'success' : 'done';
+          snap({ activeId: node.id, pieces: node.pieces, test: null,
+            msg: '回退到 <b>dfs(' + node.start + ')</b>，撤销前缀 "' + ch.piece + '"，尝试下一种更长的切法。' });
+        } else {
+          states[ch.id] = 'dead';
+          snap({ activeId: node.id, pieces: node.pieces, test: test, edge: { from: node.id, to: ch.id },
+            msg: '切出前缀 <b>"' + ch.piece + '"</b> → <span class="no">不是回文 ✗</span>，<b>剪枝</b>，不递归。' });
+        }
+      }
+      states[node.id] = 'done';
+    }
+    run(tree.root);
+    snap({ activeId: tree.root.id,
+      msg: '回溯结束 ✅ 共找到 <b>' + solutions.length + '</b> 种把 "' + s + '" 切成若干回文子串的方案。' });
+    return { snaps: snaps, solutions: solutions };
+  }
+  function buildPalTable(s) {
+    var n = s.length, tb = [];
+    for (var i = 0; i < n; i++) tb.push(new Array(n).fill(null));
+    var frames = [];
+    function frame(o) { frames.push({ kind: 'fill', table: tb.map(function (r) { return r.slice(); }), i: o.i, j: o.j, dep: o.dep || null, len: o.len, msg: o.msg }); }
+    frame({ i: -1, j: -1, len: 0,
+      msg: '预处理开始：<b>isPal[i][j]</b> = 子串 s[i..j] 是否回文。按子串<b>长度从小到大</b>填：长度 1 必回文；长度 ≥2 需 <b>s[i]==s[j]</b> 且内部 <b>isPal[i+1][j-1]</b> 也回文。' });
+    for (var len = 1; len <= n; len++) {
+      for (var i2 = 0; i2 + len - 1 < n; i2++) {
+        var j = i2 + len - 1, val, dep = null, msg;
+        if (len === 1) { val = true; msg = '长度 1：单字符 "' + s[i2] + '" 必是回文 → isPal[' + i2 + '][' + j + '] = <span class="ok">T</span>。'; }
+        else if (len === 2) { val = s[i2] === s[j];
+          msg = '长度 2 "' + s.slice(i2, j + 1) + '"：s[' + i2 + ']=' + s[i2] + (val ? ' == ' : ' ≠ ') + 's[' + j + ']=' + s[j] + ' → <span class="' + (val ? 'ok">T' : 'no">F') + '</span>。'; }
+        else { dep = { i: i2 + 1, j: j - 1 }; var inner = tb[i2 + 1][j - 1]; val = (s[i2] === s[j]) && inner;
+          msg = '"' + s.slice(i2, j + 1) + '"：s[' + i2 + ']=' + s[i2] + (s[i2] === s[j] ? ' == ' : ' ≠ ') + 's[' + j + ']=' + s[j] + '，内部 isPal[' + (i2 + 1) + '][' + (j - 1) + ']=' + (inner ? 'T' : 'F') + ' → <span class="' + (val ? 'ok">T' : 'no">F') + '</span>。'; }
+        tb[i2][j] = val;
+        frame({ i: i2, j: j, dep: dep, len: len, msg: msg });
+      }
+    }
+    frame({ i: -1, j: -1, len: n + 1, msg: '✅ isPal 表填好。回溯时判断前缀回文只需 <b>O(1) 查表</b>，下面开始带查表的回溯。' });
+    return { table: tb, frames: frames };
+  }
+  root.PP = { parseStr: parseStr, isPal: isPal, allPartitions: allPartitions,
+    buildTree: buildTree, buildBacktrackSteps: buildBacktrackSteps, buildPalTable: buildPalTable };
+}(window));
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var PP = window.PP;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), warnEl = $('warn');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var strPanel = $('strPanel'), checkBox = $('checkBox');
+  var svg = $('svg'), dpGrid = $('dpGrid'), dpCard = $('dpCard'), treeCard = $('treeCard');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+
+  var R_W = 46, R_H = 30, XGAP = 30, YGAP = 84, PADX = 24, PADY = 22;
+  var MAX_NODES = 260;
+
+  var mode = 'tree';
+  var s = '', tree = null, palTable = null, fillFrames = [];
+  var btSnaps = [], solutions = [];
+  var steps = [], stepIdx = 0, playTimer = null;
+  var nodeEls = {}, edgeEls = {}, dpCells = {};
+
+  function showError(m) { errEl.textContent = m; errEl.classList.add('show'); }
+  function clearError() { errEl.classList.remove('show'); }
+  function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; } }
+
+  function svgEl(name, attrs) {
+    var el = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  /* ---------- 树布局 & 静态渲染 ---------- */
+  function layout() {
+    var nodes = tree.nodes, leaf = 0, maxDepth = 0;
+    // 依据 children 计算深度与叶子序
+    var depth = {}; depth[tree.root.id] = 0;
+    function place(node) {
+      if (depth[node.id] > maxDepth) maxDepth = depth[node.id];
+      if (!node.children.length) { node._lx = leaf++; return; }
+      for (var k = 0; k < node.children.length; k++) {
+        var c = nodes[node.children[k].id];
+        depth[c.id] = depth[node.id] + 1;
+        place(c);
+      }
+      var f = nodes[node.children[0].id]._lx;
+      var l = nodes[node.children[node.children.length - 1].id]._lx;
+      node._lx = (f + l) / 2;
+    }
+    place(tree.root);
+    nodes.forEach(function (nd) {
+      nd.depth = depth[nd.id];
+      nd.x = PADX + nd._lx * (R_W + XGAP) + R_W / 2;
+      nd.y = PADY + nd.depth * YGAP + R_H / 2;
+    });
+    return { w: PADX * 2 + Math.max(1, leaf) * (R_W + XGAP), h: PADY * 2 + (maxDepth + 1) * YGAP };
+  }
+
+  function renderStaticTree(size) {
+    svg.innerHTML = ''; edgeEls = {}; nodeEls = {};
+    svg.setAttribute('viewBox', '0 0 ' + size.w + ' ' + size.h);
+    svg.setAttribute('width', size.w); svg.setAttribute('height', size.h);
+    var nodes = tree.nodes;
+    tree.edges.forEach(function (ed) {
+      var p = nodes[ed.from], c = nodes[ed.to];
+      var line = svgEl('line', { x1: p.x, y1: p.y + R_H / 2, x2: c.x, y2: c.y - R_H / 2, class: 'edge' + (ed.dead ? ' dead' : '') });
+      var lab = svgEl('text', { x: (p.x + c.x) / 2 + 4, y: (p.y + c.y) / 2, class: 'edge-lab' + (ed.dead ? ' dead' : ''), 'text-anchor': 'middle' });
+      lab.textContent = '"' + ed.piece + '"';
+      svg.appendChild(line); svg.appendChild(lab);
+      edgeEls[ed.from + '-' + ed.to] = { line: line, lab: lab };
+    });
+    nodes.forEach(function (nd) {
+      var g = svgEl('g', { class: 'node' });
+      var rect = svgEl('rect', { x: nd.x - R_W / 2, y: nd.y - R_H / 2, width: R_W, height: R_H, rx: 8 });
+      var idx = svgEl('text', { x: nd.x, y: nd.y + 1, 'text-anchor': 'middle', 'dominant-baseline': 'middle', class: 'n-idx' });
+      idx.textContent = nd.kind === 'dead' ? '✗' : (nd.kind === 'solution' ? '∅' : nd.start);
+      var sfx = svgEl('text', { x: nd.x, y: nd.y + R_H / 2 + 13, 'text-anchor': 'middle', class: 'n-sfx' });
+      if (nd.kind === 'solution') sfx.textContent = '[' + nd.pieces.join(',') + ']';
+      else if (nd.kind === 'dead') sfx.textContent = '"' + nd.piece + '"✗';
+      else sfx.textContent = '"' + s.slice(nd.start) + '"';
+      g.appendChild(rect); g.appendChild(idx); g.appendChild(sfx);
+      svg.appendChild(g);
+      nodeEls[nd.id] = { g: g };
+    });
+  }
+
+  /* ---------- DP 表静态渲染 ---------- */
+  function renderStaticDp() {
+    dpGrid.innerHTML = '';
+    var n = s.length;
+    dpGrid.style.gridTemplateColumns = 'repeat(' + (n + 1) + ', 42px)';
+    dpCells = {};
+    function cell(cls, txt) { var d = document.createElement('div'); d.className = cls; d.textContent = txt; return d; }
+    dpGrid.appendChild(cell('gcell hcell', 'i\\j'));
+    for (var jc = 0; jc < n; jc++) dpGrid.appendChild(cell('gcell hcell', j2(jc)));
+    for (var i = 0; i < n; i++) {
+      dpGrid.appendChild(cell('gcell hcell', i2(i)));
+      for (var j = 0; j < n; j++) {
+        var c = cell('gcell', '');
+        dpGrid.appendChild(c);
+        dpCells[i + '_' + j] = c;
+      }
+    }
+    function i2(i) { return i + ':' + s[i]; }
+    function j2(j) { return j + ':' + s[j]; }
+  }
+
+  function paintDp(frame, lookup) {
+    var n = s.length;
+    for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) {
+      var c = dpCells[i + '_' + j], cls = 'gcell';
+      if (j < i) { cls += ' na'; c.textContent = ''; }
+      else {
+        var v = frame ? frame.table[i][j] : (palTable ? palTable[i][j] : null);
+        if (v === null || v === undefined) { cls += ' blank'; c.textContent = '·'; }
+        else { cls += v ? ' tt' : ' ff'; c.textContent = v ? 'T' : 'F'; }
+        if (frame && frame.dep && frame.dep.i === i && frame.dep.j === j) cls += ' dep';
+        if (frame && frame.i === i && frame.j === j) cls += ' cur';
+        if (lookup && lookup.i === i && lookup.j === j) cls += ' look';
+      }
+      c.className = cls;
+    }
+  }
+
+  /* ---------- 字符串切割面板 ---------- */
+  function renderString(step) {
+    strPanel.innerHTML = '';
+    var pieces = step.pieces || [], test = step.test || null;
+    var pos = 0, altColor = true;
+    function segEl(cls, str, tag) {
+      var seg = document.createElement('span'); seg.className = 'seg ' + cls;
+      var inner = document.createElement('span'); inner.style.display = 'flex';
+      for (var k = 0; k < str.length; k++) { var ch = document.createElement('span'); ch.className = 'ch'; ch.textContent = str[k]; seg.appendChild(ch); }
+      if (tag) { var wrap = document.createElement('div'); wrap.style.display = 'inline-flex'; wrap.style.flexDirection = 'column';
+        var row = document.createElement('div'); row.style.display = 'flex'; while (seg.firstChild) row.appendChild(seg.firstChild); seg.appendChild(row);
+        var t = document.createElement('div'); t.className = 'segtag'; t.textContent = tag; seg.appendChild(t); }
+      return seg;
+    }
+    pieces.forEach(function (p) {
+      strPanel.appendChild(segEl(mode === 'dp' ? 'pieceB' : 'piece', p, '回文'));
+      pos += p.length; altColor = !altColor;
+    });
+    if (test) {
+      strPanel.appendChild(segEl(test.pal ? 'test-ok' : 'test-no', test.sub, test.pal ? '回文✓' : '非回文✗'));
+      pos = test.end;
+    }
+    if (pos < s.length) strPanel.appendChild(segEl('rest', s.slice(pos), ''));
+
+    if (test) {
+      var rev = test.sub.split('').reverse().join('');
+      checkBox.innerHTML = '检查前缀 <code>"' + test.sub + '"</code> 是否回文：反转为 <code>"' + rev + '"</code> —— ' +
+        (test.pal ? '与原串<span class="ok">相同 → 是回文 ✓</span>' : '与原串<span class="no">不同 → 不是回文 ✗（剪枝）</span>') +
+        (mode === 'dp' ? '（本视角直接查 isPal[' + test.start + '][' + (test.end - 1) + ']）' : '');
+    } else checkBox.innerHTML = '';
+  }
+
+  /* ---------- 统计 ---------- */
+  function renderStats() {
+    var totalNodes = tree.nodes.length;
+    statsEl.innerHTML =
+      '<div class="stat">字符串<b>"' + s + '" (n=' + s.length + ')</b></div>' +
+      '<div class="stat">合法方案数<b>' + solutions.length + '</b></div>' +
+      '<div class="stat">回溯节点<b>' + totalNodes + '</b></div>' +
+      '<div class="stat">' + (mode === 'dp' ? '回文判断<b>O(1) 查表</b>' : '回文判断<b>O(len) 比较</b>') + '</div>';
+  }
+
+  /* ---------- 主渲染 ---------- */
+  function render() {
+    var step = steps[stepIdx];
+    if (!step) return;
+    if (step.kind === 'fill') {
+      // DP 填表阶段
+      renderString({ pieces: [], test: null });
+      paintDp(step, null);
+      // 树置灰（初始态）
+      tree.nodes.forEach(function (nd) { nodeEls[nd.id].g.setAttribute('class', 'node'); });
+      for (var key in edgeEls) { edgeEls[key].line.setAttribute('class', 'edge' + (isDeadEdge(key) ? ' dead' : '')); edgeEls[key].lab.setAttribute('class', 'edge-lab' + (isDeadEdge(key) ? ' dead' : '')); }
+    } else {
+      // 回溯阶段
+      renderString(step);
+      tree.nodes.forEach(function (nd) {
+        var cls = 'node ' + (step.states[nd.id] || 'idle');
+        if (nd.id === step.activeId) cls = 'node active';
+        nodeEls[nd.id].g.setAttribute('class', cls);
+      });
+      for (var k2 in edgeEls) { edgeEls[k2].line.setAttribute('class', 'edge' + (isDeadEdge(k2) ? ' dead' : '')); edgeEls[k2].lab.setAttribute('class', 'edge-lab' + (isDeadEdge(k2) ? ' dead' : '')); }
+      if (step.edge) {
+        var kk = step.edge.from + '-' + step.edge.to;
+        if (edgeEls[kk]) { edgeEls[kk].line.setAttribute('class', 'edge active'); edgeEls[kk].lab.setAttribute('class', 'edge-lab active'); }
+      }
+      if (mode === 'dp') paintDp(null, step.test ? { i: step.test.start, j: step.test.end - 1 } : null);
+    }
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function isDeadEdge(key) {
+    var parts = key.split('-'); var to = tree.nodes[+parts[1]];
+    return to && to.kind === 'dead';
+  }
+
+  /* ---------- 组装 steps ---------- */
+  function buildSteps() {
+    if (mode === 'dp') { steps = fillFrames.concat(btSnaps); }
+    else { steps = btSnaps.slice(); }
+  }
+
+  function load(raw) {
+    var parsed = PP.parseStr(raw);
+    if (parsed === null) { showError('只支持小写字母、长度 1..7（为了动画清晰）。例如 aab、abba、noon。当前动画保持不变。'); return false; }
+    clearError(); stopPlay();
+    s = parsed;
+    tree = PP.buildTree(s);
+    var bt = PP.buildBacktrackSteps(tree);
+    btSnaps = bt.snaps; solutions = bt.solutions;
+    var pal = PP.buildPalTable(s);
+    palTable = pal.table; fillFrames = pal.frames;
+
+    warnEl.classList.remove('show');
+    if (tree.nodes.length > MAX_NODES) { warnEl.textContent = '这棵回溯树有 ' + tree.nodes.length + ' 个节点，偏大，换更短或回文更少的字符串会更清楚。'; warnEl.classList.add('show'); }
+
+    var size = layout();
+    renderStaticTree(size);
+    renderStaticDp();
+    renderStats();
+    buildSteps();
+    stepIdx = 0;
+    render();
+    return true;
+  }
+
+  function setMode(m) {
+    if (m === mode) return;
+    mode = m;
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.classList.toggle('active', t.dataset.mode === m); });
+    dpCard.classList.toggle('hidden', m !== 'dp');
+    stopPlay();
+    renderStats();
+    buildSteps();
+    stepIdx = 0;
+    render();
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () { if (stepIdx >= steps.length - 1) { stopPlay(); return; } next(); }, 620);
+  }
+
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) {
+    t.onclick = function () { setMode(t.dataset.mode); };
+  });
+
+  /* ---------- 参考代码 ---------- */
+  var codes = {
+    py:
+'<span class="cmt"># Python · 回溯 · 每段都要求回文</span>\n' +
+'class Solution:\n' +
+'    def partition(self, s: str) -&gt; List[List[str]]:\n' +
+'        res, path, n = [], [], len(s)\n' +
+'        def dfs(start):\n' +
+'            if start == n:                      <span class="cmt"># 剩余为空,收集一个方案</span>\n' +
+'                res.append(path[:]); return\n' +
+'            for end in range(start + 1, n + 1):\n' +
+'                sub = s[start:end]\n' +
+'                if sub == sub[::-1]:            <span class="cmt"># 前缀是回文才选</span>\n' +
+'                    path.append(sub)\n' +
+'                    dfs(end)                    <span class="cmt"># 递归分割剩余</span>\n' +
+'                    path.pop()                  <span class="cmt"># 回溯撤销</span>\n' +
+'        dfs(0)\n' +
+'        return res',
+    pydp:
+'<span class="cmt"># Python · 先用 DP 预处理 isPal[i][j], 回溯里 O(1) 查表</span>\n' +
+'class Solution:\n' +
+'    def partition(self, s: str) -&gt; List[List[str]]:\n' +
+'        n = len(s)\n' +
+'        isPal = [[False] * n for _ in range(n)]\n' +
+'        for i in range(n - 1, -1, -1):          <span class="cmt"># i 逆序,保证 i+1 已算</span>\n' +
+'            for j in range(i, n):\n' +
+'                if s[i] == s[j] and (j - i &lt; 2 or isPal[i + 1][j - 1]):\n' +
+'                    isPal[i][j] = True\n' +
+'        res, path = [], []\n' +
+'        def dfs(start):\n' +
+'            if start == n:\n' +
+'                res.append(path[:]); return\n' +
+'            for end in range(start, n):\n' +
+'                if isPal[start][end]:           <span class="cmt"># O(1) 查表判回文</span>\n' +
+'                    path.append(s[start:end + 1])\n' +
+'                    dfs(end + 1)\n' +
+'                    path.pop()\n' +
+'        dfs(0)\n' +
+'        return res',
+    java:
+'<span class="cmt">// Java · 回溯</span>\n' +
+'class Solution {\n' +
+'    List&lt;List&lt;String&gt;&gt; res = new ArrayList&lt;&gt;();\n' +
+'    Deque&lt;String&gt; path = new ArrayDeque&lt;&gt;();\n' +
+'    public List&lt;List&lt;String&gt;&gt; partition(String s) {\n' +
+'        dfs(s, 0); return res;\n' +
+'    }\n' +
+'    void dfs(String s, int start) {\n' +
+'        if (start == s.length()) { res.add(new ArrayList&lt;&gt;(path)); return; }\n' +
+'        for (int end = start + 1; end &lt;= s.length(); end++) {\n' +
+'            if (isPal(s, start, end - 1)) {      <span class="cmt">// 前缀回文才选</span>\n' +
+'                path.addLast(s.substring(start, end));\n' +
+'                dfs(s, end);\n' +
+'                path.removeLast();               <span class="cmt">// 回溯</span>\n' +
+'            }\n' +
+'        }\n' +
+'    }\n' +
+'    boolean isPal(String s, int i, int j) {\n' +
+'        while (i &lt; j) if (s.charAt(i++) != s.charAt(j--)) return false;\n' +
+'        return true;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  function showCode(lang) { codeBlock.innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active'); showCode(t.dataset.lang);
+    };
+  });
+  showCode('py');
+
+  dpCard.classList.add('hidden');
+  load(input.value);
+})();
+</script>
+</body>
+</html>
