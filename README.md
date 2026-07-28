@@ -72,6 +72,8 @@ leetcode-animations/
 | 5 | [最长回文子串](problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 字符串 |
 | 32 | [最长有效括号](problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
 | 45 | [跳跃游戏 II](problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
+| 48 | [旋转图像](problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
+| 54 | [螺旋矩阵](problems/54-spiral-matrix.html) | 中等 | 矩阵 · 模拟 · 收缩边界 |
 | 55 | [跳跃游戏](problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
 | 62 | [不同路径](problems/62-unique-paths.html) | 中等 | 动态规划 · 二维 DP · 网格 |
 | 64 | [最小路径和](problems/64-minimum-path-sum.html) | 中等 | 动态规划 · 二维 DP · 网格 |
@@ -86,6 +88,7 @@ leetcode-animations/
 | 207 | [课程表](problems/207-course-schedule.html) | 中等 | — |
 | 208 | [实现 Trie（前缀树）](problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
 | 215 | [数组中的第K个最大元素](problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
+| 240 | [搜索二维矩阵 II](problems/240-search-a-2d-matrix-ii.html) | 中等 | 矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n) |
 | 279 | [完全平方数](problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 295 | [数据流的中位数](problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
 | 300 | [最长递增子序列](problems/300-longest-increasing-subsequence.html) | 中等 | 动态规划 · 填表 + 记忆化递归树双视角 |
