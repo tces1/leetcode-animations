@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="矩阵 · 原地旋转 · 转置 · 四元素交换">
+<title>48. 旋转图像 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; } .sub code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:240px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 160px; padding: 9px 12px; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  /* view toggle */
+  .view-tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .view-tab {
+    padding:8px 18px; font-size:14px; font-weight:600; border-radius:8px; cursor:pointer;
+    border:2px solid #e5e7eb; background:#f8fafc; color:#6b7280; transition:all .15s;
+  }
+  .view-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; } .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  /* matrix grid */
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:20px; text-align:center; }
+  .grid-wrap { display:inline-grid; gap:6px; margin:0 auto; position:relative; }
+  .gcell {
+    position:relative; width:56px; height:52px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .gcell.swapA { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.2); transform:scale(1.08); z-index:2; }
+  .gcell.swapB { background:#dcfce7; border-color:#22c55e; color:#166534; box-shadow:0 0 0 3px rgba(34,197,94,.2); transform:scale(1.08); z-index:2; }
+  .gcell.done  { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }
+
+  /* ring overlay */
+  .ring-frame { position:absolute; border:3px dashed #6366f1; border-radius:8px; pointer-events:none; transition:all .2s; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 20px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars .box { padding:4px 10px; border-radius:7px; background:#f8fafc; border:1px solid #eef0f4; }
+  .phase-badge { font-weight:700; color:#4338ca; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  /* 方法B 递推推导小节 */
+  .derive { margin-top:14px; border:1px dashed #c7d2fe; border-radius:10px; padding:14px 16px; background:#f5f7ff; }
+  .derive .dt { font-size:12px; font-weight:700; color:#4338ca; margin-bottom:8px; }
+  .derive p { margin:6px 0; font-size:13px; color:#4b5563; }
+  .derive .mono { font-family:"SF Mono",Menlo,monospace; background:#e9edff; color:#3730a3; padding:1px 6px; border-radius:5px; font-size:12px; }
+  .derive .cyc { font-family:"SF Mono",Menlo,monospace; font-size:13px; color:#1d2129; background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; margin:8px 0; white-space:pre-wrap; line-height:1.7; }
+  .derive .step-b { display:inline-block; font-size:11px; font-weight:700; color:#6366f1; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/rotate-image/" target="_blank" rel="noopener">LeetCode 48</a></span>
+  </div>
+
+  <h1>48. 旋转图像 · 原地旋转动画</h1>
+  <div class="sub">将 n×n 矩阵<b>顺时针旋转 90°</b>，要求<b>原地</b>完成（不能使用额外矩阵）。这里演示两种经典 O(n²) 时间、O(1) 空间的方法。</div>
+
+  <div class="view-tabs">
+    <div class="view-tab active" data-view="A">方法 A：转置 + 翻转每行</div>
+    <div class="view-tab" data-view="B">方法 B：四元素循环交换</div>
+  </div>
+
+  <!-- idea cards, toggled by view -->
+  <div class="card" id="ideaA">
+    <div class="panel-title">思路要点 · 方法 A</div>
+    <div class="idea">
+      <div class="s5"><div class="no">① 观察规律</div>旋转后 <code>new[j][n-1-i] = old[i][j]</code>。把它拆成两步更容易实现。</div>
+      <div class="s5"><div class="no">② 转置</div>沿主对角线交换 <code>mat[i][j] ↔ mat[j][i]</code>（只处理 <code>i&lt;j</code> 的上三角，避免重复交换）。</div>
+      <div class="s5"><div class="no">③ 翻转每行</div>对每一行做左右翻转（双指针对称交换），即可得到顺时针 90° 结果。</div>
+      <div class="s5"><div class="no">④ 复杂度</div>两步各 O(n²/2) 次交换，合计 O(n²)，额外空间 O(1)。</div>
+    </div>
+  </div>
+  <div class="card" id="ideaB" style="display:none">
+    <div class="panel-title">思路要点 · 方法 B</div>
+    <div class="idea">
+      <div class="s5"><div class="no">① 同心环</div>把矩阵看成若干同心方环，从外到内逐层处理，共 ⌊n/2⌋ 层。</div>
+      <div class="s5"><div class="no">② 四元素一组</div>每次取四个对称位置（上/右/下/左），一次旋转到位：<code>top←left, right←top, bottom←right, left←bottom</code>。</div>
+      <div class="s5"><div class="no">③ 每层 n-1-2·layer 组</div>每层沿边滑动 offset=0,1,… 依次处理，每组只用一个临时变量。</div>
+      <div class="s5"><div class="no">④ 复杂度</div>每个元素恰好参与一次四元素交换，时间 O(n²)，额外空间 O(1)。</div>
+    </div>
+
+    <div class="derive">
+      <div class="dt">怎么想到的：先只转四个角，再加偏移推广</div>
+
+      <p><span class="step-b">第 1 步 · 只看四个角。</span>最容易想清楚的是矩阵的四个角。以 <span class="mono">n×n</span> 为例，四个角坐标是 <span class="mono">[0][0]</span>（左上）、<span class="mono">[0][n-1]</span>（右上）、<span class="mono">[n-1][n-1]</span>（右下）、<span class="mono">[n-1][0]</span>（左下）。顺时针转 90° 后，左上跑到右上、右上跑到右下、右下跑到左下、左下跑到左上——正好是一个四元素的循环。</p>
+
+      <div class="cyc">        top  = matrix[0][0]              # 暂存左上
+matrix[0][0]   = matrix[n-1][0]      # 左下 → 左上
+matrix[n-1][0] = matrix[n-1][n-1]    # 右下 → 左下
+matrix[n-1][n-1] = matrix[0][n-1]    # 右上 → 右下
+matrix[0][n-1] = top                 # 左上 → 右上</div>
+
+      <p>用一个临时变量 <span class="mono">top</span> 存住起点，其余三个依次“搬家”，最后把暂存值放回空出的位置。这四个角就一次转到位了。</p>
+
+      <p><span class="step-b">第 2 步 · 沿边滑动，加入 offset。</span>四个角只是最外环上的<b>一组</b>。外环的边上还有其它元素：把上边从左往右数第 <span class="mono">offset</span> 个格子作为新的“上”，它对应的另外三个位置也跟着偏移。把上面写死的 0 / n-1 换成带 offset 的通式：</p>
+
+      <div class="cyc">first, last = layer, n-1-layer
+top = matrix[first][first+offset]
+matrix[first][first+offset]       = matrix[last-offset][first]   # 左 → 上
+matrix[last-offset][first]        = matrix[last][last-offset]    # 下 → 左
+matrix[last][last-offset]         = matrix[first+offset][last]   # 右 → 下
+matrix[first+offset][last]        = top                          # 上 → 右</div>
+
+      <p>当 <span class="mono">offset=0</span> 时它就退化成第 1 步的四个角；让 <span class="mono">offset</span> 从 0 走到 <span class="mono">last-first-1</span>，就把这一整环都转完了。（代码里为了简洁，直接用循环变量 <span class="mono">k=first+offset</span> 代替，写成 <span class="mono">matrix[first][k]</span>、<span class="mono">matrix[k][last]</span>，与此处等价。）</p>
+
+      <p><span class="step-b">第 3 步 · 一圈套一圈。</span>外环转完，<span class="mono">layer++</span> 缩进一圈，对里面的小环重复同样的事，直到 <span class="mono">layer &lt; n/2</span> 结束。奇数阶最中心那一格是旋转中心，不动，自然被跳过。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="field"><span class="lab">matrix =</span><input type="text" id="input" value="1 2 3; 4 5 6; 7 8 9" spellcheck="false" placeholder="行用 ; 隔开，如 1 2 3; 4 5 6; 7 8 9"></div>
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-m="1 2; 3 4">2×2</span>
+      <span class="chip" data-m="1 2 3; 4 5 6; 7 8 9">3×3</span>
+      <span class="chip" data-m="5 1 9 11; 2 4 8 10; 13 3 6 7; 15 14 12 16">4×4</span>
+      <span class="chip" data-m="1 2 3 4 5; 6 7 8 9 10; 11 12 13 14 15; 16 17 18 19 20; 21 22 23 24 25">5×5</span>
+      <span class="chip" data-m="1">1×1</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">仅支持 n×n 方阵，n 为 1..6。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title" id="gridTitle">矩阵（黄色 = 正在交换的一对；蓝色 = 已完成）</div>
+    <div class="stage"><div class="grid-wrap" id="grid"></div></div>
+
+    <div class="vars">
+      <span class="box">阶段：<span class="phase-badge" id="vPhase">—</span></span>
+      <span class="box" id="vRingBox" style="display:none">当前环：<span class="phase-badge" id="vRing">—</span></span>
+    </div>
+
+    <div class="legend" id="legend">
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>正在交换（方法A）</span>
+      <span><span class="dot" style="background:#e0e7ff;border-color:#c7d2fe"></span>已完成</span>
+      <span><span class="dot" style="background:#eef0f4"></span>未处理</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:16px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或在上方载入一个矩阵。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Python / Java · 与本页动画一致）</summary>
+      <div class="code-tabs" id="codeTabs">
+        <span class="code-tab active" data-lang="Apy">方法A · Python</span>
+        <span class="code-tab" data-lang="Ajava">方法A · Java</span>
+        <span class="code-tab" data-lang="Bpy">方法B · Python</span>
+        <span class="code-tab" data-lang="Bjava">方法B · Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心（已离线对拍：两种方法结果均与暴力一致） ==== */
+(function (root) {
+  'use strict';
+  function parseMatrix(value) {
+    if (typeof value !== 'string') return null;
+    var rows = value.trim().split(/[;\n]+/).map(function (r) { return r.trim(); }).filter(Boolean);
+    if (!rows.length) return null;
+    var mat = [];
+    for (var i = 0; i < rows.length; i++) {
+      var cells = rows[i].split(/[,\s]+/).filter(Boolean);
+      var nums = [];
+      for (var k = 0; k < cells.length; k++) {
+        if (!/^-?\d+$/.test(cells[k])) return null;
+        nums.push(parseInt(cells[k], 10));
+      }
+      if (!nums.length) return null;
+      mat.push(nums);
+    }
+    var n = mat.length;
+    if (n < 1 || n > 6) return null;
+    for (var r = 0; r < n; r++) if (mat[r].length !== n) return null;
+    return mat;
+  }
+  function cloneMatrix(m) { return m.map(function (r) { return r.slice(); }); }
+
+  function buildStepsA(matrix) {
+    var n = matrix.length, mat = cloneMatrix(matrix), steps = [];
+    function snap(o) { steps.push({ mat: cloneMatrix(mat), phase: o.phase, hi: o.hi || [], msg: o.msg }); }
+    snap({ phase: 'init', msg: '方法 A：<b>转置 + 翻转每行</b>。第一步：沿主对角线转置，交换 mat[i][j] ↔ mat[j][i]（只处理 i&lt;j 的上三角）。' });
+    for (var i = 0; i < n; i++) {
+      for (var j = i + 1; j < n; j++) {
+        var tmp = mat[i][j]; mat[i][j] = mat[j][i]; mat[j][i] = tmp;
+        snap({ phase: 'transpose', hi: [{ r: i, c: j }, { r: j, c: i }],
+          msg: '转置：交换 mat[' + i + '][' + j + '] ↔ mat[' + j + '][' + i + ']，现在分别为 <b>' + mat[i][j] + '</b> 和 <b>' + mat[j][i] + '</b>。' });
+      }
+    }
+    snap({ phase: 'between', msg: '转置完成 ✓。第二步：把每一行左右翻转（双指针对称交换）。' });
+    for (var r = 0; r < n; r++) {
+      var lo = 0, hi2 = n - 1;
+      while (lo < hi2) {
+        var t2 = mat[r][lo]; mat[r][lo] = mat[r][hi2]; mat[r][hi2] = t2;
+        snap({ phase: 'reverse', hi: [{ r: r, c: lo }, { r: r, c: hi2 }],
+          msg: '翻转第 ' + r + ' 行：交换 mat[' + r + '][' + lo + '] ↔ mat[' + r + '][' + hi2 + ']，得 <b>' + mat[r][lo] + '</b> / <b>' + mat[r][hi2] + '</b>。' });
+        lo++; hi2--;
+      }
+    }
+    snap({ phase: 'done', msg: '✅ 方法 A 完成！转置 + 翻转，时间 O(n²)，额外空间 O(1)。' });
+    return steps;
+  }
+
+  function buildStepsB(matrix) {
+    var n = matrix.length, mat = cloneMatrix(matrix), steps = [];
+    function snap(o) { steps.push({ mat: cloneMatrix(mat), phase: o.phase, ring: (o.ring == null ? -1 : o.ring), hi: o.hi || [], msg: o.msg }); }
+    snap({ phase: 'init', ring: -1, msg: '方法 B：<b>四元素循环交换</b>。把矩阵分成 ⌊n/2⌋ 个同心环，从外到内逐层处理。每次取四个对称位置一次旋转到位。' });
+    var rings = Math.floor(n / 2);
+    for (var layer = 0; layer < rings; layer++) {
+      var last = n - 1 - layer;
+      snap({ phase: 'ring', ring: layer, msg: '开始处理第 ' + layer + ' 层（边界 ' + layer + ' ~ ' + last + '），共 ' + (last - layer) + ' 组四元素。' });
+      for (var k = layer; k < last; k++) {
+        var offset = k - layer;
+        var top = mat[layer][k], right = mat[k][last], bottom = mat[last][last - offset], left = mat[last - offset][layer];
+        mat[layer][k] = left; mat[k][last] = top; mat[last][last - offset] = right; mat[last - offset][layer] = bottom;
+        snap({ phase: 'swap', ring: layer,
+          hi: [{ r: layer, c: k }, { r: k, c: last }, { r: last, c: last - offset }, { r: last - offset, c: layer }],
+          msg: '四元素旋转（offset=' + offset + '）：' +
+               '[' + layer + '][' + k + ']=' + top + ' → 右；' +
+               '[' + k + '][' + last + ']=' + right + ' → 下；' +
+               '[' + last + '][' + (last-offset) + ']=' + bottom + ' → 左；' +
+               '[' + (last-offset) + '][' + layer + ']=' + left + ' → 上。' });
+      }
+    }
+    snap({ phase: 'done', ring: -1, msg: '✅ 方法 B 完成！每个元素恰好参与一次四元素交换，时间 O(n²)，额外空间 O(1)。' });
+    return steps;
+  }
+
+  root.ROT = { parseMatrix: parseMatrix, cloneMatrix: cloneMatrix, buildStepsA: buildStepsA, buildStepsB: buildStepsB };
+}(window));
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var ROT = window.ROT;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var gridWrap = $('grid'), vPhase = $('vPhase'), vRing = $('vRing'), vRingBox = $('vRingBox');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var matrix = null, steps = [], stepIdx = 0, playTimer = null, currentView = 'A';
+  var CELL = 56, GAP = 6;
+
+  Array.prototype.forEach.call(document.querySelectorAll('.view-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.view-tab'), function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      currentView = tab.dataset.view;
+      $('ideaA').style.display = currentView === 'A' ? '' : 'none';
+      $('ideaB').style.display = currentView === 'B' ? '' : 'none';
+      $('gridTitle').textContent = currentView === 'A'
+        ? '矩阵（黄色 = 正在交换的一对；蓝色 = 已完成）'
+        : '矩阵（绿色 = 四元素组；蓝色 = 已完成；紫色虚线框 = 当前环）';
+      updateLegend();
+      if (matrix) { stopPlay(); rebuildSteps(); }
+    };
+  });
+
+  function updateLegend() {
+    var leg = $('legend');
+    if (currentView === 'A') {
+      leg.innerHTML =
+        '<span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>正在交换</span>' +
+        '<span><span class="dot" style="background:#e0e7ff;border-color:#c7d2fe"></span>已完成</span>' +
+        '<span><span class="dot" style="background:#eef0f4"></span>未处理</span>';
+    } else {
+      leg.innerHTML =
+        '<span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>四元素组</span>' +
+        '<span><span class="dot" style="background:#e0e7ff;border-color:#c7d2fe"></span>已完成</span>' +
+        '<span><span class="dot" style="background:#eef0f4"></span>未处理</span>' +
+        '<span><span class="dot" style="border:2px dashed #6366f1;background:transparent"></span>当前环</span>';
+    }
+  }
+
+  function buildGrid(n) {
+    gridWrap.innerHTML = '';
+    ringFrameEl = null;
+    gridWrap.style.gridTemplateColumns = 'repeat(' + n + ', ' + CELL + 'px)';
+    for (var r = 0; r < n; r++)
+      for (var c = 0; c < n; c++) {
+        var cell = document.createElement('div');
+        cell.className = 'gcell'; cell.id = 'cell-' + r + '-' + c;
+        gridWrap.appendChild(cell);
+      }
+  }
+
+  var ringFrameEl = null;
+  function showRingFrame(layer, n) {
+    if (!ringFrameEl) { ringFrameEl = document.createElement('div'); ringFrameEl.className = 'ring-frame'; gridWrap.appendChild(ringFrameEl); }
+    var last = n - 1 - layer;
+    ringFrameEl.style.display = '';
+    ringFrameEl.style.left  = (layer * (CELL + GAP)) + 'px';
+    ringFrameEl.style.top   = (layer * (CELL + GAP)) + 'px';
+    ringFrameEl.style.width  = ((last - layer + 1) * (CELL + GAP) - GAP) + 'px';
+    ringFrameEl.style.height = ((last - layer + 1) * (CELL + GAP) - GAP) + 'px';
+  }
+  function hideRingFrame() { if (ringFrameEl) ringFrameEl.style.display = 'none'; }
+
+  function render() {
+    var step = steps[stepIdx], n = step.mat.length;
+    var hiSet = {};
+    step.hi.forEach(function (h) { hiSet[h.r + '-' + h.c] = true; });
+
+    var doneSet = {};
+    if (step.phase === 'done') {
+      for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) doneSet[r + '-' + c] = true;
+    } else if (currentView === 'A' && (step.phase === 'reverse' || step.phase === 'between')) {
+      for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) if (i !== j) doneSet[i + '-' + j] = true;
+    } else if (currentView === 'B' && step.phase === 'swap' && step.ring > 0) {
+      for (var layer = 0; layer < step.ring; layer++) {
+        var last = n - 1 - layer;
+        for (var ri = layer; ri <= last; ri++) for (var ci = layer; ci <= last; ci++)
+          if (ri === layer || ri === last || ci === layer || ci === last) doneSet[ri + '-' + ci] = true;
+      }
+    }
+
+    for (var r2 = 0; r2 < n; r2++) for (var c2 = 0; c2 < n; c2++) {
+      var cell = document.getElementById('cell-' + r2 + '-' + c2);
+      cell.textContent = step.mat[r2][c2];
+      var key = r2 + '-' + c2;
+      cell.className = 'gcell' + (hiSet[key] ? (currentView === 'B' ? ' swapB' : ' swapA') : doneSet[key] ? ' done' : '');
+    }
+
+    if (currentView === 'B' && (step.phase === 'ring' || step.phase === 'swap') && step.ring >= 0)
+      showRingFrame(step.ring, n);
+    else hideRingFrame();
+
+    var phaseNames = { init: '初始化', transpose: '转置中', between: '转置完成', reverse: '翻转行中', ring: '进入新环', swap: '四元素交换', done: '完成 ✅' };
+    vPhase.textContent = phaseNames[step.phase] || step.phase;
+    if (currentView === 'B' && step.ring >= 0) { vRingBox.style.display = ''; vRing.textContent = step.ring; }
+    else vRingBox.style.display = 'none';
+
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIdx === 0;
+    nextBtn.disabled = stepIdx === steps.length - 1;
+  }
+
+  function rebuildSteps() {
+    steps = currentView === 'A' ? ROT.buildStepsA(ROT.cloneMatrix(matrix)) : ROT.buildStepsB(ROT.cloneMatrix(matrix));
+    stepIdx = 0; buildGrid(matrix.length); render();
+  }
+
+  function renderStats() {
+    var n = matrix.length;
+    statsEl.innerHTML =
+      '<div class="stat">矩阵<b>' + n + ' × ' + n + '</b></div>' +
+      '<div class="stat">元素个数<b>' + (n * n) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n²)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+
+  function load(raw) {
+    var mat = ROT.parseMatrix(raw);
+    if (!mat) { errEl.textContent = '格式不对：行用 ; 隔开，必须是 n×n 方阵（n 为 1..6），如 1 2 3; 4 5 6; 7 8 9。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay();
+    matrix = mat; renderStats(); rebuildSteps();
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () { if (stepIdx >= steps.length - 1) { stopPlay(); return; } next(); }, 500);
+  }
+
+  $('nextBtn').onclick = function () { stopPlay(); next(); };
+  $('prevBtn').onclick = function () { stopPlay(); prev(); };
+  $('playBtn').onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.dataset.m; load(ch.dataset.m); };
+  });
+
+  var codes = {
+    Apy:
+'<span class="cmt"># Python · 方法A：转置 + 翻转每行 · O(n²) 时间 O(1) 空间</span>\n' +
+'class Solution:\n' +
+'    def rotate(self, matrix: List[List[int]]) -&gt; None:\n' +
+'        n = len(matrix)\n' +
+'        for i in range(n):                          <span class="cmt"># 转置：只处理上三角</span>\n' +
+'            for j in range(i + 1, n):\n' +
+'                matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]\n' +
+'        for row in matrix:                          <span class="cmt"># 翻转每行</span>\n' +
+'            row.reverse()',
+    Ajava:
+'<span class="cmt">// Java · 方法A：转置 + 翻转每行 · O(n²) 时间 O(1) 空间</span>\n' +
+'class Solution {\n' +
+'    public void rotate(int[][] matrix) {\n' +
+'        int n = matrix.length;\n' +
+'        for (int i = 0; i &lt; n; i++)               // 转置\n' +
+'            for (int j = i + 1; j &lt; n; j++) {\n' +
+'                int t = matrix[i][j]; matrix[i][j] = matrix[j][i]; matrix[j][i] = t;\n' +
+'            }\n' +
+'        for (int[] row : matrix) {                  // 翻转每行\n' +
+'            int lo = 0, hi = n - 1;\n' +
+'            while (lo &lt; hi) { int t = row[lo]; row[lo++] = row[hi]; row[hi--] = t; }\n' +
+'        }\n' +
+'    }\n' +
+'}',
+    Bpy:
+'<span class="cmt"># Python · 方法B：四元素循环交换 · O(n²) 时间 O(1) 空间</span>\n' +
+'class Solution:\n' +
+'    def rotate(self, matrix: List[List[int]]) -&gt; None:\n' +
+'        n = len(matrix)\n' +
+'        for layer in range(n // 2):\n' +
+'            last = n - 1 - layer\n' +
+'            for k in range(layer, last):\n' +
+'                offset = k - layer\n' +
+'                top = matrix[layer][k]\n' +
+'                matrix[layer][k]             = matrix[last-offset][layer]   <span class="cmt"># 左→上</span>\n' +
+'                matrix[last-offset][layer]   = matrix[last][last-offset]    <span class="cmt"># 下→左</span>\n' +
+'                matrix[last][last-offset]    = matrix[k][last]              <span class="cmt"># 右→下</span>\n' +
+'                matrix[k][last]              = top                          <span class="cmt"># 上→右</span>',
+    Bjava:
+'<span class="cmt">// Java · 方法B：四元素循环交换 · O(n²) 时间 O(1) 空间</span>\n' +
+'class Solution {\n' +
+'    public void rotate(int[][] matrix) {\n' +
+'        int n = matrix.length;\n' +
+'        for (int layer = 0; layer &lt; n / 2; layer++) {\n' +
+'            int last = n - 1 - layer;\n' +
+'            for (int k = layer; k &lt; last; k++) {\n' +
+'                int offset = k - layer, top = matrix[layer][k];\n' +
+'                matrix[layer][k]           = matrix[last-offset][layer];  <span class="cmt">// 左→上</span>\n' +
+'                matrix[last-offset][layer] = matrix[last][last-offset];   <span class="cmt">// 下→左</span>\n' +
+'                matrix[last][last-offset]  = matrix[k][last];             <span class="cmt">// 右→下</span>\n' +
+'                matrix[k][last]            = top;                         <span class="cmt">// 上→右</span>\n' +
+'            }\n' +
+'        }\n' +
+'    }\n' +
+'}'
+  };
+
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active'); codeBlock.innerHTML = codes[t.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes['Apy'];
+  updateLegend();
+  load(input.value);
+})();
+</script>
+</body>
+</html>
