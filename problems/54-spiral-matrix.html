@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="矩阵 · 模拟 · 收缩边界">
+<title>54. 螺旋矩阵 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; } .sub code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:240px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 160px; padding: 9px 12px; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; } .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  /* matrix grid */
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:20px; text-align:center; }
+  .grid-wrap { display:inline-grid; gap:6px; margin:0 auto; position:relative; }
+  .gcell {
+    position:relative; width:52px; height:48px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700; color:#334155;
+    background:#eef0f4; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .gcell .ord { position:absolute; top:2px; left:5px; font-size:10px; font-weight:700; color:#a5b4fc; }
+  .gcell.inside  { background:#fff; border-color:#e5e7eb; color:#475569; }   /* 未遍历、仍在边界内 */
+  .gcell.peeled  { background:#f1f5f9; border-color:#eef0f4; color:#cbd5e1; opacity:.55; } /* 边界外(已剥离层) */
+  .gcell.visited { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }
+  .gcell.visited .ord { color:#6366f1; }
+  .gcell.cur     { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.28); transform:scale(1.09); z-index:2; }
+  .gcell.cur .ord { color:#e0e7ff; }
+
+  /* boundary edges highlighting via outer frame */
+  .bframe { position:absolute; border:3px dashed #f59e0b; border-radius:8px; pointer-events:none; transition:all .2s; box-shadow:0 0 0 3px rgba(245,158,11,.12); }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 20px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars .box { padding:4px 10px; border-radius:7px; background:#f8fafc; border:1px solid #eef0f4; }
+  .vt { color:#0e7490; font-weight:700; } .vb { color:#be123c; font-weight:700; }
+  .vl { color:#7c3aed; font-weight:700; } .vr { color:#c2410c; font-weight:700; }
+  .dirbadge { font-weight:700; color:#4338ca; }
+
+  .resp { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:6px; min-height:34px; }
+  .resp .rc {
+    font-family:"SF Mono",Menlo,monospace; font-size:14px; font-weight:700; padding:5px 10px;
+    background:#e0e7ff; border:1px solid #c7d2fe; color:#3730a3; border-radius:7px;
+  }
+  .resp .rc.last { background:#6366f1; color:#fff; border-color:#4338ca; }
+  .resp .empty { color:#9ca3af; font-size:13px; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .status .vt,.status .vb,.status .vl,.status .vr { font-weight:700; }
+  .status .vt { color:#67e8f9; } .status .vb { color:#fda4af; } .status .vl { color:#c4b5fd; } .status .vr { color:#fdba74; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08);}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/spiral-matrix/" target="_blank" rel="noopener">LeetCode 54</a></span>
+  </div>
+
+  <h1>54. 螺旋矩阵 · 收缩边界动画</h1>
+  <div class="sub">按顺时针螺旋顺序返回矩阵所有元素。这里用<b>收缩边界法</b>：维护 <span class="vt">top</span> / <span class="vb">bottom</span> / <span class="vl">left</span> / <span class="vr">right</span> 四条边界圈住尚未遍历的区域，依次走「上→右→下→左」四条边，<b>每走完一条边就把对应边界向内收一格</b>。边界不断收缩，天然不会重复访问，因此<b>不需要 visited 集合</b>，额外空间 O(1)。</div>
+
+  <div class="card">
+    <div class="panel-title">思路要点</div>
+    <div class="idea">
+      <div class="s5"><div class="no">① 四边界</div><code>top/bottom</code> 夹住行范围，<code>left/right</code> 夹住列范围，圈内 = 未遍历。</div>
+      <div class="s5"><div class="no">② 走一条边收一格</div>上行 <code>→</code> 完 <code>top++</code>；右列 <code>↓</code> 完 <code>right--</code>；下行 <code>←</code> 完 <code>bottom--</code>；左列 <code>↑</code> 完 <code>left++</code>。</div>
+      <div class="s5"><div class="no">③ 防越界</div>走下行、左列前各判一次 <code>top≤bottom</code> / <code>left≤right</code>，避免奇数行列时重复走中间。</div>
+      <div class="s5"><div class="no">④ 终止</div>当 <code>top&gt;bottom</code> 或 <code>left&gt;right</code>（边界交叉），说明圈已缩没，结束。</div>
+      <div class="s5"><div class="no">⑤ 复杂度</div>每格恰好访问一次，时间 <code>O(m·n)</code>，额外空间 <code>O(1)</code>。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="field"><span class="lab">matrix =</span><input type="text" id="input" value="1 2 3 4; 5 6 7 8; 9 10 11 12" spellcheck="false" placeholder="行用 ; 隔开，元素用空格/逗号，如 1 2 3; 4 5 6; 7 8 9"></div>
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-m="1 2 3; 4 5 6; 7 8 9">3×3</span>
+      <span class="chip" data-m="1 2 3 4; 5 6 7 8; 9 10 11 12">3×4</span>
+      <span class="chip" data-m="1 2 3 4 5">单行 1×5</span>
+      <span class="chip" data-m="1; 2; 3; 4">单列 4×1</span>
+      <span class="chip" data-m="1 2; 3 4; 5 6; 7 8">4×2</span>
+      <span class="chip" data-m="1 2 3 4 5; 6 7 8 9 10; 11 12 13 14 15; 16 17 18 19 20; 21 22 23 24 25">5×5</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持整数矩阵，行列各 1..8（动画清晰度上限）。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">矩阵（橙色虚线框 = 当前四边界圈住的未遍历区域；蓝格 = 已输出；紫格 = 当前）</div>
+    <div class="stage"><div class="grid-wrap" id="grid"></div></div>
+
+    <div class="vars">
+      <span class="box"><span class="vt">top</span> = <b id="vTop">—</b></span>
+      <span class="box"><span class="vb">bottom</span> = <b id="vBottom">—</b></span>
+      <span class="box"><span class="vl">left</span> = <b id="vLeft">—</b></span>
+      <span class="box"><span class="vr">right</span> = <b id="vRight">—</b></span>
+      <span class="box">当前方向 = <span class="dirbadge" id="vDir">—</span></span>
+    </div>
+
+    <div class="panel-title" style="margin-top:16px;">输出 resp（螺旋顺序）</div>
+    <div class="resp" id="resp"></div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前格</span>
+      <span><span class="dot" style="background:#e0e7ff;border-color:#c7d2fe"></span>已输出</span>
+      <span><span class="dot" style="background:#fff;border-color:#e5e7eb"></span>未遍历（边界内）</span>
+      <span><span class="dot" style="background:#f1f5f9"></span>已剥离层（边界外）</span>
+      <span><span class="dot" style="border:2px dashed #f59e0b;background:transparent"></span>当前边界框</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:16px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始，或在上方载入一个矩阵。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（Python / Java · 与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心（已离线对拍：输出顺序与暴力一致） ==== */
+(function (root) {
+  'use strict';
+  function parseMatrix(value) {
+    if (typeof value !== 'string') return null;
+    var rows = value.trim().split(/[;\n]+/).map(function (r) { return r.trim(); }).filter(function (r) { return r.length; });
+    if (!rows.length) return null;
+    var mat = [], width = null;
+    for (var i = 0; i < rows.length; i++) {
+      var cells = rows[i].split(/[,\s]+/).filter(function (x) { return x.length; });
+      var nums = [];
+      for (var k = 0; k < cells.length; k++) { if (!/^-?\d+$/.test(cells[k])) return null; nums.push(parseInt(cells[k], 10)); }
+      if (!nums.length) return null;
+      if (width === null) width = nums.length; else if (nums.length !== width) return null;
+      mat.push(nums);
+    }
+    if (mat.length > 8 || width > 8) return null;
+    return mat;
+  }
+  function spiralOrder(matrix) {
+    var res = [];
+    if (!matrix || !matrix.length) return res;
+    var top = 0, bottom = matrix.length - 1, left = 0, right = matrix[0].length - 1;
+    while (top <= bottom && left <= right) {
+      for (var c = left; c <= right; c++) res.push(matrix[top][c]); top++;
+      for (var r = top; r <= bottom; r++) res.push(matrix[r][right]); right--;
+      if (top <= bottom) { for (var c2 = right; c2 >= left; c2--) res.push(matrix[bottom][c2]); bottom--; }
+      if (left <= right) { for (var r2 = bottom; r2 >= top; r2--) res.push(matrix[r2][left]); left++; }
+    }
+    return res;
+  }
+  var DIR = ['→', '↓', '←', '↑'];
+  function buildSteps(matrix) {
+    var m = matrix.length, n = matrix[0].length;
+    var top = 0, bottom = m - 1, left = 0, right = n - 1;
+    var steps = [], order = [];
+    function bnd() { return { top: top, bottom: bottom, left: left, right: right }; }
+    function snap(o) {
+      steps.push({
+        order: order.map(function (x) { return { r: x.r, c: x.c }; }),
+        cur: o.cur || null, dir: (o.dir == null ? -1 : o.dir), bounds: bnd(),
+        resp: order.map(function (x) { return x.val; }), msg: o.msg
+      });
+    }
+    snap({ msg: '用四条边界圈住未遍历区域：<span class="vt">top=' + top + '</span>、<span class="vb">bottom=' + bottom + '</span>、<span class="vl">left=' + left + '</span>、<span class="vr">right=' + right + '</span>。每走完一条边就把对应边界向内收一格，圈子越缩越小，天然不重复、无需 visited。' });
+    function visit(r, c, dir, note) { order.push({ r: r, c: c, val: matrix[r][c] }); snap({ cur: { r: r, c: c }, dir: dir, msg: note }); }
+    while (top <= bottom && left <= right) {
+      for (var c = left; c <= right; c++) visit(top, c, 0, '沿<span class="op">上边界 →</span> 走：取 matrix[' + top + '][' + c + '] = <b>' + matrix[top][c] + '</b>。');
+      top++; snap({ dir: 0, msg: '上边界这一行走完 → <span class="vt">top 下移到 ' + top + '</span>。' });
+      if (top > bottom || left > right) break;
+      for (var r = top; r <= bottom; r++) visit(r, right, 1, '沿<span class="op">右边界 ↓</span> 走：取 matrix[' + r + '][' + right + '] = <b>' + matrix[r][right] + '</b>。');
+      right--; snap({ dir: 1, msg: '右边界这一列走完 → <span class="vr">right 左移到 ' + right + '</span>。' });
+      if (top > bottom || left > right) break;
+      if (top <= bottom) {
+        for (var c2 = right; c2 >= left; c2--) visit(bottom, c2, 2, '沿<span class="op">下边界 ←</span> 走：取 matrix[' + bottom + '][' + c2 + '] = <b>' + matrix[bottom][c2] + '</b>。');
+        bottom--; snap({ dir: 2, msg: '下边界这一行走完 → <span class="vb">bottom 上移到 ' + bottom + '</span>。' });
+      }
+      if (top > bottom || left > right) break;
+      if (left <= right) {
+        for (var r2 = bottom; r2 >= top; r2--) visit(r2, left, 3, '沿<span class="op">左边界 ↑</span> 走：取 matrix[' + r2 + '][' + left + '] = <b>' + matrix[r2][left] + '</b>。');
+        left++; snap({ dir: 3, msg: '左边界这一列走完 → <span class="vl">left 右移到 ' + left + '</span>。' });
+      }
+    }
+    snap({ msg: '✅ 遍历完成，边界交叉（top&gt;bottom 或 left&gt;right）循环结束。共输出 <b>' + order.length + '</b> 个数：[' + order.map(function (x) { return x.val; }).join(', ') + ']。' });
+    return steps;
+  }
+  root.SP = { parseMatrix: parseMatrix, spiralOrder: spiralOrder, buildSteps: buildSteps, DIR: DIR };
+}(window));
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var SP = window.SP;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var gridWrap = $('grid'), respEl = $('resp');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var vTop = $('vTop'), vBottom = $('vBottom'), vLeft = $('vLeft'), vRight = $('vRight'), vDir = $('vDir');
+  var CELL = 52, GAP = 6;
+
+  var matrix = [], steps = [], stepIdx = 0, playTimer = null, cellEls = [], bframe = null;
+
+  function showError(m) { errEl.textContent = m; errEl.classList.add('show'); }
+  function clearError() { errEl.classList.remove('show'); }
+  function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; } }
+
+  function buildGrid() {
+    gridWrap.innerHTML = '';
+    var m = matrix.length, n = matrix[0].length;
+    gridWrap.style.gridTemplateColumns = 'repeat(' + n + ', ' + CELL + 'px)';
+    cellEls = [];
+    for (var r = 0; r < m; r++) {
+      var row = [];
+      for (var c = 0; c < n; c++) {
+        var d = document.createElement('div');
+        d.className = 'gcell inside';
+        var ord = document.createElement('span'); ord.className = 'ord'; ord.textContent = '';
+        var val = document.createElement('span'); val.textContent = matrix[r][c];
+        d.appendChild(ord); d.appendChild(val);
+        gridWrap.appendChild(d);
+        row.push({ el: d, ord: ord });
+      }
+      cellEls.push(row);
+    }
+    bframe = document.createElement('div'); bframe.className = 'bframe';
+    gridWrap.appendChild(bframe);
+  }
+
+  function orderIndexMap(step) {
+    var map = {};
+    for (var i = 0; i < step.order.length; i++) map[step.order[i].r + '_' + step.order[i].c] = i + 1;
+    return map;
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    if (!step) return;
+    var b = step.bounds, oi = orderIndexMap(step);
+    var m = matrix.length, n = matrix[0].length;
+    for (var r = 0; r < m; r++) for (var c = 0; c < n; c++) {
+      var ref = cellEls[r][c], cls = 'gcell', key = r + '_' + c;
+      var isCur = step.cur && step.cur.r === r && step.cur.c === c;
+      var visitedIdx = oi[key];
+      if (isCur) cls += ' cur';
+      else if (visitedIdx) cls += ' visited';
+      else if (r < b.top || r > b.bottom || c < b.left || c > b.right) cls += ' peeled';
+      else cls += ' inside';
+      ref.el.className = cls;
+      ref.ord.textContent = (visitedIdx && !isCur) ? visitedIdx : (isCur ? visitedIdx || '' : '');
+    }
+    // boundary frame
+    if (b.top <= b.bottom && b.left <= b.right) {
+      bframe.style.display = 'block';
+      bframe.style.left = (b.left * (CELL + GAP) - 4) + 'px';
+      bframe.style.top = (b.top * (CELL + GAP) - 4) + 'px';
+      bframe.style.width = ((b.right - b.left + 1) * CELL + (b.right - b.left) * GAP + 8) + 'px';
+      bframe.style.height = ((b.bottom - b.top + 1) * CELL + (b.bottom - b.top) * GAP + 8) + 'px';
+    } else { bframe.style.display = 'none'; }
+
+    vTop.textContent = b.top; vBottom.textContent = b.bottom; vLeft.textContent = b.left; vRight.textContent = b.right;
+    vDir.textContent = step.dir >= 0 ? SP.DIR[step.dir] : '—';
+
+    // resp
+    respEl.innerHTML = '';
+    if (!step.resp.length) { var e = document.createElement('span'); e.className = 'empty'; e.textContent = '（空）'; respEl.appendChild(e); }
+    else step.resp.forEach(function (v, i) {
+      var s = document.createElement('span'); s.className = 'rc' + (i === step.resp.length - 1 && step.cur ? ' last' : '');
+      s.textContent = v; respEl.appendChild(s);
+    });
+
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = (stepIdx === 0);
+    nextBtn.disabled = (stepIdx === steps.length - 1);
+  }
+
+  function renderStats() {
+    var m = matrix.length, n = matrix[0].length;
+    statsEl.innerHTML =
+      '<div class="stat">矩阵<b>' + m + ' × ' + n + '</b></div>' +
+      '<div class="stat">元素个数<b>' + (m * n) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(m·n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+
+  function load(raw) {
+    var mat = SP.parseMatrix(raw);
+    if (mat === null) { showError('矩阵格式不对：行用 ; 隔开、元素用空格或逗号，必须是矩形整数矩阵，行列各 1..8。例如 1 2 3; 4 5 6; 7 8 9。当前动画保持不变。'); return false; }
+    clearError(); stopPlay();
+    matrix = mat;
+    steps = SP.buildSteps(matrix);
+    stepIdx = 0;
+    buildGrid();
+    renderStats();
+    render();
+    return true;
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () { if (stepIdx >= steps.length - 1) { stopPlay(); return; } next(); }, 480);
+  }
+
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.dataset.m; load(ch.dataset.m); };
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># Python · 收缩边界 · 时间 O(m·n) 空间 O(1)</span>\n' +
+'class Solution:\n' +
+'    def spiralOrder(self, matrix: List[List[int]]) -&gt; List[int]:\n' +
+'        res = []\n' +
+'        top, bottom = 0, len(matrix) - 1\n' +
+'        left, right = 0, len(matrix[0]) - 1\n' +
+'        while top &lt;= bottom and left &lt;= right:\n' +
+'            for c in range(left, right + 1):      res.append(matrix[top][c])   <span class="cmt"># 上边 →</span>\n' +
+'            top += 1\n' +
+'            for r in range(top, bottom + 1):      res.append(matrix[r][right]) <span class="cmt"># 右边 ↓</span>\n' +
+'            right -= 1\n' +
+'            if top &lt;= bottom:                                                 <span class="cmt"># 防重复走中间行</span>\n' +
+'                for c in range(right, left - 1, -1): res.append(matrix[bottom][c]) <span class="cmt"># 下边 ←</span>\n' +
+'                bottom -= 1\n' +
+'            if left &lt;= right:                                                 <span class="cmt"># 防重复走中间列</span>\n' +
+'                for r in range(bottom, top - 1, -1): res.append(matrix[r][left])   <span class="cmt"># 左边 ↑</span>\n' +
+'                left += 1\n' +
+'        return res',
+    java:
+'<span class="cmt">// Java · 收缩边界 · 时间 O(m·n) 空间 O(1)</span>\n' +
+'class Solution {\n' +
+'    public List&lt;Integer&gt; spiralOrder(int[][] matrix) {\n' +
+'        List&lt;Integer&gt; res = new ArrayList&lt;&gt;();\n' +
+'        int top = 0, bottom = matrix.length - 1;\n' +
+'        int left = 0, right = matrix[0].length - 1;\n' +
+'        while (top &lt;= bottom &amp;&amp; left &lt;= right) {\n' +
+'            for (int c = left; c &lt;= right; c++)  res.add(matrix[top][c]);    <span class="cmt">// 上 →</span>\n' +
+'            top++;\n' +
+'            for (int r = top; r &lt;= bottom; r++)  res.add(matrix[r][right]);  <span class="cmt">// 右 ↓</span>\n' +
+'            right--;\n' +
+'            if (top &lt;= bottom) {\n' +
+'                for (int c = right; c &gt;= left; c--) res.add(matrix[bottom][c]); <span class="cmt">// 下 ←</span>\n' +
+'                bottom--;\n' +
+'            }\n' +
+'            if (left &lt;= right) {\n' +
+'                for (int r = bottom; r &gt;= top; r--) res.add(matrix[r][left]);   <span class="cmt">// 左 ↑</span>\n' +
+'                left++;\n' +
+'            }\n' +
+'        }\n' +
+'        return res;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  function showCode(lang) { codeBlock.innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active'); showCode(t.dataset.lang);
+    };
+  });
+  showCode('py');
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
