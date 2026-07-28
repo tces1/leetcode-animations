@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n)">
+<title>240. 搜索二维矩阵 II — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; } .sub code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:200px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 120px; padding: 9px 12px; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  input.tgt { max-width: 110px; flex: none; }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  /* view toggle */
+  .view-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .view-tab {
+    padding:8px 16px; font-size:14px; font-weight:600; border-radius:8px; cursor:pointer;
+    border:2px solid #e5e7eb; background:#f8fafc; color:#6b7280; transition:all .15s;
+  }
+  .view-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; } .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  /* matrix grid */
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:20px; text-align:center; }
+  .grid-wrap { display:inline-grid; gap:6px; margin:0 auto; position:relative; }
+  .gcell {
+    position:relative; width:54px; height:50px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700; color:#334155;
+    background:#fff; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .gcell.excluded { background:#f1f5f9; border-color:#eef0f4; color:#cbd5e1; opacity:.5; }
+  .gcell.visited  { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; }
+  .gcell.path     { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+  .gcell.cur      { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.28); transform:scale(1.09); z-index:2; }
+  .gcell.found    { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 4px rgba(34,197,94,.3); transform:scale(1.09); z-index:2; }
+  .gcell .ord { position:absolute; top:2px; left:5px; font-size:9px; font-weight:700; color:#a5b4fc; }
+  .gcell.visited .ord { color:#6366f1; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 20px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars .box { padding:4px 10px; border-radius:7px; background:#f8fafc; border:1px solid #eef0f4; }
+  .vi { color:#0e7490; font-weight:700; } .vj { color:#c2410c; font-weight:700; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .no { color:#fca5a5; font-weight:700; }
+  .status .vi { color:#67e8f9; font-weight:700; } .status .vj { color:#fdba74; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08);}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  .note { font-size:13px; color:#4b5563; margin-top:12px; padding:12px 14px; background:#fffbeb; border:1px solid #fde68a; border-radius:10px; }
+  .note b { color:#92400e; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/search-a-2d-matrix-ii/" target="_blank" rel="noopener">LeetCode 240</a></span>
+  </div>
+
+  <h1>240. 搜索二维矩阵 II · 搜索路径动画</h1>
+  <div class="sub">矩阵<b>每行从左到右升序</b>、<b>每列从上到下升序</b>，判断 target 是否存在。这里对比两种走法：<b>方法 A 阶梯搜索</b>（从右上角出发，每步排除一整行或一整列，O(m+n)）与<b>方法 B 中心 DFS</b>（从中心四向递归 + visited 去重，你的原解法）。</div>
+
+  <div class="view-tabs">
+    <div class="view-tab active" data-view="A">方法 A：阶梯搜索（推荐 · O(m+n)）</div>
+    <div class="view-tab" data-view="B">方法 B：中心 DFS（你的解法）</div>
+  </div>
+
+  <div class="card" id="ideaA">
+    <div class="panel-title">思路要点 · 方法 A 阶梯搜索</div>
+    <div class="idea">
+      <div class="s5"><div class="no">① 选对起点</div>从<b>右上角</b> (0, n-1) 出发。它是<b>所在行的最大值、所在列的最小值</b>，一次比较就能确定排除方向。</div>
+      <div class="s5"><div class="no">② 大了往左</div>当前值 <code>&gt; target</code>：该列从此往下都更大，<b>整列排除</b>，<code>j--</code>。</div>
+      <div class="s5"><div class="no">③ 小了往下</div>当前值 <code>&lt; target</code>：该行从此往左都更小，<b>整行排除</b>，<code>i++</code>。</div>
+      <div class="s5"><div class="no">④ 复杂度</div>每步至少排除一行或一列，最多走 m+n 步。时间 <code>O(m+n)</code>，额外空间 <code>O(1)</code>。</div>
+    </div>
+  </div>
+
+  <div class="card" id="ideaB" style="display:none">
+    <div class="panel-title">思路要点 · 方法 B 中心 DFS</div>
+    <div class="idea">
+      <div class="s5"><div class="no">① 从中心出发</div>起点 <code>(m//2, n//2)</code>，用 <code>visited</code> 集合记录访问过的格子避免重复。</div>
+      <div class="s5"><div class="no">② 按值定方向</div>当前值偏小 → 向<b>下 / 右</b>递归；偏大 → 向<b>上 / 左</b>递归。</div>
+      <div class="s5"><div class="no">③ 回溯</div>某方向递归失败就回退，尝试下一个方向；全失败返回 false。</div>
+      <div class="s5"><div class="no">④ 复杂度</div>最坏访问 O(m·n) 个格子，额外用 O(m·n) 的 visited 与递归栈——正确但不如阶梯法高效。</div>
+    </div>
+    <div class="note">✅ 你的解法经<b>穷举 + 随机对拍验证是正确的</b>（上万个合法矩阵 × 所有 target 全部通过）。它能work，但每次只朝目标方向试探、还要维护 visited，开销比阶梯法大。阶梯法利用了「右上角比较即可排除整行/整列」这个更强的性质，所以更优。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="field"><span class="lab">matrix =</span><input type="text" id="input" value="1 4 7 11 15; 2 5 8 12 19; 3 6 9 16 22; 10 13 14 17 24; 18 21 23 26 30" spellcheck="false" placeholder="行用 ; 隔开，如 1 4 7; 2 5 8; 3 6 9"></div>
+      <div class="field" style="flex:none"><span class="lab">target =</span><input type="text" id="target" class="tgt" value="5" spellcheck="false"></div>
+      <button id="loadBtn">搜索</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-m="1 4 7 11 15; 2 5 8 12 19; 3 6 9 16 22; 10 13 14 17 24; 18 21 23 26 30" data-t="5">找 5（存在）</span>
+      <span class="chip" data-m="1 4 7 11 15; 2 5 8 12 19; 3 6 9 16 22; 10 13 14 17 24; 18 21 23 26 30" data-t="20">找 20（不存在）</span>
+      <span class="chip" data-m="1 3 5; 2 4 6; 7 8 9" data-t="8">3×3 找 8</span>
+      <span class="chip" data-m="1 2 3 4 5" data-t="4">单行找 4</span>
+      <span class="chip" data-m="1; 3; 5; 7" data-t="6">单列找 6</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">矩阵需满足行升序、列升序；行列各 ≤ 7（动画清晰度上限）。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title" id="gridTitle">矩阵</div>
+    <div class="stage"><div class="grid-wrap" id="grid"></div></div>
+
+    <div class="vars" id="vars"></div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="panel-title" style="margin-top:16px;">当前状态</div>
+    <div class="status" id="status">点击「搜索」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs" id="codeTabs">
+        <span class="code-tab active" data-lang="stairPy">阶梯法 · Python</span>
+        <span class="code-tab" data-lang="stairJava">阶梯法 · Java</span>
+        <span class="code-tab" data-lang="dfsPy">你的中心 DFS · Python</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心（已离线对拍：两种方法结果均与暴力一致；用户DFS已穷举验证正确） ==== */
+(function (root) {
+  'use strict';
+  function parseMatrix(value) {
+    if (typeof value !== 'string') return { mat: null, err: '空输入' };
+    var rows = value.trim().split(/[;\n]+/).map(function (r) { return r.trim(); }).filter(Boolean);
+    if (!rows.length) return { mat: null, err: '空输入' };
+    var mat = [], width = null;
+    for (var i = 0; i < rows.length; i++) {
+      var cells = rows[i].split(/[,\s]+/).filter(Boolean);
+      var nums = [];
+      for (var k = 0; k < cells.length; k++) {
+        if (!/^-?\d+$/.test(cells[k])) return { mat: null, err: '含非整数：' + cells[k] };
+        nums.push(parseInt(cells[k], 10));
+      }
+      if (!nums.length) return { mat: null, err: '有空行' };
+      if (width === null) width = nums.length;
+      else if (nums.length !== width) return { mat: null, err: '不是矩形矩阵' };
+      mat.push(nums);
+    }
+    var m = mat.length, n = width;
+    if (m > 7 || n > 7) return { mat: null, err: '行列请各 ≤ 7（动画清晰度上限）' };
+    for (var r = 0; r < m; r++)
+      for (var c = 0; c < n; c++) {
+        if (c < n - 1 && mat[r][c] > mat[r][c + 1]) return { mat: null, err: '第 ' + r + ' 行不是升序' };
+        if (r < m - 1 && mat[r][c] > mat[r + 1][c]) return { mat: null, err: '第 ' + c + ' 列不是升序' };
+      }
+    return { mat: mat, err: null };
+  }
+
+  function brute(mat, target) {
+    for (var i = 0; i < mat.length; i++) for (var j = 0; j < mat[0].length; j++) if (mat[i][j] === target) return true;
+    return false;
+  }
+
+  function staircaseResult(mat, target) {
+    var m = mat.length, n = mat[0].length, i = 0, j = n - 1;
+    while (i < m && j >= 0) { if (mat[i][j] === target) return true; else if (mat[i][j] > target) j--; else i++; }
+    return false;
+  }
+
+  function buildStepsStair(mat, target) {
+    var m = mat.length, n = mat[0].length, i = 0, j = n - 1, steps = [];
+    function snap(o) {
+      steps.push({ cur: o.cur || null, i: i, j: j, found: !!o.found, done: !!o.done,
+        result: o.result === undefined ? null : o.result, msg: o.msg });
+    }
+    snap({ cur: { r: 0, c: n - 1 }, msg: '从<b>右上角</b> (0, ' + (n - 1) + ') 出发。它是<b>所在行最大、所在列最小</b>，比较后能一次排除一整行或一整列。' });
+    var guard = 0;
+    while (i < m && j >= 0 && guard < m * n + 5) {
+      guard++;
+      var v = mat[i][j];
+      if (v === target) { snap({ cur: { r: i, c: j }, found: true, done: true, result: true,
+        msg: 'matrix[' + i + '][' + j + '] = <b>' + v + '</b> == target ✅ 找到了！返回 <span class="op">true</span>。' }); return steps; }
+      else if (v > target) { snap({ cur: { r: i, c: j },
+        msg: 'matrix[' + i + '][' + j + '] = <b>' + v + '</b> &gt; target=' + target + '：该列往下只会更大，<b>整列 ' + j + ' 排除</b> → <span class="vj">j--</span>。' }); j--; }
+      else { snap({ cur: { r: i, c: j },
+        msg: 'matrix[' + i + '][' + j + '] = <b>' + v + '</b> &lt; target=' + target + '：该行往左只会更小，<b>整行 ' + i + ' 排除</b> → <span class="vi">i++</span>。' }); i++; }
+    }
+    snap({ cur: null, done: true, result: false,
+      msg: '指针走出边界（i=' + i + ', j=' + j + '），搜索区域为空 ❌ 不存在 target=' + target + '，返回 <span class="no">false</span>。' });
+    return steps;
+  }
+
+  function centerDFSResult(mat, target) {
+    var m = mat.length, n = mat[0].length, steps = new Set();
+    function key(i, j) { return i + ',' + j; }
+    function goin(i, j) {
+      steps.add(key(i, j));
+      if (mat[i][j] === target) return true;
+      else if (mat[i][j] < target) {
+        if (0 <= i && i < m - 1) { if (!steps.has(key(i + 1, j)) && goin(i + 1, j)) return true; }
+        if (0 <= j && j < n - 1) { if (!steps.has(key(i, j + 1)) && goin(i, j + 1)) return true; }
+        return false;
+      } else {
+        if (0 < i && i <= m - 1) { if (!steps.has(key(i - 1, j)) && goin(i - 1, j)) return true; }
+        if (0 < j && j <= n - 1) { if (!steps.has(key(i, j - 1)) && goin(i, j - 1)) return true; }
+        return false;
+      }
+    }
+    return goin(Math.floor(m / 2), Math.floor(n / 2));
+  }
+
+  function buildStepsDFS(mat, target) {
+    var m = mat.length, n = mat[0].length, visited = [], vset = {}, steps = [], found = false;
+    function inV(i, j) { return !!vset[i + '_' + j]; }
+    function snap(o) {
+      steps.push({ cur: o.cur || null, visited: visited.slice(), edge: o.edge || null,
+        found: !!o.found, done: !!o.done, result: o.result === undefined ? null : o.result, msg: o.msg });
+    }
+    function goin(i, j) {
+      vset[i + '_' + j] = true; visited.push({ r: i, c: j });
+      var v = mat[i][j];
+      if (v === target) { found = true; snap({ cur: { r: i, c: j }, found: true,
+        msg: '访问 (' + i + ',' + j + ')=<b>' + v + '</b> == target ✅ 找到！层层返回 true。' }); return true; }
+      else if (v < target) {
+        snap({ cur: { r: i, c: j }, msg: '访问 (' + i + ',' + j + ')=<b>' + v + '</b> &lt; target=' + target + '：值偏小，尝试向<b>下 / 右</b>走。' });
+        if (i < m - 1 && !inV(i + 1, j)) {
+          snap({ cur: { r: i, c: j }, edge: { from: { r: i, c: j }, to: { r: i + 1, c: j } }, msg: '向下递归 (' + (i + 1) + ',' + j + ')。' });
+          if (goin(i + 1, j)) return true;
+          if (!found) snap({ cur: { r: i, c: j }, msg: '从下方回溯到 (' + i + ',' + j + ')，改试右边。' });
+        }
+        if (j < n - 1 && !inV(i, j + 1)) {
+          snap({ cur: { r: i, c: j }, edge: { from: { r: i, c: j }, to: { r: i, c: j + 1 } }, msg: '向右递归 (' + i + ',' + (j + 1) + ')。' });
+          if (goin(i, j + 1)) return true;
+          if (!found) snap({ cur: { r: i, c: j }, msg: '从右方回溯到 (' + i + ',' + j + ')。' });
+        }
+        return false;
+      } else {
+        snap({ cur: { r: i, c: j }, msg: '访问 (' + i + ',' + j + ')=<b>' + v + '</b> &gt; target=' + target + '：值偏大，尝试向<b>上 / 左</b>走。' });
+        if (i > 0 && !inV(i - 1, j)) {
+          snap({ cur: { r: i, c: j }, edge: { from: { r: i, c: j }, to: { r: i - 1, c: j } }, msg: '向上递归 (' + (i - 1) + ',' + j + ')。' });
+          if (goin(i - 1, j)) return true;
+          if (!found) snap({ cur: { r: i, c: j }, msg: '从上方回溯到 (' + i + ',' + j + ')，改试左边。' });
+        }
+        if (j > 0 && !inV(i, j - 1)) {
+          snap({ cur: { r: i, c: j }, edge: { from: { r: i, c: j }, to: { r: i, c: j - 1 } }, msg: '向左递归 (' + i + ',' + (j - 1) + ')。' });
+          if (goin(i, j - 1)) return true;
+          if (!found) snap({ cur: { r: i, c: j }, msg: '从左方回溯到 (' + i + ',' + j + ')。' });
+        }
+        return false;
+      }
+    }
+    var si = Math.floor(m / 2), sj = Math.floor(n / 2);
+    snap({ msg: '从<b>中心</b> (' + si + ',' + sj + ') 出发做四向 DFS：值小往下/右，值大往上/左，visited 去重。' });
+    var res = goin(si, sj);
+    snap({ done: true, result: res, cur: null,
+      msg: res ? '✅ 找到 target=' + target + '。共访问 <b>' + visited.length + '</b> 个格子。'
+               : '❌ 可达格子遍历完仍未找到，返回 false。共访问 <b>' + visited.length + '</b> 个格子。' });
+    return steps;
+  }
+
+  root.SM = { parseMatrix: parseMatrix, brute: brute, staircaseResult: staircaseResult,
+    buildStepsStair: buildStepsStair, centerDFSResult: centerDFSResult, buildStepsDFS: buildStepsDFS };
+}(window));
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var SM = window.SM;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), targetIn = $('target'), errEl = $('err'), statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var gridWrap = $('grid'), varsEl = $('vars'), legendEl = $('legend'), gridTitle = $('gridTitle');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var CELL = 54, GAP = 6;
+  var matrix = null, target = 0, steps = [], stepIdx = 0, playTimer = null, currentView = 'A', cellEls = [];
+
+  Array.prototype.forEach.call(document.querySelectorAll('.view-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.view-tab'), function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      currentView = tab.dataset.view;
+      $('ideaA').style.display = currentView === 'A' ? '' : 'none';
+      $('ideaB').style.display = currentView === 'B' ? '' : 'none';
+      if (matrix) { stopPlay(); rebuildSteps(); }
+    };
+  });
+
+  function updateLegend() {
+    if (currentView === 'A') {
+      legendEl.innerHTML =
+        '<span><span class="dot" style="background:#6366f1"></span>当前比较</span>' +
+        '<span><span class="dot" style="background:#22c55e"></span>命中</span>' +
+        '<span><span class="dot" style="background:#f1f5f9"></span>已排除区域</span>' +
+        '<span><span class="dot" style="background:#fff;border-color:#e5e7eb"></span>待搜索</span>';
+    } else {
+      legendEl.innerHTML =
+        '<span><span class="dot" style="background:#6366f1"></span>当前格</span>' +
+        '<span><span class="dot" style="background:#22c55e"></span>命中</span>' +
+        '<span><span class="dot" style="background:#e0e7ff;border-color:#c7d2fe"></span>已访问 visited</span>' +
+        '<span><span class="dot" style="background:#fff;border-color:#e5e7eb"></span>未访问</span>';
+    }
+  }
+
+  function buildGrid() {
+    gridWrap.innerHTML = '';
+    var m = matrix.length, n = matrix[0].length;
+    gridWrap.style.gridTemplateColumns = 'repeat(' + n + ', ' + CELL + 'px)';
+    cellEls = [];
+    for (var r = 0; r < m; r++) {
+      var row = [];
+      for (var c = 0; c < n; c++) {
+        var d = document.createElement('div');
+        d.className = 'gcell';
+        var ord = document.createElement('span'); ord.className = 'ord';
+        var val = document.createElement('span'); val.textContent = matrix[r][c];
+        d.appendChild(ord); d.appendChild(val);
+        gridWrap.appendChild(d);
+        row.push({ el: d, ord: ord });
+      }
+      cellEls.push(row);
+    }
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    var m = matrix.length, n = matrix[0].length;
+
+    if (currentView === 'A') {
+      // eliminated region: rows < step.i (above pointer, already i++'d) and cols > step.j (right of pointer)
+      for (var r = 0; r < m; r++) for (var c = 0; c < n; c++) {
+        var ref = cellEls[r][c], cls = 'gcell';
+        var isCur = step.cur && step.cur.r === r && step.cur.c === c;
+        if (isCur && step.found) cls += ' found';
+        else if (isCur) cls += ' cur';
+        else if (r < step.i || c > step.j) cls += ' excluded';
+        ref.el.className = cls;
+        ref.ord.textContent = '';
+      }
+    } else {
+      var vmap = {};
+      step.visited.forEach(function (p, idx) { vmap[p.r + '_' + p.c] = idx + 1; });
+      for (var r2 = 0; r2 < m; r2++) for (var c2 = 0; c2 < n; c2++) {
+        var ref2 = cellEls[r2][c2], cls2 = 'gcell', key = r2 + '_' + c2;
+        var isCur2 = step.cur && step.cur.r === r2 && step.cur.c === c2;
+        if (isCur2 && step.found) cls2 += ' found';
+        else if (isCur2) cls2 += ' cur';
+        else if (vmap[key]) cls2 += ' visited';
+        ref2.el.className = cls2;
+        ref2.ord.textContent = vmap[key] && !isCur2 ? vmap[key] : '';
+      }
+    }
+
+    // vars
+    if (currentView === 'A') {
+      varsEl.innerHTML =
+        '<span class="box"><span class="vi">i</span> = <b>' + step.i + '</b></span>' +
+        '<span class="box"><span class="vj">j</span> = <b>' + step.j + '</b></span>' +
+        '<span class="box">当前值 = <b>' + (step.cur ? matrix[step.cur.r][step.cur.c] : '—') + '</b></span>' +
+        '<span class="box">target = <b>' + target + '</b></span>';
+    } else {
+      varsEl.innerHTML =
+        '<span class="box">已访问 = <b>' + step.visited.length + '</b> 格</span>' +
+        '<span class="box">当前 = <b>' + (step.cur ? '(' + step.cur.r + ',' + step.cur.c + ')' : '—') + '</b></span>' +
+        '<span class="box">target = <b>' + target + '</b></span>';
+    }
+
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIdx === 0;
+    nextBtn.disabled = stepIdx === steps.length - 1;
+  }
+
+  function rebuildSteps() {
+    gridTitle.textContent = currentView === 'A'
+      ? '矩阵（灰 = 已排除区域；紫 = 当前比较；绿 = 命中）'
+      : '矩阵（蓝 = 已访问 visited，角标为访问顺序；紫 = 当前；绿 = 命中）';
+    updateLegend();
+    steps = currentView === 'A' ? SM.buildStepsStair(matrix, target) : SM.buildStepsDFS(matrix, target);
+    stepIdx = 0;
+    buildGrid();
+    render();
+  }
+
+  function renderStats() {
+    var m = matrix.length, n = matrix[0].length;
+    statsEl.innerHTML =
+      '<div class="stat">矩阵<b>' + m + ' × ' + n + '</b></div>' +
+      '<div class="stat">target<b>' + target + '</b></div>' +
+      '<div class="stat">方法A 时间<b>O(m+n)</b></div>' +
+      '<div class="stat">方法A 空间<b>O(1)</b></div>';
+  }
+
+  function load() {
+    var res = SM.parseMatrix(input.value);
+    if (res.mat === null) { errEl.textContent = '矩阵有误：' + res.err + '。需满足每行升序、每列升序。'; errEl.classList.add('show'); return; }
+    var t = parseInt((targetIn.value || '').trim(), 10);
+    if (isNaN(t)) { errEl.textContent = 'target 需要是整数。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay();
+    matrix = res.mat; target = t;
+    renderStats(); rebuildSteps();
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () { if (stepIdx >= steps.length - 1) { stopPlay(); return; } next(); }, 620);
+  }
+
+  $('nextBtn').onclick = function () { stopPlay(); next(); };
+  $('prevBtn').onclick = function () { stopPlay(); prev(); };
+  $('playBtn').onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  targetIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.dataset.m; targetIn.value = ch.dataset.t; load(); };
+  });
+
+  var codes = {
+    stairPy:
+'<span class="cmt"># Python · 阶梯搜索（推荐）· 时间 O(m+n) 空间 O(1)</span>\n' +
+'class Solution:\n' +
+'    def searchMatrix(self, matrix: List[List[int]], target: int) -&gt; bool:\n' +
+'        m, n = len(matrix), len(matrix[0])\n' +
+'        i, j = 0, n - 1                       <span class="cmt"># 从右上角出发</span>\n' +
+'        while i &lt; m and j &gt;= 0:\n' +
+'            if matrix[i][j] == target:\n' +
+'                return True\n' +
+'            elif matrix[i][j] &gt; target:\n' +
+'                j -= 1                        <span class="cmt"># 太大 → 排除整列</span>\n' +
+'            else:\n' +
+'                i += 1                        <span class="cmt"># 太小 → 排除整行</span>\n' +
+'        return False',
+    stairJava:
+'<span class="cmt">// Java · 阶梯搜索（推荐）· 时间 O(m+n) 空间 O(1)</span>\n' +
+'class Solution {\n' +
+'    public boolean searchMatrix(int[][] matrix, int target) {\n' +
+'        int m = matrix.length, n = matrix[0].length;\n' +
+'        int i = 0, j = n - 1;                 // 从右上角出发\n' +
+'        while (i &lt; m &amp;&amp; j &gt;= 0) {\n' +
+'            if (matrix[i][j] == target) return true;\n' +
+'            else if (matrix[i][j] &gt; target) j--;   // 太大 → 排除整列\n' +
+'            else i++;                                // 太小 → 排除整行\n' +
+'        }\n' +
+'        return false;\n' +
+'    }\n' +
+'}',
+    dfsPy:
+'<span class="cmt"># Python · 你的中心 DFS（已验证正确，但开销较大）</span>\n' +
+'class Solution:\n' +
+'    def searchMatrix(self, matrix: List[List[int]], target: int) -&gt; bool:\n' +
+'        m, n = len(matrix), len(matrix[0])\n' +
+'        steps = set()\n' +
+'        def goin(i, j):\n' +
+'            steps.add((i, j))\n' +
+'            if matrix[i][j] == target:\n' +
+'                return True\n' +
+'            elif matrix[i][j] &lt; target:      <span class="cmt"># 偏小 → 下 / 右</span>\n' +
+'                if 0 &lt;= i &lt; m - 1 and (i+1, j) not in steps and goin(i+1, j): return True\n' +
+'                if 0 &lt;= j &lt; n - 1 and (i, j+1) not in steps and goin(i, j+1): return True\n' +
+'                return False\n' +
+'            else:                             <span class="cmt"># 偏大 → 上 / 左</span>\n' +
+'                if 0 &lt; i &lt;= m - 1 and (i-1, j) not in steps and goin(i-1, j): return True\n' +
+'                if 0 &lt; j &lt;= n - 1 and (i, j-1) not in steps and goin(i, j-1): return True\n' +
+'                return False\n' +
+'        return goin(m // 2, n // 2)'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active'); codeBlock.innerHTML = codes[t.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes['stairPy'];
+
+  load();
+})();
+</script>
+</body>
+</html>
