@@ -70,6 +70,7 @@ leetcode-animations/
 | # | 题目 | 难度 | 考点 |
 |---|------|------|------|
 | 5 | [最长回文子串](problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 字符串 |
+| 31 | [下一个排列](problems/31-next-permutation.html) | 中等 | 数组 · 双指针 · 字典序 · O(n) |
 | 32 | [最长有效括号](problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
 | 45 | [跳跃游戏 II](problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
 | 48 | [旋转图像](problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
