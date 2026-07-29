@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 双指针 · 字典序 · O(n)">
+<title>31. 下一个排列 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; } .sub code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:200px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 120px; padding: 9px 12px; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .s5 b { color:#1d2129; } .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+
+  /* array grid */
+  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:26px 20px; text-align:center; }
+  .grid-wrap { display:inline-grid; gap:6px; margin:0 auto; position:relative; }
+  .gcell {
+    position:relative; width:54px; height:54px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:18px; font-weight:700; color:#334155;
+    background:#fff; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .gcell.dim      { background:#f8fafc; border-color:#eef0f4; color:#94a3b8; }
+  .gcell.suffix   { background:#f1f5f9; border-color:#e2e8f0; color:#64748b; }
+  .gcell.cmp      { background:#e0e7ff; border-color:#c7d2fe; color:#3730a3; box-shadow:0 0 0 3px rgba(99,102,241,.16); }
+  .gcell.pivot    { background:#fde68a; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 4px rgba(245,158,11,.25); transform:scale(1.06); z-index:2; }
+  .gcell.succ     { background:#c2410c; border-color:#9a3412; color:#fff; box-shadow:0 0 0 4px rgba(194,65,12,.28); transform:scale(1.08); z-index:3; }
+  .gcell.rev      { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.28); transform:scale(1.08); z-index:3; }
+  .gcell.done     { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 3px rgba(34,197,94,.25); }
+  .gcell .ord { position:absolute; top:2px; left:6px; font-size:9px; font-weight:700; color:#a5b4fc; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 20px; margin:18px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars .box { padding:4px 10px; border-radius:7px; background:#f8fafc; border:1px solid #eef0f4; }
+  .vi { color:#b45309; font-weight:700; } .vj { color:#c2410c; font-weight:700; }
+
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px;}
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08);}
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/next-permutation/" target="_blank" rel="noopener">LeetCode 31</a></span>
+  </div>
+
+  <h1>31. 下一个排列 · 算法动画</h1>
+  <div class="sub">把数组重排成<b>字典序中恰好更大的下一个排列</b>；若已是最大（完全降序），则回到<b>最小排列</b>。要求<b>原地</b>修改，时间 <code>O(n)</code>、额外空间 <code>O(1)</code>。核心三步：从右找<b>枢轴</b> → 从右找<b>比枢轴大的最靠右的数</b>交换 → <b>反转枢轴右侧后缀</b>。</div>
+
+  <div class="card">
+    <div class="panel-title">思路要点</div>
+    <div class="idea">
+      <div class="s5"><div class="no">① 找枢轴 i</div>从右往左找第一个 <code>a[i] &lt; a[i+1]</code> 的下标 <b>i</b>。它右侧是一段降序，代表「已到局部最大」，i 就是要抬升的位置。</div>
+      <div class="s5"><div class="no">② 找后继 j</div>在 i 右侧、从右往左找第一个 <code>a[j] &gt; a[i]</code>，交换 <b>a[i]</b> 与 <b>a[j]</b>。这样 i 位置换上了刚好更大的值。</div>
+      <div class="s5"><div class="no">③ 反转后缀</div>交换后 i 右侧仍是降序（最大）。<b>反转</b> <code>[i+1, n-1]</code> 使其升序（最小），整体就成了下一个排列。</div>
+      <div class="s5"><div class="no">④ 无枢轴</div>若找不到 i（数组完全降序），说明已是最后一个排列，直接<b>整体反转</b>回到最小排列。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="field"><span class="lab">nums =</span><input type="text" id="input" value="1 2 3" spellcheck="false" placeholder="用空格或逗号分隔，如 1 2 3"></div>
+      <button id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="1 2 3">1 2 3</span>
+      <span class="chip" data-v="3 2 1">3 2 1（最大→最小）</span>
+      <span class="chip" data-v="1 1 5">1 1 5（有重复）</span>
+      <span class="chip" data-v="1 3 2">1 3 2</span>
+      <span class="chip" data-v="2 3 1">2 3 1</span>
+      <span class="chip" data-v="1 5 8 4 7 6 5 3 1">较长示例</span>
+      <span class="chip" data-v="5">单元素</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持负数与重复元素；长度 ≤ 12（动画清晰度上限）。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title" id="gridTitle">数组</div>
+    <div class="stage"><div class="grid-wrap" id="grid"></div></div>
+
+    <div class="vars" id="vars"></div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="panel-title" style="margin-top:16px;">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs" id="codeTabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+<script>
+/* ==== 纯逻辑核心（已离线对拍：与暴力枚举字典序结果一致，98/98 通过；不修改入参） ==== */
+(function (root) {
+  'use strict';
+  function parseArray(value) {
+    if (typeof value !== 'string') return { arr: null, err: '空输入' };
+    var cells = value.trim().split(/[,\s]+/).filter(Boolean);
+    if (!cells.length) return { arr: null, err: '空输入' };
+    if (cells.length > 12) return { arr: null, err: '长度请 ≤ 12（动画清晰度上限）' };
+    var arr = [];
+    for (var k = 0; k < cells.length; k++) {
+      if (!/^-?\d+$/.test(cells[k])) return { arr: null, err: '含非整数：' + cells[k] };
+      arr.push(parseInt(cells[k], 10));
+    }
+    return { arr: arr, err: null };
+  }
+
+  function buildSteps(nums){
+    var a = nums.slice();
+    var n = a.length;
+    var steps = [];
+    function snap(o){
+      var s = {
+        arr: a.slice(),
+        i: (o.i===undefined?-1:o.i),
+        j: (o.j===undefined?-1:o.j),
+        scan: (o.scan===undefined?-1:o.scan),
+        cmpL: (o.cmpL===undefined?-1:o.cmpL),
+        cmpR: (o.cmpR===undefined?-1:o.cmpR),
+        pivot: (o.pivot===undefined?-1:o.pivot),
+        revL: (o.revL===undefined?-1:o.revL),
+        revR: (o.revR===undefined?-1:o.revR),
+        done: !!o.done,
+        phase: o.phase||'',
+        msg: o.msg||''
+      };
+      steps.push(s);
+    }
+
+    snap({phase:'start', msg:'初始数组 <b>['+a.join(', ')+']</b>。目标：找到字典序中的<b>下一个排列</b>。从右往左找第一个「升序对」的左端点。'});
+
+    var i = n - 2;
+    var pivot = -1;
+    while(i >= 0){
+      snap({scan:i, cmpL:i, cmpR:i+1, phase:'scan',
+        msg:'比较 <b>a['+i+']='+a[i]+'</b> 与 <b>a['+(i+1)+']='+a[i+1]+'</b>：'+
+          (a[i] < a[i+1]
+            ? '满足 a['+i+'] &lt; a['+(i+1)+']，找到升序对！下标 <b>'+i+'</b> 就是枢轴。'
+            : 'a['+i+'] ≥ a['+(i+1)+']，不是升序对，继续向左。')});
+      if(a[i] < a[i+1]){ pivot = i; break; }
+      i--;
+    }
+
+    if(pivot === -1){
+      snap({phase:'nopivot', msg:'一路向左都没有升序对，说明整个数组是<b>降序</b>，已是最后一个排列。需要整体反转，回到最小排列。'});
+      var l = 0, r = n - 1;
+      while(l < r){
+        snap({revL:l, revR:r, phase:'reverse', pivot:-1,
+          msg:'反转区间 [0, '+(n-1)+']：交换 a['+l+']='+a[l]+' 与 a['+r+']='+a[r]+'。'});
+        var t = a[l]; a[l] = a[r]; a[r] = t;
+        snap({revL:l, revR:r, phase:'reverse', pivot:-1,
+          msg:'交换后 <b>['+a.join(', ')+']</b>。'});
+        l++; r--;
+      }
+      snap({phase:'done', done:true, msg:'完成！整体反转得到最小排列 <b>['+a.join(', ')+']</b>。'});
+      return steps;
+    }
+
+    snap({pivot:pivot, phase:'pivotFound',
+      msg:'枢轴锁定在下标 <b>'+pivot+'</b>（值 '+a[pivot]+'）。接下来在其右侧、从右往左找第一个<b>大于 a['+pivot+']</b> 的数与之交换。'});
+
+    var j = n - 1;
+    while(j > pivot){
+      snap({pivot:pivot, scan:j, cmpL:pivot, cmpR:j, phase:'scan2',
+        msg:'比较 a['+j+']='+a[j]+' 与枢轴 a['+pivot+']='+a[pivot]+'：'+
+          (a[j] > a[pivot]
+            ? 'a['+j+'] &gt; a['+pivot+']，就是它！这是右侧第一个比枢轴大的数。'
+            : 'a['+j+'] ≤ a['+pivot+']，继续向左。')});
+      if(a[j] > a[pivot]) break;
+      j--;
+    }
+
+    snap({pivot:pivot, j:j, phase:'swapBefore',
+      msg:'交换枢轴 a['+pivot+']='+a[pivot]+' 与 a['+j+']='+a[j]+'。'});
+    var tmp = a[pivot]; a[pivot] = a[j]; a[j] = tmp;
+    snap({pivot:pivot, phase:'swapAfter',
+      msg:'交换后 <b>['+a.join(', ')+']</b>。此时枢轴位置已放上更大的值，但其右侧仍是降序（最大），需反转成最小。'});
+
+    var l = pivot + 1, r = n - 1;
+    if(l >= r){
+      snap({pivot:pivot, phase:'noReverse', done:false,
+        msg:'枢轴右侧只有 0 或 1 个元素，无需反转。'});
+    }
+    while(l < r){
+      snap({pivot:pivot, revL:l, revR:r, phase:'reverse',
+        msg:'反转后缀 ['+(pivot+1)+', '+(n-1)+']：交换 a['+l+']='+a[l]+' 与 a['+r+']='+a[r]+'。'});
+      var t2 = a[l]; a[l] = a[r]; a[r] = t2;
+      snap({pivot:pivot, revL:l, revR:r, phase:'reverse',
+        msg:'交换后 <b>['+a.join(', ')+']</b>。'});
+      l++; r--;
+    }
+
+    snap({phase:'done', done:true, msg:'完成！下一个排列是 <b>['+a.join(', ')+']</b>。'});
+    return steps;
+  }
+
+  function nextPerm(nums){
+    var a = nums.slice();
+    var n = a.length, i = n-2;
+    while(i>=0 && a[i]>=a[i+1]) i--;
+    if(i>=0){
+      var j=n-1;
+      while(a[j]<=a[i]) j--;
+      var t=a[i];a[i]=a[j];a[j]=t;
+    }
+    var l=i+1,r=n-1;
+    while(l<r){var t=a[l];a[l]=a[r];a[r]=t;l++;r--;}
+    return a;
+  }
+
+  root.NP = { parseArray: parseArray, buildSteps: buildSteps, nextPerm: nextPerm };
+}(window));
+</script>
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var NP = window.NP;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var gridWrap = $('grid'), varsEl = $('vars'), legendEl = $('legend'), gridTitle = $('gridTitle');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var CELL = 54;
+  var arr = null, steps = [], stepIdx = 0, playTimer = null, cellEls = [];
+
+  function updateLegend() {
+    legendEl.innerHTML =
+      '<span><span class="dot" style="background:#e0e7ff;border-color:#c7d2fe"></span>正在比较</span>' +
+      '<span><span class="dot" style="background:#fde68a;border-color:#f59e0b"></span>枢轴 i</span>' +
+      '<span><span class="dot" style="background:#c2410c"></span>后继 j（待交换）</span>' +
+      '<span><span class="dot" style="background:#6366f1"></span>反转中</span>' +
+      '<span><span class="dot" style="background:#f1f5f9;border-color:#e2e8f0"></span>枢轴右侧后缀</span>' +
+      '<span><span class="dot" style="background:#22c55e"></span>完成</span>';
+  }
+
+  function buildGrid() {
+    gridWrap.innerHTML = '';
+    var n = arr.length;
+    gridWrap.style.gridTemplateColumns = 'repeat(' + n + ', ' + CELL + 'px)';
+    cellEls = [];
+    for (var c = 0; c < n; c++) {
+      var d = document.createElement('div');
+      d.className = 'gcell';
+      var ord = document.createElement('span'); ord.className = 'ord'; ord.textContent = c;
+      var val = document.createElement('span');
+      d.appendChild(ord); d.appendChild(val);
+      gridWrap.appendChild(d);
+      cellEls.push({ el: d, ord: ord, val: val });
+    }
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    var n = arr.length;
+    for (var c = 0; c < n; c++) {
+      var ref = cellEls[c], cls = 'gcell';
+      ref.val.textContent = step.arr[c];
+      // suffix shading: cells strictly right of the pivot
+      if (step.pivot >= 0 && c > step.pivot && !step.done) cls += ' suffix';
+      // comparison highlight
+      if (c === step.cmpL || c === step.cmpR) cls += ' cmp';
+      // pivot
+      if (c === step.pivot && step.phase !== 'done') cls += ' pivot';
+      // successor to swap
+      if (c === step.j && step.j >= 0) cls += ' succ';
+      // reversal endpoints
+      if ((c === step.revL || c === step.revR) && step.revL >= 0) cls += ' rev';
+      // done -> all green
+      if (step.done) cls = 'gcell done';
+      ref.el.className = cls;
+    }
+
+    varsEl.innerHTML =
+      '<span class="box"><span class="vi">枢轴 i</span> = <b>' + (step.pivot >= 0 ? step.pivot : '—') + '</b></span>' +
+      '<span class="box"><span class="vj">后继 j</span> = <b>' + (step.j >= 0 ? step.j : '—') + '</b></span>' +
+      '<span class="box">当前数组 = <b>[' + step.arr.join(', ') + ']</b></span>';
+
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIdx === 0;
+    nextBtn.disabled = stepIdx === steps.length - 1;
+  }
+
+  function rebuildSteps() {
+    gridTitle.textContent = '数组（下标见左上角；黄 = 枢轴 i，橙 = 后继 j，紫 = 反转，绿 = 完成）';
+    updateLegend();
+    steps = NP.buildSteps(arr);
+    stepIdx = 0;
+    buildGrid();
+    render();
+  }
+
+  function renderStats() {
+    var next = NP.nextPerm(arr);
+    statsEl.innerHTML =
+      '<div class="stat">输入<b>[' + arr.join(', ') + ']</b></div>' +
+      '<div class="stat">下一个排列<b>[' + next.join(', ') + ']</b></div>' +
+      '<div class="stat">时间<b>O(n)</b></div>' +
+      '<div class="stat">空间<b>O(1)</b></div>';
+  }
+
+  function load() {
+    var res = NP.parseArray(input.value);
+    if (res.arr === null) { errEl.textContent = '输入有误：' + res.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay();
+    arr = res.arr;
+    renderStats(); rebuildSteps();
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () { if (stepIdx >= steps.length - 1) { stopPlay(); return; } next(); }, 620);
+  }
+
+  $('nextBtn').onclick = function () { stopPlay(); next(); };
+  $('prevBtn').onclick = function () { stopPlay(); prev(); };
+  $('playBtn').onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.dataset.v; load(); };
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># Python · 原地求下一个排列 · 时间 O(n) 空间 O(1)</span>\n' +
+'class Solution:\n' +
+'    def nextPermutation(self, nums: List[int]) -&gt; None:\n' +
+'        n = len(nums)\n' +
+'        i = n - 2\n' +
+'        while i &gt;= 0 and nums[i] &gt;= nums[i + 1]:   <span class="cmt"># ① 从右找枢轴 i</span>\n' +
+'            i -= 1\n' +
+'        if i &gt;= 0:\n' +
+'            j = n - 1\n' +
+'            while nums[j] &lt;= nums[i]:               <span class="cmt"># ② 从右找第一个 &gt; nums[i]</span>\n' +
+'                j -= 1\n' +
+'            nums[i], nums[j] = nums[j], nums[i]      <span class="cmt"># 交换</span>\n' +
+'        left, right = i + 1, n - 1                   <span class="cmt"># ③ 反转 i 右侧后缀</span>\n' +
+'        while left &lt; right:\n' +
+'            nums[left], nums[right] = nums[right], nums[left]\n' +
+'            left += 1\n' +
+'            right -= 1',
+    java:
+'<span class="cmt">// Java · 原地求下一个排列 · 时间 O(n) 空间 O(1)</span>\n' +
+'class Solution {\n' +
+'    public void nextPermutation(int[] nums) {\n' +
+'        int n = nums.length, i = n - 2;\n' +
+'        while (i &gt;= 0 &amp;&amp; nums[i] &gt;= nums[i + 1]) i--;   // ① 从右找枢轴 i\n' +
+'        if (i &gt;= 0) {\n' +
+'            int j = n - 1;\n' +
+'            while (nums[j] &lt;= nums[i]) j--;              // ② 从右找第一个 &gt; nums[i]\n' +
+'            int t = nums[i]; nums[i] = nums[j]; nums[j] = t; // 交换\n' +
+'        }\n' +
+'        int l = i + 1, r = n - 1;                        // ③ 反转 i 右侧后缀\n' +
+'        while (l &lt; r) {\n' +
+'            int t = nums[l]; nums[l] = nums[r]; nums[r] = t;\n' +
+'            l++; r--;\n' +
+'        }\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active'); codeBlock.innerHTML = codes[t.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes['py'];
+
+  load();
+})();
+</script>
+
+
+</body>
+</html>
+
