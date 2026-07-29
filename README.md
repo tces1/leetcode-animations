@@ -91,6 +91,7 @@ leetcode-animations/
 | 215 | [数组中的第K个最大元素](problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
 | 240 | [搜索二维矩阵 II](problems/240-search-a-2d-matrix-ii.html) | 中等 | 矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n) |
 | 279 | [完全平方数](problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
+| 287 | [寻找重复数](problems/287-find-the-duplicate-number.html) | 中等 | 数组 · 快慢指针 · Floyd判圈 · O(n) |
 | 295 | [数据流的中位数](problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
 | 300 | [最长递增子序列](problems/300-longest-increasing-subsequence.html) | 中等 | 动态规划 · 填表 + 记忆化递归树双视角 |
 | 322 | [零钱兑换（记忆化递归树）](problems/322-coin-change-tree.html) | 中等 | 记忆化搜索 · 递归树 · 重复子问题 |
