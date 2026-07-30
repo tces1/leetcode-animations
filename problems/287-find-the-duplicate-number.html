@@ -85,6 +85,37 @@
   }
   .ptr .ps { color:#4f46e5; } .ptr .pf { color:#ea580c; } .ptr .pd { color:#16a34a; }
 
+  /* 数组对照表（置于链表上方作参照） */
+  .arrbox { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:#fbfbfd; padding:16px 14px 10px; text-align:center; }
+  .arr-grid { display:inline-grid; gap:6px; }
+  .arr-grid .gcell { width:46px; height:46px; font-size:16px; border-radius:8px; }
+  .arr-grid .gcell .ptr { bottom:-18px; font-size:9px; }
+  .arr-note { font-size:11px; color:#9ca3af; margin-top:24px; }
+
+  /* 链表主视图：尾部为环 */
+  .llstage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:24px 20px; text-align:center; }
+  .ll { position:relative; display:inline-block; }
+  .ll svg { display:block; overflow:visible; }
+  .node text { font-family:"SF Mono",Menlo,monospace; font-weight:700; }
+  .node .nv { font-size:17px; fill:#334155; }
+  .node .ni { font-size:9px; fill:#a5b4fc; }
+  .node rect { fill:#fff; stroke:#e5e7eb; stroke-width:2; transition:fill .18s,stroke .18s; }
+  .node.mid  rect { fill:#fff7ed; stroke:#fed7aa; }
+  .node.slow rect { fill:#e0e7ff; stroke:#6366f1; }
+  .node.fast rect { fill:#ffedd5; stroke:#ea580c; }
+  .node.meet rect { fill:#ede9fe; stroke:#7c3aed; stroke-width:3; }
+  .node.find rect { fill:#ccfbf1; stroke:#14b8a6; }
+  .node.dup  rect { fill:#22c55e; stroke:#16a34a; stroke-width:3; }
+  .node.dup .nv { fill:#fff; } .node.dup .ni { fill:#dcfce7; }
+  .node.slow .nv { fill:#3730a3; } .node.fast .nv { fill:#9a3412; }
+  .node.meet .nv { fill:#5b21b6; } .node.find .nv { fill:#0f766e; }
+  .edge { fill:none; stroke:#cbd5e1; stroke-width:2; }
+  .edge.cyc { stroke:#a78bfa; stroke-dasharray:5 4; }
+  .arrowhead { fill:#cbd5e1; } .arrowhead.cyc { fill:#a78bfa; }
+  .lbl { font-family:"SF Mono",Menlo,monospace; font-size:10px; font-weight:700; }
+  .lbl.ls { fill:#4f46e5; } .lbl.lf { fill:#ea580c; } .lbl.ld { fill:#16a34a; } .lbl.lm { fill:#7c3aed; }
+  .cyclab { font-family:-apple-system,sans-serif; font-size:10px; fill:#8b5cf6; font-weight:700; }
+
   .vars { display:flex; flex-wrap:wrap; gap:10px 20px; margin:26px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
   .vars .box { padding:4px 10px; border-radius:7px; background:#f8fafc; border:1px solid #eef0f4; }
   .vs { color:#4f46e5; font-weight:700; } .vf { color:#ea580c; font-weight:700; } .vd { color:#16a34a; font-weight:700; }
@@ -117,7 +148,7 @@
   <div class="card">
     <div class="panel-title">思路要点</div>
     <div class="idea">
-      <div class="s5"><div class="no">① 数组即链表</div>从下标 <b>i</b> 连一条边到 <b>nums[i]</b>。值域 [1,n] 保证每条边都指向合法下标，且因有重复值，两个下标指向同一处 → 出现<b>环</b>。</div>
+      <div class="s5"><div class="no">① 数组即链表</div>从下标 <b>i</b> 连一条边到 <b>nums[i]</b>。值域 [1,n] 保证每条边都指向合法下标，且因有重复值，两个下标指向同一处 → 出现<b>环</b>。下方链表视图里的<b>虚线回边</b>就是这个环。</div>
       <div class="s5"><div class="no">② 阶段一 · 相遇</div>慢指针每次走 1 步、快指针每次走 2 步。只要有环，两者必在环内某点<b>相遇</b>。</div>
       <div class="s5"><div class="no">③ 阶段二 · 找入口</div>让一个指针从<b>起点 0</b> 重新出发，与相遇点指针<b>同速前进</b>，它们必在<b>环入口</b>相遇 —— 那就是重复数。</div>
       <div class="s5"><div class="no">④ 为什么对</div>设环外长 a、入口到相遇点长 b。相遇时慢走 a+b、快走 2(a+b)，且快比慢多走整数圈，可推出 <b>a = 环长−b</b>，故从起点与相遇点同步走 a 步正好都到入口。</div>
@@ -151,8 +182,13 @@
       <span class="progress" id="progress"></span>
     </div>
 
-    <div class="panel-title" id="gridTitle">数组</div>
-    <div class="stage"><div class="grid-wrap" id="grid"></div></div>
+    <div class="panel-title" id="gridTitle">数组对照表</div>
+    <div class="arrbox"><div class="arr-grid" id="grid"></div>
+      <div class="arr-note">下标在左上角 · 格内是 nums[i]，即链表里这个节点指向的下一个下标</div>
+    </div>
+
+    <div class="panel-title" style="margin-top:16px;">链表视图（i → nums[i]）</div>
+    <div class="llstage"><div class="ll" id="ll"></div></div>
 
     <div class="vars" id="vars"></div>
 
@@ -209,6 +245,7 @@
         find: (o.find === undefined ? -1 : o.find),
         fastMid: (o.fastMid === undefined ? -1 : o.fastMid),
         phase: o.phase || '',
+        done: o.phase === 'done',
         dup: (o.dup === undefined ? -1 : o.dup),
         msg: o.msg || ''
       });
@@ -268,8 +305,12 @@
   var input = $('input'), errEl = $('err'), statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
   var gridWrap = $('grid'), varsEl = $('vars'), legendEl = $('legend'), gridTitle = $('gridTitle');
   var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
-  var CELL = 54;
+  var llWrap = $('ll');
+  var CELL = 46;
   var arr = null, steps = [], stepIdx = 0, playTimer = null, cellEls = [];
+  /* 链表布局常量 */
+  var NW = 46, NH = 46, PITCH = 84, TOP = 22, PAD = 14;
+  var path = [], posOf = {}, entryPos = 0, nodeEls = [], lblEls = [];
 
   function updateLegend() {
     legendEl.innerHTML =
@@ -278,7 +319,8 @@
       '<span><span class="dot" style="background:#ede9fe;border-color:#7c3aed"></span>阶段一相遇</span>' +
       '<span><span class="dot" style="background:#ccfbf1;border-color:#14b8a6"></span>find（从 0 出发）</span>' +
       '<span><span class="dot" style="background:#fff7ed;border-color:#fed7aa"></span>快指针中间落点</span>' +
-      '<span><span class="dot" style="background:#22c55e"></span>重复数（环入口）</span>';
+      '<span><span class="dot" style="background:#22c55e"></span>重复数（环入口）</span>' +
+      '<span><span class="dot" style="background:#fff;border-color:#a78bfa;border-style:dashed"></span>虚线 = 回边（成环）</span>';
   }
 
   function buildGrid() {
@@ -295,6 +337,89 @@
       d.appendChild(ord); d.appendChild(val); d.appendChild(ptr);
       gridWrap.appendChild(d);
       cellEls.push({ el: d, ord: ord, val: val, ptr: ptr });
+    }
+  }
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function sv(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) if (attrs.hasOwnProperty(k)) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  /* 从 0 出发沿 i→nums[i] 走，直到重复访问某节点：得到「ρ 形」路径 */
+  function computePath() {
+    var seen = {}, p = [], cur = 0;
+    while (!seen.hasOwnProperty(cur)) { seen[cur] = p.length; p.push(cur); cur = arr[cur]; }
+    path = p; entryPos = seen[cur];
+    posOf = {};
+    for (var q = 0; q < p.length; q++) posOf[p[q]] = q;
+  }
+
+  function nodeX(pos) { return PAD + pos * PITCH; }
+
+  function buildLL() {
+    computePath();
+    llWrap.innerHTML = '';
+    var L = path.length;
+    var backSpan = L - entryPos;                 /* 环长 */
+    var arcDepth = 26 + Math.min(backSpan, 8) * 7;
+    var W = PAD * 2 + (L - 1) * PITCH + NW;
+    var H = TOP + NH + 30 + arcDepth;
+    var svg = sv('svg', { width: W, height: H, viewBox: '0 0 ' + W + ' ' + H });
+
+    /* 先画边（在节点下层） */
+    for (var i = 0; i < L - 1; i++) {
+      var x1 = nodeX(i) + NW, x2 = nodeX(i + 1), y = TOP + NH / 2;
+      svg.appendChild(sv('path', { class: 'edge', d: 'M' + x1 + ' ' + y + ' H' + (x2 - 7) }));
+      svg.appendChild(sv('polygon', { class: 'arrowhead', points: (x2 - 7) + ',' + (y - 4) + ' ' + x2 + ',' + y + ' ' + (x2 - 7) + ',' + (y + 4) }));
+    }
+    /* 回边：末节点 → 环入口，走下方弧线 */
+    var bx = nodeX(L - 1) + NW / 2, ex = nodeX(entryPos) + NW / 2;
+    var by = TOP + NH, ey = TOP + NH, dip = by + arcDepth;
+    svg.appendChild(sv('path', { class: 'edge cyc',
+      d: 'M' + bx + ' ' + by + ' C ' + bx + ' ' + dip + ', ' + ex + ' ' + dip + ', ' + ex + ' ' + (ey + 8) }));
+    svg.appendChild(sv('polygon', { class: 'arrowhead cyc',
+      points: (ex - 4) + ',' + (ey + 8) + ' ' + ex + ',' + ey + ' ' + (ex + 4) + ',' + (ey + 8) }));
+    var ct = sv('text', { class: 'cyclab', x: (bx + ex) / 2, y: dip - 4, 'text-anchor': 'middle' });
+    ct.textContent = '环长 ' + backSpan + ' · 入口 = 下标 ' + path[entryPos];
+    svg.appendChild(ct);
+
+    /* 节点 */
+    nodeEls = []; lblEls = [];
+    for (var p2 = 0; p2 < L; p2++) {
+      var g = sv('g', { class: 'node' });
+      var x = nodeX(p2);
+      g.appendChild(sv('rect', { x: x, y: TOP, width: NW, height: NH, rx: 9 }));
+      var ti = sv('text', { class: 'ni', x: x + 5, y: TOP + 11 }); ti.textContent = path[p2];
+      var tv = sv('text', { class: 'nv', x: x + NW / 2, y: TOP + NH / 2 + 6, 'text-anchor': 'middle' });
+      tv.textContent = arr[path[p2]];
+      var tl = sv('text', { class: 'lbl', x: x + NW / 2, y: TOP - 8, 'text-anchor': 'middle' });
+      g.appendChild(ti); g.appendChild(tv); g.appendChild(tl);
+      svg.appendChild(g);
+      nodeEls.push(g); lblEls.push(tl);
+    }
+    llWrap.appendChild(svg);
+  }
+
+  /* 给链表节点上色 —— 与数组格同一套状态规则 */
+  function renderLL(step) {
+    for (var p = 0; p < path.length; p++) {
+      var idx = path[p], cls = 'node', lab = '', fill = '';
+      if (step.done && idx === step.dup) { cls += ' dup'; lab = '重复数'; fill = 'ld'; }
+      else if (step.phase === 'p1meet' && idx === step.slow) { cls += ' meet'; lab = 'slow·fast'; fill = 'lm'; }
+      else {
+        var parts = [];
+        if (idx === step.fastMid && step.fastMid >= 0 && idx !== step.fast) cls += ' mid';
+        if (idx === step.find && step.find >= 0) { cls += ' find'; parts.push('find'); fill = 'ld'; }
+        if (idx === step.slow && step.slow >= 0) { cls += ' slow'; parts.push('slow'); fill = 'ls'; }
+        if (idx === step.fast && step.fast >= 0) { cls += ' fast'; parts.push('fast'); fill = 'lf'; }
+        lab = parts.join('·');
+        if (parts.length > 1) fill = 'lm';
+      }
+      nodeEls[p].setAttribute('class', cls);
+      lblEls[p].textContent = lab;
+      lblEls[p].setAttribute('class', 'lbl ' + fill);
     }
   }
 
@@ -321,10 +446,12 @@
       ref.ptr.innerHTML = label;
     }
 
-    var sv = step.slow >= 0 ? step.slow : '—';
+    renderLL(step);
+
+    var slowV = step.slow >= 0 ? step.slow : '—';
     var fv = step.fast >= 0 ? step.fast : '—';
     varsEl.innerHTML =
-      '<span class="box"><span class="vs">slow</span> = <b>' + sv + '</b>' + (step.slow >= 0 ? '（nums=' + arr[step.slow] + '）' : '') + '</span>' +
+      '<span class="box"><span class="vs">slow</span> = <b>' + slowV + '</b>' + (step.slow >= 0 ? '（nums=' + arr[step.slow] + '）' : '') + '</span>' +
       (step.find >= 0
         ? '<span class="box"><span class="vd">find</span> = <b>' + step.find + '</b>（nums=' + arr[step.find] + '）</span>'
         : '<span class="box"><span class="vf">fast</span> = <b>' + fv + '</b>' + (step.fast >= 0 ? '（nums=' + arr[step.fast] + '）' : '') + '</span>') +
@@ -337,11 +464,12 @@
   }
 
   function rebuildSteps() {
-    gridTitle.textContent = '数组（下标见左上角；蓝 = slow，橙 = fast，紫 = 相遇，青 = find，绿 = 重复数）';
+    gridTitle.textContent = '数组对照表（蓝 = slow，橙 = fast，紫 = 相遇，青 = find，绿 = 重复数）';
     updateLegend();
     steps = FD.buildSteps(arr.slice());
     stepIdx = 0;
     buildGrid();
+    buildLL();
     render();
   }
 
