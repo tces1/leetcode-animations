@@ -2,7 +2,7 @@ name: Sync README problem list
 
 on:
   push:
-    branches: ["master"]
+    branches: ["*"]
     paths:
       - "problems/**"
       - "scripts/gen-readme.js"
