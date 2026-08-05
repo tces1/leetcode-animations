@@ -106,7 +106,6 @@ leetcode-animations/
 | 763 | [划分字母区间](https://tces1.github.io/leetcode-animations/problems/763-partition-labels.html) | 中等 | 贪心 · 双指针 · 哈希 |
 | 994 | [腐烂的橘子](https://tces1.github.io/leetcode-animations/problems/994-rotting-oranges.html) | 中等 | BFS · 多源 · 分层扩散 · 网格 |
 | 1143 | [最长公共子序列](https://tces1.github.io/leetcode-animations/problems/1143-longest-common-subsequence.html) | 中等 | 动态规划 · 二维 DP · 字符串 |
-
 <!-- PROBLEMS:END -->
 
 ---
