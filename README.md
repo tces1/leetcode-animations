@@ -69,43 +69,44 @@ leetcode-animations/
 <!-- PROBLEMS:START -->
 | # | 题目 | 难度 | 考点 |
 |---|------|------|------|
-| 5 | [最长回文子串](problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 字符串 |
-| 15 | [三数之和](problems/15-3sum.html) | 中等 | 数组 · 排序 · 双指针 · 去重 · 剪枝 |
-| 31 | [下一个排列](problems/31-next-permutation.html) | 中等 | 数组 · 双指针 · 字典序 · O(n) |
-| 32 | [最长有效括号](problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
-| 42 | [接雨水](problems/42-trapping-rain-water.html) | 困难 | 数组 · 双指针 · 前后缀最大值 · 空间优化 |
-| 45 | [跳跃游戏 II](problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
-| 48 | [旋转图像](problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
-| 51 | [N 皇后](problems/51-n-queens.html) | 困难 | 回溯 · 剪枝 · 集合 · 棋盘 · 对角线 |
-| 54 | [螺旋矩阵](problems/54-spiral-matrix.html) | 中等 | 矩阵 · 模拟 · 收缩边界 |
-| 55 | [跳跃游戏](problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
-| 62 | [不同路径](problems/62-unique-paths.html) | 中等 | 动态规划 · 二维 DP · 网格 |
-| 64 | [最小路径和](problems/64-minimum-path-sum.html) | 中等 | 动态规划 · 二维 DP · 网格 |
-| 70 | [爬楼梯](problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
-| 72 | [编辑距离](problems/72-edit-distance.html) | 困难 | 动态规划 · 二维 DP · 字符串 |
-| 84 | [柱状图中最大的矩形](problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
-| 118 | [杨辉三角](problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
-| 121 | [买卖股票的最佳时机](problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
-| 124 | [二叉树中的最大路径和](problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 后序遍历 · 树形DP · 递归返回值 |
-| 131 | [分割回文串](problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
-| 152 | [乘积最大子数组](problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
-| 200 | [岛屿数量](problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
-| 207 | [课程表](problems/207-course-schedule.html) | 中等 | — |
-| 208 | [实现 Trie（前缀树）](problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
-| 215 | [数组中的第K个最大元素](problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
-| 240 | [搜索二维矩阵 II](problems/240-search-a-2d-matrix-ii.html) | 中等 | 矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n) |
-| 279 | [完全平方数](problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
-| 287 | [寻找重复数](problems/287-find-the-duplicate-number.html) | 中等 | 数组 · 快慢指针 · Floyd判圈 · O(n) |
-| 295 | [数据流的中位数](problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
-| 300 | [最长递增子序列](problems/300-longest-increasing-subsequence.html) | 中等 | 动态规划 · 填表 + 记忆化递归树双视角 |
-| 322 | [零钱兑换（记忆化递归树）](problems/322-coin-change-tree.html) | 中等 | 记忆化搜索 · 递归树 · 重复子问题 |
-| 322 | [零钱兑换](problems/322-coin-change.html) | 中等 | 动态规划 · 完全背包 · 填表 |
-| 394 | [字符串解码](problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
-| 718 | [最长重复子数组](problems/718-maximum-length-of-repeated-subarray.html) | 中等 | 动态规划 · 二维 DP · 数组 |
-| 739 | [每日温度](problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
-| 763 | [划分字母区间](problems/763-partition-labels.html) | 中等 | 贪心 · 双指针 · 哈希 |
-| 994 | [腐烂的橘子](problems/994-rotting-oranges.html) | 中等 | BFS · 多源 · 分层扩散 · 网格 |
-| 1143 | [最长公共子序列](problems/1143-longest-common-subsequence.html) | 中等 | 动态规划 · 二维 DP · 字符串 |
+| 5 | [最长回文子串](https://tces1.github.io/leetcode-animations/problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 字符串 |
+| 15 | [三数之和](https://tces1.github.io/leetcode-animations/problems/15-3sum.html) | 中等 | 数组 · 排序 · 双指针 · 去重 · 剪枝 |
+| 31 | [下一个排列](https://tces1.github.io/leetcode-animations/problems/31-next-permutation.html) | 中等 | 数组 · 双指针 · 字典序 · O(n) |
+| 32 | [最长有效括号](https://tces1.github.io/leetcode-animations/problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
+| 42 | [接雨水](https://tces1.github.io/leetcode-animations/problems/42-trapping-rain-water.html) | 困难 | 数组 · 双指针 · 前后缀最大值 · 空间优化 |
+| 45 | [跳跃游戏 II](https://tces1.github.io/leetcode-animations/problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
+| 48 | [旋转图像](https://tces1.github.io/leetcode-animations/problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
+| 51 | [N 皇后](https://tces1.github.io/leetcode-animations/problems/51-n-queens.html) | 困难 | 回溯 · 剪枝 · 集合 · 棋盘 · 对角线 |
+| 54 | [螺旋矩阵](https://tces1.github.io/leetcode-animations/problems/54-spiral-matrix.html) | 中等 | 矩阵 · 模拟 · 收缩边界 |
+| 55 | [跳跃游戏](https://tces1.github.io/leetcode-animations/problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
+| 62 | [不同路径](https://tces1.github.io/leetcode-animations/problems/62-unique-paths.html) | 中等 | 动态规划 · 二维 DP · 网格 |
+| 64 | [最小路径和](https://tces1.github.io/leetcode-animations/problems/64-minimum-path-sum.html) | 中等 | 动态规划 · 二维 DP · 网格 |
+| 70 | [爬楼梯](https://tces1.github.io/leetcode-animations/problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
+| 72 | [编辑距离](https://tces1.github.io/leetcode-animations/problems/72-edit-distance.html) | 困难 | 动态规划 · 二维 DP · 字符串 |
+| 84 | [柱状图中最大的矩形](https://tces1.github.io/leetcode-animations/problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
+| 118 | [杨辉三角](https://tces1.github.io/leetcode-animations/problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
+| 121 | [买卖股票的最佳时机](https://tces1.github.io/leetcode-animations/problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
+| 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 后序遍历 · 树形DP · 递归返回值 |
+| 131 | [分割回文串](https://tces1.github.io/leetcode-animations/problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
+| 152 | [乘积最大子数组](https://tces1.github.io/leetcode-animations/problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
+| 200 | [岛屿数量](https://tces1.github.io/leetcode-animations/problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
+| 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
+| 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
+| 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
+| 240 | [搜索二维矩阵 II](https://tces1.github.io/leetcode-animations/problems/240-search-a-2d-matrix-ii.html) | 中等 | 矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n) |
+| 279 | [完全平方数](https://tces1.github.io/leetcode-animations/problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
+| 287 | [寻找重复数](https://tces1.github.io/leetcode-animations/problems/287-find-the-duplicate-number.html) | 中等 | 数组 · 快慢指针 · Floyd判圈 · O(n) |
+| 295 | [数据流的中位数](https://tces1.github.io/leetcode-animations/problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
+| 300 | [最长递增子序列](https://tces1.github.io/leetcode-animations/problems/300-longest-increasing-subsequence.html) | 中等 | 动态规划 · 填表 + 记忆化递归树双视角 |
+| 322 | [零钱兑换（记忆化递归树）](https://tces1.github.io/leetcode-animations/problems/322-coin-change-tree.html) | 中等 | 记忆化搜索 · 递归树 · 重复子问题 |
+| 322 | [零钱兑换](https://tces1.github.io/leetcode-animations/problems/322-coin-change.html) | 中等 | 动态规划 · 完全背包 · 填表 |
+| 394 | [字符串解码](https://tces1.github.io/leetcode-animations/problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
+| 718 | [最长重复子数组](https://tces1.github.io/leetcode-animations/problems/718-maximum-length-of-repeated-subarray.html) | 中等 | 动态规划 · 二维 DP · 数组 |
+| 739 | [每日温度](https://tces1.github.io/leetcode-animations/problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
+| 763 | [划分字母区间](https://tces1.github.io/leetcode-animations/problems/763-partition-labels.html) | 中等 | 贪心 · 双指针 · 哈希 |
+| 994 | [腐烂的橘子](https://tces1.github.io/leetcode-animations/problems/994-rotting-oranges.html) | 中等 | BFS · 多源 · 分层扩散 · 网格 |
+| 1143 | [最长公共子序列](https://tces1.github.io/leetcode-animations/problems/1143-longest-common-subsequence.html) | 中等 | 动态规划 · 二维 DP · 字符串 |
+
 <!-- PROBLEMS:END -->
 
 ---

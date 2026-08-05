@@ -12,6 +12,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const dir = path.join(root, 'problems');
 const readmePath = path.join(root, 'README.md');
+const pagesBase = 'https://tces1.github.io/leetcode-animations';
 
 const START = '<!-- PROBLEMS:START -->';
 const END = '<!-- PROBLEMS:END -->';
@@ -34,7 +35,7 @@ const items = fs.readdirSync(dir)
 
 const header = '| # | 题目 | 难度 | 考点 |\n|---|------|------|------|';
 const rows = items.map(p =>
-  `| ${p.num} | [${p.title}](problems/${p.file}) | ${p.diff || '—'} | ${p.tags || '—'} |`
+  `| ${p.num} | [${p.title}](${pagesBase}/problems/${p.file}) | ${p.diff || '—'} | ${p.tags || '—'} |`
 );
 const table = [header].concat(rows).join('\n');
 
