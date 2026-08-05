@@ -73,8 +73,10 @@ leetcode-animations/
 | 15 | [三数之和](problems/15-3sum.html) | 中等 | 数组 · 排序 · 双指针 · 去重 · 剪枝 |
 | 31 | [下一个排列](problems/31-next-permutation.html) | 中等 | 数组 · 双指针 · 字典序 · O(n) |
 | 32 | [最长有效括号](problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
+| 42 | [接雨水](problems/42-trapping-rain-water.html) | 困难 | 数组 · 双指针 · 前后缀最大值 · 空间优化 |
 | 45 | [跳跃游戏 II](problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
 | 48 | [旋转图像](problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
+| 51 | [N 皇后](problems/51-n-queens.html) | 困难 | 回溯 · 剪枝 · 集合 · 棋盘 · 对角线 |
 | 54 | [螺旋矩阵](problems/54-spiral-matrix.html) | 中等 | 矩阵 · 模拟 · 收缩边界 |
 | 55 | [跳跃游戏](problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
 | 62 | [不同路径](problems/62-unique-paths.html) | 中等 | 动态规划 · 二维 DP · 网格 |
