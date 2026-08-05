@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 排序 · 双指针 · 去重 · 剪枝">
+<title>15. 三数之和 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+
+  .prune-note { margin-top:12px; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px; }
+  .prune {
+    border-radius:10px; padding:11px 14px; font-size:13px;
+    display:flex; gap:10px; align-items:flex-start;
+  }
+  .prune.break { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
+  .prune.continue { background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; }
+  .keyword { font-family:"SF Mono",Menlo,monospace; font-weight:800; font-size:12px; padding:2px 7px; border-radius:5px; background:rgba(255,255,255,.72); }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:220px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:120px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .stage {
+    overflow:auto; border:1px solid #f1f2f4; border-radius:10px;
+    background:linear-gradient(#fff,#fbfbfd); padding:34px 18px 32px; text-align:center;
+  }
+  .array { display:inline-grid; gap:8px; margin:0 auto; }
+  .cell {
+    position:relative; width:56px; height:56px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:18px; font-weight:700;
+    color:#334155; background:#fff; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .cell.before { opacity:.38; background:#f8fafc; }
+  .cell.check { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
+  .cell.fixed { background:#ede9fe; border-color:#7c3aed; color:#5b21b6; box-shadow:0 0 0 3px rgba(124,58,237,.18); }
+  .cell.left { background:#dbeafe; border-color:#3b82f6; color:#1e40af; box-shadow:0 0 0 3px rgba(59,130,246,.18); }
+  .cell.right { background:#ffedd5; border-color:#f97316; color:#9a3412; box-shadow:0 0 0 3px rgba(249,115,22,.18); }
+  .cell.found { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 4px rgba(34,197,94,.24); transform:scale(1.06); z-index:3; }
+  .cell .idx { position:absolute; top:2px; left:6px; font-size:9px; font-weight:700; color:#a5b4fc; }
+  .cell.found .idx { color:#dcfce7; }
+  .cell .ptr {
+    position:absolute; bottom:-22px; left:50%; transform:translateX(-50%);
+    font-size:10px; font-weight:800; white-space:nowrap; line-height:1;
+  }
+  .pi { color:#7c3aed; } .pl { color:#2563eb; } .pr { color:#ea580c; }
+
+  .equation {
+    margin-top:16px; border-radius:10px; background:#f8fafc; border:1px solid #eef0f4;
+    padding:11px 14px; min-height:46px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:15px; color:#475569; text-align:center;
+  }
+  .equation .small { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#64748b; font-size:12px; margin-right:10px; }
+  .eq-zero { color:#16a34a; font-weight:800; }
+  .eq-low { color:#2563eb; font-weight:800; }
+  .eq-high { color:#ea580c; font-weight:800; }
+
+  .vars { display:flex; flex-wrap:wrap; gap:10px 14px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
+  .vars .box { padding:4px 10px; border-radius:7px; background:#f8fafc; border:1px solid #eef0f4; }
+  .results { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; min-height:30px; align-items:center; }
+  .results .label { font-size:12px; color:#6b7280; font-weight:700; }
+  .triple { font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 9px; border-radius:7px; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+  .empty { font-size:12px; color:#9ca3af; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:16px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-fixed { background:#ede9fe; border-color:#7c3aed; }
+  .dot-left { background:#dbeafe; border-color:#3b82f6; }
+  .dot-right { background:#ffedd5; border-color:#f97316; }
+  .dot-check { background:#fef3c7; border-color:#f59e0b; }
+  .dot-found { background:#22c55e; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .op { color:#86efac; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:600px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .cell { width:48px; height:48px; font-size:16px; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/3sum/" target="_blank" rel="noopener">LeetCode 15</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>15. 三数之和 · 双指针动画</h1>
+  <div class="sub">把问题拆成一句话：<b>排序后，固定第一个数，再用左右双指针寻找另外两个数</b>。和太小就移动左指针，和太大就移动右指针；相等时记录答案并跳过重复值。排序 <code>O(n log n)</code>，双指针总计 <code>O(n²)</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">最容易记住的四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 排序</div>升序排列后，移动指针才有明确方向：<b>左移右指针让和变小，右移左指针让和变大</b>。</div>
+      <div class="idea-item"><div class="no">② 固定 nums[i]</div>枚举第一个数 <b>v</b>，问题变成在它右边寻找两数之和等于 <code>-v</code>。</div>
+      <div class="idea-item"><div class="no">③ 左右夹逼</div><code>sum &lt; 0</code> 时 <b>left++</b>；<code>sum &gt; 0</code> 时 <b>right--</b>；等于 0 就收集答案。</div>
+      <div class="idea-item"><div class="no">④ 相邻去重</div>排序后重复值挨在一起。固定数与找到答案后的左右指针都只需<b>跳过相邻重复值</b>。</div>
+    </div>
+    <div class="prune-note">
+      <div class="prune break"><span class="keyword">break</span><span>当前能组成的<b>最小和</b>都大于 0，后面的数只会更大，所以整个循环可以结束。</span></div>
+      <div class="prune continue"><span class="keyword">continue</span><span>当前能组成的<b>最大和</b>仍小于 0，只说明当前 v 太小；换下一个更大的 v 仍可能有解。</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="field"><span class="lab">nums =</span><input type="text" id="input" value="-1 0 1 2 -1 -4" spellcheck="false" placeholder="用空格或逗号分隔"></div>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="-1 0 1 2 -1 -4">经典用例</span>
+      <span class="chip" data-v="0 0 0 0">全是 0</span>
+      <span class="chip" data-v="-4 -1 -1 0 1 2">观察 continue</span>
+      <span class="chip" data-v="-2 0 0 2 2">重复值</span>
+      <span class="chip" data-v="1 2 3 4">触发 break</span>
+      <span class="chip" data-v="-8 -6 -4 -2 1 3 5 7 9">较长用例</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持负数、0 和重复元素；长度 1～16（动画清晰度上限）。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">排序后的数组</div>
+    <div class="stage"><div class="array" id="array"></div></div>
+    <div class="equation" id="equation">准备开始</div>
+    <div class="vars" id="vars"></div>
+    <div class="results" id="results"></div>
+    <div class="legend">
+      <span><span class="dot dot-fixed"></span>固定值 i</span>
+      <span><span class="dot dot-left"></span>左指针 left</span>
+      <span><span class="dot dot-right"></span>右指针 right</span>
+      <span><span class="dot dot-check"></span>剪枝检查</span>
+      <span><span class="dot dot-found"></span>找到三元组</span>
+    </div>
+
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：解析输入、生成双指针执行帧 ==== */
+(function (root) {
+  'use strict';
+
+  function parseArray(value) {
+    if (typeof value !== 'string') return { arr:null, err:'空输入' };
+    var cells = value.trim().split(/[,\s]+/).filter(Boolean);
+    if (!cells.length) return { arr:null, err:'空输入' };
+    if (cells.length > 16) return { arr:null, err:'长度请不超过 16' };
+    var arr = [];
+    for (var k = 0; k < cells.length; k++) {
+      if (!/^-?\d+$/.test(cells[k])) return { arr:null, err:'含非整数：' + cells[k] };
+      var num = Number(cells[k]);
+      if (!Number.isSafeInteger(num)) return { arr:null, err:'整数超出安全范围：' + cells[k] };
+      arr.push(num);
+    }
+    return { arr:arr, err:null };
+  }
+
+  function cloneResults(results) {
+    return results.map(function (x) { return x.slice(); });
+  }
+
+  function buildSteps(nums) {
+    var a = nums.slice().sort(function (x, y) { return x - y; });
+    var n = a.length, steps = [], results = [];
+
+    function snap(o) {
+      steps.push({
+        i:o.i === undefined ? -1 : o.i,
+        left:o.left === undefined ? -1 : o.left,
+        right:o.right === undefined ? -1 : o.right,
+        sum:o.sum === undefined ? null : o.sum,
+        phase:o.phase || '',
+        check:o.check ? o.check.slice() : [],
+        found:o.found ? o.found.slice() : [],
+        results:cloneResults(results),
+        msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'sorted', msg:'先排序：<b>[' + nums.join(', ') + ']</b> → <b>[' + a.join(', ') + ']</b>。现在指针移动有了明确方向。' });
+
+    for (var i = 0; i < n - 2; i++) {
+      var v = a[i];
+
+      if (i > 0 && v === a[i - 1]) {
+        snap({ i:i, phase:'skipFixed', check:[i],
+          msg:'固定值 <b>nums[' + i + '] = ' + v + '</b> 与前一个相同。前一个位置已经找过所有组合，直接跳过，避免重复答案。' });
+        continue;
+      }
+
+      var minSum = v + a[i + 1] + a[i + 2];
+      if (minSum > 0) {
+        snap({ i:i, left:i + 1, right:i + 2, sum:minSum, phase:'pruneBreak', check:[i, i + 1, i + 2],
+          msg:'当前最小组合 <b>' + v + ' + ' + a[i + 1] + ' + ' + a[i + 2] + ' = ' + minSum + ' &gt; 0</b>。后面的数只会更大，因此执行 <code>break</code>。' });
+        break;
+      }
+
+      var maxSum = v + a[n - 2] + a[n - 1];
+      if (maxSum < 0) {
+        snap({ i:i, left:n - 2, right:n - 1, sum:maxSum, phase:'pruneContinue', check:[i, n - 2, n - 1],
+          msg:'当前最大组合 <b>' + v + ' + ' + a[n - 2] + ' + ' + a[n - 1] + ' = ' + maxSum + ' &lt; 0</b>。当前 v 太小，执行 <code>continue</code>，尝试下一个更大的固定值。' });
+        continue;
+      }
+
+      var left = i + 1, right = n - 1;
+      snap({ i:i, left:left, right:right, phase:'fixed',
+        msg:'固定 <b>v = nums[' + i + '] = ' + v + '</b>，在右侧区间寻找两个数，使它们之和等于 <b>' + (-v) + '</b>。' });
+
+      while (left < right) {
+        var total = v + a[left] + a[right];
+
+        if (total < 0) {
+          snap({ i:i, left:left, right:right, sum:total, phase:'tooSmall',
+            msg:'<b>' + v + ' + ' + a[left] + ' + ' + a[right] + ' = ' + total + ' &lt; 0</b>，和太小。让左指针右移，换一个更大的数：<code>left++</code>。' });
+          left++;
+        } else if (total > 0) {
+          snap({ i:i, left:left, right:right, sum:total, phase:'tooLarge',
+            msg:'<b>' + v + ' + ' + a[left] + ' + ' + a[right] + ' = ' + total + ' &gt; 0</b>，和太大。让右指针左移，换一个更小的数：<code>right--</code>。' });
+          right--;
+        } else {
+          results.push([v, a[left], a[right]]);
+          snap({ i:i, left:left, right:right, sum:0, phase:'found', found:[i, left, right],
+            msg:'<b>' + v + ' + ' + a[left] + ' + ' + a[right] + ' = 0</b>，<span class="op">找到三元组 [' + v + ', ' + a[left] + ', ' + a[right] + ']</span>。记录后两端都向中间移动。' });
+
+          var leftValue = a[left], rightValue = a[right];
+          left++;
+          right--;
+
+          while (left < right && a[left] === leftValue) {
+            snap({ i:i, left:left, right:right, phase:'skipLeft', check:[left],
+              msg:'左侧值 <b>' + a[left] + '</b> 刚刚已经使用过，跳过重复值：<code>left++</code>。' });
+            left++;
+          }
+          while (left < right && a[right] === rightValue) {
+            snap({ i:i, left:left, right:right, phase:'skipRight', check:[right],
+              msg:'右侧值 <b>' + a[right] + '</b> 刚刚已经使用过，跳过重复值：<code>right--</code>。' });
+            right--;
+          }
+        }
+      }
+
+      snap({ i:i, left:left, right:right, phase:'fixedDone',
+        msg:'左右指针已经相遇，固定值 <b>' + v + '</b> 的所有可能组合检查完毕，继续枚举下一个固定值。' });
+    }
+
+    snap({ phase:'done',
+      msg:results.length
+        ? '搜索完成，共找到 <span class="op">' + results.length + ' 个不重复三元组</span>：' + results.map(function (x) { return '[' + x.join(', ') + ']'; }).join('、') + '。'
+        : '搜索完成，没有找到和为 0 的三元组。' });
+
+    return { sorted:a, steps:steps };
+  }
+
+  root.THREE_SUM = { parseArray:parseArray, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var TS = window.THREE_SUM;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), statsEl = $('stats'), arrayEl = $('array');
+  var statusEl = $('status'), equationEl = $('equation'), varsEl = $('vars'), resultsEl = $('results');
+  var progressEl = $('progress'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var original = [], sorted = [], steps = [], stepIndex = 0, timer = null, cells = [];
+
+  function buildArray() {
+    arrayEl.innerHTML = '';
+    arrayEl.style.gridTemplateColumns = 'repeat(' + sorted.length + ', 56px)';
+    cells = [];
+    sorted.forEach(function (value, index) {
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      var idx = document.createElement('span');
+      idx.className = 'idx'; idx.textContent = index;
+      var val = document.createElement('span');
+      val.textContent = value;
+      var ptr = document.createElement('span');
+      ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(ptr);
+      arrayEl.appendChild(cell);
+      cells.push({ el:cell, ptr:ptr });
+    });
+    if (window.innerWidth <= 600) arrayEl.style.gridTemplateColumns = 'repeat(' + sorted.length + ', 48px)';
+  }
+
+  function relation(sum) {
+    if (sum === null) return '';
+    if (sum < 0) return '<span class="eq-low">&lt; 0</span>';
+    if (sum > 0) return '<span class="eq-high">&gt; 0</span>';
+    return '<span class="eq-zero">= 0 ✓</span>';
+  }
+
+  function renderEquation(step) {
+    if (step.phase === 'pruneBreak') {
+      equationEl.innerHTML = '<span class="small">最小和剪枝</span>' + sorted[step.i] + ' + ' + sorted[step.left] + ' + ' + sorted[step.right] + ' = ' + step.sum + ' ' + relation(step.sum);
+    } else if (step.phase === 'pruneContinue') {
+      equationEl.innerHTML = '<span class="small">最大和剪枝</span>' + sorted[step.i] + ' + ' + sorted[step.left] + ' + ' + sorted[step.right] + ' = ' + step.sum + ' ' + relation(step.sum);
+    } else if (step.sum !== null && step.i >= 0 && step.left >= 0 && step.right >= 0) {
+      equationEl.innerHTML = sorted[step.i] + ' + ' + sorted[step.left] + ' + ' + sorted[step.right] + ' = <b>' + step.sum + '</b> ' + relation(step.sum);
+    } else if (step.phase === 'fixed') {
+      equationEl.innerHTML = '<span class="small">两数目标</span>nums[left] + nums[right] = <b>' + (-sorted[step.i]) + '</b>';
+    } else if (step.phase === 'done') {
+      equationEl.innerHTML = '<span class="eq-zero">搜索完成</span>';
+    } else {
+      equationEl.textContent = '按步骤观察固定值与左右指针';
+    }
+  }
+
+  function renderResults(results) {
+    resultsEl.innerHTML = '<span class="label">已找到：</span>';
+    if (!results.length) {
+      resultsEl.innerHTML += '<span class="empty">暂时没有</span>';
+      return;
+    }
+    results.forEach(function (triple) {
+      var tag = document.createElement('span');
+      tag.className = 'triple';
+      tag.textContent = '[' + triple.join(', ') + ']';
+      resultsEl.appendChild(tag);
+    });
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    var checkSet = {};
+    var foundSet = {};
+    step.check.forEach(function (x) { checkSet[x] = true; });
+    step.found.forEach(function (x) { foundSet[x] = true; });
+
+    cells.forEach(function (ref, index) {
+      var cls = 'cell', labels = [];
+      if (step.i >= 0 && index < step.i) cls += ' before';
+      if (checkSet[index]) cls += ' check';
+      if (index === step.i) { cls += ' fixed'; labels.push('<span class="pi">i</span>'); }
+      if (index === step.left) { cls += ' left'; labels.push('<span class="pl">L</span>'); }
+      if (index === step.right) { cls += ' right'; labels.push('<span class="pr">R</span>'); }
+      if (foundSet[index]) cls += ' found';
+      ref.el.className = cls;
+      ref.ptr.innerHTML = labels.join('·');
+    });
+
+    var iValue = step.i >= 0 ? sorted[step.i] : '—';
+    varsEl.innerHTML =
+      '<span class="box"><span class="pi">i</span> = <b>' + (step.i >= 0 ? step.i : '—') + '</b>，v = <b>' + iValue + '</b></span>' +
+      '<span class="box"><span class="pl">left</span> = <b>' + (step.left >= 0 ? step.left : '—') + '</b></span>' +
+      '<span class="box"><span class="pr">right</span> = <b>' + (step.right >= 0 ? step.right : '—') + '</b></span>' +
+      '<span class="box">target = <b>' + (step.i >= 0 ? -sorted[step.i] : '—') + '</b></span>';
+
+    renderEquation(step);
+    renderResults(step.results);
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function renderStats() {
+    var finalResults = steps[steps.length - 1].results;
+    statsEl.innerHTML =
+      '<div class="stat">原数组<b>[' + original.join(', ') + ']</b></div>' +
+      '<div class="stat">排序后<b>[' + sorted.join(', ') + ']</b></div>' +
+      '<div class="stat">答案数<b>' + finalResults.length + '</b></div>' +
+      '<div class="stat">时间<b>O(n²)</b></div>' +
+      '<div class="stat">双指针空间<b>O(1)</b></div>';
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+
+  function next() {
+    if (stepIndex < steps.length - 1) {
+      stepIndex++;
+      render();
+    }
+  }
+
+  function prev() {
+    if (stepIndex > 0) {
+      stepIndex--;
+      render();
+    }
+  }
+
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 900);
+  }
+
+  function load() {
+    var parsed = TS.parseArray(input.value);
+    if (!parsed.arr) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    original = parsed.arr;
+    var data = TS.buildSteps(original);
+    sorted = data.sorted;
+    steps = data.steps;
+    stepIndex = 0;
+    buildArray();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === input) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 排序 + 枚举固定值 + 双指针</span>\n' +
+'class Solution:\n' +
+'    def threeSum(self, nums: list[int]) -&gt; list[list[int]]:\n' +
+'        nums.sort()\n' +
+'        ans = []\n' +
+'\n' +
+'        for i in range(len(nums) - 2):\n' +
+'            if i &gt; 0 and nums[i] == nums[i - 1]:\n' +
+'                continue                         <span class="cmt"># 固定值去重</span>\n' +
+'\n' +
+'            if nums[i] + nums[i + 1] + nums[i + 2] &gt; 0:\n' +
+'                break                            <span class="cmt"># 最小和都太大</span>\n' +
+'            if nums[i] + nums[-2] + nums[-1] &lt; 0:\n' +
+'                continue                         <span class="cmt"># 最大和仍太小</span>\n' +
+'\n' +
+'            left, right = i + 1, len(nums) - 1\n' +
+'            while left &lt; right:\n' +
+'                total = nums[i] + nums[left] + nums[right]\n' +
+'                if total &lt; 0:\n' +
+'                    left += 1\n' +
+'                elif total &gt; 0:\n' +
+'                    right -= 1\n' +
+'                else:\n' +
+'                    ans.append([nums[i], nums[left], nums[right]])\n' +
+'                    left_value, right_value = nums[left], nums[right]\n' +
+'                    left, right = left + 1, right - 1\n' +
+'                    while left &lt; right and nums[left] == left_value:\n' +
+'                        left += 1                 <span class="cmt"># 左侧去重</span>\n' +
+'                    while left &lt; right and nums[right] == right_value:\n' +
+'                        right -= 1                <span class="cmt"># 右侧去重</span>\n' +
+'\n' +
+'        return ans',
+    java:
+'<span class="cmt">// 排序 + 枚举固定值 + 双指针</span>\n' +
+'class Solution {\n' +
+'    public List&lt;List&lt;Integer&gt;&gt; threeSum(int[] nums) {\n' +
+'        Arrays.sort(nums);\n' +
+'        List&lt;List&lt;Integer&gt;&gt; ans = new ArrayList&lt;&gt;();\n' +
+'\n' +
+'        for (int i = 0; i &lt; nums.length - 2; i++) {\n' +
+'            if (i &gt; 0 &amp;&amp; nums[i] == nums[i - 1]) continue;\n' +
+'            if (nums[i] + nums[i + 1] + nums[i + 2] &gt; 0) break;\n' +
+'            if (nums[i] + nums[nums.length - 2] + nums[nums.length - 1] &lt; 0) continue;\n' +
+'\n' +
+'            int left = i + 1, right = nums.length - 1;\n' +
+'            while (left &lt; right) {\n' +
+'                int total = nums[i] + nums[left] + nums[right];\n' +
+'                if (total &lt; 0) {\n' +
+'                    left++;\n' +
+'                } else if (total &gt; 0) {\n' +
+'                    right--;\n' +
+'                } else {\n' +
+'                    ans.add(Arrays.asList(nums[i], nums[left], nums[right]));\n' +
+'                    int lv = nums[left], rv = nums[right];\n' +
+'                    left++; right--;\n' +
+'                    while (left &lt; right &amp;&amp; nums[left] == lv) left++;\n' +
+'                    while (left &lt; right &amp;&amp; nums[right] == rv) right--;\n' +
+'                }\n' +
+'            }\n' +
+'        }\n' +
+'        return ans;\n' +
+'    }\n' +
+'}'
+  };
+
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
