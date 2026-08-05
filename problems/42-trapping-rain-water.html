@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 双指针 · 前后缀最大值 · 空间优化">
+<title>42. 接雨水 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .key-note {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px;
+  }
+  .key-note code { background:#dbeafe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:230px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:160px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#f8fbff,#fff); padding:18px 16px 14px; }
+  .terrain-wrap { display:inline-grid; gap:4px; min-width:max-content; }
+  .terrain-grid { display:grid; gap:3px; align-items:end; }
+  .terrain-cell {
+    width:var(--cell-w); height:25px; border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid transparent; font:700 10px "SF Mono",Menlo,monospace;
+    transition:background .18s,border-color .18s,box-shadow .18s,opacity .18s;
+  }
+  .terrain-cell.air { background:rgba(255,255,255,.4); }
+  .terrain-cell.wall { background:#64748b; border-color:#475569; color:#fff; box-shadow:inset 0 -2px 0 rgba(15,23,42,.16); }
+  .terrain-cell.water { background:#bae6fd; border-color:#7dd3fc; color:#0284c7; }
+  .terrain-cell.water.fresh { background:#38bdf8; border-color:#0284c7; color:#fff; animation:splash .42s ease; }
+  .terrain-cell.col-left { box-shadow:inset 3px 0 0 #4f46e5; }
+  .terrain-cell.col-right { box-shadow:inset -3px 0 0 #f97316; }
+  .terrain-cell.col-left.col-right { box-shadow:inset 3px 0 0 #4f46e5,inset -3px 0 0 #f97316; }
+  @keyframes splash { 0%{transform:scale(.72);opacity:.35;} 70%{transform:scale(1.08);} 100%{transform:scale(1);opacity:1;} }
+
+  .pointer-row,.value-row,.index-row { display:grid; gap:3px; }
+  .pointer-cell,.value-cell,.index-cell {
+    width:var(--cell-w); min-height:20px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; text-align:center;
+  }
+  .pointer-cell { font-size:10px; font-weight:800; }
+  .pointer-cell.left { color:#4f46e5; }
+  .pointer-cell.right { color:#ea580c; }
+  .pointer-cell.both { color:#7c3aed; }
+  .value-cell { font-size:12px; font-weight:800; color:#334155; background:#f1f5f9; border-radius:5px; }
+  .index-cell { font-size:10px; color:#94a3b8; min-height:15px; }
+
+  .decision {
+    margin-top:14px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;
+  }
+  .boundary {
+    border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; background:#f8fafc;
+    font-size:12px; color:#64748b; text-align:center;
+  }
+  .boundary b { display:block; font:800 20px "SF Mono",Menlo,monospace; margin-top:2px; }
+  .boundary.left b { color:#4f46e5; }
+  .boundary.right b { color:#ea580c; }
+  .boundary.total b { color:#0284c7; }
+  .equation {
+    margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0;
+    padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:14px; text-align:center;
+  }
+  .equation .left-text { color:#a5b4fc; font-weight:800; }
+  .equation .right-text { color:#fdba74; font-weight:800; }
+  .equation .water-text { color:#7dd3fc; font-weight:800; }
+
+  .water-array { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; align-items:center; }
+  .water-array .label { font-size:12px; color:#64748b; font-weight:700; }
+  .water-chip {
+    font:700 11px "SF Mono",Menlo,monospace; padding:4px 7px; border-radius:6px;
+    background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1;
+  }
+  .water-chip.pending { background:#f8fafc; border-color:#e5e7eb; color:#94a3b8; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-wall { background:#64748b; border-color:#475569; }
+  .dot-water { background:#bae6fd; border-color:#7dd3fc; }
+  .dot-fresh { background:#38bdf8; border-color:#0284c7; }
+  .dot-left { background:#e0e7ff; border-color:#4f46e5; }
+  .dot-right { background:#ffedd5; border-color:#f97316; }
+
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .op { color:#86efac; font-weight:700; }
+  .status .left-op { color:#c7d2fe; font-weight:700; }
+  .status .right-op { color:#fed7aa; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:620px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .decision { grid-template-columns:1fr 1fr; }
+    .boundary.total { grid-column:1 / -1; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/trapping-rain-water/" target="_blank" rel="noopener">LeetCode 42</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>42. 接雨水 · 双指针动画</h1>
+  <div class="sub">每一列能接多少水，取决于它左边最高柱和右边最高柱中<b>较矮的那一个</b>：<code>water[i] = min(left_max, right_max) - height[i]</code>。双指针从两端向中间收缩，只处理当前最高边界更矮的一侧，就不必保存两张前后缀数组。</div>
+
+  <div class="card">
+    <div class="panel-title">双指针四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 两端出发</div><code>left</code>、<code>right</code> 分别从数组两端开始，同时维护 <code>left_max</code> 和 <code>right_max</code>。</div>
+      <div class="idea-item"><div class="no">② 更新边界</div>每轮先把左右当前位置纳入最高边界：<code>max(old, height[p])</code>。</div>
+      <div class="idea-item"><div class="no">③ 处理矮侧</div>若 <code>left_max ≤ right_max</code>，左侧水量已经确定；否则确定右侧水量。</div>
+      <div class="idea-item"><div class="no">④ 向内收缩</div>累计该列水量后，只移动刚处理的一侧，直到两个指针相遇。</div>
+    </div>
+    <div class="key-note"><b>为什么能确定？</b> 更高的一侧已经提供了足够高的挡板，较矮边界才是瓶颈。比如 <code>left_max ≤ right_max</code>，那么 <code>min(left_max, right_max)</code> 必然就是 <code>left_max</code>，左侧当前列不用再等待右边的信息。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">height =</span><input type="text" id="input" value="0 1 0 2 1 0 1 3 2 1 2 1" spellcheck="false" placeholder="空格或逗号分隔，如 4 2 0 3 2 5"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="0 1 0 2 1 0 1 3 2 1 2 1">经典用例（6）</span>
+      <span class="chip" data-v="4 2 0 3 2 5">深水槽（9）</span>
+      <span class="chip" data-v="3 0 2 0 4">左右交替（7）</span>
+      <span class="chip" data-v="5 4 3 2 1">单调下降（0）</span>
+      <span class="chip" data-v="2 0 2">小水槽（2）</span>
+      <span class="chip" data-v="0 0 0 0">全为 0</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～16 个非负整数，高度不超过 12（动画清晰度上限）。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">地形与已经确定的积水</div>
+    <div class="stage">
+      <div class="terrain-wrap">
+        <div class="terrain-grid" id="terrain"></div>
+        <div class="pointer-row" id="pointerRow"></div>
+        <div class="value-row" id="valueRow"></div>
+        <div class="index-row" id="indexRow"></div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <div class="boundary left">左侧最高 left_max<b id="leftMax">0</b></div>
+      <div class="boundary right">右侧最高 right_max<b id="rightMax">0</b></div>
+      <div class="boundary total">累计雨水 water<b id="totalWater">0</b></div>
+    </div>
+    <div class="equation" id="equation">准备从两端开始</div>
+    <div class="water-array" id="waterArray"></div>
+
+    <div class="legend">
+      <span><span class="dot dot-wall"></span>柱子</span>
+      <span><span class="dot dot-water"></span>已确定的雨水</span>
+      <span><span class="dot dot-fresh"></span>本步新增雨水</span>
+      <span><span class="dot dot-left"></span>左指针 L</span>
+      <span><span class="dot dot-right"></span>右指针 R</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：双指针求解并生成动画帧 ==== */
+(function (root) {
+  'use strict';
+
+  function parseHeights(value) {
+    if (typeof value !== 'string') return { arr:null, err:'空输入' };
+    var parts = value.trim().split(/[,\s]+/).filter(Boolean);
+    if (!parts.length) return { arr:null, err:'空输入' };
+    if (parts.length > 16) return { arr:null, err:'长度请不超过 16' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^\d+$/.test(parts[i])) return { arr:null, err:'含非负整数以外的内容：' + parts[i] };
+      var valueNumber = Number(parts[i]);
+      if (!Number.isSafeInteger(valueNumber) || valueNumber > 12) return { arr:null, err:'高度须为 0～12：' + parts[i] };
+      arr.push(valueNumber);
+    }
+    return { arr:arr, err:null };
+  }
+
+  function trap(heights) {
+    var left = 0, right = heights.length - 1;
+    var leftMax = 0, rightMax = 0, water = 0;
+    while (left < right) {
+      leftMax = Math.max(leftMax, heights[left]);
+      rightMax = Math.max(rightMax, heights[right]);
+      if (leftMax <= rightMax) {
+        water += leftMax - heights[left];
+        left++;
+      } else {
+        water += rightMax - heights[right];
+        right--;
+      }
+    }
+    return water;
+  }
+
+  function buildSteps(heights) {
+    var n = heights.length, left = 0, right = n - 1;
+    var leftMax = 0, rightMax = 0, total = 0;
+    var waterAt = new Array(n).fill(0);
+    var processed = new Array(n).fill(false);
+    var steps = [];
+
+    function snap(o) {
+      steps.push({
+        phase:o.phase || '',
+        left:left, right:right, leftMax:leftMax, rightMax:rightMax, total:total,
+        side:o.side || '', amount:o.amount === undefined ? null : o.amount,
+        waterAt:waterAt.slice(), processed:processed.slice(),
+        msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', msg:'左右指针分别从 <b>0</b> 和 <b>' + right + '</b> 出发，两个最高边界都初始化为 0，累计雨水为 0。' });
+
+    while (left < right) {
+      leftMax = Math.max(leftMax, heights[left]);
+      rightMax = Math.max(rightMax, heights[right]);
+      snap({ phase:'compare',
+        msg:'更新边界：<span class="left-op">left_max = ' + leftMax + '</span>，<span class="right-op">right_max = ' + rightMax + '</span>。比较较矮边界，决定本轮可以确定哪一侧。' });
+
+      if (leftMax <= rightMax) {
+        var leftAmount = leftMax - heights[left];
+        waterAt[left] = leftAmount;
+        processed[left] = true;
+        total += leftAmount;
+        snap({ phase:'collectLeft', side:'left', amount:leftAmount,
+          msg:'因为 <span class="left-op">left_max ' + leftMax + ' ≤ right_max ' + rightMax + '</span>，左侧瓶颈已经确定。第 ' + left + ' 列接水 = <code>' + leftMax + ' - ' + heights[left] + ' = ' + leftAmount + '</code>，累计为 <span class="op">' + total + '</span>，然后 <code>left++</code>。' });
+        left++;
+      } else {
+        var rightAmount = rightMax - heights[right];
+        waterAt[right] = rightAmount;
+        processed[right] = true;
+        total += rightAmount;
+        snap({ phase:'collectRight', side:'right', amount:rightAmount,
+          msg:'因为 <span class="right-op">right_max ' + rightMax + ' &lt; left_max ' + leftMax + '</span>，右侧瓶颈已经确定。第 ' + right + ' 列接水 = <code>' + rightMax + ' - ' + heights[right] + ' = ' + rightAmount + '</code>，累计为 <span class="op">' + total + '</span>，然后 <code>right--</code>。' });
+        right--;
+      }
+    }
+
+    if (n) processed[left] = true;
+    snap({ phase:'done', msg:'左右指针相遇，搜索结束。总接水量为 <span class="op">' + total + '</span>。只遍历一次数组，并且只维护常数个变量。' });
+    return steps;
+  }
+
+  root.TRAP_WATER = { parseHeights:parseHeights, trap:trap, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var TW = window.TRAP_WATER;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), terrainEl = $('terrain'), pointerRow = $('pointerRow');
+  var valueRow = $('valueRow'), indexRow = $('indexRow'), statsEl = $('stats'), statusEl = $('status');
+  var equationEl = $('equation'), waterArrayEl = $('waterArray'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var heights = [], maxHeight = 1, steps = [], stepIndex = 0, timer = null, cellRefs = [];
+
+  function cellWidth() {
+    if (heights.length >= 14) return 36;
+    if (heights.length >= 11) return 40;
+    return 44;
+  }
+
+  function buildTerrain() {
+    maxHeight = Math.max.apply(null, heights.concat([1]));
+    var width = cellWidth();
+    terrainEl.innerHTML = '';
+    pointerRow.innerHTML = '';
+    valueRow.innerHTML = '';
+    indexRow.innerHTML = '';
+    [terrainEl, pointerRow, valueRow, indexRow].forEach(function (el) {
+      el.style.setProperty('--cell-w', width + 'px');
+      el.style.gridTemplateColumns = 'repeat(' + heights.length + ', ' + width + 'px)';
+    });
+    cellRefs = [];
+    for (var level = maxHeight; level >= 1; level--) {
+      for (var col = 0; col < heights.length; col++) {
+        var cell = document.createElement('div');
+        cell.dataset.level = level;
+        cell.dataset.col = col;
+        terrainEl.appendChild(cell);
+        cellRefs.push(cell);
+      }
+    }
+    heights.forEach(function (height, index) {
+      var pointer = document.createElement('div');
+      pointer.className = 'pointer-cell';
+      pointerRow.appendChild(pointer);
+      var value = document.createElement('div');
+      value.className = 'value-cell';
+      value.textContent = height;
+      valueRow.appendChild(value);
+      var idx = document.createElement('div');
+      idx.className = 'index-cell';
+      idx.textContent = index;
+      indexRow.appendChild(idx);
+    });
+  }
+
+  function renderTerrain(step) {
+    cellRefs.forEach(function (cell) {
+      var level = Number(cell.dataset.level);
+      var col = Number(cell.dataset.col);
+      var isWall = level <= heights[col];
+      var isWater = level > heights[col] && level <= heights[col] + step.waterAt[col];
+      var cls = 'terrain-cell ' + (isWall ? 'wall' : (isWater ? 'water' : 'air'));
+      if (col === step.left) cls += ' col-left';
+      if (col === step.right) cls += ' col-right';
+      if (isWater && ((step.side === 'left' && col === step.left) || (step.side === 'right' && col === step.right))) cls += ' fresh';
+      cell.className = cls;
+      cell.textContent = isWater ? '≈' : (isWall && level === heights[col] ? heights[col] : '');
+    });
+
+    Array.prototype.forEach.call(pointerRow.children, function (cell, index) {
+      var isLeft = index === step.left, isRight = index === step.right;
+      cell.className = 'pointer-cell' + (isLeft && isRight ? ' both' : (isLeft ? ' left' : (isRight ? ' right' : '')));
+      cell.textContent = isLeft && isRight ? 'L·R' : (isLeft ? 'L ▲' : (isRight ? '▲ R' : ''));
+    });
+  }
+
+  function renderEquation(step) {
+    if (step.phase === 'compare') {
+      var cmp = step.leftMax <= step.rightMax ? '≤' : '&gt;';
+      equationEl.innerHTML = '<span class="left-text">left_max ' + step.leftMax + '</span>&nbsp; ' + cmp + ' &nbsp;<span class="right-text">right_max ' + step.rightMax + '</span> → 处理' + (step.leftMax <= step.rightMax ? '左侧 L' : '右侧 R');
+    } else if (step.phase === 'collectLeft') {
+      equationEl.innerHTML = '<span class="water-text">water[' + step.left + '] = ' + step.leftMax + ' − ' + heights[step.left] + ' = ' + step.amount + '</span>';
+    } else if (step.phase === 'collectRight') {
+      equationEl.innerHTML = '<span class="water-text">water[' + step.right + '] = ' + step.rightMax + ' − ' + heights[step.right] + ' = ' + step.amount + '</span>';
+    } else if (step.phase === 'done') {
+      equationEl.innerHTML = '总雨水 = <span class="water-text">' + step.total + '</span>';
+    } else {
+      equationEl.textContent = '准备比较左右最高边界';
+    }
+  }
+
+  function renderWaterArray(step) {
+    waterArrayEl.innerHTML = '<span class="label">每列水量：</span>';
+    step.waterAt.forEach(function (amount, index) {
+      var chip = document.createElement('span');
+      chip.className = 'water-chip' + (step.processed[index] ? '' : ' pending');
+      chip.textContent = 'w[' + index + ']=' + (step.processed[index] ? amount : '?');
+      waterArrayEl.appendChild(chip);
+    });
+  }
+
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">输入长度<b>' + heights.length + '</b></div>' +
+      '<div class="stat">最大高度<b>' + Math.max.apply(null, heights) + '</b></div>' +
+      '<div class="stat">总雨水<b>' + TW.trap(heights) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderTerrain(step);
+    renderEquation(step);
+    renderWaterArray(step);
+    $('leftMax').textContent = step.leftMax;
+    $('rightMax').textContent = step.rightMax;
+    $('totalWater').textContent = step.total;
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 820);
+  }
+
+  function load() {
+    var parsed = TW.parseHeights(input.value);
+    if (!parsed.arr) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    heights = parsed.arr;
+    steps = TW.buildSteps(heights);
+    stepIndex = 0;
+    buildTerrain();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === input) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 双指针 · 时间 O(n) · 额外空间 O(1)</span>\n' +
+'class Solution:\n' +
+'    def trap(self, height: list[int]) -&gt; int:\n' +
+'        left, right = 0, len(height) - 1\n' +
+'        left_max = right_max = 0\n' +
+'        water = 0\n' +
+'\n' +
+'        while left &lt; right:\n' +
+'            left_max = max(left_max, height[left])\n' +
+'            right_max = max(right_max, height[right])\n' +
+'\n' +
+'            if left_max &lt;= right_max:\n' +
+'                water += left_max - height[left]   <span class="cmt"># 左边界是瓶颈</span>\n' +
+'                left += 1\n' +
+'            else:\n' +
+'                water += right_max - height[right] <span class="cmt"># 右边界是瓶颈</span>\n' +
+'                right -= 1\n' +
+'\n' +
+'        return water',
+    java:
+'<span class="cmt">// 双指针 · 时间 O(n) · 额外空间 O(1)</span>\n' +
+'class Solution {\n' +
+'    public int trap(int[] height) {\n' +
+'        int left = 0, right = height.length - 1;\n' +
+'        int leftMax = 0, rightMax = 0, water = 0;\n' +
+'\n' +
+'        while (left &lt; right) {\n' +
+'            leftMax = Math.max(leftMax, height[left]);\n' +
+'            rightMax = Math.max(rightMax, height[right]);\n' +
+'\n' +
+'            if (leftMax &lt;= rightMax) {\n' +
+'                water += leftMax - height[left];  <span class="cmt">// 左边界是瓶颈</span>\n' +
+'                left++;\n' +
+'            } else {\n' +
+'                water += rightMax - height[right]; <span class="cmt">// 右边界是瓶颈</span>\n' +
+'                right--;\n' +
+'            }\n' +
+'        }\n' +
+'        return water;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
