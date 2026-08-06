@@ -102,6 +102,7 @@ leetcode-animations/
 | 322 | [零钱兑换](https://tces1.github.io/leetcode-animations/problems/322-coin-change.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 394 | [字符串解码](https://tces1.github.io/leetcode-animations/problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
 | 438 | [找到字符串中所有字母异位词](https://tces1.github.io/leetcode-animations/problems/438-find-all-anagrams-in-a-string.html) | 中等 | 字符串 · 滑动窗口 · 计数 · 定长窗口 |
+| 560 | [和为 K 的子数组](https://tces1.github.io/leetcode-animations/problems/560-subarray-sum-equals-k.html) | 中等 | 数组 · 前缀和 · 哈希表 · 计数 |
 | 718 | [最长重复子数组](https://tces1.github.io/leetcode-animations/problems/718-maximum-length-of-repeated-subarray.html) | 中等 | 动态规划 · 二维 DP · 数组 |
 | 739 | [每日温度](https://tces1.github.io/leetcode-animations/problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
 | 763 | [划分字母区间](https://tces1.github.io/leetcode-animations/problems/763-partition-labels.html) | 中等 | 贪心 · 双指针 · 哈希 |
