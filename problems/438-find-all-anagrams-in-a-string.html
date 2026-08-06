@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="字符串 · 滑动窗口 · 计数 · 定长窗口">
+<title>438. 找到字符串中所有字母异位词 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .balance-note {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#f5f3ff; border:1px solid #ddd6fe; color:#4c1d95; font-size:13px;
+  }
+  .balance-note code { background:#ede9fe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .fields { display:grid; grid-template-columns:2fr 1fr; gap:10px; flex:1; min-width:300px; }
+  .field { display:flex; align-items:center; gap:8px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text] {
+    width:100%; min-width:100px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .string-stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fff,#fbfbfd); padding:28px 16px 36px; }
+  .string-row { display:inline-grid; gap:6px; min-width:max-content; }
+  .char-cell {
+    position:relative; width:48px; height:52px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 20px "SF Mono",Menlo,monospace; color:#334155;
+    background:#f8fafc; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .char-cell.outside { opacity:.42; }
+  .char-cell.window { background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+  .char-cell.entering { background:#ffedd5; border-color:#f97316; color:#9a3412; box-shadow:0 0 0 3px rgba(249,115,22,.18); transform:scale(1.05); }
+  .char-cell.leaving { background:#fee2e2; border-color:#ef4444; color:#991b1b; box-shadow:0 0 0 3px rgba(239,68,68,.16); }
+  .char-cell.match { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 4px rgba(34,197,94,.22); transform:translateY(-2px); }
+  .char-cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#a5b4fc; }
+  .char-cell.match .idx { color:#dcfce7; }
+  .char-cell .ptr { position:absolute; top:100%; margin-top:7px; font-size:10px; font-weight:800; white-space:nowrap; }
+  .ptr-left { color:#4f46e5; }
+  .ptr-right { color:#ea580c; }
+
+  .pattern-row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:13px; }
+  .pattern-row .label { font-size:12px; color:#64748b; font-weight:700; margin-right:3px; }
+  .pattern-cell {
+    width:31px; height:31px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    font:800 14px "SF Mono",Menlo,monospace; background:#ede9fe; border:1px solid #ddd6fe; color:#5b21b6;
+  }
+
+  .balance-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(84px,1fr)); gap:8px; }
+  .balance-item {
+    border:1px solid #e5e7eb; border-radius:9px; padding:8px 9px; background:#f8fafc;
+    display:flex; align-items:center; gap:8px;
+  }
+  .balance-item .letter {
+    width:27px; height:27px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    font:800 15px "SF Mono",Menlo,monospace; background:#e2e8f0; color:#334155;
+  }
+  .balance-item .value { font:800 15px "SF Mono",Menlo,monospace; }
+  .balance-item .meaning { display:block; font-size:9px; font-weight:600; color:#94a3b8; }
+  .balance-item.missing { background:#fff7ed; border-color:#fed7aa; }
+  .balance-item.missing .value { color:#c2410c; }
+  .balance-item.extra { background:#eff6ff; border-color:#bfdbfe; }
+  .balance-item.extra .value { color:#1d4ed8; }
+  .balance-item.balanced { background:#f0fdf4; border-color:#bbf7d0; }
+  .balance-item.balanced .value { color:#16a34a; }
+  .balance-item.changed { box-shadow:0 0 0 3px rgba(99,102,241,.2); transform:translateY(-1px); }
+
+  .summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px; }
+  .summary-box { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; text-align:center; font-size:12px; color:#64748b; }
+  .summary-box b { display:block; margin-top:2px; font:800 18px "SF Mono",Menlo,monospace; color:#334155; }
+  .summary-box.diff b { color:#7c3aed; }
+  .summary-box.window-text b { font-size:14px; color:#4f46e5; }
+  .summary-box.answer b { color:#16a34a; }
+
+  .results { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin-top:12px; }
+  .results .label { font-size:12px; color:#64748b; font-weight:700; }
+  .result-chip { font:800 12px "SF Mono",Menlo,monospace; padding:5px 9px; border-radius:7px; background:#dcfce7; border:1px solid #bbf7d0; color:#166534; }
+  .empty { font-size:12px; color:#9ca3af; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-window { background:#e0e7ff; border-color:#a5b4fc; }
+  .dot-enter { background:#ffedd5; border-color:#f97316; }
+  .dot-leave { background:#fee2e2; border-color:#ef4444; }
+  .dot-match { background:#22c55e; border-color:#16a34a; }
+
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .no { color:#fca5a5; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:660px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .fields { grid-template-columns:1fr; }
+    .summary-grid { grid-template-columns:1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/find-all-anagrams-in-a-string/" target="_blank" rel="noopener">LeetCode 438</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>438. 找到字符串中所有字母异位词 · 滑动窗口动画</h1>
+  <div class="sub">异位词只关心<b>每个字母出现多少次</b>，不关心顺序。因为答案窗口的长度一定等于 <code>len(p)</code>，所以用一个固定长度窗口从左向右滑动：右边进入一个字符，左边离开一个字符，每次只更新两个计数。</div>
+
+  <div class="card">
+    <div class="panel-title">固定窗口四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 记录需求</div>先把 p 中的字符计入差值表：每出现一次就 <code>+1</code>，表示窗口还需要它。</div>
+      <div class="idea-item"><div class="no">② 装入窗口</div>首个长度为 <code>len(p)</code> 的窗口逐字加入：窗口中的字符令差值 <code>-1</code>。</div>
+      <div class="idea-item"><div class="no">③ 同步滑动</div>旧左端字符离开，差值 <code>+1</code>；新右端字符进入，差值 <code>-1</code>。</div>
+      <div class="idea-item"><div class="no">④ 判断答案</div>若所有字母差值都为 0，说明窗口和 p 的字符频次完全相同，记录窗口左端。</div>
+    </div>
+    <div class="balance-note"><b>差值含义：</b><code>balance[c] = count_p(c) - count_window(c)</code>。正数表示窗口<b>还缺</b>，负数表示窗口<b>多了</b>，0 表示刚好平衡。额外维护非零项数量 <code>mismatch</code>，就能 O(1) 判断整个差值表是否全为 0。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="fields">
+        <label class="field"><span class="lab">s =</span><input type="text" id="sInput" value="cbaebabacd" maxlength="24" spellcheck="false"></label>
+        <label class="field"><span class="lab">p =</span><input type="text" id="pInput" value="abc" maxlength="10" spellcheck="false"></label>
+      </div>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-s="cbaebabacd" data-p="abc">经典 [0,6]</span>
+      <span class="chip" data-s="abab" data-p="ab">重叠窗口 [0,1,2]</span>
+      <span class="chip" data-s="baa" data-p="aa">重复字母 [1]</span>
+      <span class="chip" data-s="abc" data-p="abcd">p 更长 []</span>
+      <span class="chip" data-s="aaaaaaaaaa" data-p="aaa">连续匹配</span>
+      <span class="chip" data-s="af" data-p="be">没有答案</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">仅支持小写英文字母；s 长度 1～24，p 长度 1～10。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">字符串 s 与当前固定长度窗口</div>
+    <div class="string-stage"><div class="string-row" id="stringRow"></div></div>
+    <div class="pattern-row" id="patternRow"></div>
+
+    <div class="panel-title status-title">字符差值表 balance</div>
+    <div class="balance-grid" id="balanceGrid"></div>
+
+    <div class="summary-grid">
+      <div class="summary-box diff">非零差值 mismatch<b id="mismatch">0</b></div>
+      <div class="summary-box window-text">当前窗口<b id="windowText">—</b></div>
+      <div class="summary-box answer">已找到数量<b id="answerCount">0</b></div>
+    </div>
+    <div class="results" id="results"></div>
+
+    <div class="legend">
+      <span><span class="dot dot-window"></span>当前窗口</span>
+      <span><span class="dot dot-enter"></span>新进入字符</span>
+      <span><span class="dot dot-leave"></span>刚离开字符</span>
+      <span><span class="dot dot-match"></span>异位词窗口</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：差值数组 + 定长滑动窗口 ==== */
+(function (root) {
+  'use strict';
+
+  function parseInputs(s, p) {
+    if (!/^[a-z]+$/.test(s) || !/^[a-z]+$/.test(p)) return { err:'s 和 p 只能包含小写英文字母，且不能为空' };
+    if (s.length > 24 || p.length > 10) return { err:'s 最长 24，p 最长 10' };
+    return { s:s, p:p, err:null };
+  }
+
+  function solve(s, p) {
+    if (p.length > s.length) return [];
+    var balance = new Array(26).fill(0), mismatch = 0, result = [];
+    function adjust(char, delta) {
+      var index = char.charCodeAt(0) - 97;
+      var before = balance[index], after = before + delta;
+      if (before === 0 && after !== 0) mismatch++;
+      else if (before !== 0 && after === 0) mismatch--;
+      balance[index] = after;
+    }
+    for (var i = 0; i < p.length; i++) adjust(p[i], 1);
+    for (var j = 0; j < p.length; j++) adjust(s[j], -1);
+    if (mismatch === 0) result.push(0);
+    for (var right = p.length; right < s.length; right++) {
+      adjust(s[right - p.length], 1);
+      adjust(s[right], -1);
+      if (mismatch === 0) result.push(right - p.length + 1);
+    }
+    return result;
+  }
+
+  function buildSteps(s, p) {
+    var balance = new Array(26).fill(0), mismatch = 0, results = [], steps = [];
+    var left = 0, right = -1;
+
+    function adjust(char, delta) {
+      var index = char.charCodeAt(0) - 97;
+      var before = balance[index], after = before + delta;
+      if (before === 0 && after !== 0) mismatch++;
+      else if (before !== 0 && after === 0) mismatch--;
+      balance[index] = after;
+      return { char:char, before:before, after:after };
+    }
+
+    function snap(o) {
+      steps.push({
+        phase:o.phase || '', left:left, right:right,
+        entering:o.entering === undefined ? -1 : o.entering,
+        leaving:o.leaving === undefined ? -1 : o.leaving,
+        changed:o.changed || '',
+        balance:balance.slice(), mismatch:mismatch,
+        results:results.slice(), msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', msg:'初始化 26 个字母的差值为 0。先统计模式串 <b>p = "' + p + '"</b> 的字符需求。' });
+
+    for (var i = 0; i < p.length; i++) {
+      var needChange = adjust(p[i], 1);
+      snap({ phase:'need', changed:p[i],
+        msg:'模式串读到 <b>p[' + i + '] = "' + p[i] + '"</b>：balance[' + p[i] + '] 从 ' + needChange.before + ' 变为 <b>' + needChange.after + '</b>，表示窗口需要这么多个 "' + p[i] + '"。' });
+    }
+
+    if (p.length > s.length) {
+      snap({ phase:'done', msg:'模式串长度 <b>' + p.length + '</b> 大于 s 的长度 <b>' + s.length + '</b>，不可能存在等长窗口，直接返回空数组。' });
+      return steps;
+    }
+
+    for (var j = 0; j < p.length; j++) {
+      right = j;
+      var initChange = adjust(s[j], -1);
+      snap({ phase:'initWindow', entering:j, changed:s[j],
+        msg:'把 <b>s[' + j + '] = "' + s[j] + '"</b> 放进首个窗口：balance[' + s[j] + '] 从 ' + initChange.before + ' 变为 <b>' + initChange.after + '</b>。' });
+    }
+
+    function checkWindow() {
+      if (mismatch === 0) {
+        results.push(left);
+        snap({ phase:'match',
+          msg:'窗口 <b>s[' + left + ':' + (right + 1) + '] = "' + s.slice(left, right + 1) + '"</b> 的所有差值都为 0，<span class="ok">是 p 的字母异位词</span>，记录下标 ' + left + '。' });
+      } else {
+        snap({ phase:'check',
+          msg:'窗口 <b>"' + s.slice(left, right + 1) + '"</b> 还有 <b>' + mismatch + '</b> 种字母的差值不为 0，<span class="no">不是异位词</span>。' });
+      }
+    }
+
+    checkWindow();
+
+    while (right + 1 < s.length) {
+      var oldLeft = left, newRight = right + 1;
+      var outgoing = s[oldLeft], incoming = s[newRight];
+      adjust(outgoing, 1);
+      adjust(incoming, -1);
+      left++;
+      right++;
+      snap({ phase:'slide', leaving:oldLeft, entering:newRight, changed:outgoing === incoming ? outgoing : outgoing + incoming,
+        msg:'窗口右移一格：左端 <b>s[' + oldLeft + ']="' + outgoing + '"</b> 离开，balance[' + outgoing + '] +1；右端 <b>s[' + newRight + ']="' + incoming + '"</b> 进入，balance[' + incoming + '] -1。新窗口是 <b>"' + s.slice(left, right + 1) + '"</b>。' });
+      checkWindow();
+    }
+
+    snap({ phase:'done',
+      msg:'遍历完成。所有字母异位词的起始下标为 <span class="ok">[' + results.join(', ') + ']</span>。每个字符只进出窗口一次。' });
+    return steps;
+  }
+
+  root.ANAGRAMS_438 = { parseInputs:parseInputs, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.ANAGRAMS_438;
+  var $ = function (id) { return document.getElementById(id); };
+  var sInput = $('sInput'), pInput = $('pInput'), errEl = $('err'), stringRow = $('stringRow');
+  var patternRow = $('patternRow'), balanceGrid = $('balanceGrid'), statsEl = $('stats');
+  var statusEl = $('status'), progressEl = $('progress'), resultsEl = $('results');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var s = '', p = '', steps = [], stepIndex = 0, timer = null, charCells = [], relevantChars = [];
+
+  function buildStaticViews() {
+    stringRow.innerHTML = '';
+    stringRow.style.gridTemplateColumns = 'repeat(' + s.length + ', 48px)';
+    charCells = [];
+    for (var i = 0; i < s.length; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'char-cell';
+      var idx = document.createElement('span');
+      idx.className = 'idx'; idx.textContent = i;
+      var value = document.createElement('span');
+      value.textContent = s[i];
+      var ptr = document.createElement('span');
+      ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(value); cell.appendChild(ptr);
+      stringRow.appendChild(cell);
+      charCells.push({ cell:cell, ptr:ptr });
+    }
+
+    patternRow.innerHTML = '<span class="label">模式串 p：</span>';
+    for (var j = 0; j < p.length; j++) {
+      var pc = document.createElement('span');
+      pc.className = 'pattern-cell';
+      pc.textContent = p[j];
+      patternRow.appendChild(pc);
+    }
+
+    var charSet = {};
+    (s + p).split('').forEach(function (char) { charSet[char] = true; });
+    relevantChars = Object.keys(charSet).sort();
+  }
+
+  function renderString(step) {
+    charCells.forEach(function (ref, index) {
+      var cls = 'char-cell';
+      if (index >= step.left && index <= step.right) cls += ' window';
+      else cls += ' outside';
+      if (index === step.entering) cls += ' entering';
+      if (index === step.leaving) cls += ' leaving';
+      if (step.phase === 'match' && index >= step.left && index <= step.right) cls += ' match';
+      ref.cell.className = cls;
+      var labels = [];
+      if (index === step.left) labels.push('<span class="ptr-left">L</span>');
+      if (index === step.right) labels.push('<span class="ptr-right">R</span>');
+      ref.ptr.innerHTML = labels.join('·');
+    });
+  }
+
+  function renderBalance(step) {
+    balanceGrid.innerHTML = '';
+    relevantChars.forEach(function (char) {
+      var value = step.balance[char.charCodeAt(0) - 97];
+      var item = document.createElement('div');
+      item.className = 'balance-item ' + (value > 0 ? 'missing' : (value < 0 ? 'extra' : 'balanced'));
+      if (step.changed.indexOf(char) >= 0) item.className += ' changed';
+      var letter = document.createElement('span');
+      letter.className = 'letter'; letter.textContent = char;
+      var detail = document.createElement('span');
+      var meaning = value > 0 ? '还缺 ' + value : (value < 0 ? '多了 ' + (-value) : '已平衡');
+      detail.innerHTML = '<span class="value">' + (value > 0 ? '+' : '') + value + '</span><span class="meaning">' + meaning + '</span>';
+      item.appendChild(letter); item.appendChild(detail);
+      balanceGrid.appendChild(item);
+    });
+  }
+
+  function renderResults(results) {
+    resultsEl.innerHTML = '<span class="label">答案下标：</span>';
+    if (!results.length) {
+      resultsEl.innerHTML += '<span class="empty">暂时没有</span>';
+      return;
+    }
+    results.forEach(function (index) {
+      var chip = document.createElement('span');
+      chip.className = 'result-chip';
+      chip.textContent = index;
+      resultsEl.appendChild(chip);
+    });
+  }
+
+  function renderStats() {
+    var answer = APP.solve(s, p);
+    statsEl.innerHTML =
+      '<div class="stat">s 长度<b>' + s.length + '</b></div>' +
+      '<div class="stat">窗口长度<b>' + p.length + '</b></div>' +
+      '<div class="stat">答案<b>[' + answer.join(', ') + ']</b></div>' +
+      '<div class="stat">时间复杂度<b>O(|s|+|p|)</b></div>' +
+      '<div class="stat">字符表空间<b>O(26)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderString(step);
+    renderBalance(step);
+    renderResults(step.results);
+    $('mismatch').textContent = step.mismatch;
+    $('windowText').textContent = step.right >= step.left && step.right >= 0 ? '"' + s.slice(step.left, step.right + 1) + '"' : '—';
+    $('answerCount').textContent = step.results.length;
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 760);
+  }
+
+  function load() {
+    var parsed = APP.parseInputs(sInput.value.trim(), pInput.value.trim());
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    s = parsed.s;
+    p = parsed.p;
+    steps = APP.buildSteps(s, p);
+    stepIndex = 0;
+    buildStaticViews();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  [sInput, pInput].forEach(function (input) {
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      sInput.value = chip.dataset.s;
+      pInput.value = chip.dataset.p;
+      load();
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === sInput || document.activeElement === pInput) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 定长滑动窗口 + 26 位差值表</span>\n' +
+'class Solution:\n' +
+'    def findAnagrams(self, s: str, p: str) -&gt; list[int]:\n' +
+'        if len(p) &gt; len(s):\n' +
+'            return []\n' +
+'\n' +
+'        balance = [0] * 26\n' +
+'        mismatch = 0\n' +
+'\n' +
+'        def adjust(char: str, delta: int) -&gt; None:\n' +
+'            <span class="cmt"># balance[c] = p 中数量 - 窗口中数量</span>\n' +
+'            nonlocal mismatch\n' +
+'            index = ord(char) - ord(\"a\")\n' +
+'            before = balance[index]\n' +
+'            after = before + delta\n' +
+'            if before == 0 and after != 0:\n' +
+'                mismatch += 1\n' +
+'            elif before != 0 and after == 0:\n' +
+'                mismatch -= 1\n' +
+'            balance[index] = after\n' +
+'\n' +
+'        for char in p:\n' +
+'            adjust(char, 1)             <span class="cmt"># p 提供需求</span>\n' +
+'        for char in s[:len(p)]:\n' +
+'            adjust(char, -1)            <span class="cmt"># 首个窗口</span>\n' +
+'\n' +
+'        answer = [0] if mismatch == 0 else []\n' +
+'        for right in range(len(p), len(s)):\n' +
+'            adjust(s[right - len(p)], 1) <span class="cmt"># 左端离开</span>\n' +
+'            adjust(s[right], -1)         <span class="cmt"># 右端进入</span>\n' +
+'            if mismatch == 0:\n' +
+'                answer.append(right - len(p) + 1)\n' +
+'\n' +
+'        return answer',
+    java:
+'<span class="cmt">// 定长滑动窗口 + 26 位差值表</span>\n' +
+'class Solution {\n' +
+'    private int mismatch = 0;\n' +
+'\n' +
+'    public List&lt;Integer&gt; findAnagrams(String s, String p) {\n' +
+'        mismatch = 0;\n' +
+'        List&lt;Integer&gt; answer = new ArrayList&lt;&gt;();\n' +
+'        if (p.length() &gt; s.length()) return answer;\n' +
+'\n' +
+'        int[] balance = new int[26];\n' +
+'        for (char c : p.toCharArray()) adjust(balance, c, 1);\n' +
+'        for (int i = 0; i &lt; p.length(); i++) adjust(balance, s.charAt(i), -1);\n' +
+'        if (mismatch == 0) answer.add(0);\n' +
+'\n' +
+'        for (int right = p.length(); right &lt; s.length(); right++) {\n' +
+'            adjust(balance, s.charAt(right - p.length()), 1);\n' +
+'            adjust(balance, s.charAt(right), -1);\n' +
+'            if (mismatch == 0) answer.add(right - p.length() + 1);\n' +
+'        }\n' +
+'        return answer;\n' +
+'    }\n' +
+'\n' +
+'    private void adjust(int[] balance, char c, int delta) {\n' +
+'        int i = c - \'a\', before = balance[i], after = before + delta;\n' +
+'        if (before == 0 &amp;&amp; after != 0) mismatch++;\n' +
+'        else if (before != 0 &amp;&amp; after == 0) mismatch--;\n' +
+'        balance[i] = after;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
