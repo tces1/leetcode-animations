@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 前缀和 · 哈希表 · 计数">
+<title>560. 和为 K 的子数组 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .formula-note {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#f5f3ff; border:1px solid #ddd6fe; color:#4c1d95; font-size:13px;
+  }
+  .formula-note code { background:#ede9fe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .fields { display:grid; grid-template-columns:3fr 1fr; gap:10px; flex:1; min-width:300px; }
+  .field { display:flex; align-items:center; gap:8px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text],input[type=number] {
+    width:100%; min-width:90px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .array-stage,.prefix-stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fff,#fbfbfd); padding:24px 16px 34px; }
+  .array-row { display:inline-grid; gap:7px; min-width:max-content; }
+  .array-cell {
+    position:relative; width:52px; height:54px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 17px "SF Mono",Menlo,monospace; color:#334155;
+    background:#f8fafc; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .array-cell.future { opacity:.38; }
+  .array-cell.done { background:#eef2ff; border-color:#c7d2fe; color:#4338ca; }
+  .array-cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.2); transform:scale(1.04); }
+  .array-cell.candidate { background:#dcfce7; border-color:#4ade80; color:#166534; }
+  .array-cell.found { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 3px rgba(34,197,94,.2); }
+  .array-cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#a5b4fc; }
+  .array-cell.found .idx { color:#dcfce7; }
+  .array-cell .cur { position:absolute; top:100%; margin-top:7px; font-size:10px; color:#b45309; font-weight:800; }
+
+  .prefix-stage { margin-top:12px; padding-top:20px; }
+  .prefix-row { display:inline-grid; gap:8px; min-width:max-content; }
+  .prefix-node {
+    position:relative; width:62px; height:58px; border-radius:10px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:#f8fafc; border:2px solid #e5e7eb; color:#94a3b8;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .prefix-node .pn { font:700 9px "SF Mono",Menlo,monospace; }
+  .prefix-node .pv { font:800 17px "SF Mono",Menlo,monospace; }
+  .prefix-node.recorded { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+  .prefix-node.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.2); transform:translateY(-2px); }
+  .prefix-node.target { background:#dcfce7; border-color:#22c55e; color:#166534; box-shadow:0 0 0 3px rgba(34,197,94,.2); }
+  .prefix-node .tag { position:absolute; top:100%; margin-top:5px; font-size:9px; font-weight:800; white-space:nowrap; }
+  .prefix-node.target .tag { color:#16a34a; }
+  .prefix-node.current .tag { color:#b45309; }
+
+  .work-grid { display:grid; grid-template-columns:1.08fr .92fr; gap:14px; margin-top:14px; }
+  .formula-box {
+    border-radius:11px; background:#0f172a; color:#e2e8f0; padding:14px 16px;
+    min-height:122px; display:flex; flex-direction:column; justify-content:center;
+    font:600 13px "SF Mono",Menlo,monospace; line-height:1.8;
+  }
+  .formula-box .current-prefix { color:#fcd34d; font-weight:800; }
+  .formula-box .target-prefix { color:#86efac; font-weight:800; }
+  .formula-box .found-count { color:#7dd3fc; font-weight:800; }
+  .hash-box { border:1px solid #e5e7eb; border-radius:11px; background:#f8fafc; padding:12px; min-height:122px; }
+  .hash-title { font-size:11px; color:#64748b; font-weight:800; margin-bottom:8px; }
+  .hash-grid { display:flex; flex-wrap:wrap; gap:7px; }
+  .hash-item {
+    font:700 11px "SF Mono",Menlo,monospace; padding:5px 8px; border-radius:7px;
+    background:#ede9fe; border:1px solid #ddd6fe; color:#5b21b6;
+  }
+  .hash-item.target { background:#dcfce7; border-color:#86efac; color:#166534; box-shadow:0 0 0 2px rgba(34,197,94,.18); }
+  .hash-item.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
+
+  .summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+  .summary-box { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; text-align:center; font-size:12px; color:#64748b; }
+  .summary-box b { display:block; margin-top:2px; font:800 18px "SF Mono",Menlo,monospace; color:#334155; }
+  .summary-box.prefix b { color:#b45309; }
+  .summary-box.target b { color:#16a34a; }
+  .summary-box.answer b { color:#0284c7; }
+
+  .ranges { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin-top:12px; }
+  .ranges .label { font-size:12px; color:#64748b; font-weight:700; }
+  .range-chip { font:700 11px "SF Mono",Menlo,monospace; padding:5px 8px; border-radius:7px; background:#dcfce7; border:1px solid #bbf7d0; color:#166534; }
+  .empty { font-size:12px; color:#9ca3af; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-current { background:#fef3c7; border-color:#f59e0b; }
+  .dot-prefix { background:#ede9fe; border-color:#c4b5fd; }
+  .dot-target { background:#dcfce7; border-color:#22c55e; }
+  .dot-found { background:#22c55e; border-color:#16a34a; }
+
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .no { color:#fca5a5; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:760px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .fields { grid-template-columns:1fr; }
+    .work-grid,.summary-grid { grid-template-columns:1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/subarray-sum-equals-k/" target="_blank" rel="noopener">LeetCode 560</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>560. 和为 K 的子数组 · 前缀和动画</h1>
+  <div class="sub">暴力枚举左右边界需要 <code>O(n²)</code>。前缀和把区间和改写成两个前缀的差：处理到当前位置时，只要在哈希表里寻找之前出现过多少次 <code>prefix - k</code>，就知道有多少个以当前位置结尾、和为 k 的子数组。</div>
+
+  <div class="card">
+    <div class="panel-title">前缀和四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 累加前缀</div>扫描到 nums[i] 时更新 <code>prefix += nums[i]</code>，它表示从开头到 i 的总和。</div>
+      <div class="idea-item"><div class="no">② 变形公式</div><code>prefix - old_prefix = k</code>，所以需要寻找的旧前缀是 <code>prefix - k</code>。</div>
+      <div class="idea-item"><div class="no">③ 累加次数</div>目标旧前缀可能出现多次，每一次都对应一个不同起点，因此答案增加它的出现次数。</div>
+      <div class="idea-item"><div class="no">④ 记录当前</div>查询完成后再把当前 prefix 加入哈希表，供后面的元素使用。</div>
+    </div>
+    <div class="formula-note"><b>为什么初始化 <code>{0: 1}</code>？</b> 数组开始前存在一个“空前缀”，它的和是 0。若当前位置的 <code>prefix == k</code>，那么 <code>prefix - k == 0</code>，这个初始记录就能自动统计从下标 0 开始的子数组，无需特殊判断。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="fields">
+        <label class="field"><span class="lab">nums =</span><input type="text" id="numsInput" value="1 1 1" spellcheck="false" placeholder="空格或逗号分隔"></label>
+        <label class="field"><span class="lab">k =</span><input type="number" id="kInput" value="2" min="-50" max="50"></label>
+      </div>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-nums="1 1 1" data-k="2">基础答案 2</span>
+      <span class="chip" data-nums="1 2 3" data-k="3">不同长度答案 2</span>
+      <span class="chip" data-nums="1 -1 0" data-k="0">负数与 0（3）</span>
+      <span class="chip" data-nums="0 0 0" data-k="0">重复前缀（6）</span>
+      <span class="chip" data-nums="3 4 7 2 -3 1 4 2" data-k="7">经典长例（4）</span>
+      <span class="chip" data-nums="-1 -1 1" data-k="0">没有滑窗单调性</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～16 个整数（每个值 -20～20），k 为 -50～50。数组允许负数，因此普通滑动窗口不适用。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">数组 nums（绿色区间 = 本步找到的子数组）</div>
+    <div class="array-stage"><div class="array-row" id="arrayRow"></div></div>
+
+    <div class="panel-title status-title">前缀节点 Pj（Pj = 前 j 个元素之和）</div>
+    <div class="prefix-stage"><div class="prefix-row" id="prefixRow"></div></div>
+
+    <div class="work-grid">
+      <div class="formula-box" id="formulaBox"></div>
+      <div class="hash-box">
+        <div class="hash-title">prefix_count：此前前缀和 → 出现次数</div>
+        <div class="hash-grid" id="hashGrid"></div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-box prefix">当前 prefix<b id="currentPrefix">0</b></div>
+      <div class="summary-box target">寻找 prefix-k<b id="targetPrefix">—</b></div>
+      <div class="summary-box answer">累计答案 answer<b id="answer">0</b></div>
+    </div>
+    <div class="ranges" id="ranges"></div>
+
+    <div class="legend">
+      <span><span class="dot dot-current"></span>当前元素 / 当前前缀</span>
+      <span><span class="dot dot-prefix"></span>已记录前缀</span>
+      <span><span class="dot dot-target"></span>匹配的旧前缀</span>
+      <span><span class="dot dot-found"></span>本步找到的子数组</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：前缀和 + 出现次数哈希表 ==== */
+(function (root) {
+  'use strict';
+
+  function parseInputs(numsValue, kValue) {
+    var parts = String(numsValue).trim().split(/[,\s]+/).filter(Boolean);
+    if (!parts.length) return { err:'nums 不能为空' };
+    if (parts.length > 16) return { err:'nums 长度不能超过 16' };
+    var nums = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { err:'nums 含非整数：' + parts[i] };
+      var value = Number(parts[i]);
+      if (!Number.isSafeInteger(value) || value < -20 || value > 20) return { err:'数组元素须在 -20～20：' + parts[i] };
+      nums.push(value);
+    }
+    var k = Number(kValue);
+    if (!Number.isInteger(k) || k < -50 || k > 50) return { err:'k 须为 -50～50 的整数' };
+    return { nums:nums, k:k, err:null };
+  }
+
+  function solve(nums, k) {
+    var counts = new Map([[0, 1]]);
+    var prefix = 0, answer = 0;
+    for (var i = 0; i < nums.length; i++) {
+      prefix += nums[i];
+      answer += counts.get(prefix - k) || 0;
+      counts.set(prefix, (counts.get(prefix) || 0) + 1);
+    }
+    return answer;
+  }
+
+  function buildSteps(nums, k) {
+    var n = nums.length, prefixValues = [0], running = 0;
+    for (var pv = 0; pv < n; pv++) {
+      running += nums[pv];
+      prefixValues.push(running);
+    }
+
+    var counts = { '0':1 }, positions = { '0':[0] };
+    var prefix = 0, answer = 0, recordedThrough = 0;
+    var foundRanges = [], steps = [];
+
+    function copyCounts() {
+      var copy = {};
+      Object.keys(counts).forEach(function (key) { copy[key] = counts[key]; });
+      return copy;
+    }
+
+    function copyRanges(ranges) {
+      return ranges.map(function (range) { return { left:range.left, right:range.right }; });
+    }
+
+    function snap(o) {
+      steps.push({
+        phase:o.phase || '', index:o.index === undefined ? -1 : o.index,
+        prefixIndex:o.prefixIndex === undefined ? 0 : o.prefixIndex,
+        recordedThrough:recordedThrough, prefix:prefix,
+        target:o.target === undefined ? null : o.target,
+        matches:o.matches || 0,
+        matchedPrefixIndices:(o.matchedPrefixIndices || []).slice(),
+        currentRanges:copyRanges(o.currentRanges || []),
+        foundRanges:copyRanges(foundRanges),
+        counts:copyCounts(), answer:answer, msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', prefixIndex:0,
+      msg:'初始化 <code>prefix = 0</code>、<code>answer = 0</code>，并放入 <code>prefix_count = {0: 1}</code>，代表数组开始前的空前缀。' });
+
+    for (var i = 0; i < n; i++) {
+      prefix += nums[i];
+      var target = prefix - k;
+      var matchedPositions = positions[String(target)] ? positions[String(target)].slice() : [];
+      var currentRanges = matchedPositions.map(function (prefixIndex) {
+        return { left:prefixIndex, right:i };
+      });
+
+      snap({ phase:'query', index:i, prefixIndex:i + 1, target:target,
+        matches:matchedPositions.length, matchedPrefixIndices:matchedPositions, currentRanges:currentRanges,
+        msg:'读入 <b>nums[' + i + '] = ' + nums[i] + '</b>，当前前缀和变为 <b>' + prefix + '</b>。要使区间和为 k=' + k + '，需要寻找旧前缀 <code>' + prefix + ' - ' + k + ' = ' + target + '</code>。' });
+
+      if (matchedPositions.length) {
+        currentRanges.forEach(function (range) { foundRanges.push({ left:range.left, right:range.right }); });
+        answer += matchedPositions.length;
+        snap({ phase:'found', index:i, prefixIndex:i + 1, target:target,
+          matches:matchedPositions.length, matchedPrefixIndices:matchedPositions, currentRanges:currentRanges,
+          msg:'旧前缀和 <b>' + target + '</b> 此前出现了 <b>' + matchedPositions.length + '</b> 次，因此找到 ' + matchedPositions.length + ' 个以下标 ' + i + ' 结尾的子数组：<span class="ok">' + currentRanges.map(function (r) { return '[' + r.left + '..' + r.right + ']'; }).join('、') + '</span>。answer 增加到 <b>' + answer + '</b>。' });
+      } else {
+        snap({ phase:'miss', index:i, prefixIndex:i + 1, target:target,
+          msg:'哈希表中还没有旧前缀和 <b>' + target + '</b>，所以没有以当前下标 ' + i + ' 结尾、和为 ' + k + ' 的子数组。' });
+      }
+
+      counts[String(prefix)] = (counts[String(prefix)] || 0) + 1;
+      if (!positions[String(prefix)]) positions[String(prefix)] = [];
+      positions[String(prefix)].push(i + 1);
+      recordedThrough = i + 1;
+      snap({ phase:'record', index:i, prefixIndex:i + 1, target:target,
+        msg:'查询完成后记录当前前缀和：<code>prefix_count[' + prefix + '] = ' + counts[String(prefix)] + '</code>。必须先查询再记录，避免把长度为 0 的空区间算进去。' });
+    }
+
+    snap({ phase:'done', prefixIndex:n,
+      msg:'遍历完成，共找到 <span class="ok">' + answer + '</span> 个和为 ' + k + ' 的连续子数组。每个元素只处理一次。' });
+    return { prefixValues:prefixValues, steps:steps };
+  }
+
+  root.SUBARRAY_560 = { parseInputs:parseInputs, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.SUBARRAY_560;
+  var $ = function (id) { return document.getElementById(id); };
+  var numsInput = $('numsInput'), kInput = $('kInput'), errEl = $('err'), arrayRow = $('arrayRow');
+  var prefixRow = $('prefixRow'), hashGrid = $('hashGrid'), formulaBox = $('formulaBox');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress'), rangesEl = $('ranges');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], k = 0, prefixValues = [], steps = [], stepIndex = 0, timer = null;
+  var arrayCells = [], prefixNodes = [];
+
+  function buildStaticViews() {
+    arrayRow.innerHTML = '';
+    arrayRow.style.gridTemplateColumns = 'repeat(' + nums.length + ', 52px)';
+    arrayCells = [];
+    nums.forEach(function (value, index) {
+      var cell = document.createElement('div');
+      cell.className = 'array-cell';
+      var idx = document.createElement('span');
+      idx.className = 'idx'; idx.textContent = index;
+      var val = document.createElement('span');
+      val.textContent = value;
+      var cur = document.createElement('span');
+      cur.className = 'cur';
+      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(cur);
+      arrayRow.appendChild(cell);
+      arrayCells.push({ cell:cell, cur:cur });
+    });
+
+    prefixRow.innerHTML = '';
+    prefixRow.style.gridTemplateColumns = 'repeat(' + prefixValues.length + ', 62px)';
+    prefixNodes = [];
+    prefixValues.forEach(function (value, index) {
+      var node = document.createElement('div');
+      node.className = 'prefix-node';
+      var name = document.createElement('span');
+      name.className = 'pn'; name.textContent = 'P' + index;
+      var val = document.createElement('span');
+      val.className = 'pv';
+      var tag = document.createElement('span');
+      tag.className = 'tag';
+      node.appendChild(name); node.appendChild(val); node.appendChild(tag);
+      prefixRow.appendChild(node);
+      prefixNodes.push({ node:node, val:val, tag:tag });
+    });
+  }
+
+  function inCurrentRange(step, index) {
+    return step.currentRanges.some(function (range) { return index >= range.left && index <= range.right; });
+  }
+
+  function renderArray(step) {
+    arrayCells.forEach(function (ref, index) {
+      var cls = 'array-cell';
+      if (index < step.index) cls += ' done';
+      else if (index > step.index) cls += ' future';
+      if (index === step.index) cls += ' current';
+      if (inCurrentRange(step, index)) cls += step.phase === 'found' ? ' found' : ' candidate';
+      ref.cell.className = cls;
+      ref.cur.textContent = index === step.index ? 'i' : '';
+    });
+  }
+
+  function renderPrefixes(step) {
+    prefixNodes.forEach(function (ref, index) {
+      var cls = 'prefix-node', tags = [];
+      if (index <= step.recordedThrough) cls += ' recorded';
+      if (index === step.prefixIndex && step.phase !== 'start' && step.phase !== 'done') {
+        cls += ' current';
+        tags.push('当前');
+      }
+      if (step.matchedPrefixIndices.indexOf(index) >= 0) {
+        cls += ' target';
+        tags.push('prefix-k');
+      }
+      ref.node.className = cls;
+      ref.val.textContent = index <= step.prefixIndex ? prefixValues[index] : '?';
+      ref.tag.textContent = tags.join(' · ');
+    });
+  }
+
+  function renderHash(step) {
+    hashGrid.innerHTML = '';
+    Object.keys(step.counts).map(Number).sort(function (a, b) { return a - b; }).forEach(function (value) {
+      var item = document.createElement('span');
+      var cls = 'hash-item';
+      if (step.target !== null && value === step.target) cls += ' target';
+      if (step.phase === 'record' && value === step.prefix) cls += ' current';
+      item.className = cls;
+      item.textContent = value + ' → ' + step.counts[String(value)];
+      hashGrid.appendChild(item);
+    });
+  }
+
+  function renderFormula(step) {
+    if (step.target === null) {
+      formulaBox.innerHTML = '准备计算前缀和。<br><span class="target-prefix">prefix_count = {0: 1}</span>';
+      return;
+    }
+    formulaBox.innerHTML =
+      '当前前缀：<span class="current-prefix">prefix = ' + step.prefix + '</span><br>' +
+      '寻找旧前缀：<span class="target-prefix">' + step.prefix + ' − (' + k + ') = ' + step.target + '</span><br>' +
+      '此前出现次数：<span class="found-count">' + step.matches + '</span>' +
+      (step.phase === 'found' ? '，本步 answer +' + step.matches : '');
+  }
+
+  function renderRanges(step) {
+    rangesEl.innerHTML = '<span class="label">已找到的子数组：</span>';
+    if (!step.foundRanges.length) {
+      rangesEl.innerHTML += '<span class="empty">暂时没有</span>';
+      return;
+    }
+    step.foundRanges.forEach(function (range) {
+      var chip = document.createElement('span');
+      chip.className = 'range-chip';
+      chip.textContent = '[' + range.left + '..' + range.right + '] = [' + nums.slice(range.left, range.right + 1).join(',') + ']';
+      rangesEl.appendChild(chip);
+    });
+  }
+
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">数组长度<b>' + nums.length + '</b></div>' +
+      '<div class="stat">目标 k<b>' + k + '</b></div>' +
+      '<div class="stat">答案数量<b>' + APP.solve(nums, k) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">空间复杂度<b>O(n)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderArray(step);
+    renderPrefixes(step);
+    renderHash(step);
+    renderFormula(step);
+    renderRanges(step);
+    $('currentPrefix').textContent = step.prefix;
+    $('targetPrefix').textContent = step.target === null ? '—' : step.target;
+    $('answer').textContent = step.answer;
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 820);
+  }
+
+  function load() {
+    var parsed = APP.parseInputs(numsInput.value, kInput.value);
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    nums = parsed.nums;
+    k = parsed.k;
+    var data = APP.buildSteps(nums, k);
+    prefixValues = data.prefixValues;
+    steps = data.steps;
+    stepIndex = 0;
+    buildStaticViews();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  [numsInput, kInput].forEach(function (input) {
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      numsInput.value = chip.dataset.nums;
+      kInput.value = chip.dataset.k;
+      load();
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === numsInput || document.activeElement === kInput) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 前缀和 + 哈希计数 · 时间 O(n) · 空间 O(n)</span>\n' +
+'class Solution:\n' +
+'    def subarraySum(self, nums: list[int], k: int) -&gt; int:\n' +
+'        prefix_count = {0: 1}          <span class="cmt"># 数组开始前的空前缀</span>\n' +
+'        prefix = 0\n' +
+'        answer = 0\n' +
+'\n' +
+'        for num in nums:\n' +
+'            prefix += num\n' +
+'\n' +
+'            <span class="cmt"># prefix - old_prefix = k</span>\n' +
+'            <span class="cmt"># 所以 old_prefix = prefix - k</span>\n' +
+'            answer += prefix_count.get(prefix - k, 0)\n' +
+'\n' +
+'            <span class="cmt"># 查询后再记录当前前缀</span>\n' +
+'            prefix_count[prefix] = prefix_count.get(prefix, 0) + 1\n' +
+'\n' +
+'        return answer',
+    java:
+'<span class="cmt">// 前缀和 + 哈希计数 · 时间 O(n) · 空间 O(n)</span>\n' +
+'class Solution {\n' +
+'    public int subarraySum(int[] nums, int k) {\n' +
+'        Map&lt;Integer, Integer&gt; prefixCount = new HashMap&lt;&gt;();\n' +
+'        prefixCount.put(0, 1);          <span class="cmt">// 数组开始前的空前缀</span>\n' +
+'\n' +
+'        int prefix = 0, answer = 0;\n' +
+'        for (int num : nums) {\n' +
+'            prefix += num;\n' +
+'            answer += prefixCount.getOrDefault(prefix - k, 0);\n' +
+'            prefixCount.put(prefix, prefixCount.getOrDefault(prefix, 0) + 1);\n' +
+'        }\n' +
+'        return answer;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
