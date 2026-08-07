@@ -93,6 +93,7 @@ leetcode-animations/
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
 | 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
+| 239 | [滑动窗口最大值](https://tces1.github.io/leetcode-animations/problems/239-sliding-window-maximum.html) | 困难 | 数组 · 滑动窗口 · 单调队列 · 双端队列 |
 | 240 | [搜索二维矩阵 II](https://tces1.github.io/leetcode-animations/problems/240-search-a-2d-matrix-ii.html) | 中等 | 矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n) |
 | 279 | [完全平方数](https://tces1.github.io/leetcode-animations/problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 287 | [寻找重复数](https://tces1.github.io/leetcode-animations/problems/287-find-the-duplicate-number.html) | 中等 | 数组 · 快慢指针 · Floyd判圈 · O(n) |
