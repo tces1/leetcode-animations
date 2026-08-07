@@ -38,6 +38,8 @@
     background:#f5f3ff; border:1px solid #ddd6fe; color:#4c1d95; font-size:13px;
   }
   .balance-note code { background:#ede9fe; }
+  .balance-note.alternative { margin-top:8px; background:#eff6ff; border-color:#bfdbfe; color:#1e3a8a; }
+  .balance-note.alternative code { background:#dbeafe; }
 
   .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
   .play-controls { margin-bottom:14px; }
@@ -152,6 +154,8 @@
   .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
   pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
   pre .cmt { color:#7dd3fc; }
+  .source-note { margin:10px 0; font-size:12px; color:#6b7280; }
+  .source-note a { color:#6366f1; }
 
   @media (max-width:660px) {
     body { padding:16px 12px; }
@@ -176,12 +180,13 @@
   <div class="card">
     <div class="panel-title">固定窗口四步</div>
     <div class="idea">
-      <div class="idea-item"><div class="no">① 记录需求</div>先把 p 中的字符计入差值表：每出现一次就 <code>+1</code>，表示窗口还需要它。</div>
-      <div class="idea-item"><div class="no">② 装入窗口</div>首个长度为 <code>len(p)</code> 的窗口逐字加入：窗口中的字符令差值 <code>-1</code>。</div>
-      <div class="idea-item"><div class="no">③ 同步滑动</div>旧左端字符离开，差值 <code>+1</code>；新右端字符进入，差值 <code>-1</code>。</div>
-      <div class="idea-item"><div class="no">④ 判断答案</div>若所有字母差值都为 0，说明窗口和 p 的字符频次完全相同，记录窗口左端。</div>
+      <div class="idea-item"><div class="no">① 统计目标</div><code>cnt_p = Counter(p)</code>，一次得到模式串每种字母的出现次数。</div>
+      <div class="idea-item"><div class="no">② 右端进入</div>遍历 s，执行 <code>cnt_s[c] += 1</code>，让当前字符进入窗口。</div>
+      <div class="idea-item"><div class="no">③ 窗口成形</div>计算 <code>left = right-len(p)+1</code>；left 小于 0 时窗口长度还不够。</div>
+      <div class="idea-item"><div class="no">④ 比较后移出</div>窗口成形后比较 <code>cnt_s == cnt_p</code>；随后左端字符计数减 1，为下一轮滑动做准备。</div>
     </div>
-    <div class="balance-note"><b>差值含义：</b><code>balance[c] = count_p(c) - count_window(c)</code>。正数表示窗口<b>还缺</b>，负数表示窗口<b>多了</b>，0 表示刚好平衡。额外维护非零项数量 <code>mismatch</code>，就能 O(1) 判断整个差值表是否全为 0。</div>
+    <div class="balance-note"><b>核心判断：</b>窗口长度固定为 len(p)，所以只要两个 Counter 完全相等，当前窗口就是异位词。字符集只有 26 个小写字母，Counter 比较的开销是常数级字符集扫描，整体仍为 O(n)。</div>
+    <div class="balance-note alternative"><b>方法二 · 单 Counter + 超量收缩：</b>字符进入时令 <code>cnt[c] -= 1</code>；若新字符 c 变成负数，说明 c 超量，就移动 left 直到 <code>cnt[c] == 0</code>。此时窗口内每种字符都不超过 p；若窗口长度又恰好等于 len(p)，总字符数相同便能推出所有频次完全相等。</div>
   </div>
 
   <div class="card">
@@ -219,11 +224,11 @@
     <div class="string-stage"><div class="string-row" id="stringRow"></div></div>
     <div class="pattern-row" id="patternRow"></div>
 
-    <div class="panel-title status-title">字符差值表 balance</div>
+    <div class="panel-title status-title">频次对照：cnt_p 与当前 cnt_s</div>
     <div class="balance-grid" id="balanceGrid"></div>
 
     <div class="summary-grid">
-      <div class="summary-box diff">非零差值 mismatch<b id="mismatch">0</b></div>
+      <div class="summary-box diff">Counter 是否相等<b id="counterEqual">否</b></div>
       <div class="summary-box window-text">当前窗口<b id="windowText">—</b></div>
       <div class="summary-box answer">已找到数量<b id="answerCount">0</b></div>
     </div>
@@ -241,18 +246,20 @@
 
   <div class="card">
     <details class="code">
-      <summary>查看参考代码（与本页动画一致）</summary>
+      <summary>查看两种 Python 算法与 Java 代码</summary>
       <div class="code-tabs">
-        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab active" data-lang="py">Python · 双 Counter</span>
+        <span class="code-tab" data-lang="pySingle">Python · 单 Counter</span>
         <span class="code-tab" data-lang="java">Java</span>
       </div>
+      <div class="source-note">Python 思路与代码来源：灵茶山艾府 · <a href="https://leetcode.cn/problems/find-all-anagrams-in-a-string/solutions/2969498/liang-chong-fang-fa-ding-chang-hua-chuan-14pd/" target="_blank" rel="noopener">力扣题解</a></div>
       <pre id="codeBlock"></pre>
     </details>
   </div>
 </div>
 
 <script>
-/* ==== 纯逻辑核心：差值数组 + 定长滑动窗口 ==== */
+/* ==== 纯逻辑核心：两个 Counter + 定长滑动窗口 ==== */
 (function (root) {
   'use strict';
 
@@ -262,94 +269,78 @@
     return { s:s, p:p, err:null };
   }
 
+  function countChars(text) {
+    var counts = {};
+    for (var i = 0; i < text.length; i++) counts[text[i]] = (counts[text[i]] || 0) + 1;
+    return counts;
+  }
+
+  function countersEqual(a, b) {
+    var keys = {};
+    Object.keys(a).forEach(function (key) { keys[key] = true; });
+    Object.keys(b).forEach(function (key) { keys[key] = true; });
+    return Object.keys(keys).every(function (key) { return (a[key] || 0) === (b[key] || 0); });
+  }
+
   function solve(s, p) {
-    if (p.length > s.length) return [];
-    var balance = new Array(26).fill(0), mismatch = 0, result = [];
-    function adjust(char, delta) {
-      var index = char.charCodeAt(0) - 97;
-      var before = balance[index], after = before + delta;
-      if (before === 0 && after !== 0) mismatch++;
-      else if (before !== 0 && after === 0) mismatch--;
-      balance[index] = after;
-    }
-    for (var i = 0; i < p.length; i++) adjust(p[i], 1);
-    for (var j = 0; j < p.length; j++) adjust(s[j], -1);
-    if (mismatch === 0) result.push(0);
-    for (var right = p.length; right < s.length; right++) {
-      adjust(s[right - p.length], 1);
-      adjust(s[right], -1);
-      if (mismatch === 0) result.push(right - p.length + 1);
+    var cntP = countChars(p), cntS = {}, result = [];
+    for (var right = 0; right < s.length; right++) {
+      var char = s[right];
+      cntS[char] = (cntS[char] || 0) + 1;
+      var left = right - p.length + 1;
+      if (left < 0) continue;
+      if (countersEqual(cntS, cntP)) result.push(left);
+      cntS[s[left]]--;
     }
     return result;
   }
 
   function buildSteps(s, p) {
-    var balance = new Array(26).fill(0), mismatch = 0, results = [], steps = [];
-    var left = 0, right = -1;
-
-    function adjust(char, delta) {
-      var index = char.charCodeAt(0) - 97;
-      var before = balance[index], after = before + delta;
-      if (before === 0 && after !== 0) mismatch++;
-      else if (before !== 0 && after === 0) mismatch--;
-      balance[index] = after;
-      return { char:char, before:before, after:after };
-    }
+    var cntP = countChars(p), cntS = {}, results = [], steps = [];
 
     function snap(o) {
       steps.push({
-        phase:o.phase || '', left:left, right:right,
+        phase:o.phase || '',
+        left:o.left === undefined ? 0 : o.left,
+        right:o.right === undefined ? -1 : o.right,
         entering:o.entering === undefined ? -1 : o.entering,
         leaving:o.leaving === undefined ? -1 : o.leaving,
         changed:o.changed || '',
-        balance:balance.slice(), mismatch:mismatch,
+        cntP:Object.assign({}, cntP),
+        cntS:Object.assign({}, cntS),
+        ready:!!o.ready,
+        equal:!!o.equal,
         results:results.slice(), msg:o.msg || ''
       });
     }
 
-    snap({ phase:'start', msg:'初始化 26 个字母的差值为 0。先统计模式串 <b>p = "' + p + '"</b> 的字符需求。' });
+    snap({ phase:'start', msg:'先统计模式串：<b>cnt_p = Counter("' + p + '") = ' + JSON.stringify(cntP) + '</b>。cnt_s 从空 Counter 开始。' });
 
-    for (var i = 0; i < p.length; i++) {
-      var needChange = adjust(p[i], 1);
-      snap({ phase:'need', changed:p[i],
-        msg:'模式串读到 <b>p[' + i + '] = "' + p[i] + '"</b>：balance[' + p[i] + '] 从 ' + needChange.before + ' 变为 <b>' + needChange.after + '</b>，表示窗口需要这么多个 "' + p[i] + '"。' });
-    }
+    for (var right = 0; right < s.length; right++) {
+      var incoming = s[right];
+      cntS[incoming] = (cntS[incoming] || 0) + 1;
+      var left = right - p.length + 1;
+      var visualLeft = Math.max(0, left);
+      snap({ phase:'enter', left:visualLeft, right:right, entering:right, changed:incoming, ready:left >= 0,
+        msg:'右端字符 <b>s[' + right + ']="' + incoming + '"</b> 进入窗口，cnt_s[' + incoming + '] 增加到 <b>' + cntS[incoming] + '</b>。' +
+          (left < 0 ? ' 当前长度只有 ' + (right + 1) + '，还不足 len(p)=' + p.length + '，继续扩张。' : ' 窗口长度已经等于 len(p)，开始比较两个 Counter。') });
 
-    if (p.length > s.length) {
-      snap({ phase:'done', msg:'模式串长度 <b>' + p.length + '</b> 大于 s 的长度 <b>' + s.length + '</b>，不可能存在等长窗口，直接返回空数组。' });
-      return steps;
-    }
+      if (left < 0) continue;
 
-    for (var j = 0; j < p.length; j++) {
-      right = j;
-      var initChange = adjust(s[j], -1);
-      snap({ phase:'initWindow', entering:j, changed:s[j],
-        msg:'把 <b>s[' + j + '] = "' + s[j] + '"</b> 放进首个窗口：balance[' + s[j] + '] 从 ' + initChange.before + ' 变为 <b>' + initChange.after + '</b>。' });
-    }
-
-    function checkWindow() {
-      if (mismatch === 0) {
+      var equal = countersEqual(cntS, cntP);
+      if (equal) {
         results.push(left);
-        snap({ phase:'match',
-          msg:'窗口 <b>s[' + left + ':' + (right + 1) + '] = "' + s.slice(left, right + 1) + '"</b> 的所有差值都为 0，<span class="ok">是 p 的字母异位词</span>，记录下标 ' + left + '。' });
+        snap({ phase:'match', left:left, right:right, ready:true, equal:true,
+          msg:'<b>cnt_s == cnt_p</b>，窗口 <b>s[' + left + ':' + (right + 1) + ']="' + s.slice(left, right + 1) + '"</b> 是字母异位词，<span class="ok">记录下标 ' + left + '</span>。' });
       } else {
-        snap({ phase:'check',
-          msg:'窗口 <b>"' + s.slice(left, right + 1) + '"</b> 还有 <b>' + mismatch + '</b> 种字母的差值不为 0，<span class="no">不是异位词</span>。' });
+        snap({ phase:'check', left:left, right:right, ready:true, equal:false,
+          msg:'<b>cnt_s != cnt_p</b>，窗口 <b>"' + s.slice(left, right + 1) + '"</b> 的字符频次不同，<span class="no">不是异位词</span>。' });
       }
-    }
 
-    checkWindow();
-
-    while (right + 1 < s.length) {
-      var oldLeft = left, newRight = right + 1;
-      var outgoing = s[oldLeft], incoming = s[newRight];
-      adjust(outgoing, 1);
-      adjust(incoming, -1);
-      left++;
-      right++;
-      snap({ phase:'slide', leaving:oldLeft, entering:newRight, changed:outgoing === incoming ? outgoing : outgoing + incoming,
-        msg:'窗口右移一格：左端 <b>s[' + oldLeft + ']="' + outgoing + '"</b> 离开，balance[' + outgoing + '] +1；右端 <b>s[' + newRight + ']="' + incoming + '"</b> 进入，balance[' + incoming + '] -1。新窗口是 <b>"' + s.slice(left, right + 1) + '"</b>。' });
-      checkWindow();
+      var outgoing = s[left];
+      cntS[outgoing]--;
+      snap({ phase:'leave', left:left + 1, right:right, leaving:left, changed:outgoing, ready:false,
+        msg:'完成比较后，左端字符 <b>s[' + left + ']="' + outgoing + '"</b> 离开窗口，cnt_s[' + outgoing + '] 减少到 <b>' + cntS[outgoing] + '</b>，等待下一字符进入。' });
     }
 
     snap({ phase:'done',
@@ -423,15 +414,16 @@
   function renderBalance(step) {
     balanceGrid.innerHTML = '';
     relevantChars.forEach(function (char) {
-      var value = step.balance[char.charCodeAt(0) - 97];
+      var target = step.cntP[char] || 0;
+      var current = step.cntS[char] || 0;
       var item = document.createElement('div');
-      item.className = 'balance-item ' + (value > 0 ? 'missing' : (value < 0 ? 'extra' : 'balanced'));
+      item.className = 'balance-item ' + (current < target ? 'missing' : (current > target ? 'extra' : 'balanced'));
       if (step.changed.indexOf(char) >= 0) item.className += ' changed';
       var letter = document.createElement('span');
       letter.className = 'letter'; letter.textContent = char;
       var detail = document.createElement('span');
-      var meaning = value > 0 ? '还缺 ' + value : (value < 0 ? '多了 ' + (-value) : '已平衡');
-      detail.innerHTML = '<span class="value">' + (value > 0 ? '+' : '') + value + '</span><span class="meaning">' + meaning + '</span>';
+      var meaning = current < target ? '窗口还缺 ' + (target - current) : (current > target ? '窗口多了 ' + (current - target) : '频次相同');
+      detail.innerHTML = '<span class="value">' + current + ' / ' + target + '</span><span class="meaning">cnt_s / cnt_p · ' + meaning + '</span>';
       item.appendChild(letter); item.appendChild(detail);
       balanceGrid.appendChild(item);
     });
@@ -466,7 +458,7 @@
     renderString(step);
     renderBalance(step);
     renderResults(step.results);
-    $('mismatch').textContent = step.mismatch;
+    $('counterEqual').textContent = step.ready ? (step.equal ? '是' : '否') : '未比较';
     $('windowText').textContent = step.right >= step.left && step.right >= 0 ? '"' + s.slice(step.left, step.right + 1) + '"' : '—';
     $('answerCount').textContent = step.results.length;
     statusEl.innerHTML = step.msg;
@@ -535,68 +527,76 @@
 
   var codes = {
     py:
-'<span class="cmt"># 定长滑动窗口 + 26 位差值表</span>\n' +
+'<span class="cmt"># 两个 Counter + 定长滑动窗口</span>\n' +
+'from collections import Counter\n' +
+'from typing import List\n' +
+'\n' +
 'class Solution:\n' +
-'    def findAnagrams(self, s: str, p: str) -&gt; list[int]:\n' +
-'        if len(p) &gt; len(s):\n' +
-'            return []\n' +
+'    def findAnagrams(self, s: str, p: str) -&gt; List[int]:\n' +
+'        cnt_p = Counter(p)  <span class="cmt"># p 的字符频次</span>\n' +
+'        cnt_s = Counter()   <span class="cmt"># 当前定长窗口的字符频次</span>\n' +
+'        ans = []\n' +
 '\n' +
-'        balance = [0] * 26\n' +
-'        mismatch = 0\n' +
+'        for right, char in enumerate(s):\n' +
+'            cnt_s[char] += 1            <span class="cmt"># 右端字符进入</span>\n' +
 '\n' +
-'        def adjust(char: str, delta: int) -&gt; None:\n' +
-'            <span class="cmt"># balance[c] = p 中数量 - 窗口中数量</span>\n' +
-'            nonlocal mismatch\n' +
-'            index = ord(char) - ord(\"a\")\n' +
-'            before = balance[index]\n' +
-'            after = before + delta\n' +
-'            if before == 0 and after != 0:\n' +
-'                mismatch += 1\n' +
-'            elif before != 0 and after == 0:\n' +
-'                mismatch -= 1\n' +
-'            balance[index] = after\n' +
+'            left = right - len(p) + 1\n' +
+'            if left &lt; 0:              <span class="cmt"># 窗口长度不足 len(p)</span>\n' +
+'                continue\n' +
 '\n' +
-'        for char in p:\n' +
-'            adjust(char, 1)             <span class="cmt"># p 提供需求</span>\n' +
-'        for char in s[:len(p)]:\n' +
-'            adjust(char, -1)            <span class="cmt"># 首个窗口</span>\n' +
+'            if cnt_s == cnt_p:\n' +
+'                ans.append(left)\n' +
 '\n' +
-'        answer = [0] if mismatch == 0 else []\n' +
-'        for right in range(len(p), len(s)):\n' +
-'            adjust(s[right - len(p)], 1) <span class="cmt"># 左端离开</span>\n' +
-'            adjust(s[right], -1)         <span class="cmt"># 右端进入</span>\n' +
-'            if mismatch == 0:\n' +
-'                answer.append(right - len(p) + 1)\n' +
+'            cnt_s[s[left]] -= 1         <span class="cmt"># 左端字符离开</span>\n' +
 '\n' +
-'        return answer',
+'        return ans',
+    pySingle:
+'<span class="cmt"># 单 Counter + 超量收缩</span>\n' +
+'from collections import Counter\n' +
+'from typing import List\n' +
+'\n' +
+'class Solution:\n' +
+'    def findAnagrams(self, s: str, p: str) -&gt; List[int]:\n' +
+'        cnt = Counter(p)                <span class="cmt"># p 的字符频次</span>\n' +
+'        ans = []\n' +
+'\n' +
+'        left = 0\n' +
+'        for right, char in enumerate(s):\n' +
+'            cnt[char] -= 1              <span class="cmt"># 右端字符进入窗口</span>\n' +
+'\n' +
+'            <span class="cmt"># char 太多，移动左端直到不再超量</span>\n' +
+'            while cnt[char] &lt; 0:\n' +
+'                cnt[s[left]] += 1\n' +
+'                left += 1\n' +
+'\n' +
+'            <span class="cmt"># 所有字符不超量且总长度相同 =&gt; 频次相同</span>\n' +
+'            if right - left + 1 == len(p):\n' +
+'                ans.append(left)\n' +
+'\n' +
+'        return ans',
     java:
-'<span class="cmt">// 定长滑动窗口 + 26 位差值表</span>\n' +
+'<span class="cmt">// 两张频次表 + 定长滑动窗口</span>\n' +
 'class Solution {\n' +
-'    private int mismatch = 0;\n' +
-'\n' +
 '    public List&lt;Integer&gt; findAnagrams(String s, String p) {\n' +
-'        mismatch = 0;\n' +
-'        List&lt;Integer&gt; answer = new ArrayList&lt;&gt;();\n' +
-'        if (p.length() &gt; s.length()) return answer;\n' +
+'        Map&lt;Character, Integer&gt; cntP = new HashMap&lt;&gt;();\n' +
+'        Map&lt;Character, Integer&gt; cntS = new HashMap&lt;&gt;();\n' +
+'        List&lt;Integer&gt; ans = new ArrayList&lt;&gt;();\n' +
+'        for (char c : p.toCharArray()) cntP.merge(c, 1, Integer::sum);\n' +
 '\n' +
-'        int[] balance = new int[26];\n' +
-'        for (char c : p.toCharArray()) adjust(balance, c, 1);\n' +
-'        for (int i = 0; i &lt; p.length(); i++) adjust(balance, s.charAt(i), -1);\n' +
-'        if (mismatch == 0) answer.add(0);\n' +
+'        for (int right = 0; right &lt; s.length(); right++) {\n' +
+'            char incoming = s.charAt(right);\n' +
+'            cntS.merge(incoming, 1, Integer::sum);\n' +
 '\n' +
-'        for (int right = p.length(); right &lt; s.length(); right++) {\n' +
-'            adjust(balance, s.charAt(right - p.length()), 1);\n' +
-'            adjust(balance, s.charAt(right), -1);\n' +
-'            if (mismatch == 0) answer.add(right - p.length() + 1);\n' +
+'            int left = right - p.length() + 1;\n' +
+'            if (left &lt; 0) continue;\n' +
+'            if (cntS.equals(cntP)) ans.add(left);\n' +
+'\n' +
+'            char outgoing = s.charAt(left);\n' +
+'            int next = cntS.get(outgoing) - 1;\n' +
+'            if (next == 0) cntS.remove(outgoing);\n' +
+'            else cntS.put(outgoing, next);\n' +
 '        }\n' +
-'        return answer;\n' +
-'    }\n' +
-'\n' +
-'    private void adjust(int[] balance, char c, int delta) {\n' +
-'        int i = c - \'a\', before = balance[i], after = before + delta;\n' +
-'        if (before == 0 &amp;&amp; after != 0) mismatch++;\n' +
-'        else if (before != 0 &amp;&amp; after == 0) mismatch--;\n' +
-'        balance[i] = after;\n' +
+'        return ans;\n' +
 '    }\n' +
 '}'
   };
