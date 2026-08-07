@@ -83,6 +83,7 @@ leetcode-animations/
 | 64 | [最小路径和](https://tces1.github.io/leetcode-animations/problems/64-minimum-path-sum.html) | 中等 | 动态规划 · 二维 DP · 网格 |
 | 70 | [爬楼梯](https://tces1.github.io/leetcode-animations/problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
 | 72 | [编辑距离](https://tces1.github.io/leetcode-animations/problems/72-edit-distance.html) | 困难 | 动态规划 · 二维 DP · 字符串 |
+| 76 | [最小覆盖子串](https://tces1.github.io/leetcode-animations/problems/76-minimum-window-substring.html) | 困难 | 字符串 · 滑动窗口 · 哈希表 · 计数 |
 | 84 | [柱状图中最大的矩形](https://tces1.github.io/leetcode-animations/problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
 | 118 | [杨辉三角](https://tces1.github.io/leetcode-animations/problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
 | 121 | [买卖股票的最佳时机](https://tces1.github.io/leetcode-animations/problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
