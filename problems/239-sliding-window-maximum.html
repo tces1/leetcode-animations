@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 滑动窗口 · 单调队列 · 双端队列">
+<title>239. 滑动窗口最大值 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .queue-note {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px;
+  }
+  .queue-note code { background:#dbeafe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .fields { display:grid; grid-template-columns:3fr 1fr; gap:10px; flex:1; min-width:300px; }
+  .field { display:flex; align-items:center; gap:8px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text],input[type=number] {
+    width:100%; min-width:90px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .array-stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fff,#fbfbfd); padding:28px 16px 38px; }
+  .array-row { display:inline-grid; gap:7px; min-width:max-content; }
+  .array-cell {
+    position:relative; width:54px; height:56px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 17px "SF Mono",Menlo,monospace; color:#334155;
+    background:#f8fafc; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .array-cell.outside { opacity:.4; }
+  .array-cell.window { background:#eef2ff; border-color:#c7d2fe; color:#4338ca; }
+  .array-cell.indeque { background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
+  .array-cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.2); transform:scale(1.05); }
+  .array-cell.front { background:#dcfce7; border-color:#22c55e; color:#166534; box-shadow:0 0 0 3px rgba(34,197,94,.18); }
+  .array-cell.popped { background:#fee2e2; border-color:#ef4444; color:#991b1b; box-shadow:0 0 0 3px rgba(239,68,68,.17); }
+  .array-cell.maximum { background:#22c55e; border-color:#16a34a; color:#fff; transform:translateY(-2px); box-shadow:0 0 0 4px rgba(34,197,94,.22); }
+  .array-cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#a5b4fc; }
+  .array-cell.maximum .idx { color:#dcfce7; }
+  .array-cell .ptr { position:absolute; top:100%; margin-top:7px; font-size:10px; font-weight:800; white-space:nowrap; }
+  .ptr-left { color:#4f46e5; }
+  .ptr-right { color:#ea580c; }
+
+  .window-strip { margin-top:12px; display:flex; flex-wrap:wrap; gap:10px; }
+  .window-pill { font:700 12px "SF Mono",Menlo,monospace; padding:6px 10px; border-radius:8px; background:#eef2ff; border:1px solid #c7d2fe; color:#4338ca; }
+  .window-pill.max { background:#dcfce7; border-color:#86efac; color:#166534; }
+
+  .work-grid { display:grid; grid-template-columns:1.08fr .92fr; gap:14px; margin-top:14px; }
+  .deque-panel { border:1px solid #e5e7eb; border-radius:11px; background:#f8fafc; padding:13px; min-height:148px; }
+  .deque-title { display:flex; justify-content:space-between; gap:12px; font-size:11px; font-weight:800; color:#64748b; margin-bottom:12px; }
+  .deque-title span:last-child { font-family:"SF Mono",Menlo,monospace; color:#4f46e5; }
+  .deque-row { display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-height:72px; }
+  .deque-item {
+    position:relative; min-width:72px; padding:10px 9px; border-radius:9px; text-align:center;
+    background:#dbeafe; border:2px solid #93c5fd; color:#1e40af;
+    font:700 11px "SF Mono",Menlo,monospace;
+  }
+  .deque-item b { display:block; font-size:17px; }
+  .deque-item.front { background:#dcfce7; border-color:#22c55e; color:#166534; }
+  .deque-item.back { box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  .deque-item .role { position:absolute; top:100%; left:0; right:0; margin-top:4px; font-size:9px; color:#64748b; }
+  .arrow { color:#94a3b8; font-weight:800; }
+  .empty { font-size:12px; color:#9ca3af; }
+
+  .rule-panel { border-radius:11px; background:#0f172a; color:#e2e8f0; padding:14px 16px; min-height:148px; font-size:13px; line-height:1.8; }
+  .rule-panel .phase { display:block; font-size:10px; color:#94a3b8; font-weight:800; letter-spacing:.05em; margin-bottom:5px; }
+  .rule-panel .expire { color:#fca5a5; font-weight:800; }
+  .rule-panel .dominate { color:#fcd34d; font-weight:800; }
+  .rule-panel .answer { color:#86efac; font-weight:800; }
+  .rule-panel code { background:#1f2937; color:#93c5fd; }
+
+  .answers { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin-top:12px; }
+  .answers .label { font-size:12px; color:#64748b; font-weight:700; }
+  .answer-chip { font:800 12px "SF Mono",Menlo,monospace; padding:5px 9px; border-radius:7px; background:#dcfce7; border:1px solid #bbf7d0; color:#166534; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-window { background:#eef2ff; border-color:#c7d2fe; }
+  .dot-current { background:#fef3c7; border-color:#f59e0b; }
+  .dot-deque { background:#dbeafe; border-color:#93c5fd; }
+  .dot-pop { background:#fee2e2; border-color:#ef4444; }
+  .dot-max { background:#22c55e; border-color:#16a34a; }
+
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .op { color:#86efac; font-weight:700; }
+  .status .bad { color:#fca5a5; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:760px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .fields,.work-grid { grid-template-columns:1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/sliding-window-maximum/" target="_blank" rel="noopener">LeetCode 239</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>239. 滑动窗口最大值 · 单调队列动画</h1>
+  <div class="sub">每个窗口都重新扫描 k 个元素需要 <code>O(nk)</code>。单调双端队列只保留“仍在窗口内、并且将来可能成为最大值”的下标；队列中的值从队首到队尾单调递减，因此<b>队首永远是当前窗口最大值</b>。</div>
+
+  <div class="card">
+    <div class="panel-title">单调队列四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 右端进入</div>新元素来到 <code>right</code>，先用它更新队列；窗口暂时向右扩张一格。</div>
+      <div class="idea-item"><div class="no">② 从队尾往前缩</div>队尾值若不大于新值，它更小且更早，永远不会再成为最大值，从队尾连续弹出。</div>
+      <div class="idea-item"><div class="no">③ 入队并收左边</div>当前下标加入队尾；再令 <code>left = right-k+1</code>，从队首移除落到 left 左边的过期下标。</div>
+      <div class="idea-item"><div class="no">④ 读取答案</div>窗口达到长度 k 后，队列已与窗口同步，直接读取 <code>nums[deque[0]]</code>。</div>
+    </div>
+    <div class="queue-note"><b>为什么每个元素只处理 O(1) 次？</b> 每个下标最多入队一次、从队首或队尾出队一次。虽然代码中有 <code>while</code>，所有弹出操作加起来仍不超过 n 次，所以总时间是 O(n)。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="fields">
+        <label class="field"><span class="lab">nums =</span><input type="text" id="numsInput" value="1 3 -1 -3 5 3 6 7" spellcheck="false" placeholder="空格或逗号分隔"></label>
+        <label class="field"><span class="lab">k =</span><input type="number" id="kInput" value="3" min="1" max="16"></label>
+      </div>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-nums="1 3 -1 -3 5 3 6 7" data-k="3">经典示例</span>
+      <span class="chip" data-nums="1 3 3 2" data-k="2">重复最大值</span>
+      <span class="chip" data-nums="9 7 5 3 1" data-k="3">单调递减</span>
+      <span class="chip" data-nums="1 2 3 4 5" data-k="3">单调递增</span>
+      <span class="chip" data-nums="-7 -8 7 5 7 1 6 0" data-k="4">含负数</span>
+      <span class="chip" data-nums="4 2 12 3" data-k="1">k=1</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～16 个整数（每个值 -20～20），且 1 ≤ k ≤ nums.length。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">数组与当前窗口</div>
+    <div class="array-stage"><div class="array-row" id="arrayRow"></div></div>
+    <div class="window-strip">
+      <span class="window-pill" id="windowRange">窗口尚未开始</span>
+      <span class="window-pill max" id="windowMax">最大值：—</span>
+    </div>
+
+    <div class="work-grid">
+      <div class="deque-panel">
+        <div class="deque-title"><span>deque（队首 → 队尾）</span><span id="dequeValues">[]</span></div>
+        <div class="deque-row" id="dequeRow"></div>
+      </div>
+      <div class="rule-panel" id="rulePanel"></div>
+    </div>
+
+    <div class="answers" id="answers"></div>
+    <div class="legend">
+      <span><span class="dot dot-window"></span>当前窗口</span>
+      <span><span class="dot dot-current"></span>当前元素</span>
+      <span><span class="dot dot-deque"></span>在队列中</span>
+      <span><span class="dot dot-pop"></span>刚被淘汰 / 过期</span>
+      <span><span class="dot dot-max"></span>当前窗口最大值</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：单调双端队列 ==== */
+(function (root) {
+  'use strict';
+
+  function parseInputs(numsValue, kValue) {
+    var parts = String(numsValue).trim().split(/[,\s]+/).filter(Boolean);
+    if (!parts.length) return { err:'nums 不能为空' };
+    if (parts.length > 16) return { err:'nums 长度不能超过 16' };
+    var nums = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { err:'nums 含非整数：' + parts[i] };
+      var value = Number(parts[i]);
+      if (!Number.isSafeInteger(value) || value < -20 || value > 20) return { err:'数组元素须在 -20～20：' + parts[i] };
+      nums.push(value);
+    }
+    var k = Number(kValue);
+    if (!Number.isInteger(k) || k < 1 || k > nums.length) return { err:'k 须为 1～nums.length 的整数' };
+    return { nums:nums, k:k, err:null };
+  }
+
+  function solve(nums, k) {
+    var deque = [], answer = [];
+    for (var right = 0; right < nums.length; right++) {
+      while (deque.length && nums[deque[deque.length - 1]] <= nums[right]) deque.pop();
+      deque.push(right);
+      var left = right - k + 1;
+      while (deque.length && deque[0] < left) deque.shift();
+      if (right >= k - 1) answer.push(nums[deque[0]]);
+    }
+    return answer;
+  }
+
+  function buildSteps(nums, k) {
+    var deque = [], answer = [], steps = [];
+
+    function snap(o) {
+      var right = o.right === undefined ? -1 : o.right;
+      steps.push({
+        phase:o.phase || '', right:right,
+        left:right < 0 ? 0 : Math.max(0, right - k + 1),
+        deque:deque.slice(), answer:answer.slice(),
+        expired:o.expired === undefined ? -1 : o.expired,
+        popped:o.popped === undefined ? -1 : o.popped,
+        maxIndex:o.maxIndex === undefined ? -1 : o.maxIndex,
+        msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', msg:'初始化空双端队列。队列存放下标，并保持对应的 nums 值从队首到队尾单调递减。' });
+
+    for (var right = 0; right < nums.length; right++) {
+      snap({ phase:'visit', right:right,
+        msg:'新元素 <b>nums[' + right + ']=' + nums[right] + '</b> 从右端进入。先用它从队尾向前更新单调队列，再让窗口左端跟进。' });
+
+      while (deque.length && nums[deque[deque.length - 1]] <= nums[right]) {
+        var popped = deque.pop();
+        snap({ phase:'popBack', right:right, popped:popped,
+          msg:'队尾值 <b>nums[' + popped + ']=' + nums[popped] + '</b> ≤ 当前值 <b>' + nums[right] + '</b>。当前元素更大且更晚离开窗口，旧队尾不可能再成为最大值，<span class="bad">从队尾淘汰</span>。' });
+      }
+
+      deque.push(right);
+      snap({ phase:'push', right:right,
+        msg:'把当前下标 <b>' + right + '</b> 加入队尾。队列对应值现在是 <code>[' + deque.map(function (i) { return nums[i]; }).join(', ') + ']</code>。接着令 <code>left = right-k+1 = ' + (right - k + 1) + '</code>，收缩窗口左端。' });
+
+      var left = right - k + 1;
+      while (deque.length && deque[0] < left) {
+        var expired = deque.shift();
+        snap({ phase:'expire', right:right, expired:expired,
+          msg:'窗口左端已经移动到 <b>left=' + left + '</b>。队首下标 <b>' + expired + '</b> 位于 left 左边，已经过期，<span class="bad">从队首移除</span>，让队列与窗口同步。' });
+      }
+
+      if (right >= k - 1) {
+        var maxIndex = deque[0];
+        answer.push(nums[maxIndex]);
+        snap({ phase:'answer', right:right, maxIndex:maxIndex,
+          msg:'窗口 <b>[' + (right - k + 1) + '..' + right + ']</b> 已形成。队首下标是 <b>' + maxIndex + '</b>，所以窗口最大值为 <span class="op">nums[' + maxIndex + '] = ' + nums[maxIndex] + '</span>，写入答案。' });
+      }
+    }
+
+    snap({ phase:'done',
+      msg:'遍历完成，所有窗口最大值为 <span class="op">[' + answer.join(', ') + ']</span>。每个下标最多入队和出队各一次。' });
+    return steps;
+  }
+
+  root.SLIDING_MAX_239 = { parseInputs:parseInputs, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.SLIDING_MAX_239;
+  var $ = function (id) { return document.getElementById(id); };
+  var numsInput = $('numsInput'), kInput = $('kInput'), errEl = $('err'), arrayRow = $('arrayRow');
+  var dequeRow = $('dequeRow'), rulePanel = $('rulePanel'), answersEl = $('answers');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], k = 1, steps = [], stepIndex = 0, timer = null, arrayCells = [];
+
+  function buildArray() {
+    arrayRow.innerHTML = '';
+    arrayRow.style.gridTemplateColumns = 'repeat(' + nums.length + ', 54px)';
+    arrayCells = [];
+    nums.forEach(function (value, index) {
+      var cell = document.createElement('div');
+      cell.className = 'array-cell';
+      var idx = document.createElement('span');
+      idx.className = 'idx'; idx.textContent = index;
+      var val = document.createElement('span');
+      val.textContent = value;
+      var ptr = document.createElement('span');
+      ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(ptr);
+      arrayRow.appendChild(cell);
+      arrayCells.push({ cell:cell, ptr:ptr });
+    });
+  }
+
+  function renderArray(step) {
+    var inDeque = {};
+    step.deque.forEach(function (index) { inDeque[index] = true; });
+    arrayCells.forEach(function (ref, index) {
+      var cls = 'array-cell';
+      if (step.right >= 0 && index >= step.left && index <= step.right) cls += ' window';
+      else cls += ' outside';
+      if (inDeque[index]) cls += ' indeque';
+      if (index === step.right) cls += ' current';
+      if (step.deque.length && index === step.deque[0]) cls += ' front';
+      if (index === step.expired || index === step.popped) cls += ' popped';
+      if (step.phase === 'answer' && index === step.maxIndex) cls += ' maximum';
+      ref.cell.className = cls;
+      var labels = [];
+      if (step.right >= 0 && index === step.left) labels.push('<span class="ptr-left">L</span>');
+      if (index === step.right) labels.push('<span class="ptr-right">R</span>');
+      ref.ptr.innerHTML = labels.join('·');
+    });
+  }
+
+  function renderDeque(step) {
+    dequeRow.innerHTML = '';
+    if (!step.deque.length) {
+      dequeRow.innerHTML = '<span class="empty">队列为空</span>';
+      $('dequeValues').textContent = '[]';
+      return;
+    }
+    step.deque.forEach(function (index, position) {
+      if (position) {
+        var arrow = document.createElement('span');
+        arrow.className = 'arrow'; arrow.textContent = '→';
+        dequeRow.appendChild(arrow);
+      }
+      var item = document.createElement('div');
+      item.className = 'deque-item' + (position === 0 ? ' front' : '') + (position === step.deque.length - 1 ? ' back' : '');
+      item.innerHTML = '#'+ index + '<b>' + nums[index] + '</b><span class="role">' +
+        (position === 0 ? '队首·最大' : (position === step.deque.length - 1 ? '队尾' : '候选')) + '</span>';
+      dequeRow.appendChild(item);
+    });
+    $('dequeValues').textContent = '[' + step.deque.map(function (index) { return nums[index]; }).join(', ') + ']';
+  }
+
+  function renderRule(step) {
+    var content = '<span class="phase">' + step.phase.toUpperCase() + '</span>';
+    if (step.phase === 'expire') {
+      content += '<span class="expire">左端收缩，移除过期队首</span><br><code>deque[0] &lt; left</code>';
+    } else if (step.phase === 'popBack') {
+      content += '<span class="dominate">淘汰较小队尾</span><br><code>nums[deque[-1]] ≤ nums[right]</code>';
+    } else if (step.phase === 'answer') {
+      content += '<span class="answer">读取窗口最大值</span><br><code>max = nums[deque[0]] = ' + nums[step.maxIndex] + '</code>';
+    } else if (step.phase === 'push') {
+      content += '当前下标加入队尾<br><code>deque.append(right)</code>';
+    } else if (step.phase === 'visit') {
+      content += '处理新元素<br><code>right = ' + step.right + ', value = ' + nums[step.right] + '</code>';
+    } else if (step.phase === 'done') {
+      content += '<span class="answer">全部窗口处理完成</span>';
+    } else {
+      content += '准备维护单调递减队列';
+    }
+    rulePanel.innerHTML = content;
+  }
+
+  function renderAnswers(answer) {
+    answersEl.innerHTML = '<span class="label">输出：</span>';
+    if (!answer.length) {
+      answersEl.innerHTML += '<span class="empty">窗口尚未形成</span>';
+      return;
+    }
+    answer.forEach(function (value) {
+      var chip = document.createElement('span');
+      chip.className = 'answer-chip';
+      chip.textContent = value;
+      answersEl.appendChild(chip);
+    });
+  }
+
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">数组长度<b>' + nums.length + '</b></div>' +
+      '<div class="stat">窗口大小 k<b>' + k + '</b></div>' +
+      '<div class="stat">输出<b>[' + APP.solve(nums, k).join(', ') + ']</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">队列空间<b>O(k)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderArray(step);
+    renderDeque(step);
+    renderRule(step);
+    renderAnswers(step.answer);
+    $('windowRange').textContent = step.right < 0 ? '窗口尚未开始' : '窗口 [' + step.left + '..' + step.right + ']，长度 ' + (step.right - step.left + 1) + '/' + k;
+    $('windowMax').textContent = step.deque.length ? '队首最大候选：' + nums[step.deque[0]] : '最大值：—';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 780);
+  }
+
+  function load() {
+    var parsed = APP.parseInputs(numsInput.value, kInput.value);
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    nums = parsed.nums;
+    k = parsed.k;
+    steps = APP.buildSteps(nums, k);
+    stepIndex = 0;
+    buildArray();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  [numsInput, kInput].forEach(function (input) {
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      numsInput.value = chip.dataset.nums;
+      kInput.value = chip.dataset.k;
+      load();
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === numsInput || document.activeElement === kInput) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 单调双端队列 · 时间 O(n) · 空间 O(k)</span>\n' +
+'from collections import deque\n' +
+'\n' +
+'class Solution:\n' +
+'    def maxSlidingWindow(self, nums: list[int], k: int) -&gt; list[int]:\n' +
+'        queue = deque()               <span class="cmt"># 存下标，值单调递减</span>\n' +
+'        answer = []\n' +
+'\n' +
+'        for right, value in enumerate(nums):\n' +
+'            <span class="cmt"># ① 新值进入：从队尾往前淘汰较小值</span>\n' +
+'            while queue and nums[queue[-1]] &lt;= value:\n' +
+'                queue.pop()\n' +
+'\n' +
+'            queue.append(right)\n' +
+'\n' +
+'            <span class="cmt"># ② 左端收缩：移除窗口外的队首</span>\n' +
+'            left = right - k + 1\n' +
+'            while queue and queue[0] &lt; left:\n' +
+'                queue.popleft()\n' +
+'\n' +
+'            if right &gt;= k - 1:\n' +
+'                answer.append(nums[queue[0]])\n' +
+'\n' +
+'        return answer',
+    java:
+'<span class="cmt">// 单调双端队列 · 时间 O(n) · 空间 O(k)</span>\n' +
+'class Solution {\n' +
+'    public int[] maxSlidingWindow(int[] nums, int k) {\n' +
+'        int[] answer = new int[nums.length - k + 1];\n' +
+'        Deque&lt;Integer&gt; queue = new ArrayDeque&lt;&gt;();\n' +
+'        int write = 0;\n' +
+'\n' +
+'        for (int right = 0; right &lt; nums.length; right++) {\n' +
+'            while (!queue.isEmpty() &amp;&amp; nums[queue.peekLast()] &lt;= nums[right])\n' +
+'                queue.pollLast();\n' +
+'\n' +
+'            queue.offerLast(right);\n' +
+'            int left = right - k + 1;\n' +
+'            while (!queue.isEmpty() &amp;&amp; queue.peekFirst() &lt; left)\n' +
+'                queue.pollFirst();\n' +
+'\n' +
+'            if (right &gt;= k - 1)\n' +
+'                answer[write++] = nums[queue.peekFirst()];\n' +
+'        }\n' +
+'        return answer;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
