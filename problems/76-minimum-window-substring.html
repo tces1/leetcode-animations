@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="字符串 · 滑动窗口 · 哈希表 · 计数">
+<title>76. 最小覆盖子串 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .invariant-note {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#f5f3ff; border:1px solid #ddd6fe; color:#4c1d95; font-size:13px;
+  }
+  .invariant-note code { background:#ede9fe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .fields { display:grid; grid-template-columns:2fr 1fr; gap:10px; flex:1; min-width:300px; }
+  .field { display:flex; align-items:center; gap:8px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text] {
+    width:100%; min-width:100px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .string-stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fff,#fbfbfd); padding:30px 16px 40px; }
+  .string-row { display:inline-grid; gap:6px; min-width:max-content; }
+  .char-cell {
+    position:relative; width:49px; height:54px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 19px "SF Mono",Menlo,monospace; color:#334155;
+    background:#f8fafc; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .char-cell.outside { opacity:.38; }
+  .char-cell.window { background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+  .char-cell.best-known { box-shadow:inset 0 -4px 0 #8b5cf6; }
+  .char-cell.entering { background:#ffedd5; border-color:#f97316; color:#9a3412; box-shadow:0 0 0 3px rgba(249,115,22,.18); transform:scale(1.05); }
+  .char-cell.leaving { background:#fee2e2; border-color:#ef4444; color:#991b1b; box-shadow:0 0 0 3px rgba(239,68,68,.17); }
+  .char-cell.valid { background:#dcfce7; border-color:#4ade80; color:#166534; }
+  .char-cell.new-best { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 4px rgba(34,197,94,.22); transform:translateY(-2px); }
+  .char-cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#a5b4fc; }
+  .char-cell.new-best .idx { color:#dcfce7; }
+  .char-cell .ptr { position:absolute; top:100%; margin-top:7px; font-size:10px; font-weight:800; white-space:nowrap; }
+  .ptr-left { color:#4f46e5; }
+  .ptr-right { color:#ea580c; }
+
+  .pattern-row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:13px; }
+  .pattern-row .label { font-size:12px; color:#64748b; font-weight:700; margin-right:3px; }
+  .pattern-cell {
+    width:32px; height:32px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    font:800 14px "SF Mono",Menlo,monospace; background:#ede9fe; border:1px solid #ddd6fe; color:#5b21b6;
+  }
+
+  .count-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:9px; }
+  .count-item { border:1px solid #e5e7eb; border-radius:10px; padding:9px 11px; background:#f8fafc; }
+  .count-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .letter { width:29px; height:29px; border-radius:7px; display:flex; align-items:center; justify-content:center; font:800 15px "SF Mono",Menlo,monospace; background:#e2e8f0; color:#334155; }
+  .count-value { font:800 13px "SF Mono",Menlo,monospace; color:#475569; }
+  .meter { height:7px; background:#e5e7eb; border-radius:999px; margin-top:8px; overflow:hidden; }
+  .meter-fill { height:100%; border-radius:999px; background:#f97316; transition:width .18s,background .18s; }
+  .count-item.satisfied { background:#f0fdf4; border-color:#bbf7d0; }
+  .count-item.satisfied .meter-fill { background:#22c55e; }
+  .count-item.extra { background:#eff6ff; border-color:#bfdbfe; }
+  .count-item.extra .meter-fill { background:#3b82f6; }
+  .count-item.changed { box-shadow:0 0 0 3px rgba(99,102,241,.18); transform:translateY(-1px); }
+  .count-note { font-size:10px; color:#94a3b8; margin-top:5px; }
+
+  .summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:13px; }
+  .summary-box { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; text-align:center; font-size:12px; color:#64748b; }
+  .summary-box b { display:block; margin-top:2px; font:800 16px "SF Mono",Menlo,monospace; color:#334155; }
+  .summary-box.missing b { color:#7c3aed; }
+  .summary-box.current b { color:#4f46e5; font-size:13px; }
+  .summary-box.best b { color:#16a34a; font-size:13px; }
+
+  .rule-box { margin-top:11px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:12px 15px; font:600 13px "SF Mono",Menlo,monospace; min-height:46px; }
+  .rule-box .expand { color:#fdba74; font-weight:800; }
+  .rule-box .shrink { color:#fca5a5; font-weight:800; }
+  .rule-box .valid { color:#86efac; font-weight:800; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-window { background:#e0e7ff; border-color:#a5b4fc; }
+  .dot-enter { background:#ffedd5; border-color:#f97316; }
+  .dot-leave { background:#fee2e2; border-color:#ef4444; }
+  .dot-valid { background:#dcfce7; border-color:#4ade80; }
+  .dot-best { background:#22c55e; border-color:#16a34a; }
+
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .bad { color:#fca5a5; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:720px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .fields { grid-template-columns:1fr; }
+    .summary-grid { grid-template-columns:1fr 1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/minimum-window-substring/" target="_blank" rel="noopener">LeetCode 76</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>76. 最小覆盖子串 · 可变滑动窗口动画</h1>
+  <div class="sub">右端不断扩张，直到窗口覆盖 t 的全部字符；窗口一旦合法，左端就持续收缩并更新最短答案，直到移走一个关键字符使窗口失效。只维护一个 <code>Counter</code> 作为“剩余需求”，再用 <code>cnt</code> 记录尚未满足的字符种类数。</div>
+
+  <div class="card">
+    <div class="panel-title">单 Counter 滑动窗口四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 剩余需求</div><code>need = Counter(t)</code>；正数表示还缺，0 表示刚好，负数表示窗口里有多余字符。</div>
+      <div class="idea-item"><div class="no">② 右端扩张</div>目标字符进入时执行 <code>need[c] -= 1</code>；若结果第一次变为 0，说明该字符种类满足，<code>cnt -= 1</code>。</div>
+      <div class="idea-item"><div class="no">③ 持续收缩</div>只要 <code>cnt == 0</code>，窗口就合法：先记录更短答案，再移走左端字符。</div>
+      <div class="idea-item"><div class="no">④ 窗口失效</div>目标字符离开时执行 <code>need[c] += 1</code>；若结果大于 0，窗口重新缺少它，<code>cnt += 1</code>。</div>
+    </div>
+    <div class="invariant-note"><b>核心不变量：</b><code>need[c] = t 中 c 的数量 − 当前窗口中 c 的数量</code>。<code>cnt</code> 等于 need 中正数键的数量，所以 <code>cnt == 0</code> 就表示所有字符都已覆盖；重复字符也会自然处理。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="fields">
+        <label class="field"><span class="lab">s =</span><input type="text" id="sInput" value="ADOBECODEBANC" maxlength="24" spellcheck="false"></label>
+        <label class="field"><span class="lab">t =</span><input type="text" id="tInput" value="ABC" maxlength="10" spellcheck="false"></label>
+      </div>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-s="ADOBECODEBANC" data-t="ABC">经典 BANC</span>
+      <span class="chip" data-s="aa" data-t="aa">重复字符 aa</span>
+      <span class="chip" data-s="a" data-t="aa">无解</span>
+      <span class="chip" data-s="bbaa" data-t="aba">重复需求 baa</span>
+      <span class="chip" data-s="cabwefgewcwaefgcf" data-t="cae">较长 cwae</span>
+      <span class="chip" data-s="aAaBb" data-t="AB">区分大小写</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持英文字母并区分大小写；s 长度 1～24，t 长度 1～10。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">字符串 s 与当前可变窗口</div>
+    <div class="string-stage"><div class="string-row" id="stringRow"></div></div>
+    <div class="pattern-row" id="patternRow"></div>
+
+    <div class="panel-title status-title">单个 Counter：当前剩余需求 need</div>
+    <div class="count-grid" id="countGrid"></div>
+
+    <div class="summary-grid">
+      <div class="summary-box missing">未满足种类 cnt<b id="missingTypes">0</b></div>
+      <div class="summary-box">窗口长度<b id="windowLength">0</b></div>
+      <div class="summary-box current">当前窗口<b id="currentWindow">—</b></div>
+      <div class="summary-box best">当前最优<b id="bestWindow">—</b></div>
+    </div>
+    <div class="rule-box" id="ruleBox"></div>
+
+    <div class="legend">
+      <span><span class="dot dot-window"></span>当前窗口</span>
+      <span><span class="dot dot-enter"></span>右端进入</span>
+      <span><span class="dot dot-leave"></span>左端移出</span>
+      <span><span class="dot dot-valid"></span>合法窗口</span>
+      <span><span class="dot dot-best"></span>刷新最短答案</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看成熟参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：单 Counter 剩余需求 + missingTypes ==== */
+(function (root) {
+  'use strict';
+
+  function parseInputs(s, t) {
+    if (!/^[A-Za-z]+$/.test(s) || !/^[A-Za-z]+$/.test(t)) return { err:'s 和 t 只能包含英文字母，且不能为空' };
+    if (s.length > 24 || t.length > 10) return { err:'s 最长 24，t 最长 10' };
+    return { s:s, t:t, err:null };
+  }
+
+  function countsOf(text) {
+    var counts = {};
+    for (var i = 0; i < text.length; i++) counts[text[i]] = (counts[text[i]] || 0) + 1;
+    return counts;
+  }
+
+  function solve(s, t) {
+    if (t.length > s.length) return '';
+    var need = countsOf(t);
+    var missingTypes = Object.keys(need).length, left = 0;
+    var bestLeft = 0, bestLength = Infinity;
+    for (var right = 0; right < s.length; right++) {
+      var incoming = s[right];
+      if (need.hasOwnProperty(incoming)) {
+        need[incoming]--;
+        if (need[incoming] === 0) missingTypes--;
+      }
+      while (missingTypes === 0) {
+        var length = right - left + 1;
+        if (length < bestLength) {
+          bestLeft = left;
+          bestLength = length;
+        }
+        var outgoing = s[left];
+        if (need.hasOwnProperty(outgoing)) {
+          need[outgoing]++;
+          if (need[outgoing] > 0) missingTypes++;
+        }
+        left++;
+      }
+    }
+    return bestLength === Infinity ? '' : s.slice(bestLeft, bestLeft + bestLength);
+  }
+
+  function buildSteps(s, t) {
+    var originalNeed = countsOf(t), need = countsOf(t);
+    var totalTypes = Object.keys(need).length, missingTypes = totalTypes, left = 0;
+    var bestLeft = -1, bestLength = Infinity, steps = [];
+
+    function copy(object) {
+      var result = {};
+      Object.keys(object).forEach(function (key) { result[key] = object[key]; });
+      return result;
+    }
+
+    function snap(o) {
+      var right = o.right === undefined ? -1 : o.right;
+      steps.push({
+        phase:o.phase || '', left:left, right:right,
+        entering:o.entering === undefined ? -1 : o.entering,
+        leaving:o.leaving === undefined ? -1 : o.leaving,
+        changed:o.changed || '',
+        originalNeed:copy(originalNeed), need:copy(need),
+        missingTypes:missingTypes, totalTypes:totalTypes,
+        valid:missingTypes === 0,
+        bestLeft:bestLeft, bestLength:bestLength,
+        msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', msg:'统计目标串 <b>t="' + t + '"</b>：need = ' + JSON.stringify(need) + '。初始有 <b>' + missingTypes + '</b> 种字符尚未满足，窗口从空开始。' });
+
+    if (t.length > s.length) {
+      snap({ phase:'done', msg:'t 比 s 更长，不可能存在覆盖窗口，答案为空字符串。' });
+      return steps;
+    }
+
+    for (var right = 0; right < s.length; right++) {
+      var incoming = s[right], reached = false;
+      if (need.hasOwnProperty(incoming)) {
+        need[incoming]--;
+        if (need[incoming] === 0) {
+          missingTypes--;
+          reached = true;
+        }
+      }
+      snap({ phase:'expand', right:right, entering:right, changed:incoming,
+        msg:'右端加入 <b>s[' + right + ']="' + incoming + '"</b>。' +
+          (need.hasOwnProperty(incoming)
+            ? 'need[' + incoming + '] 减为 ' + need[incoming] + (reached ? '，该字符刚好满足，<span class="ok">cnt -1</span>。' : (need[incoming] < 0 ? '，负数表示窗口中有多余字符。' : '，仍然缺少。'))
+            : '它不是目标字符，只扩大窗口，不影响 cnt。') });
+
+      while (missingTypes === 0) {
+        var currentLength = right - left + 1;
+        var updated = currentLength < bestLength;
+        if (updated) {
+          bestLeft = left;
+          bestLength = currentLength;
+        }
+        snap({ phase:updated ? 'best' : 'valid', right:right,
+          msg:'<span class="ok">cnt == 0，窗口 "' + s.slice(left, right + 1) + '" 已覆盖 t</span>。' +
+            (updated
+              ? '长度 ' + currentLength + ' 更短，刷新最优答案。'
+              : '长度 ' + currentLength + ' 没有优于当前最短 ' + bestLength + '。') +
+            ' 继续移动 left 尝试收缩。' });
+
+        var oldLeft = left, outgoing = s[oldLeft], lost = false;
+        if (need.hasOwnProperty(outgoing)) {
+          need[outgoing]++;
+          if (need[outgoing] > 0) {
+            missingTypes++;
+            lost = true;
+          }
+        }
+        left++;
+        snap({ phase:'shrink', right:right, leaving:oldLeft, changed:outgoing,
+          msg:'左端移出 <b>s[' + oldLeft + ']="' + outgoing + '"</b>，left 前进到 ' + left + '。' +
+            (need.hasOwnProperty(outgoing)
+              ? 'need[' + outgoing + '] 增为 ' + need[outgoing] + (lost ? '，重新变成正数，<span class="bad">cnt +1，窗口失效</span>。' : '，仍不大于 0，窗口还有足够数量，可以继续收缩。')
+              : '它不是目标字符，cnt 不变，可以继续收缩。') });
+      }
+    }
+
+    snap({ phase:'done', right:s.length - 1,
+      msg:bestLength === Infinity
+        ? '遍历结束，没有任何窗口能覆盖 t，答案为空字符串。'
+        : '遍历结束，最小覆盖子串为 <span class="ok">"' + s.slice(bestLeft, bestLeft + bestLength) + '"</span>，范围 [' + bestLeft + '..' + (bestLeft + bestLength - 1) + ']。' });
+    return steps;
+  }
+
+  root.MIN_WINDOW_76 = { parseInputs:parseInputs, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.MIN_WINDOW_76;
+  var $ = function (id) { return document.getElementById(id); };
+  var sInput = $('sInput'), tInput = $('tInput'), errEl = $('err'), stringRow = $('stringRow');
+  var patternRow = $('patternRow'), countGrid = $('countGrid'), ruleBox = $('ruleBox');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var s = '', t = '', steps = [], stepIndex = 0, timer = null, charCells = [], targetChars = [];
+
+  function buildStaticViews() {
+    stringRow.innerHTML = '';
+    stringRow.style.gridTemplateColumns = 'repeat(' + s.length + ', 49px)';
+    charCells = [];
+    for (var i = 0; i < s.length; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'char-cell';
+      var idx = document.createElement('span');
+      idx.className = 'idx'; idx.textContent = i;
+      var val = document.createElement('span');
+      val.textContent = s[i];
+      var ptr = document.createElement('span');
+      ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(ptr);
+      stringRow.appendChild(cell);
+      charCells.push({ cell:cell, ptr:ptr });
+    }
+
+    patternRow.innerHTML = '<span class="label">目标串 t：</span>';
+    for (var j = 0; j < t.length; j++) {
+      var item = document.createElement('span');
+      item.className = 'pattern-cell';
+      item.textContent = t[j];
+      patternRow.appendChild(item);
+    }
+    targetChars = Object.keys(steps[0].need).sort();
+  }
+
+  function renderString(step) {
+    var bestRight = step.bestLeft >= 0 ? step.bestLeft + step.bestLength - 1 : -1;
+    charCells.forEach(function (ref, index) {
+      var inWindow = step.right >= 0 && index >= step.left && index <= step.right;
+      var cls = 'char-cell ' + (inWindow ? 'window' : 'outside');
+      if (step.bestLeft >= 0 && index >= step.bestLeft && index <= bestRight) cls += ' best-known';
+      if (index === step.entering) cls += ' entering';
+      if (index === step.leaving) cls += ' leaving';
+      if ((step.phase === 'valid' || step.phase === 'best') && inWindow) cls += ' valid';
+      if (step.phase === 'best' && inWindow) cls += ' new-best';
+      ref.cell.className = cls;
+      var labels = [];
+      if (inWindow && index === step.left) labels.push('<span class="ptr-left">L</span>');
+      if (index === step.right) labels.push('<span class="ptr-right">R</span>');
+      ref.ptr.innerHTML = labels.join('·');
+    });
+  }
+
+  function renderCounts(step) {
+    countGrid.innerHTML = '';
+    targetChars.forEach(function (char) {
+      var original = step.originalNeed[char], remaining = step.need[char];
+      var current = original - remaining;
+      var cls = remaining > 0 ? '' : (remaining === 0 ? ' satisfied' : ' extra');
+      var item = document.createElement('div');
+      item.className = 'count-item' + cls + (step.changed === char ? ' changed' : '');
+      var percent = Math.min(100, Math.round(current / original * 100));
+      item.innerHTML =
+        '<div class="count-head"><span class="letter">' + char + '</span>' +
+        '<span class="count-value">need=' + (remaining > 0 ? '+' : '') + remaining + '</span></div>' +
+        '<div class="meter"><div class="meter-fill" style="width:' + percent + '%"></div></div>' +
+        '<div class="count-note">窗口 ' + current + ' / 目标 ' + original + ' · ' +
+          (remaining > 0 ? '还缺 ' + remaining : (remaining === 0 ? '刚好满足' : '多余 ' + (-remaining))) + '</div>';
+      countGrid.appendChild(item);
+    });
+  }
+
+  function renderRule(step) {
+    if (step.phase === 'expand') {
+      ruleBox.innerHTML = '<span class="expand">扩张 right</span>：目标字符进入时 need[c] -= 1；变为 0 时 cnt -= 1。';
+    } else if (step.phase === 'best' || step.phase === 'valid') {
+      ruleBox.innerHTML = '<span class="valid">cnt == 0</span>：所有剩余需求都不大于 0，先比较最短答案，再继续收缩。';
+    } else if (step.phase === 'shrink') {
+      ruleBox.innerHTML = '<span class="shrink">收缩 left</span>：目标字符离开时 need[c] += 1；大于 0 时 cnt += 1。';
+    } else if (step.phase === 'done') {
+      ruleBox.innerHTML = '<span class="valid">搜索完成</span>：返回遍历过程中记录的最短合法窗口。';
+    } else {
+      ruleBox.innerHTML = '初始化 need = Counter(t)，cnt = len(need)。';
+    }
+  }
+
+  function renderStats() {
+    var result = APP.solve(s, t);
+    statsEl.innerHTML =
+      '<div class="stat">s 长度<b>' + s.length + '</b></div>' +
+      '<div class="stat">t 长度<b>' + t.length + '</b></div>' +
+      '<div class="stat">答案<b>' + (result ? '"' + result + '"' : '""') + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(|s|+|t|)</b></div>' +
+      '<div class="stat">字符表空间<b>O(|字符集|)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderString(step);
+    renderCounts(step);
+    renderRule(step);
+    $('missingTypes').textContent = step.missingTypes + ' / ' + step.totalTypes;
+    $('windowLength').textContent = step.right >= step.left && step.right >= 0 ? step.right - step.left + 1 : 0;
+    $('currentWindow').textContent = step.right >= step.left && step.right >= 0 ? '"' + s.slice(step.left, step.right + 1) + '"' : '—';
+    $('bestWindow').textContent = step.bestLength === Infinity ? '—' : '"' + s.slice(step.bestLeft, step.bestLeft + step.bestLength) + '"';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 780);
+  }
+
+  function load() {
+    var parsed = APP.parseInputs(sInput.value.trim(), tInput.value.trim());
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    s = parsed.s;
+    t = parsed.t;
+    steps = APP.buildSteps(s, t);
+    stepIndex = 0;
+    buildStaticViews();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  [sInput, tInput].forEach(function (input) {
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      sInput.value = chip.dataset.s;
+      tInput.value = chip.dataset.t;
+      load();
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === sInput || document.activeElement === tInput) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 单 Counter 可变窗口 · 时间 O(|s|+|t|)</span>\n' +
+'from collections import Counter\n' +
+'\n' +
+'class Solution:\n' +
+'    def minWindow(self, s: str, t: str) -&gt; str:\n' +
+'        if not t or len(t) &gt; len(s):\n' +
+'            return \"\"\n' +
+'\n' +
+'        need = Counter(t)\n' +
+'        missing_types = len(need)      <span class="cmt"># 仍未满足的字符种类</span>\n' +
+'\n' +
+'        left = 0\n' +
+'        best_left = 0\n' +
+'        best_length = float(\"inf\")\n' +
+'\n' +
+'        for right, char in enumerate(s):\n' +
+'            <span class="cmt"># 右端进入：消耗一个需求</span>\n' +
+'            if char in need:\n' +
+'                need[char] -= 1\n' +
+'                if need[char] == 0:\n' +
+'                    missing_types -= 1\n' +
+'\n' +
+'            <span class="cmt"># 所有 need 都不大于 0，持续收缩</span>\n' +
+'            while missing_types == 0:\n' +
+'                length = right - left + 1\n' +
+'                if length &lt; best_length:\n' +
+'                    best_left = left\n' +
+'                    best_length = length\n' +
+'\n' +
+'                outgoing = s[left]\n' +
+'                left += 1\n' +
+'                if outgoing in need:\n' +
+'                    need[outgoing] += 1\n' +
+'                    if need[outgoing] &gt; 0:\n' +
+'                        missing_types += 1\n' +
+'\n' +
+'        if best_length == float(\"inf\"):\n' +
+'            return \"\"\n' +
+'        return s[best_left:best_left + best_length]',
+    java:
+'<span class="cmt">// 单 Map 可变窗口 · 时间 O(|s|+|t|)</span>\n' +
+'class Solution {\n' +
+'    public String minWindow(String s, String t) {\n' +
+'        if (t.length() &gt; s.length()) return \"\";\n' +
+'        Map&lt;Character, Integer&gt; need = new HashMap&lt;&gt;();\n' +
+'        for (char c : t.toCharArray()) need.merge(c, 1, Integer::sum);\n' +
+'\n' +
+'        int missingTypes = need.size(), left = 0;\n' +
+'        int bestLeft = 0, bestLength = Integer.MAX_VALUE;\n' +
+'\n' +
+'        for (int right = 0; right &lt; s.length(); right++) {\n' +
+'            char c = s.charAt(right);\n' +
+'            if (need.containsKey(c)) {\n' +
+'                int remaining = need.get(c) - 1;\n' +
+'                need.put(c, remaining);\n' +
+'                if (remaining == 0) missingTypes--;\n' +
+'            }\n' +
+'\n' +
+'            while (missingTypes == 0) {\n' +
+'                int length = right - left + 1;\n' +
+'                if (length &lt; bestLength) {\n' +
+'                    bestLeft = left;\n' +
+'                    bestLength = length;\n' +
+'                }\n' +
+'                char outgoing = s.charAt(left++);\n' +
+'                if (need.containsKey(outgoing)) {\n' +
+'                    int remaining = need.get(outgoing) + 1;\n' +
+'                    need.put(outgoing, remaining);\n' +
+'                    if (remaining &gt; 0) missingTypes++;\n' +
+'                }\n' +
+'            }\n' +
+'        }\n' +
+'        return bestLength == Integer.MAX_VALUE\n' +
+'            ? \"\" : s.substring(bestLeft, bestLeft + bestLength);\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
