@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 原地哈希 · 交换归位 · O(1) 空间">
+<title>41. 缺失的第一个正数 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .key-note code { background:#dbeafe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:230px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:160px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font:13px "SF Mono",Menlo,monospace; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#f8fbff,#fff); padding:24px 16px 18px; }
+  .array-wrap { display:inline-grid; gap:6px; min-width:max-content; }
+  .home-row,.array-row,.pointer-row,.index-row { display:grid; gap:6px; }
+  .home,.cell,.pointer,.index { width:58px; display:flex; align-items:center; justify-content:center; font-family:"SF Mono",Menlo,monospace; }
+  .home { height:25px; border:1px dashed #cbd5e1; border-radius:6px; color:#64748b; background:#f8fafc; font-size:10px; }
+  .home b { color:#4338ca; margin-left:3px; }
+  .cell {
+    height:58px; border-radius:10px; border:2px solid #e2e8f0; background:#fff;
+    color:#334155; font-size:18px; font-weight:800;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .cell.fixed { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 4px rgba(245,158,11,.18); transform:translateY(-2px); }
+  .cell.target { background:#e0e7ff; border-color:#6366f1; color:#3730a3; box-shadow:0 0 0 4px rgba(99,102,241,.18); transform:translateY(-2px); }
+  .cell.swap { background:#ede9fe; border-color:#7c3aed; color:#5b21b6; box-shadow:0 0 0 4px rgba(124,58,237,.2); transform:scale(1.06); }
+  .cell.ignored { background:#f1f5f9; border-color:#e2e8f0; color:#94a3b8; }
+  .cell.missing { background:#fee2e2; border-color:#ef4444; color:#991b1b; box-shadow:0 0 0 4px rgba(239,68,68,.18); }
+  .cell.done { background:#22c55e; border-color:#16a34a; color:#fff; }
+  .pointer { min-height:22px; color:#b45309; font-size:11px; font-weight:800; }
+  .index { min-height:16px; color:#94a3b8; font-size:10px; }
+
+  .mapping {
+    margin-top:14px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;
+  }
+  .map-box { border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; background:#f8fafc; font-size:12px; color:#64748b; text-align:center; }
+  .map-box b { display:block; font:800 18px "SF Mono",Menlo,monospace; margin-top:2px; color:#334155; min-height:27px; }
+  .map-box.value b { color:#b45309; }
+  .map-box.target-box b { color:#4f46e5; }
+  .map-box.answer b { color:#dc2626; }
+  .condition {
+    margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0;
+    padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center;
+    font:14px "SF Mono",Menlo,monospace; text-align:center;
+  }
+  .condition .yes { color:#86efac; font-weight:800; }
+  .condition .no { color:#fca5a5; font-weight:800; }
+  .condition .accent { color:#fcd34d; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .op { color:#86efac; font-weight:700; }
+  .status .warn { color:#fca5a5; font-weight:700; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:620px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .mapping { grid-template-columns:1fr 1fr; }
+    .map-box.answer { grid-column:1 / -1; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/first-missing-positive/" target="_blank" rel="noopener">LeetCode 41</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>41. 缺失的第一个正数 · 原地哈希动画</h1>
+  <div class="sub">长度为 <code>n</code> 的数组，答案一定落在 <code>[1, n+1]</code>。把数组本身当哈希表：值 <b>x</b> 的「家」是下标 <b>x−1</b>。先不断交换，让所有能归位的正整数回家；再从左扫描，第一个 <code>nums[i] ≠ i+1</code> 的位置就揭示答案。</div>
+
+  <div class="card">
+    <div class="panel-title">原地哈希三步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 限定答案</div>数组有 n 个位置。如果 <code>1..n</code> 都出现，答案就是 <code>n+1</code>；否则缺失值必在 <code>1..n</code>。</div>
+      <div class="idea-item"><div class="no">② 交换归位</div>当前值 <code>x</code> 在 <code>[1,n]</code> 内且目标格不是 x，就与 <code>nums[x-1]</code> 交换。当前位置换来新值后继续判断。</div>
+      <div class="idea-item"><div class="no">③ 扫描错位</div>归位结束后从左检查。若下标 i 没放着 <code>i+1</code>，说明正整数 <code>i+1</code> 没有出现。</div>
+    </div>
+    <div class="key-note"><b>防止重复值死循环：</b>交换条件必须包含 <code>nums[nums[i]-1] != nums[i]</code>。例如两个 1，第二个 1 发现「1 的家里已经是 1」，应直接跳过。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">nums =</span><input type="text" id="input" value="3 4 -1 1" spellcheck="false" placeholder="空格或逗号分隔，如 3 4 -1 1"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="3 4 -1 1">经典：[3,4,-1,1] → 2</span>
+      <span class="chip" data-v="1 2 0">接近完整 → 3</span>
+      <span class="chip" data-v="7 8 9 11 12">全越界 → 1</span>
+      <span class="chip" data-v="1 1">重复值 → 2</span>
+      <span class="chip" data-v="2 1">交换后完整 → 3</span>
+      <span class="chip" data-v="2 3 4 5 1">连续交换 → 6</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～12 个整数；为保证动画清晰，整数绝对值不超过 999。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">数组本身就是哈希表：上方标出每个位置应该住的正整数</div>
+    <div class="stage">
+      <div class="array-wrap" id="arrayWrap">
+        <div class="home-row" id="homeRow"></div>
+        <div class="array-row" id="arrayRow"></div>
+        <div class="pointer-row" id="pointerRow"></div>
+        <div class="index-row" id="indexRow"></div>
+      </div>
+    </div>
+
+    <div class="mapping">
+      <div class="map-box value">当前值 x<b id="currentValue">—</b></div>
+      <div class="map-box target-box">x 应去的下标 x−1<b id="targetIndex">—</b></div>
+      <div class="map-box answer">当前答案<b id="answerValue">尚未确定</b></div>
+    </div>
+    <div class="condition" id="condition">准备从下标 0 开始归位</div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>已经归位</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>当前下标 i</span>
+      <span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>目标下标 x−1</span>
+      <span><span class="dot" style="background:#ede9fe;border-color:#7c3aed"></span>正在交换</span>
+      <span><span class="dot" style="background:#f1f5f9;border-color:#e2e8f0"></span>无须归位</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>首个错位</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-first-missing-positive-app>
+/* ==== 纯逻辑核心：原地哈希求解并生成动画帧 ==== */
+(function (root) {
+  'use strict';
+
+  function parseArray(value) {
+    if (typeof value !== 'string') return { arr:null, err:'空输入' };
+    var parts = value.trim().split(/[,\s]+/).filter(Boolean);
+    if (!parts.length) return { arr:null, err:'空输入' };
+    if (parts.length > 12) return { arr:null, err:'长度请不超过 12' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { arr:null, err:'含非整数：' + parts[i] };
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || Math.abs(number) > 999) return { arr:null, err:'整数须在 -999～999：' + parts[i] };
+      arr.push(number);
+    }
+    return { arr:arr, err:null };
+  }
+
+  function solve(nums) {
+    var a = nums.slice(), n = a.length;
+    for (var i = 0; i < n; i++) {
+      while (a[i] >= 1 && a[i] <= n && a[a[i] - 1] !== a[i]) {
+        var target = a[i] - 1;
+        var temp = a[i]; a[i] = a[target]; a[target] = temp;
+      }
+    }
+    for (var j = 0; j < n; j++) {
+      if (a[j] !== j + 1) return j + 1;
+    }
+    return n + 1;
+  }
+
+  function buildSteps(nums) {
+    var a = nums.slice(), n = a.length, steps = [];
+    function snap(o) {
+      steps.push({
+        arr:a.slice(),
+        phase:o.phase || '',
+        i:o.i === undefined ? -1 : o.i,
+        target:o.target === undefined ? -1 : o.target,
+        swap:o.swap || null,
+        ignored:o.ignored === undefined ? -1 : o.ignored,
+        scan:o.scan === undefined ? -1 : o.scan,
+        answer:o.answer === undefined ? null : o.answer,
+        reason:o.reason || '',
+        msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', msg:'数组长度 <b>n = ' + n + '</b>，答案只可能在 <b>[1, ' + (n + 1) + ']</b>。第一阶段：把每个范围内的值 x 交换到下标 x−1。' });
+
+    for (var i = 0; i < n; i++) {
+      snap({ phase:'inspect', i:i, target:(a[i] >= 1 && a[i] <= n ? a[i] - 1 : -1),
+        msg:'检查下标 <b>i = ' + i + '</b>，当前值 <b>x = ' + a[i] + '</b>。' });
+
+      while (a[i] >= 1 && a[i] <= n && a[a[i] - 1] !== a[i]) {
+        var x = a[i], target = x - 1, displaced = a[target];
+        snap({ phase:'swapBefore', i:i, target:target, swap:[i,target],
+          msg:'x = <b>' + x + '</b> 属于 [1,n]，它的家是下标 <b>' + target + '</b>；那里现在是 ' + displaced + '，因此交换 nums[' + i + '] 与 nums[' + target + ']。' });
+        var temp = a[i]; a[i] = a[target]; a[target] = temp;
+        snap({ phase:'swapAfter', i:i, target:target, swap:[i,target],
+          msg:'交换后得到 <b>[' + a.join(', ') + ']</b>。值 ' + x + ' 已经回到下标 ' + target + '；下标 ' + i + ' 换来了 ' + a[i] + '，还要继续判断。' });
+      }
+
+      var reason;
+      if (a[i] < 1 || a[i] > n) {
+        reason = 'out';
+        snap({ phase:'skip', i:i, ignored:i, reason:reason,
+          msg:'当前值 <b>' + a[i] + '</b> 不在 [1,' + n + '] 内，不影响第一个缺失正数，跳过下标 ' + i + '。' });
+      } else if (a[a[i] - 1] === a[i] && a[i] - 1 !== i) {
+        reason = 'duplicate';
+        snap({ phase:'skip', i:i, target:a[i] - 1, ignored:i, reason:reason,
+          msg:'值 <b>' + a[i] + '</b> 的家（下标 ' + (a[i] - 1) + '）已经住着相同值，这是重复元素；不再交换，避免死循环。' });
+      } else {
+        reason = 'fixed';
+        snap({ phase:'placed', i:i, target:i, reason:reason,
+          msg:'nums[' + i + '] = <b>' + a[i] + '</b>，恰好等于 i+1，已经归位。' });
+      }
+    }
+
+    snap({ phase:'scanStart', msg:'归位阶段结束，数组变为 <b>[' + a.join(', ') + ']</b>。第二阶段：从左到右找第一个 nums[i] ≠ i+1 的位置。' });
+    for (var j = 0; j < n; j++) {
+      if (a[j] !== j + 1) {
+        snap({ phase:'missing', scan:j, answer:j + 1,
+          msg:'下标 <b>' + j + '</b> 应该放 ' + (j + 1) + '，实际却是 <span class="warn">' + a[j] + '</span>。因此第一个缺失的正数是 <b>' + (j + 1) + '</b>。' });
+        return steps;
+      }
+      snap({ phase:'scan', scan:j,
+        msg:'检查下标 ' + j + '：nums[' + j + '] = <b>' + a[j] + '</b> = ' + (j + 1) + '，说明正整数 ' + (j + 1) + ' 存在，继续向右。' });
+    }
+    snap({ phase:'missingBeyond', answer:n + 1,
+      msg:'所有位置都满足 nums[i] = i+1，说明 <b>1 到 ' + n + '</b> 全部存在，所以第一个缺失正数是 <b>n+1 = ' + (n + 1) + '</b>。' });
+    return steps;
+  }
+
+  root.FirstMissingPositiveApp = { parseArray:parseArray, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var App = window.FirstMissingPositiveApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), homeRow = $('homeRow'), arrayRow = $('arrayRow');
+  var pointerRow = $('pointerRow'), indexRow = $('indexRow'), statsEl = $('stats');
+  var statusEl = $('status'), conditionEl = $('condition'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], steps = [], stepIndex = 0, timer = null;
+
+  function buildArray() {
+    homeRow.innerHTML = ''; arrayRow.innerHTML = ''; pointerRow.innerHTML = ''; indexRow.innerHTML = '';
+    [homeRow, arrayRow, pointerRow, indexRow].forEach(function (row) {
+      row.style.gridTemplateColumns = 'repeat(' + nums.length + ', 58px)';
+    });
+    nums.forEach(function (_, i) {
+      var home = document.createElement('div');
+      home.className = 'home'; home.innerHTML = '应为 <b>' + (i + 1) + '</b>'; homeRow.appendChild(home);
+      var cell = document.createElement('div');
+      cell.className = 'cell'; cell.dataset.index = i; arrayRow.appendChild(cell);
+      var pointer = document.createElement('div');
+      pointer.className = 'pointer'; pointerRow.appendChild(pointer);
+      var index = document.createElement('div');
+      index.className = 'index'; index.textContent = 'index ' + i; indexRow.appendChild(index);
+    });
+  }
+
+  function renderCondition(step) {
+    if (step.phase === 'inspect' || step.phase === 'swapBefore' || step.phase === 'swapAfter') {
+      var x = step.arr[step.i], inRange = x >= 1 && x <= nums.length;
+      var target = inRange ? x - 1 : -1;
+      var different = inRange && step.arr[target] !== x;
+      conditionEl.innerHTML =
+        '<span class="' + (inRange ? 'yes' : 'no') + '">1 ≤ ' + x + ' ≤ ' + nums.length + '</span>' +
+        '&nbsp; AND &nbsp;' +
+        '<span class="' + (different ? 'yes' : 'no') + '">' +
+        (inRange ? 'nums[' + target + '] ' + (different ? '≠' : '=') + ' ' + x : '无目标下标') +
+        '</span>' +
+        (inRange && different ? '&nbsp; → &nbsp;<span class="accent">执行交换</span>' : '&nbsp; → &nbsp;停止 while');
+    } else if (step.phase === 'scan' || step.phase === 'missing') {
+      var ok = step.arr[step.scan] === step.scan + 1;
+      conditionEl.innerHTML = 'nums[' + step.scan + '] = ' + step.arr[step.scan] +
+        '，期望 ' + (step.scan + 1) + ' → <span class="' + (ok ? 'yes' : 'no') + '">' + (ok ? '匹配，继续' : '错位，答案出现') + '</span>';
+    } else if (step.phase === 'missingBeyond') {
+      conditionEl.innerHTML = '<span class="yes">1..n 全部归位</span>&nbsp; → &nbsp;答案是 <span class="accent">n+1</span>';
+    } else if (step.phase === 'scanStart') {
+      conditionEl.textContent = '归位完成，开始检查 nums[i] 是否等于 i+1';
+    } else {
+      conditionEl.textContent = '值 x 的目标下标 = x − 1';
+    }
+  }
+
+  function render() {
+    var step = steps[stepIndex], n = nums.length;
+    Array.prototype.forEach.call(arrayRow.children, function (cell, i) {
+      var cls = 'cell', value = step.arr[i];
+      cell.textContent = value;
+      if (value === i + 1) cls += ' fixed';
+      if ((value < 1 || value > n) && step.phase !== 'missing') cls += ' ignored';
+      if (i === step.i) cls += ' current';
+      if (i === step.target && step.target !== step.i) cls += ' target';
+      if (step.swap && (i === step.swap[0] || i === step.swap[1])) cls += ' swap';
+      if (i === step.ignored) cls += ' ignored';
+      if (step.phase === 'scan' && i === step.scan) cls += ' current';
+      if (step.phase === 'missing' && i === step.scan) cls += ' missing';
+      if (step.phase === 'missingBeyond') cls = 'cell done';
+      cell.className = cls;
+    });
+
+    Array.prototype.forEach.call(pointerRow.children, function (pointer, i) {
+      var labels = [];
+      if (i === step.i) labels.push('i ▲');
+      if (i === step.target && step.target !== step.i) labels.push('家 ▲');
+      if (i === step.scan) labels.push('scan ▲');
+      pointer.textContent = labels.join(' · ');
+    });
+
+    var hasCurrent = step.i >= 0;
+    $('currentValue').textContent = hasCurrent ? step.arr[step.i] : '—';
+    $('targetIndex').textContent = hasCurrent && step.arr[step.i] >= 1 && step.arr[step.i] <= n ? step.arr[step.i] - 1 : '—';
+    $('answerValue').textContent = step.answer === null ? '尚未确定' : step.answer;
+    renderCondition(step);
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">输入<b>[' + nums.join(', ') + ']</b></div>' +
+      '<div class="stat">答案<b>' + App.solve(nums) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放';
+    }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 760);
+  }
+
+  function load() {
+    var parsed = App.parseArray(input.value);
+    if (!parsed.arr) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    nums = parsed.arr;
+    steps = App.buildSteps(nums);
+    stepIndex = 0;
+    buildArray();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 原地哈希 · 时间 O(n) · 额外空间 O(1)</span>\n' +
+'class Solution:\n' +
+'    def firstMissingPositive(self, nums: list[int]) -&gt; int:\n' +
+'        n = len(nums)\n' +
+'        for i in range(n):\n' +
+'            <span class="cmt"># x 属于 [1,n]，且 x 还没住进下标 x-1</span>\n' +
+'            while 1 &lt;= nums[i] &lt;= n and nums[nums[i] - 1] != nums[i]:\n' +
+'                target = nums[i] - 1\n' +
+'                nums[i], nums[target] = nums[target], nums[i]\n' +
+'\n' +
+'        for i, value in enumerate(nums):\n' +
+'            if value != i + 1:\n' +
+'                return i + 1\n' +
+'        return n + 1',
+    java:
+'<span class="cmt">// 原地哈希 · 时间 O(n) · 额外空间 O(1)</span>\n' +
+'class Solution {\n' +
+'    public int firstMissingPositive(int[] nums) {\n' +
+'        int n = nums.length;\n' +
+'        for (int i = 0; i &lt; n; i++) {\n' +
+'            <span class="cmt">// 重复值判断不可省，否则可能无限交换</span>\n' +
+'            while (nums[i] &gt;= 1 &amp;&amp; nums[i] &lt;= n\n' +
+'                    &amp;&amp; nums[nums[i] - 1] != nums[i]) {\n' +
+'                int target = nums[i] - 1;\n' +
+'                int temp = nums[i];\n' +
+'                nums[i] = nums[target];\n' +
+'                nums[target] = temp;\n' +
+'            }\n' +
+'        }\n' +
+'        for (int i = 0; i &lt; n; i++) {\n' +
+'            if (nums[i] != i + 1) return i + 1;\n' +
+'        }\n' +
+'        return n + 1;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>

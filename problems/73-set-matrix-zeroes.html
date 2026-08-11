@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="矩阵 · 原地标记 · 数组 · O(1) 空间">
+<title>73. 矩阵置零 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#f5f3ff; border:1px solid #ddd6fe; color:#5b21b6; font-size:13px; }
+  .key-note code { background:#ede9fe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:260px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:180px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font:12px "SF Mono",Menlo,monospace; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:20px; text-align:center; }
+  .matrix-shell { display:inline-grid; grid-template-columns:28px auto; grid-template-rows:22px auto; gap:5px; min-width:max-content; }
+  .col-labels,.matrix-grid { display:grid; gap:6px; }
+  .row-labels { display:grid; gap:6px; }
+  .axis-label { width:58px; height:22px; display:flex; align-items:center; justify-content:center; font:10px "SF Mono",Menlo,monospace; color:#94a3b8; }
+  .row-labels .axis-label { width:28px; height:54px; }
+  .cell {
+    position:relative; width:58px; height:54px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 17px "SF Mono",Menlo,monospace; color:#334155;
+    background:#fff; border:2px solid #e2e8f0;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .cell.marker-row { background:#eef2ff; border-color:#c7d2fe; color:#3730a3; }
+  .cell.marker-col { background:#f5f3ff; border-color:#ddd6fe; color:#5b21b6; }
+  .cell.corner { background:linear-gradient(135deg,#eef2ff 50%,#f5f3ff 50%); border-color:#a5b4fc; }
+  .cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 4px rgba(245,158,11,.2); transform:scale(1.06); z-index:2; }
+  .cell.source-zero { background:#fee2e2; border-color:#ef4444; color:#991b1b; box-shadow:0 0 0 4px rgba(239,68,68,.18); transform:scale(1.07); z-index:3; }
+  .cell.marked { background:#ddd6fe; border-color:#7c3aed; color:#5b21b6; box-shadow:0 0 0 4px rgba(124,58,237,.18); transform:scale(1.06); z-index:2; }
+  .cell.zeroed { background:#dcfce7; border-color:#22c55e; color:#166534; box-shadow:0 0 0 3px rgba(34,197,94,.16); }
+  .cell.done { background:#22c55e; border-color:#16a34a; color:#fff; }
+  .cell .badge { position:absolute; top:2px; right:4px; font:800 8px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#7c3aed; }
+
+  .flags { margin-top:14px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .flag {
+    border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; background:#f8fafc;
+    font-size:12px; color:#64748b; text-align:center;
+  }
+  .flag b { display:block; font:800 17px "SF Mono",Menlo,monospace; margin-top:2px; color:#334155; min-height:26px; }
+  .flag.row b { color:#4338ca; }
+  .flag.col b { color:#7c3aed; }
+  .flag.phase b { color:#b45309; }
+  .rule {
+    margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0;
+    padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center;
+    font:14px "SF Mono",Menlo,monospace; text-align:center;
+  }
+  .rule .row { color:#a5b4fc; font-weight:800; }
+  .rule .col { color:#d8b4fe; font-weight:800; }
+  .rule .yes { color:#86efac; font-weight:800; }
+  .rule .no { color:#fca5a5; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .op { color:#86efac; font-weight:700; }
+  .status .row { color:#a5b4fc; font-weight:700; }
+  .status .col { color:#d8b4fe; font-weight:700; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:620px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .flags { grid-template-columns:1fr 1fr; }
+    .flag.phase { grid-column:1 / -1; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/set-matrix-zeroes/" target="_blank" rel="noopener">LeetCode 73</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>73. 矩阵置零 · 原地标记动画</h1>
+  <div class="sub">若某个元素为 0，就把它所在的整行和整列都置为 0。为了做到额外空间 <code>O(1)</code>，借用<b>第一列记录哪些行要清零</b>、借用<b>第一行记录哪些列要清零</b>；再让左上角 <code>matrix[0][0]</code> 兼任第一列的整体标记，只额外保存一个布尔变量。</div>
+
+  <div class="card">
+    <div class="panel-title">原地标记四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 只保存第一行</div>用 <code>firstRowZero = 0 in matrix[0]</code> 记住第一行原本是否含 0；第一列交给 <code>matrix[0][0]</code> 标记。</div>
+      <div class="idea-item"><div class="no">② 连同第一列一起扫描</div>从第 1 行开始，列从 0 开始。遇到 0 就令 <code>matrix[r][0] = matrix[0][c] = 0</code>。</div>
+      <div class="idea-item"><div class="no">③ 每行从右往左清零</div>根据行首或列首标记置零；必须让 <code>c</code> 倒序，使该行的 <code>matrix[r][0]</code> 最后才被修改。</div>
+      <div class="idea-item"><div class="no">④ 最后处理第一行</div>其它行（包括第一列）都已完成后，只根据 <code>firstRowZero</code> 决定是否清零第一行。</div>
+    </div>
+    <div class="key-note"><b>为什么第二遍必须倒序？</b><code>matrix[0][0]</code> 为 0 表示第一列要清零。若正序先改 <code>matrix[r][0]</code>，它会立刻变成 0，随后该行其它格子会误以为“整行需要清零”。从右往左处理，先用完行标记，最后才安全地修改第 0 列。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">matrix =</span><input type="text" id="input" value="1 1 1; 1 0 1; 1 1 1" spellcheck="false" placeholder="行用 ; 分隔，如 1 1 1; 1 0 1; 1 1 1"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-m="1 1 1; 1 0 1; 1 1 1">中心为 0</span>
+      <span class="chip" data-m="0 1 2 0; 3 4 5 2; 1 3 1 5">首行含 0</span>
+      <span class="chip" data-m="1 2 3; 4 5 6; 0 8 9; 10 11 0">首列与内部含 0</span>
+      <span class="chip" data-m="1 2; 3 4">没有 0</span>
+      <span class="chip" data-m="0">单元素 0</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">行用分号隔开，元素用空格或逗号隔开；支持 1～6 行、1～7 列的整数矩阵。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">第一行与第一列作为标记区</div>
+    <div class="stage">
+      <div class="matrix-shell">
+        <div></div>
+        <div class="col-labels" id="colLabels"></div>
+        <div class="row-labels" id="rowLabels"></div>
+        <div class="matrix-grid" id="matrixGrid"></div>
+      </div>
+    </div>
+
+    <div class="flags">
+      <div class="flag row">firstRowZero<b id="firstRowZero">—</b></div>
+      <div class="flag col">matrix[0][0]（首列标记）<b id="firstColMarker">—</b></div>
+      <div class="flag phase">当前阶段<b id="phase">准备</b></div>
+    </div>
+    <div class="rule" id="rule">只保存第一行；matrix[0][0] 兼任首列标记</div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>首行：列标记</span>
+      <span><span class="dot" style="background:#f5f3ff;border-color:#ddd6fe"></span>首列：行标记</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>发现原始 0</span>
+      <span><span class="dot" style="background:#ddd6fe;border-color:#7c3aed"></span>写入标记</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>根据标记置零</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：使用第一行、第一列作为标记 ==== */
+(function (root) {
+  'use strict';
+  function cloneMatrix(matrix) {
+    return matrix.map(function (row) { return row.slice(); });
+  }
+
+  function parseMatrix(value) {
+    if (typeof value !== 'string') return { matrix:null, err:'空输入' };
+    var rows = value.trim().split(/[;\n]+/).map(function (row) { return row.trim(); }).filter(Boolean);
+    if (!rows.length) return { matrix:null, err:'空输入' };
+    if (rows.length > 6) return { matrix:null, err:'行数请不超过 6' };
+    var matrix = [], width = -1;
+    for (var r = 0; r < rows.length; r++) {
+      var parts = rows[r].split(/[,\s]+/).filter(Boolean);
+      if (!parts.length) return { matrix:null, err:'第 ' + (r + 1) + ' 行为空' };
+      if (width < 0) width = parts.length;
+      if (parts.length !== width) return { matrix:null, err:'每一行的列数必须相同' };
+      if (width > 7) return { matrix:null, err:'列数请不超过 7' };
+      var row = [];
+      for (var c = 0; c < parts.length; c++) {
+        if (!/^-?\d+$/.test(parts[c])) return { matrix:null, err:'含非整数：' + parts[c] };
+        var number = Number(parts[c]);
+        if (!Number.isSafeInteger(number) || Math.abs(number) > 999) return { matrix:null, err:'整数须在 -999～999：' + parts[c] };
+        row.push(number);
+      }
+      matrix.push(row);
+    }
+    return { matrix:matrix, err:null };
+  }
+
+  function solve(matrix) {
+    var a = cloneMatrix(matrix), m = a.length, n = a[0].length;
+    var firstRowZero = false;
+    for (var c = 0; c < n; c++) if (a[0][c] === 0) firstRowZero = true;
+    for (var i = 1; i < m; i++) {
+      for (var j = 0; j < n; j++) {
+        if (a[i][j] === 0) { a[i][0] = 0; a[0][j] = 0; }
+      }
+    }
+    for (var r2 = 1; r2 < m; r2++) {
+      for (var c2 = n - 1; c2 >= 0; c2--) {
+        if (a[r2][0] === 0 || a[0][c2] === 0) a[r2][c2] = 0;
+      }
+    }
+    if (firstRowZero) for (var c3 = 0; c3 < n; c3++) a[0][c3] = 0;
+    return a;
+  }
+
+  function buildSteps(matrix) {
+    var a = cloneMatrix(matrix), m = a.length, n = a[0].length, steps = [];
+    var firstRowZero = false;
+    function snap(o) {
+      steps.push({
+        matrix:cloneMatrix(a), phase:o.phase || '', current:o.current || null,
+        source:o.source || null, markers:o.markers || [], changed:o.changed || [],
+        firstRowZero:firstRowZero,
+        rowMarker:o.rowMarker === undefined ? null : o.rowMarker,
+        colMarker:o.colMarker === undefined ? null : o.colMarker,
+        msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', msg:'矩阵大小为 <b>' + m + ' × ' + n + '</b>。只额外保存第一行原本是否含 0；第一列是否清零将由左上角 <b>matrix[0][0]</b> 负责标记。' });
+
+    for (var c = 0; c < n; c++) {
+      if (a[0][c] === 0) firstRowZero = true;
+      snap({ phase:'checkFirstRow', current:{r:0,c:c}, source:a[0][c] === 0 ? {r:0,c:c} : null,
+        msg:'检查第一行 matrix[0][' + c + '] = <b>' + a[0][c] + '</b>。' +
+          (a[0][c] === 0 ? '发现 0，令 <span class="row">firstRowZero = true</span>。' : '不是 0，继续。') });
+    }
+
+    snap({ phase:'markStart', msg:'第一行状态已保存。现在从第 1 行开始扫描，但列从 <b>0</b> 开始；这样第一列中的原始 0 会自然把 <b>matrix[0][0]</b> 写成 0，留下“首列要清零”的标记。' });
+    for (var i = 1; i < m; i++) {
+      for (var j = 0; j < n; j++) {
+        var isZero = a[i][j] === 0;
+        snap({ phase:'scanForZero', current:{r:i,c:j}, source:isZero ? {r:i,c:j} : null,
+          markers:isZero ? [{r:i,c:0},{r:0,c:j}] : [],
+          msg:'扫描第 <b>' + i + '</b> 行：matrix[' + i + '][' + j + '] = <b>' + a[i][j] + '</b>。' +
+            (isZero
+              ? '发现 0，需要在<span class="row">本行行首</span>和<span class="col">本列列首</span>写入标记。'
+              : '不是 0，不写标记，继续向右扫描。') });
+        if (a[i][j] === 0) {
+          a[i][0] = 0; a[0][j] = 0;
+          snap({ phase:'writeMarkers', source:{r:i,c:j}, markers:[{r:i,c:0},{r:0,c:j}], changed:[{r:i,c:0},{r:0,c:j}],
+            msg:'写入两个标记：<span class="row">matrix[' + i + '][0] = 0</span>，<span class="col">matrix[0][' + j + '] = 0</span>。' +
+              (j === 0 ? ' 此时 matrix[0][0] = 0，已经记住“第一列需要清零”。' : '') });
+        }
+      }
+    }
+
+    snap({ phase:'zeroStart', msg:'所有标记写入完毕。接下来逐行处理，并让列下标从 <b>' + (n - 1) + ' 倒着走到 0</b>。这样会先用完 matrix[i][0] 的行标记，最后才修改它。' });
+    for (var r2 = 1; r2 < m; r2++) {
+      for (var c2 = n - 1; c2 >= 0; c2--) {
+        var rowMarker = a[r2][0], colMarker = a[0][c2];
+        var rowMarked = rowMarker === 0, colMarked = colMarker === 0;
+        if (rowMarked || colMarked) {
+          a[r2][c2] = 0;
+          snap({ phase:'zeroByMarker', current:{r:r2,c:c2}, markers:[{r:r2,c:0},{r:0,c:c2}], changed:[{r:r2,c:c2}],
+            rowMarker:rowMarker, colMarker:colMarker,
+            msg:'倒序处理 matrix[' + r2 + '][' + c2 + ']：行标记 = ' + rowMarker + '，列标记 = ' + colMarker +
+              '。至少一个为 0，所以将当前格<span class="op">置为 0</span>。' +
+              (c2 === 0 ? ' 第 0 列最后处理，此后已不再需要本行的行标记。' : '') });
+        } else {
+          snap({ phase:'keepByMarker', current:{r:r2,c:c2}, markers:[{r:r2,c:0},{r:0,c:c2}],
+            rowMarker:rowMarker, colMarker:colMarker,
+            msg:'倒序处理 matrix[' + r2 + '][' + c2 + ']：行标记 = ' + rowMarker + '，列标记 = ' + colMarker +
+              '。两者都不是 0，当前格保持 <b>' + a[r2][c2] + '</b>。' +
+              (c2 === 0 ? ' 第 0 列最后处理，本行结束。' : '') });
+        }
+      }
+    }
+
+    snap({ phase:'boundaryStart', msg:'第 1 行到最后一行都已处理完，其中第一列也借助 matrix[0][0] 正确完成。现在只剩第一行，根据最初保存的布尔变量决定是否清零。' });
+    if (firstRowZero) {
+      for (var c3 = 0; c3 < n; c3++) a[0][c3] = 0;
+      snap({ phase:'zeroFirstRow', changed:Array.from({length:n}, function (_, index) { return {r:0,c:index}; }),
+        msg:'<span class="row">firstRowZero = true</span>，因此把第一行全部置为 0。' });
+    } else {
+      snap({ phase:'keepFirstRow', msg:'<span class="row">firstRowZero = false</span>，第一行原本不含 0，无须整体清零。' });
+    }
+    snap({ phase:'done', msg:'完成！只借用了矩阵的第一行、第一列和一个布尔变量；matrix[0][0] 兼任首列标记。时间复杂度 <b>O(mn)</b>，额外空间 <b>O(1)</b>。' });
+    return steps;
+  }
+
+  root.SetMatrixZeroesApp = { parseMatrix:parseMatrix, cloneMatrix:cloneMatrix, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var App = window.SetMatrixZeroesApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), grid = $('matrixGrid'), colLabels = $('colLabels'), rowLabels = $('rowLabels');
+  var statsEl = $('stats'), statusEl = $('status'), ruleEl = $('rule'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var matrix = [], steps = [], stepIndex = 0, timer = null, cells = [];
+
+  function key(position) { return position.r + '-' + position.c; }
+  function toSet(positions) {
+    var result = {};
+    positions.forEach(function (position) { result[key(position)] = true; });
+    return result;
+  }
+
+  function buildGrid() {
+    var m = matrix.length, n = matrix[0].length;
+    grid.innerHTML = ''; colLabels.innerHTML = ''; rowLabels.innerHTML = '';
+    grid.style.gridTemplateColumns = 'repeat(' + n + ', 58px)';
+    colLabels.style.gridTemplateColumns = 'repeat(' + n + ', 58px)';
+    rowLabels.style.gridTemplateRows = 'repeat(' + m + ', 54px)';
+    cells = [];
+    for (var c = 0; c < n; c++) {
+      var col = document.createElement('div'); col.className = 'axis-label'; col.textContent = 'col ' + c; colLabels.appendChild(col);
+    }
+    for (var r = 0; r < m; r++) {
+      var row = document.createElement('div'); row.className = 'axis-label'; row.textContent = 'r' + r; rowLabels.appendChild(row);
+      cells[r] = [];
+      for (var c2 = 0; c2 < n; c2++) {
+        var cell = document.createElement('div'); cell.className = 'cell';
+        var value = document.createElement('span');
+        var badge = document.createElement('span'); badge.className = 'badge';
+        cell.appendChild(value); cell.appendChild(badge); grid.appendChild(cell);
+        cells[r][c2] = { cell:cell, value:value, badge:badge };
+      }
+    }
+  }
+
+  function renderRule(step) {
+    if (step.phase === 'checkFirstRow') {
+      ruleEl.innerHTML = 'matrix[0][c] == 0 ? → <span class="row">firstRowZero = true</span>';
+    } else if (step.phase === 'scanForZero') {
+      var scanValue = step.matrix[step.current.r][step.current.c];
+      ruleEl.innerHTML = 'matrix[' + step.current.r + '][' + step.current.c + '] = ' + scanValue + ' → ' +
+        (scanValue === 0
+          ? '<span class="yes">发现 0，准备写标记</span>'
+          : '<span class="no">不是 0，继续扫描</span>');
+    } else if (step.phase === 'writeMarkers') {
+      ruleEl.innerHTML = 'matrix[r][c] == 0 → <span class="row">matrix[r][0] = 0</span>，<span class="col">matrix[0][c] = 0</span>';
+    } else if (step.phase === 'zeroByMarker' || step.phase === 'keepByMarker') {
+      var rowZero = step.rowMarker === 0, colZero = step.colMarker === 0;
+      ruleEl.innerHTML = '<span class="' + (rowZero ? 'yes' : 'no') + '">行标记 ' + step.rowMarker + '</span> OR ' +
+        '<span class="' + (colZero ? 'yes' : 'no') + '">列标记 ' + step.colMarker + '</span> → ' +
+        (step.phase === 'zeroByMarker' ? '<span class="yes">置零</span>' : '<span class="no">保持不变</span>') + '（j 从右往左）';
+    } else if (step.phase === 'zeroFirstRow' || step.phase === 'keepFirstRow') {
+      ruleEl.innerHTML = 'firstRowZero = ' + step.firstRowZero + ' → ' + (step.firstRowZero ? '<span class="yes">清零第一行</span>' : '<span class="no">保留第一行</span>');
+    } else if (step.phase === 'done') {
+      ruleEl.innerHTML = '<span class="yes">全部完成 · 额外空间 O(1)</span>';
+    } else {
+      ruleEl.textContent = '第一行记录列标记；第一列记录行标记；matrix[0][0] 标记第一列';
+    }
+  }
+
+  function render() {
+    var step = steps[stepIndex], m = step.matrix.length, n = step.matrix[0].length;
+    var markerSet = toSet(step.markers), changedSet = toSet(step.changed);
+    var currentKey = step.current ? key(step.current) : '', sourceKey = step.source ? key(step.source) : '';
+    for (var r = 0; r < m; r++) {
+      for (var c = 0; c < n; c++) {
+        var ref = cells[r][c], cellKey = r + '-' + c, cls = 'cell';
+        ref.value.textContent = step.matrix[r][c];
+        ref.badge.textContent = '';
+        if (r === 0 && c === 0) cls += ' corner';
+        else if (r === 0) cls += ' marker-row';
+        else if (c === 0) cls += ' marker-col';
+        if (cellKey === currentKey) cls += ' current';
+        if (cellKey === sourceKey) cls += ' source-zero';
+        if (markerSet[cellKey]) { cls += ' marked'; ref.badge.textContent = r === 0 ? '列标记' : '行标记'; }
+        if (changedSet[cellKey]) cls += step.phase === 'writeMarkers' ? ' marked' : ' zeroed';
+        if (step.phase === 'done') cls = 'cell done';
+        ref.cell.className = cls;
+      }
+    }
+
+    var names = {
+      start:'保存第一行', checkFirstRow:'检查第一行',
+      markStart:'准备写标记', scanForZero:'逐格扫描', writeMarkers:'写入行列标记',
+      zeroStart:'准备倒序清零', zeroByMarker:'从右向左置零', keepByMarker:'从右向左检查', boundaryStart:'准备处理第一行',
+      zeroFirstRow:'清零第一行', keepFirstRow:'保留第一行', done:'完成'
+    };
+    $('firstRowZero').textContent = String(step.firstRowZero);
+    $('firstColMarker').textContent = step.matrix[0][0];
+    $('phase').textContent = names[step.phase] || step.phase;
+    renderRule(step);
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function renderStats() {
+    var m = matrix.length, n = matrix[0].length, zeros = 0;
+    matrix.forEach(function (row) { row.forEach(function (value) { if (value === 0) zeros++; }); });
+    statsEl.innerHTML =
+      '<div class="stat">矩阵大小<b>' + m + ' × ' + n + '</b></div>' +
+      '<div class="stat">原始 0 的数量<b>' + zeros + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(mn)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 720);
+  }
+
+  function load() {
+    var parsed = App.parseMatrix(input.value);
+    if (!parsed.matrix) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    matrix = parsed.matrix;
+    steps = App.buildSteps(matrix);
+    stepIndex = 0;
+    buildGrid();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.m; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 一个布尔变量 + matrix[0][0] · O(mn) 时间 · O(1) 空间</span>\n' +
+'class Solution:\n' +
+'    def setZeroes(self, matrix: list[list[int]]) -&gt; None:\n' +
+'        m, n = len(matrix), len(matrix[0])\n' +
+'        first_row_has_zero = 0 in matrix[0]\n' +
+'\n' +
+'        <span class="cmt"># 从第 1 行开始；列 0 也参与扫描</span>\n' +
+'        for i in range(1, m):\n' +
+'            for j in range(n):\n' +
+'                if matrix[i][j] == 0:\n' +
+'                    matrix[i][0] = matrix[0][j] = 0\n' +
+'\n' +
+'        <span class="cmt"># 必须倒序：最后才修改当前行的 matrix[i][0]</span>\n' +
+'        for i in range(1, m):\n' +
+'            for j in range(n - 1, -1, -1):\n' +
+'                if matrix[i][0] == 0 or matrix[0][j] == 0:\n' +
+'                    matrix[i][j] = 0\n' +
+'\n' +
+'        if first_row_has_zero:\n' +
+'            for j in range(n):\n' +
+'                matrix[0][j] = 0',
+    java:
+'<span class="cmt">// 一个布尔变量 + matrix[0][0] · O(mn) 时间 · O(1) 空间</span>\n' +
+'class Solution {\n' +
+'    public void setZeroes(int[][] matrix) {\n' +
+'        int m = matrix.length, n = matrix[0].length;\n' +
+'        boolean firstRowHasZero = false;\n' +
+'        for (int c = 0; c &lt; n; c++)\n' +
+'            if (matrix[0][c] == 0) firstRowHasZero = true;\n' +
+'\n' +
+'        for (int i = 1; i &lt; m; i++)\n' +
+'            for (int j = 0; j &lt; n; j++)\n' +
+'                if (matrix[i][j] == 0) {\n' +
+'                    matrix[i][0] = 0;\n' +
+'                    matrix[0][j] = 0;\n' +
+'                }\n' +
+'\n' +
+'        for (int i = 1; i &lt; m; i++)\n' +
+'            for (int j = n - 1; j &gt;= 0; j--)\n' +
+'                if (matrix[i][0] == 0 || matrix[0][j] == 0)\n' +
+'                    matrix[i][j] = 0;\n' +
+'\n' +
+'        if (firstRowHasZero)\n' +
+'            for (int j = 0; j &lt; n; j++) matrix[0][j] = 0;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>
