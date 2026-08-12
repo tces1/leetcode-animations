@@ -82,8 +82,10 @@ leetcode-animations/
 | 48 | [旋转图像](https://tces1.github.io/leetcode-animations/problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
 | 49 | [字母异位词分组](https://tces1.github.io/leetcode-animations/problems/49-group-anagrams.html) | 中等 | 字符串 · 哈希表 · 计数 · 字母异位词 · 分组 |
 | 51 | [N 皇后](https://tces1.github.io/leetcode-animations/problems/51-n-queens.html) | 困难 | 回溯 · 剪枝 · 集合 · 棋盘 · 对角线 |
+| 53 | [最大子数组和](https://tces1.github.io/leetcode-animations/problems/53-maximum-subarray.html) | 中等 | 数组 · 动态规划 · Kadane · 子数组 |
 | 54 | [螺旋矩阵](https://tces1.github.io/leetcode-animations/problems/54-spiral-matrix.html) | 中等 | 矩阵 · 模拟 · 收缩边界 |
 | 55 | [跳跃游戏](https://tces1.github.io/leetcode-animations/problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
+| 56 | [合并区间](https://tces1.github.io/leetcode-animations/problems/56-merge-intervals.html) | 中等 | 数组 · 排序 · 区间 · 合并 |
 | 62 | [不同路径](https://tces1.github.io/leetcode-animations/problems/62-unique-paths.html) | 中等 | 动态规划 · 二维 DP · 网格 |
 | 64 | [最小路径和](https://tces1.github.io/leetcode-animations/problems/64-minimum-path-sum.html) | 中等 | 动态规划 · 二维 DP · 网格 |
 | 70 | [爬楼梯](https://tces1.github.io/leetcode-animations/problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
@@ -98,10 +100,12 @@ leetcode-animations/
 | 131 | [分割回文串](https://tces1.github.io/leetcode-animations/problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
 | 152 | [乘积最大子数组](https://tces1.github.io/leetcode-animations/problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
 | 160 | [相交链表](https://tces1.github.io/leetcode-animations/problems/160-intersection-of-two-linked-lists.html) | 简单 | 链表 · 双指针 · 路程对齐 · O(1) 空间 |
+| 189 | [轮转数组](https://tces1.github.io/leetcode-animations/problems/189-rotate-array.html) | 中等 | 数组 · 数学 · 双指针 · 三次反转 · O(1) 空间 |
 | 200 | [岛屿数量](https://tces1.github.io/leetcode-animations/problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
 | 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
+| 238 | [除了自身以外数组的乘积](https://tces1.github.io/leetcode-animations/problems/238-product-of-array-except-self.html) | 中等 | 数组 · 前缀积 · 后缀积 · 不使用除法 · O(1) 额外空间 |
 | 239 | [滑动窗口最大值](https://tces1.github.io/leetcode-animations/problems/239-sliding-window-maximum.html) | 困难 | 数组 · 滑动窗口 · 单调队列 · 双端队列 |
 | 240 | [搜索二维矩阵 II](https://tces1.github.io/leetcode-animations/problems/240-search-a-2d-matrix-ii.html) | 中等 | 矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n) |
 | 279 | [完全平方数](https://tces1.github.io/leetcode-animations/problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
