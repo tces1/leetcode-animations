@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 前缀积 · 后缀积 · 不使用除法 · O(1) 额外空间">
+<title>238. 除了自身以外数组的乘积 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; } .link a { color:#6366f1; text-decoration:none; } .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; } .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; } .idea-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:250px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] { flex:1; min-width:160px; padding:9px 12px; font-size:14px; font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; transition:background .15s; }
+  button:hover { background:#4f46e5; } button.ghost { background:#eef0f4; color:#374151; } button.ghost:hover { background:#e2e5eb; } button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; } .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .passbar { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .pass { border:1px solid #e5e7eb; border-radius:10px; padding:10px 13px; background:#f8fafc; color:#64748b; font-size:13px; transition:.18s; }
+  .pass b { display:block; font-size:11px; letter-spacing:.04em; }
+  .pass.active { background:#eef2ff; border-color:#818cf8; color:#3730a3; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+  .pass.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:24px 18px 20px; }
+  .matrix { display:inline-grid; grid-template-columns:70px auto; gap:8px 10px; min-width:max-content; align-items:center; }
+  .row-label { font-size:12px; color:#64748b; font-weight:800; text-align:right; }
+  .row { display:grid; gap:7px; }
+  .cell { position:relative; width:62px; height:58px; border-radius:10px; display:flex; align-items:center; justify-content:center; font:800 16px "SF Mono",Menlo,monospace; color:#334155; background:#fff; border:2px solid #e2e8f0; transition:.18s; }
+  .cell .idx { position:absolute; top:2px; left:5px; color:#a5b4fc; font-size:9px; }
+  .cell.unset { color:#cbd5e1; background:#f8fafc; }
+  .cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 4px rgba(245,158,11,.18); transform:translateY(-2px); }
+  .cell.answer-current { background:#ede9fe; border-color:#7c3aed; color:#5b21b6; box-shadow:0 0 0 4px rgba(124,58,237,.18); transform:translateY(-2px); }
+  .cell.prefix { background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+  .cell.final { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .cell.all-done { background:#22c55e; border-color:#16a34a; color:#fff; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:9px 12px; background:#f8fafc; color:#64748b; text-align:center; font-size:12px; }
+  .box b { display:block; min-height:25px; color:#334155; font:800 16px "SF Mono",Menlo,monospace; overflow-wrap:anywhere; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .rule .left { color:#93c5fd; font-weight:800; } .rule .right { color:#c4b5fd; font-weight:800; } .rule .yes { color:#86efac; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; font-weight:700; }
+  details.code { margin-top:4px; } details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; } pre .cmt { color:#7dd3fc; }
+  @media (max-width:680px) { body { padding:16px 12px; } .card { padding:14px; } .idea { grid-template-columns:1fr; } .dashboard { grid-template-columns:1fr 1fr; } .progress { width:100%; margin-left:0; } .cell { width:54px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/product-of-array-except-self/" target="_blank" rel="noopener">LeetCode 238</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>238. 除了自身以外数组的乘积 · 前后缀动画</h1>
+  <div class="sub">不能使用除法。每个答案都可拆成「<b>左侧所有数的乘积</b> × <b>右侧所有数的乘积</b>」。第一趟把左侧乘积直接写入输出数组，第二趟只用一个 <code>right</code> 变量累积右侧乘积。</div>
+
+  <div class="card">
+    <div class="panel-title">两趟扫描</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 左 → 右</div>令 <code>left = 1</code>。先写 <code>answer[i] = left</code>，再执行 <code>left *= nums[i]</code>，因此 answer[i] 不含自身。</div>
+      <div class="idea-item"><div class="no">② 右 → 左</div>令 <code>right = 1</code>。先做 <code>answer[i] *= right</code>，再执行 <code>right *= nums[i]</code>，补上右侧乘积。</div>
+      <div class="idea-item"><div class="no">③ 零与负数自然成立</div>全过程不做除法，0 会按所在前缀或后缀自然传播；一个零、多个零以及负数都无需特殊分支。</div>
+    </div>
+    <div class="key-note"><b>空间复杂度口径：</b><code>answer</code> 是题目要求返回的输出数组，不计入额外空间；除它之外只使用 <code>left</code>、<code>right</code> 和下标，所以额外空间为 <code>O(1)</code>。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">nums =</span><input type="text" id="input" value="1 2 3 4" spellcheck="false" placeholder="空格或逗号分隔，如 1 2 3 4"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="1 2 3 4">经典示例</span>
+      <span class="chip" data-v="-1 1 0 -3 3">一个零 + 负数</span>
+      <span class="chip" data-v="0 4 0 2">多个零</span>
+      <span class="chip" data-v="-2 -3 4">纯负数</span>
+      <span class="chip" data-v="5 0">两元素含零</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 2～14 个 −30～30 的整数，只接受空格或单个逗号分隔；会拒绝导致 JavaScript 中间乘积超出安全整数范围的输入。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="passbar" id="passbar">
+      <div class="pass" data-pass="prefix"><b>第一趟 · LEFT → RIGHT</b>answer[i] = left；left *= nums[i]</div>
+      <div class="pass" data-pass="suffix"><b>第二趟 · RIGHT → LEFT</b>answer[i] *= right；right *= nums[i]</div>
+    </div>
+    <div class="panel-title">nums 保持不变；answer 先承载前缀积，再原地补上后缀积</div>
+    <div class="stage">
+      <div class="matrix">
+        <div class="row-label">nums</div><div class="row" id="numsRow"></div>
+        <div class="row-label">answer</div><div class="row" id="answerRow"></div>
+      </div>
+    </div>
+    <div class="dashboard">
+      <div class="box">扫描方向<b id="direction">—</b></div>
+      <div class="box">当前下标 i<b id="indexValue">—</b></div>
+      <div class="box">left<b id="leftValue">1</b></div>
+      <div class="box">right<b id="rightValue">1</b></div>
+    </div>
+    <div class="rule" id="rule">准备计算左侧乘积</div>
+    <div class="legend">
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>当前 nums[i]</span>
+      <span><span class="dot" style="background:#ede9fe;border-color:#7c3aed"></span>当前 answer[i]</span>
+      <span><span class="dot" style="background:#e0e7ff;border-color:#a5b4fc"></span>已写入前缀积</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>已得到最终值</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-product-except-self-app>
+(function (root) {
+  'use strict';
+  function parseArray(value) {
+    if (typeof value !== 'string' || !value.trim()) return { arr:null, err:'请输入整数数组' };
+    var text = value.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) return { arr:null, err:'格式无效，请只输入由空格或单个逗号分隔的整数' };
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length < 2 || parts.length > 14) return { arr:null, err:'数组长度须为 2～14' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -30 || number > 30) return { arr:null, err:'数组元素须在 -30～30：' + parts[i] };
+      arr.push(number);
+    }
+    var product = 1;
+    for (var j = 0; j < arr.length; j++) {
+      product *= arr[j];
+      if (!Number.isSafeInteger(product)) return { arr:null, err:'前缀乘积超出 JavaScript 安全整数范围' };
+    }
+    product = 1;
+    for (var k = arr.length - 1; k >= 0; k--) {
+      product *= arr[k];
+      if (!Number.isSafeInteger(product)) return { arr:null, err:'后缀乘积超出 JavaScript 安全整数范围' };
+    }
+    return { arr:arr, err:null };
+  }
+  function solve(nums) {
+    var n = nums.length, answer = new Array(n), left = 1, right = 1;
+    for (var i = 0; i < n; i++) { answer[i] = left; left *= nums[i]; }
+    for (var j = n - 1; j >= 0; j--) { answer[j] *= right; right *= nums[j]; }
+    return answer;
+  }
+  function buildSteps(nums) {
+    var n = nums.length, answer = new Array(n).fill(null), left = 1, right = 1, steps = [], prefixDone = -1, suffixDone = n;
+    function snap(o) {
+      steps.push({
+        nums:nums.slice(), answer:answer.slice(), phase:o.phase || '', pass:o.pass || '',
+        i:o.i === undefined ? -1 : o.i, left:left, right:right,
+        prefixDone:prefixDone, suffixDone:suffixDone, msg:o.msg || ''
+      });
+    }
+    snap({ phase:'start', msg:'建立长度为 <b>' + n + '</b> 的输出数组 answer。第一趟从左向右扫描，left 初始为乘法单位元 <b>1</b>。' });
+    for (var i = 0; i < n; i++) {
+      snap({ phase:'prefixBefore', pass:'prefix', i:i,
+        msg:'下标 <b>i = ' + i + '</b>：当前 left = ' + left + '，它正是 nums[' + i + '] 左侧所有元素的乘积。' });
+      answer[i] = left; prefixDone = i;
+      snap({ phase:'prefixWrite', pass:'prefix', i:i,
+        msg:'执行 <span class="op">answer[' + i + '] = left = ' + left + '</span>。先写入再乘 nums[i]，因此这个值不包含 nums[' + i + '] 自身。' });
+      var oldLeft = left; left *= nums[i];
+      snap({ phase:'prefixUpdate', pass:'prefix', i:i,
+        msg:'更新 <span class="op">left *= nums[' + i + ']</span>：' + oldLeft + ' × ' + nums[i] + ' = <b>' + left + '</b>，供下一格使用。' });
+    }
+    snap({ phase:'switch', pass:'suffix',
+      msg:'第一趟结束，answer 已保存各位置的左侧乘积：<b>[' + answer.join(', ') + ']</b>。现在令 right = 1，从右向左补上右侧乘积。' });
+    for (var j = n - 1; j >= 0; j--) {
+      snap({ phase:'suffixBefore', pass:'suffix', i:j,
+        msg:'下标 <b>i = ' + j + '</b>：当前 right = ' + right + '，它是 nums[' + j + '] 右侧所有元素的乘积。' });
+      var oldAnswer = answer[j];
+      answer[j] *= right; suffixDone = j;
+      snap({ phase:'suffixWrite', pass:'suffix', i:j,
+        msg:'执行 <span class="op">answer[' + j + '] *= right</span>：' + oldAnswer + ' × ' + right + ' = <b>' + answer[j] + '</b>。这一格的左侧积和右侧积已合并。' });
+      var oldRight = right; right *= nums[j];
+      snap({ phase:'suffixUpdate', pass:'suffix', i:j,
+        msg:'更新 <span class="op">right *= nums[' + j + ']</span>：' + oldRight + ' × ' + nums[j] + ' = <b>' + right + '</b>，供左边一格使用。' });
+    }
+    snap({ phase:'done', pass:'done',
+      msg:'两趟扫描完成！answer = <span class="op">[' + answer.join(', ') + ']</span>。没有使用除法，零和负数也已自然得到正确结果。' });
+    return steps;
+  }
+  root.ProductExceptSelfApp = { parseArray:parseArray, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.ProductExceptSelfApp, $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), numsRow = $('numsRow'), answerRow = $('answerRow'), statsEl = $('stats');
+  var statusEl = $('status'), progressEl = $('progress'), ruleEl = $('rule');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], steps = [], stepIndex = 0, timer = null, numCells = [], answerCells = [];
+  function makeCell(index) {
+    var cell = document.createElement('div'); cell.className = 'cell';
+    var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = index;
+    var value = document.createElement('span'); cell.appendChild(idx); cell.appendChild(value);
+    return { el:cell, value:value };
+  }
+  function buildRows() {
+    numsRow.innerHTML = ''; answerRow.innerHTML = ''; numCells = []; answerCells = [];
+    numsRow.style.gridTemplateColumns = answerRow.style.gridTemplateColumns = 'repeat(' + nums.length + ', 62px)';
+    nums.forEach(function (_, index) {
+      var num = makeCell(index), answer = makeCell(index);
+      numsRow.appendChild(num.el); answerRow.appendChild(answer.el); numCells.push(num); answerCells.push(answer);
+    });
+  }
+  function renderPass(step) {
+    Array.prototype.forEach.call($('passbar').children, function (pass) {
+      var kind = pass.dataset.pass, cls = 'pass';
+      if (step.pass === kind) cls += ' active';
+      if (kind === 'prefix' && (step.pass === 'suffix' || step.pass === 'done')) cls += ' done';
+      if (kind === 'suffix' && step.pass === 'done') cls += ' done';
+      pass.className = cls;
+    });
+  }
+  function render() {
+    var step = steps[stepIndex];
+    numCells.forEach(function (ref, index) {
+      ref.value.textContent = step.nums[index];
+      ref.el.className = 'cell' + (index === step.i ? ' current' : '');
+    });
+    answerCells.forEach(function (ref, index) {
+      var value = step.answer[index], cls = 'cell';
+      ref.value.textContent = value === null ? '·' : value;
+      if (value === null) cls += ' unset';
+      else if (index >= step.suffixDone) cls += ' final';
+      else if (index <= step.prefixDone) cls += ' prefix';
+      if (index === step.i) cls += ' answer-current';
+      if (step.phase === 'done') cls = 'cell all-done';
+      ref.el.className = cls;
+    });
+    renderPass(step);
+    $('direction').textContent = step.pass === 'prefix' ? '左 → 右' : (step.pass === 'suffix' ? '右 → 左' : (step.phase === 'done' ? '完成' : '准备'));
+    $('indexValue').textContent = step.i < 0 ? '—' : step.i;
+    $('leftValue').textContent = step.left; $('rightValue').textContent = step.right;
+    if (step.phase.indexOf('prefix') === 0) {
+      ruleEl.innerHTML = step.phase === 'prefixUpdate' ? '<span class="left">left *= nums[i]</span>' : '<span class="left">answer[i] = left</span>';
+    } else if (step.phase.indexOf('suffix') === 0) {
+      ruleEl.innerHTML = step.phase === 'suffixUpdate' ? '<span class="right">right *= nums[i]</span>' : '<span class="right">answer[i] *= right</span>';
+    } else if (step.phase === 'done') ruleEl.innerHTML = '<span class="yes">answer[i] = 左侧积 × 右侧积</span>';
+    else ruleEl.textContent = '输出数组 answer 承载前缀积';
+    statusEl.innerHTML = step.msg; progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    statsEl.innerHTML = '<div class="stat">输入<b>[' + nums.join(', ') + ']</b></div>' +
+      '<div class="stat">输出<b>[' + App.solve(nums).join(', ') + ']</b></div>' +
+      '<div class="stat">扫描次数<b>2 趟</b></div><div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)*</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex >= steps.length - 1) { stopPlay(); return; } next(); }, 720);
+  }
+  function load() {
+    var parsed = App.parseArray(input.value);
+    if (!parsed.arr) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); nums = parsed.arr; steps = App.buildSteps(nums); stepIndex = 0;
+    buildRows(); renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); }; nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay; $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); }; $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) { chip.onclick = function () { input.value = chip.dataset.v; load(); }; });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); } if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+  var codes = {
+    py:'<span class="cmt"># 输出数组不计入额外空间：O(n) 时间 · O(1) 额外空间</span>\n' +
+      'class Solution:\n' +
+      '    def productExceptSelf(self, nums: list[int]) -&gt; list[int]:\n' +
+      '        n = len(nums)\n' +
+      '        answer = [1] * n\n' +
+      '\n' +
+      '        left = 1\n' +
+      '        for i in range(n):\n' +
+      '            answer[i] = left         <span class="cmt"># i 左侧所有数的乘积</span>\n' +
+      '            left *= nums[i]\n' +
+      '\n' +
+      '        right = 1\n' +
+      '        for i in range(n - 1, -1, -1):\n' +
+      '            answer[i] *= right       <span class="cmt"># 再乘 i 右侧所有数</span>\n' +
+      '            right *= nums[i]\n' +
+      '        return answer',
+    java:'<span class="cmt">// 输出数组不计入额外空间：O(n) 时间 · O(1) 额外空间</span>\n' +
+      'class Solution {\n' +
+      '    public int[] productExceptSelf(int[] nums) {\n' +
+      '        int n = nums.length;\n' +
+      '        int[] answer = new int[n];\n' +
+      '        int left = 1;\n' +
+      '        for (int i = 0; i &lt; n; i++) {\n' +
+      '            answer[i] = left;        <span class="cmt">// i 左侧所有数的乘积</span>\n' +
+      '            left *= nums[i];\n' +
+      '        }\n' +
+      '        int right = 1;\n' +
+      '        for (int i = n - 1; i &gt;= 0; i--) {\n' +
+      '            answer[i] *= right;      <span class="cmt">// 再乘 i 右侧所有数</span>\n' +
+      '            right *= nums[i];\n' +
+      '        }\n' +
+      '        return answer;\n' +
+      '    }\n' +
+      '}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py; load();
+})();
+</script>
+</body>
+</html>

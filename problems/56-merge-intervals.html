@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 排序 · 区间 · 合并">
+<title>56. 合并区间 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.05em; }
+  .idea-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:280px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] { flex:1; min-width:200px; padding:9px 12px; font:14px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#f8fbff,#fff); padding:18px 16px 22px; }
+  .axis-shell { min-width:640px; }
+  .axis { position:relative; height:42px; margin:0 30px 10px; border-bottom:2px solid #94a3b8; }
+  .tick { position:absolute; bottom:-7px; width:1px; height:12px; background:#94a3b8; }
+  .tick span { position:absolute; top:13px; left:50%; transform:translateX(-50%); color:#64748b; font:10px "SF Mono",Menlo,monospace; }
+  .lanes { position:relative; margin:28px 30px 0; }
+  .lane { position:relative; height:34px; border-top:1px dashed #e2e8f0; }
+  .lane-label { position:absolute; right:calc(100% + 8px); top:6px; color:#94a3b8; font:10px "SF Mono",Menlo,monospace; white-space:nowrap; }
+  .bar {
+    position:absolute; top:5px; height:22px; min-width:8px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center; padding:0 5px;
+    background:#e2e8f0; border:2px solid #94a3b8; color:#334155;
+    font:800 10px "SF Mono",Menlo,monospace; white-space:nowrap; transition:.18s;
+  }
+  .bar.processed { background:#dbeafe; border-color:#60a5fa; color:#1e40af; }
+  .bar.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.18); transform:translateY(-2px); z-index:3; }
+  .bar.result { background:#dcfce7; border-color:#22c55e; color:#166534; }
+  .comparison { margin-top:12px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:11px 14px; min-height:45px; display:flex; justify-content:center; align-items:center; text-align:center; font:14px "SF Mono",Menlo,monospace; }
+  .comparison .yes { color:#86efac; font-weight:800; } .comparison .no { color:#fca5a5; font-weight:800; }
+  .result-list { margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-height:34px; }
+  .result-list .label { font-size:12px; color:#6b7280; font-weight:700; }
+  .interval { padding:5px 10px; border-radius:7px; background:#dcfce7; color:#166534; border:1px solid #86efac; font:800 12px "SF Mono",Menlo,monospace; }
+  .interval.last { box-shadow:0 0 0 3px rgba(34,197,94,.17); }
+  .empty { color:#9ca3af; font-size:12px; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:16px; height:8px; border-radius:99px; margin-right:5px; vertical-align:1px; border:1px solid rgba(0,0,0,.08); }
+  .dot-pending { background:#e2e8f0; border-color:#94a3b8; }
+  .dot-current { background:#fef3c7; border-color:#f59e0b; }
+  .dot-processed { background:#dbeafe; border-color:#60a5fa; }
+  .dot-result { background:#dcfce7; border-color:#22c55e; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; font-weight:700; } .status .warn { color:#fca5a5; font-weight:700; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:650px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/merge-intervals/" target="_blank" rel="noopener">LeetCode 56</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>56. 合并区间 · 排序扫描动画</h1>
+  <div class="sub">先按左端点升序排序。之后每次只需拿<b>当前区间</b>与<b>结果列表的最后一个区间</b>比较：左端点落在末尾区间内就合并，否则追加为新答案。</div>
+
+  <div class="card">
+    <div class="panel-title">排序后只看结果末尾</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 按左端点排序</div>排序后，后来的区间不会跑到结果末尾的左边，因此无需回头检查更早的答案。</div>
+      <div class="idea-item"><div class="no">② 判断是否相交</div>若 <code>current.start ≤ last.end</code>，两区间相交或接触；更新 <code>last.end = max(last.end, current.end)</code>。</div>
+      <div class="idea-item"><div class="no">③ 否则直接追加</div>若 <code>current.start &gt; last.end</code>，当前区间与末尾已有间隔，且也不可能与更早区间相交。</div>
+    </div>
+    <div class="key-note"><b>包含关系也不用特殊处理：</b>例如结果末尾为 [1, 10]，当前为 [3, 5]，执行 <code>max(10, 5)</code> 后末尾仍是 [1, 10]。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">intervals =</span><input type="text" id="input" value="[1,3]; [2,6]; [8,10]; [15,18]" spellcheck="false" placeholder="[start,end]; [start,end]"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="[1,3]; [2,6]; [8,10]; [15,18]">经典合并</span>
+      <span class="chip" data-v="[1,4]; [4,5]">端点接触</span>
+      <span class="chip" data-v="[-8,-3]; [-5,1]; [4,7]">负端点</span>
+      <span class="chip" data-v="[1,10]; [2,3]; [4,8]">包含关系</span>
+      <span class="chip" data-v="[5,7]">单区间</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">严格格式为 <code>[start,end]; [start,end]</code>；支持 1～12 个区间、端点 −100～100，且每个区间必须满足 start ≤ end。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">排序后的区间与数轴</div>
+    <div class="stage">
+      <div class="axis-shell">
+        <div class="axis" id="axis"></div>
+        <div class="lanes" id="lanes"></div>
+      </div>
+    </div>
+    <div class="comparison" id="comparison">先排序，再与结果末尾比较</div>
+    <div class="result-list" id="resultList"></div>
+    <div class="legend">
+      <span><span class="dot dot-pending"></span>待处理</span>
+      <span><span class="dot dot-current"></span>当前区间</span>
+      <span><span class="dot dot-processed"></span>已扫描</span>
+      <span><span class="dot dot-result"></span>结果区间</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-merge-intervals-core>
+(function (root) {
+  'use strict';
+  function cloneIntervals(intervals) {
+    return intervals.map(function (interval) { return interval.slice(); });
+  }
+  function parseIntervals(value) {
+    if (typeof value !== 'string' || !value.trim()) return { intervals:null, err:'请输入至少一个区间' };
+    var text = value.trim();
+    if (text.charAt(text.length - 1) === ';') return { intervals:null, err:'末尾不能有分号' };
+    var parts = text.split(';');
+    if (parts.length > 12) return { intervals:null, err:'区间数量请不超过 12' };
+    var intervals = [];
+    for (var i = 0; i < parts.length; i++) {
+      var match = parts[i].match(/^\s*\[\s*(-?\d+)\s*,\s*(-?\d+)\s*\]\s*$/);
+      if (!match) return { intervals:null, err:'第 ' + (i + 1) + ' 个区间格式无效，应为 [start,end]' };
+      var start = Number(match[1]), end = Number(match[2]);
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < -100 || start > 100 || end < -100 || end > 100) {
+        return { intervals:null, err:'第 ' + (i + 1) + ' 个区间的端点须在 -100～100' };
+      }
+      if (start > end) return { intervals:null, err:'第 ' + (i + 1) + ' 个区间不满足 start ≤ end' };
+      intervals.push([start, end]);
+    }
+    return { intervals:intervals, err:null };
+  }
+  function solve(intervals) {
+    var sorted = cloneIntervals(intervals).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    var result = [sorted[0].slice()];
+    for (var i = 1; i < sorted.length; i++) {
+      var current = sorted[i], last = result[result.length - 1];
+      if (current[0] <= last[1]) last[1] = Math.max(last[1], current[1]);
+      else result.push(current.slice());
+    }
+    return result;
+  }
+  function buildSteps(intervals) {
+    var sorted = cloneIntervals(intervals).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    var result = [], steps = [];
+    function text(interval) { return '[' + interval[0] + ', ' + interval[1] + ']'; }
+    function snap(o) {
+      steps.push({
+        phase:o.phase, index:o.index === undefined ? -1 : o.index,
+        current:o.current ? o.current.slice() : null,
+        last:o.last ? o.last.slice() : null,
+        oldEnd:o.oldEnd === undefined ? null : o.oldEnd,
+        result:cloneIntervals(result), msg:o.msg
+      });
+    }
+    snap({ phase:'sorted', msg:'按左端点升序排序，左端点相同时按右端点排序：<b>' + sorted.map(text).join('，') + '</b>。' });
+    result.push(sorted[0].slice());
+    snap({ phase:'seed', index:0, current:sorted[0],
+      msg:'先把第一个区间 <span class="op">' + text(sorted[0]) + '</span> 放入结果列表，作为后续比较的末尾区间。' });
+    for (var i = 1; i < sorted.length; i++) {
+      var current = sorted[i], last = result[result.length - 1].slice();
+      var overlaps = current[0] <= last[1];
+      snap({ phase:'compare', index:i, current:current, last:last,
+        msg:'比较当前区间 <b>' + text(current) + '</b> 与结果末尾 <b>' + text(last) + '</b>：' + current[0] +
+          (overlaps ? ' ≤ ' : ' &gt; ') + last[1] + '，因此' + (overlaps ? '<span class="op">相交</span>。' : '<span class="warn">不相交</span>。') });
+      if (overlaps) {
+        var oldEnd = result[result.length - 1][1];
+        result[result.length - 1][1] = Math.max(oldEnd, current[1]);
+        snap({ phase:'merge', index:i, current:current, last:last, oldEnd:oldEnd,
+          msg:'相交时保留末尾区间的左端点，并更新右端点：<span class="op">end = max(' + oldEnd + ', ' + current[1] + ') = ' +
+            result[result.length - 1][1] + '</span>，结果末尾变为 ' + text(result[result.length - 1]) + '。' });
+      } else {
+        result.push(current.slice());
+        snap({ phase:'append', index:i, current:current, last:last,
+          msg:'当前左端点 ' + current[0] + ' 已超过末尾右端点 ' + last[1] + '，不会相交；把 <span class="op">' + text(current) + ' 追加到结果</span>。' });
+      }
+    }
+    snap({ phase:'done', msg:'扫描完成，合并结果为 <span class="op">' + result.map(text).join('，') + '</span>。排序耗时 O(n log n)，扫描耗时 O(n)。' });
+    return { sorted:sorted, steps:steps };
+  }
+  root.MergeIntervalsApp = { cloneIntervals:cloneIntervals, parseIntervals:parseIntervals, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.MergeIntervalsApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), axisEl = $('axis'), lanesEl = $('lanes'), statsEl = $('stats');
+  var statusEl = $('status'), comparisonEl = $('comparison'), resultListEl = $('resultList');
+  var progressEl = $('progress'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var intervals = [], sorted = [], steps = [], stepIndex = 0, timer = null, minValue = 0, maxValue = 1;
+
+  function percent(value) { return ((value - minValue) / (maxValue - minValue)) * 100; }
+  function intervalText(interval) { return '[' + interval[0] + ', ' + interval[1] + ']'; }
+  function buildAxis() {
+    var values = [];
+    sorted.forEach(function (interval) { values.push(interval[0], interval[1]); });
+    minValue = Math.min.apply(null, values); maxValue = Math.max.apply(null, values);
+    if (minValue === maxValue) { minValue--; maxValue++; }
+    var padding = Math.max(1, Math.ceil((maxValue - minValue) * .06));
+    minValue -= padding; maxValue += padding;
+    axisEl.innerHTML = ''; lanesEl.innerHTML = '';
+    var tickCount = 6;
+    for (var i = 0; i < tickCount; i++) {
+      var value = minValue + (maxValue - minValue) * i / (tickCount - 1);
+      var tick = document.createElement('span'); tick.className = 'tick'; tick.style.left = (i * 100 / (tickCount - 1)) + '%';
+      var label = document.createElement('span'); label.textContent = String(Math.round(value * 10) / 10);
+      tick.appendChild(label); axisEl.appendChild(tick);
+    }
+  }
+  function addBar(lane, interval, className) {
+    var bar = document.createElement('span'); bar.className = 'bar ' + className;
+    bar.style.left = percent(interval[0]) + '%';
+    bar.style.width = Math.max(1.2, percent(interval[1]) - percent(interval[0])) + '%';
+    bar.textContent = intervalText(interval); lane.appendChild(bar);
+  }
+  function renderLanes(step) {
+    lanesEl.innerHTML = '';
+    sorted.forEach(function (interval, index) {
+      var lane = document.createElement('div'); lane.className = 'lane';
+      var label = document.createElement('span'); label.className = 'lane-label'; label.textContent = 'I' + index; lane.appendChild(label);
+      var className = index === step.index && step.phase !== 'done' ? 'current' : (index < step.index || step.phase === 'done' ? 'processed' : '');
+      addBar(lane, interval, className); lanesEl.appendChild(lane);
+    });
+    var resultLane = document.createElement('div'); resultLane.className = 'lane';
+    var resultLabel = document.createElement('span'); resultLabel.className = 'lane-label'; resultLabel.textContent = '结果'; resultLane.appendChild(resultLabel);
+    step.result.forEach(function (interval) { addBar(resultLane, interval, 'result'); });
+    lanesEl.appendChild(resultLane);
+  }
+  function renderResults(result) {
+    resultListEl.innerHTML = '<span class="label">结果列表：</span>';
+    if (!result.length) { resultListEl.innerHTML += '<span class="empty">尚未加入区间</span>'; return; }
+    result.forEach(function (interval, index) {
+      var item = document.createElement('span'); item.className = 'interval' + (index === result.length - 1 ? ' last' : '');
+      item.textContent = intervalText(interval); resultListEl.appendChild(item);
+    });
+  }
+  function renderComparison(step) {
+    if (step.phase === 'compare' || step.phase === 'merge' || step.phase === 'append') {
+      var overlaps = step.current[0] <= step.last[1];
+      comparisonEl.innerHTML = 'current.start (' + step.current[0] + ') ≤ last.end (' + step.last[1] + ') ? → <span class="' +
+        (overlaps ? 'yes' : 'no') + '">' + (overlaps ? '是：更新右端点' : '否：追加新区间') + '</span>';
+    } else if (step.phase === 'done') {
+      comparisonEl.innerHTML = '<span class="yes">全部区间处理完成</span>';
+    } else comparisonEl.textContent = '先排序，再与结果末尾比较';
+  }
+  function render() {
+    var step = steps[stepIndex];
+    renderLanes(step); renderResults(step.result); renderComparison(step);
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">输入区间数<b>' + intervals.length + '</b></div>' +
+      '<div class="stat">合并后区间数<b>' + App.solve(intervals).length + '</b></div>' +
+      '<div class="stat">排序<b>O(n log n)</b></div>' +
+      '<div class="stat">扫描<b>O(n)</b></div>' +
+      '<div class="stat">结果空间<b>O(n)</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex >= steps.length - 1) stopPlay(); else next(); }, 820);
+  }
+  function load() {
+    var parsed = App.parseIntervals(input.value);
+    if (!parsed.intervals) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); intervals = parsed.intervals;
+    var data = App.buildSteps(intervals); sorted = data.sorted; steps = data.steps; stepIndex = 0;
+    buildAxis(); renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 排序 + 线性扫描 · O(n log n) 时间</span>\n' +
+'class Solution:\n' +
+'    def merge(self, intervals: list[list[int]]) -&gt; list[list[int]]:\n' +
+'        intervals.sort(key=lambda item: item[0])\n' +
+'        merged = [intervals[0]]\n' +
+'\n' +
+'        for start, end in intervals[1:]:\n' +
+'            if start &lt;= merged[-1][1]:\n' +
+'                merged[-1][1] = max(merged[-1][1], end)\n' +
+'            else:\n' +
+'                merged.append([start, end])\n' +
+'\n' +
+'        return merged',
+    java:
+'<span class="cmt">// 排序 + 线性扫描 · O(n log n) 时间</span>\n' +
+'class Solution {\n' +
+'    public int[][] merge(int[][] intervals) {\n' +
+'        Arrays.sort(intervals, Comparator.comparingInt(a -&gt; a[0]));\n' +
+'        List&lt;int[]&gt; merged = new ArrayList&lt;&gt;();\n' +
+'\n' +
+'        for (int[] interval : intervals) {\n' +
+'            if (merged.isEmpty() || merged.get(merged.size() - 1)[1] &lt; interval[0]) {\n' +
+'                merged.add(interval.clone());\n' +
+'            } else {\n' +
+'                int[] last = merged.get(merged.size() - 1);\n' +
+'                last[1] = Math.max(last[1], interval[1]);\n' +
+'            }\n' +
+'        }\n' +
+'\n' +
+'        return merged.toArray(new int[merged.size()][]);\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>

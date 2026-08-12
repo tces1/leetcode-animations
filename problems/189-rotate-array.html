@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 数学 · 双指针 · 三次反转 · O(1) 空间">
+<title>189. 轮转数组 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  .wrap { max-width:980px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; } .link a { color:#6366f1; text-decoration:none; } .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; } .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phases { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item,.phase { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase { transition:.18s; } .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:220px; }
+  .field.k { flex:0 1 190px; min-width:150px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] { flex:1; min-width:100px; padding:9px 12px; font-size:14px; font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; transition:background .15s; }
+  button:hover { background:#4f46e5; } button.ghost { background:#eef0f4; color:#374151; } button.ghost:hover { background:#e2e5eb; } button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; } .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:34px 18px 30px; text-align:center; }
+  .array { display:inline-grid; gap:7px; min-width:max-content; }
+  .cell { position:relative; width:58px; height:58px; border-radius:10px; display:flex; align-items:center; justify-content:center; font:800 18px "SF Mono",Menlo,monospace; color:#334155; background:#fff; border:2px solid #e2e8f0; transition:.18s; }
+  .cell .idx { position:absolute; top:2px; left:5px; color:#a5b4fc; font-size:9px; }
+  .cell .ptr { position:absolute; bottom:-22px; left:50%; transform:translateX(-50%); white-space:nowrap; font:800 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .cell.range { background:#eef2ff; border-color:#c7d2fe; }
+  .cell.swap { background:#7c3aed; border-color:#5b21b6; color:#fff; box-shadow:0 0 0 4px rgba(124,58,237,.2); transform:scale(1.07); }
+  .cell.finished { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .cell.all-done { background:#22c55e; border-color:#16a34a; color:#fff; }
+  .pl { color:#c2410c; } .pr { color:#4f46e5; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:9px 12px; background:#f8fafc; color:#64748b; text-align:center; font-size:12px; }
+  .box b { display:block; min-height:25px; color:#334155; font:800 16px "SF Mono",Menlo,monospace; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .rule .accent { color:#fcd34d; font-weight:800; } .rule .yes { color:#86efac; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; font-weight:700; }
+  details.code { margin-top:4px; } details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; } pre .cmt { color:#7dd3fc; }
+  @media (max-width:680px) { body { padding:16px 12px; } .card { padding:14px; } .idea,.phases { grid-template-columns:1fr; } .dashboard { grid-template-columns:1fr 1fr; } .progress { width:100%; margin-left:0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/rotate-array/" target="_blank" rel="noopener">LeetCode 189</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>189. 轮转数组 · 三次反转动画</h1>
+  <div class="sub">将数组向右轮转 <code>k</code> 步。先用 <code>k %= n</code> 消除完整轮转，再通过<b>三次原地反转</b>把末尾 k 个元素搬到开头：整体反转 → 反转前 k 个 → 反转剩余部分。</div>
+
+  <div class="card">
+    <div class="panel-title">为什么三次反转有效</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 整体反转 [0,n−1]</div>原数组可写成 <code>A B</code>，其中 B 是要移到前面的末尾 k 项。整体反转得到 <code>rev(B) rev(A)</code>。</div>
+      <div class="idea-item"><div class="no">② 反转 [0,k−1]</div>把前段 <code>rev(B)</code> 恢复成 B；此时数组为 <code>B rev(A)</code>。</div>
+      <div class="idea-item"><div class="no">③ 反转 [k,n−1]</div>把后段 <code>rev(A)</code> 恢复成 A，最终正好得到 <code>B A</code>。</div>
+    </div>
+    <div class="key-note"><b>原地性：</b>每次只交换左右端点并向中间收缩，只使用几个下标和一个临时变量，因此额外空间为 <code>O(1)</code>。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">nums =</span><input type="text" id="arrayInput" value="1 2 3 4 5 6 7" spellcheck="false" placeholder="如 1 2 3 4 5 6 7"></label>
+      <label class="field k"><span class="lab">k =</span><input type="text" id="kInput" value="3" inputmode="numeric" spellcheck="false"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-a="1 2 3 4 5 6 7" data-k="3">经典 k=3</span>
+      <span class="chip" data-a="-1 -100 3 99" data-k="2">含负数</span>
+      <span class="chip" data-a="1 2" data-k="5">k &gt; n</span>
+      <span class="chip" data-a="8" data-k="100">单元素</span>
+      <span class="chip" data-a="2 4 6 8" data-k="0">k = 0</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～16 个 −999～999 的整数；k 必须是 0～1,000,000,000 的非负整数。只接受空格或单个逗号分隔。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phases" id="phases">
+      <div class="phase" data-stage="1"><div class="no">阶段 1</div>整体反转 <b>[0, n−1]</b></div>
+      <div class="phase" data-stage="2"><div class="no">阶段 2</div>反转前段 <b>[0, k−1]</b></div>
+      <div class="phase" data-stage="3"><div class="no">阶段 3</div>反转后段 <b>[k, n−1]</b></div>
+    </div>
+    <div class="panel-title" style="margin-top:16px;">高亮区间内，l 与 r 从两端向中间逐次交换</div>
+    <div class="stage"><div class="array" id="array"></div></div>
+    <div class="dashboard">
+      <div class="box">原始 k<b id="rawK">—</b></div>
+      <div class="box">k %= n<b id="normK">—</b></div>
+      <div class="box">当前阶段<b id="stageValue">—</b></div>
+      <div class="box">当前区间<b id="rangeValue">—</b></div>
+    </div>
+    <div class="rule" id="rule">先计算 k %= n</div>
+    <div class="legend">
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>当前反转区间</span>
+      <span><span class="dot" style="background:#7c3aed"></span>交换端点 l / r</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>已完成阶段</span>
+      <span><span class="dot" style="background:#22c55e"></span>最终结果</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-rotate-array-app>
+(function (root) {
+  'use strict';
+  function parseArray(value) {
+    if (typeof value !== 'string' || !value.trim()) return { arr:null, err:'请输入至少一个整数' };
+    var text = value.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) return { arr:null, err:'数组格式无效，请只输入由空格或单个逗号分隔的整数' };
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length > 16) return { arr:null, err:'数组长度请不超过 16' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -999 || number > 999) return { arr:null, err:'数组元素须在 -999～999：' + parts[i] };
+      arr.push(number);
+    }
+    return { arr:arr, err:null };
+  }
+  function parseInput(arrayValue, kValue) {
+    var parsed = parseArray(arrayValue);
+    if (!parsed.arr) return parsed;
+    var text = typeof kValue === 'string' ? kValue.trim() : '';
+    if (!/^\d+$/.test(text)) return { arr:null, err:'k 必须是非负整数' };
+    var k = Number(text);
+    if (!Number.isSafeInteger(k) || k > 1000000000) return { arr:null, err:'k 须在 0～1,000,000,000' };
+    return { arr:parsed.arr, k:k, err:null };
+  }
+  function solve(nums, k) {
+    var a = nums.slice(), n = a.length;
+    k %= n;
+    function reverse(left, right) {
+      while (left < right) {
+        var temp = a[left]; a[left] = a[right]; a[right] = temp;
+        left++; right--;
+      }
+    }
+    reverse(0, n - 1); reverse(0, k - 1); reverse(k, n - 1);
+    return a;
+  }
+  function buildSteps(nums, rawK) {
+    var a = nums.slice(), n = a.length, k = rawK % n, steps = [], completed = 0;
+    function snap(o) {
+      steps.push({
+        arr:a.slice(), phase:o.phase || '', stage:o.stage || 0, completed:completed,
+        range:o.range ? o.range.slice() : null, left:o.left === undefined ? -1 : o.left,
+        right:o.right === undefined ? -1 : o.right, k:k, rawK:rawK, msg:o.msg || ''
+      });
+    }
+    snap({ phase:'normalize', msg:'数组长度 <b>n = ' + n + '</b>。先计算 <span class="op">k %= n</span>：' + rawK + ' % ' + n + ' = <b>' + k + '</b>，完整转过 n 步不会改变数组。' });
+    function animateReverse(stage, left, right, label) {
+      var start = left, end = right;
+      snap({ phase:'stageStart', stage:stage, range:[start,end],
+        msg:'进入阶段 <b>' + stage + '</b>：' + label + '，反转区间 <b>[' + start + ', ' + end + ']</b>。' });
+      if (left >= right) {
+        snap({ phase:'noSwap', stage:stage, range:[start,end],
+          msg:'区间 [' + start + ', ' + end + '] 至多一个元素，不需要交换，本阶段直接完成。' });
+      }
+      while (left < right) {
+        snap({ phase:'swapBefore', stage:stage, range:[start,end], left:left, right:right,
+          msg:'交换区间两端：nums[' + left + '] = <b>' + a[left] + '</b>，nums[' + right + '] = <b>' + a[right] + '</b>。' });
+        var temp = a[left]; a[left] = a[right]; a[right] = temp;
+        snap({ phase:'swapAfter', stage:stage, range:[start,end], left:left, right:right,
+          msg:'交换完成，数组变为 <span class="op">[' + a.join(', ') + ']</span>；l++、r--，继续向中间收缩。' });
+        left++; right--;
+      }
+      completed = stage;
+      snap({ phase:'stageDone', stage:stage, range:[start,end],
+        msg:'阶段 <b>' + stage + '</b> 完成，区间 [' + start + ', ' + end + '] 已反转：<span class="op">[' + a.join(', ') + ']</span>。' });
+    }
+    animateReverse(1, 0, n - 1, '整体反转');
+    animateReverse(2, 0, k - 1, '反转前 k 个元素');
+    animateReverse(3, k, n - 1, '反转剩余元素');
+    snap({ phase:'done', stage:4, msg:'三次反转全部完成！向右轮转 ' + rawK + ' 步（等价于 ' + k + ' 步）的结果是 <span class="op">[' + a.join(', ') + ']</span>。' });
+    return steps;
+  }
+  root.RotateArrayApp = { parseArray:parseArray, parseInput:parseInput, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.RotateArrayApp, $ = function (id) { return document.getElementById(id); };
+  var arrayInput = $('arrayInput'), kInput = $('kInput'), errEl = $('err'), arrayEl = $('array'), statsEl = $('stats');
+  var statusEl = $('status'), progressEl = $('progress'), ruleEl = $('rule');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], rawK = 0, steps = [], stepIndex = 0, timer = null, cells = [];
+  function buildArray() {
+    arrayEl.innerHTML = ''; cells = []; arrayEl.style.gridTemplateColumns = 'repeat(' + nums.length + ', 58px)';
+    nums.forEach(function (_, index) {
+      var cell = document.createElement('div'); cell.className = 'cell';
+      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = index;
+      var value = document.createElement('span'), ptr = document.createElement('span'); ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(value); cell.appendChild(ptr); arrayEl.appendChild(cell);
+      cells.push({ el:cell, value:value, ptr:ptr });
+    });
+  }
+  function renderPhases(step) {
+    Array.prototype.forEach.call($('phases').children, function (phase) {
+      var number = Number(phase.dataset.stage), cls = 'phase';
+      if (number <= step.completed) cls += ' done';
+      if (number === step.stage && step.phase !== 'stageDone' && step.phase !== 'done') cls += ' active';
+      phase.className = cls;
+    });
+  }
+  function render() {
+    var step = steps[stepIndex];
+    cells.forEach(function (ref, index) {
+      var cls = 'cell', labels = [];
+      ref.value.textContent = step.arr[index];
+      if (step.range && index >= step.range[0] && index <= step.range[1]) cls += ' range';
+      if (step.phase === 'stageDone' && step.range && index >= step.range[0] && index <= step.range[1]) cls += ' finished';
+      if (index === step.left) { cls += ' swap'; labels.push('<span class="pl">l</span>'); }
+      if (index === step.right) { cls += ' swap'; labels.push('<span class="pr">r</span>'); }
+      if (step.phase === 'done') cls = 'cell all-done';
+      ref.el.className = cls; ref.ptr.innerHTML = labels.join(' / ');
+    });
+    renderPhases(step);
+    $('rawK').textContent = step.rawK; $('normK').textContent = step.k;
+    $('stageValue').textContent = step.stage > 0 && step.stage <= 3 ? step.stage + ' / 3' : (step.phase === 'done' ? '完成' : '准备');
+    $('rangeValue').textContent = step.range ? '[' + step.range.join(', ') + ']' : '—';
+    if (step.left >= 0) ruleEl.innerHTML = 'swap(nums[' + step.left + '], nums[' + step.right + ']) → <span class="accent">l++，r--</span>';
+    else if (step.phase === 'done') ruleEl.innerHTML = '<span class="yes">完成：reverse all → reverse prefix → reverse suffix</span>';
+    else ruleEl.innerHTML = step.range ? 'reverse(nums, ' + step.range[0] + ', ' + step.range[1] + ')' : 'k = ' + step.rawK + ' % ' + nums.length + ' = <span class="accent">' + step.k + '</span>';
+    statusEl.innerHTML = step.msg; progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    statsEl.innerHTML = '<div class="stat">原数组<b>[' + nums.join(', ') + ']</b></div>' +
+      '<div class="stat">轮转结果<b>[' + App.solve(nums, rawK).join(', ') + ']</b></div>' +
+      '<div class="stat">有效步数<b>' + (rawK % nums.length) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div><div class="stat">额外空间<b>O(1)</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex >= steps.length - 1) { stopPlay(); return; } next(); }, 700);
+  }
+  function load() {
+    var parsed = App.parseInput(arrayInput.value, kInput.value);
+    if (!parsed.arr) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); nums = parsed.arr; rawK = parsed.k;
+    steps = App.buildSteps(nums, rawK); stepIndex = 0; buildArray(); renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); }; nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay; $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); }; $('loadBtn').onclick = load;
+  [arrayInput, kInput].forEach(function (input) { input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { arrayInput.value = chip.dataset.a; kInput.value = chip.dataset.k; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === arrayInput || document.activeElement === kInput) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); } if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+  var codes = {
+    py:'<span class="cmt"># 三次反转 · O(n) 时间 · O(1) 额外空间</span>\n' +
+      'class Solution:\n' +
+      '    def rotate(self, nums: list[int], k: int) -&gt; None:\n' +
+      '        n = len(nums)\n' +
+      '        k %= n\n' +
+      '\n' +
+      '        def reverse(left: int, right: int) -&gt; None:\n' +
+      '            while left &lt; right:\n' +
+      '                nums[left], nums[right] = nums[right], nums[left]\n' +
+      '                left += 1\n' +
+      '                right -= 1\n' +
+      '\n' +
+      '        reverse(0, n - 1)      <span class="cmt"># ① 整体反转</span>\n' +
+      '        reverse(0, k - 1)      <span class="cmt"># ② 反转前 k 个</span>\n' +
+      '        reverse(k, n - 1)      <span class="cmt"># ③ 反转剩余部分</span>',
+    java:'<span class="cmt">// 三次反转 · O(n) 时间 · O(1) 额外空间</span>\n' +
+      'class Solution {\n' +
+      '    public void rotate(int[] nums, int k) {\n' +
+      '        int n = nums.length;\n' +
+      '        k %= n;\n' +
+      '        reverse(nums, 0, n - 1);   <span class="cmt">// ① 整体反转</span>\n' +
+      '        reverse(nums, 0, k - 1);   <span class="cmt">// ② 反转前 k 个</span>\n' +
+      '        reverse(nums, k, n - 1);   <span class="cmt">// ③ 反转剩余部分</span>\n' +
+      '    }\n' +
+      '    private void reverse(int[] nums, int left, int right) {\n' +
+      '        while (left &lt; right) {\n' +
+      '            int temp = nums[left];\n' +
+      '            nums[left++] = nums[right];\n' +
+      '            nums[right--] = temp;\n' +
+      '        }\n' +
+      '    }\n' +
+      '}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py; load();
+})();
+</script>
+</body>
+</html>

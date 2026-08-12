@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 动态规划 · Kadane · 子数组">
+<title>53. 最大子数组和 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.05em; }
+  .idea-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:260px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] { flex:1; min-width:180px; padding:9px 12px; font:14px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:34px 16px 30px; text-align:center; }
+  .array { display:inline-grid; gap:8px; min-width:max-content; }
+  .cell {
+    position:relative; width:58px; height:58px; display:flex; align-items:center; justify-content:center;
+    border:2px solid #e2e8f0; border-radius:10px; background:#fff; color:#334155;
+    font:800 17px "SF Mono",Menlo,monospace; transition:.18s;
+  }
+  .cell.processed { opacity:.58; }
+  .cell.best { opacity:1; background:#dcfce7; border-color:#22c55e; color:#166534; box-shadow:0 0 0 3px rgba(34,197,94,.14); }
+  .cell.current-range { opacity:1; background:#dbeafe; border-color:#3b82f6; color:#1e40af; }
+  .cell.best.current-range { background:linear-gradient(135deg,#dbeafe 50%,#dcfce7 50%); border-color:#0ea5e9; box-shadow:0 0 0 3px rgba(14,165,233,.16); }
+  .cell.focus { opacity:1; transform:translateY(-4px); border-color:#f59e0b; box-shadow:0 0 0 4px rgba(245,158,11,.2); }
+  .cell .idx { position:absolute; top:2px; left:6px; font-size:9px; color:#94a3b8; }
+  .cell .ptr { position:absolute; bottom:-22px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:800; color:#b45309; white-space:nowrap; }
+  .choice { margin-top:16px; display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:stretch; }
+  .option { border:2px solid #e5e7eb; border-radius:10px; padding:11px; background:#f8fafc; color:#64748b; text-align:center; font-size:12px; }
+  .option b { display:block; color:#334155; font:800 17px "SF Mono",Menlo,monospace; }
+  .option.chosen { border-color:#6366f1; background:#eef2ff; color:#4338ca; }
+  .option.chosen b { color:#4338ca; }
+  .versus { display:flex; align-items:center; color:#94a3b8; font-weight:800; }
+  .dashboard { margin-top:12px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:10px; background:#f8fafc; color:#64748b; font-size:12px; text-align:center; }
+  .box b { display:block; min-height:25px; color:#334155; font:800 17px "SF Mono",Menlo,monospace; }
+  .box.current b { color:#2563eb; } .box.best-box b { color:#16a34a; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-current { background:#dbeafe; border-color:#3b82f6; }
+  .dot-best { background:#dcfce7; border-color:#22c55e; }
+  .dot-both { background:linear-gradient(135deg,#dbeafe 50%,#dcfce7 50%); border-color:#0ea5e9; }
+  .dot-focus { background:#fef3c7; border-color:#f59e0b; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; font-weight:700; } .status .pick { color:#93c5fd; font-weight:700; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:650px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .dashboard { grid-template-columns:1fr 1fr; } .choice { grid-template-columns:1fr; }
+    .versus { justify-content:center; } .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/maximum-subarray/" target="_blank" rel="noopener">LeetCode 53</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>53. 最大子数组和 · Kadane 动画</h1>
+  <div class="sub">扫描到 <code>nums[i]</code> 时，只做一个二选一：<b>从当前值重新开始</b>，或<b>延长前一个以 i−1 结尾的子数组</b>。保留较大者作为 <code>currentSum</code>，再用它更新全局 <code>bestSum</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">Kadane 的三个状态</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 必须以 i 结尾</div><code>currentSum</code> 表示“必须以当前位置结尾”的最大和，不允许跳过 nums[i]。</div>
+      <div class="idea-item"><div class="no">② 每步二选一</div>比较 <code>nums[i]</code> 与 <code>currentSum + nums[i]</code>；前者大就丢掉负担，后者大就延长。</div>
+      <div class="idea-item"><div class="no">③ 保存历史最佳</div><code>bestSum</code> 不必以 i 结尾；只有 currentSum 更大时，才复制当前区间为最佳区间。</div>
+    </div>
+    <div class="key-note"><b>全负数为什么也正确？</b>初值直接使用 <code>nums[0]</code>，而不是 0。于是答案一定包含至少一个元素，全负数时会选出最大的那个负数。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">nums =</span><input type="text" id="input" value="-2 1 -3 4 -1 2 1 -5 4" spellcheck="false" placeholder="空格或单个逗号分隔"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="-2 1 -3 4 -1 2 1 -5 4">经典 → 6</span>
+      <span class="chip" data-v="-8 -3 -6 -2 -5 -4">全负数 → -2</span>
+      <span class="chip" data-v="5">单元素 → 5</span>
+      <span class="chip" data-v="1 2 3 4">一直延长 → 10</span>
+      <span class="chip" data-v="5 -9 6 7">重新开始 → 13</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">严格支持 1～18 个整数，空格或单个逗号分隔；整数范围 −999～999。连续逗号、小数及其它字符会被拒绝。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">当前子数组与历史最佳子数组</div>
+    <div class="stage"><div class="array" id="array"></div></div>
+    <div class="choice">
+      <div class="option" id="restartOption">从当前值重新开始<b id="restartValue">—</b></div>
+      <div class="versus">VS</div>
+      <div class="option" id="extendOption">延长前一个子数组<b id="extendValue">—</b></div>
+    </div>
+    <div class="dashboard">
+      <div class="box current">currentSum<b id="currentSum">—</b></div>
+      <div class="box current">current range<b id="currentRange">—</b></div>
+      <div class="box best-box">bestSum<b id="bestSum">—</b></div>
+      <div class="box best-box">best range<b id="bestRange">—</b></div>
+    </div>
+    <div class="legend">
+      <span><span class="dot dot-current"></span>当前子数组</span>
+      <span><span class="dot dot-best"></span>历史最佳</span>
+      <span><span class="dot dot-both"></span>两者重合</span>
+      <span><span class="dot dot-focus"></span>正在处理</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-maximum-subarray-core>
+(function (root) {
+  'use strict';
+  function parseArray(value) {
+    if (typeof value !== 'string' || !value.trim()) return { arr:null, err:'请输入至少一个整数' };
+    var text = value.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) {
+      return { arr:null, err:'格式无效，请只输入由空格或单个逗号分隔的整数' };
+    }
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length > 18) return { arr:null, err:'长度请不超过 18' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -999 || number > 999) {
+        return { arr:null, err:'整数须在 -999～999：' + parts[i] };
+      }
+      arr.push(number);
+    }
+    return { arr:arr, err:null };
+  }
+
+  function solve(nums) {
+    var currentSum = nums[0], bestSum = nums[0], currentStart = 0, bestStart = 0, bestEnd = 0;
+    for (var i = 1; i < nums.length; i++) {
+      if (nums[i] > currentSum + nums[i]) { currentSum = nums[i]; currentStart = i; }
+      else currentSum += nums[i];
+      if (currentSum > bestSum) { bestSum = currentSum; bestStart = currentStart; bestEnd = i; }
+    }
+    return { sum:bestSum, start:bestStart, end:bestEnd, subarray:nums.slice(bestStart, bestEnd + 1) };
+  }
+
+  function buildSteps(nums) {
+    var steps = [], currentSum = nums[0], currentStart = 0;
+    var bestSum = nums[0], bestStart = 0, bestEnd = 0;
+    function snap(o) {
+      steps.push({
+        phase:o.phase, i:o.i, restart:o.restart, extend:o.extend, choice:o.choice || '',
+        currentSum:currentSum, currentStart:currentStart,
+        currentEnd:o.currentEnd === undefined ? o.i : o.currentEnd,
+        bestSum:bestSum, bestStart:bestStart, bestEnd:bestEnd, msg:o.msg
+      });
+    }
+    snap({ phase:'init', i:0, restart:nums[0], extend:null, choice:'restart',
+      msg:'用第一个元素初始化：<b>currentSum = bestSum = ' + nums[0] + '</b>，当前区间和最佳区间都是 <b>[0, 0]</b>。这样不会错误地用空子数组代替全负数答案。' });
+    for (var i = 1; i < nums.length; i++) {
+      var restart = nums[i], extend = currentSum + nums[i];
+      var choice = restart > extend ? 'restart' : 'extend';
+      snap({ phase:'compare', i:i, currentEnd:i - 1, restart:restart, extend:extend, choice:choice,
+        msg:'处理 <b>nums[' + i + '] = ' + nums[i] + '</b>：重新开始得到 <b>' + restart + '</b>，延长前一个子数组得到 <b>' + extend + '</b>。选择较大的 <span class="pick">' + (choice === 'restart' ? '重新开始' : '延长') + '</span>。' });
+      if (choice === 'restart') { currentSum = restart; currentStart = i; }
+      else currentSum = extend;
+      snap({ phase:'choose', i:i, restart:restart, extend:extend, choice:choice,
+        msg:(choice === 'restart'
+          ? '丢掉之前的负担，从当前位置重新开始：'
+          : '前面的累计和仍有帮助，延长当前子数组：') +
+          '<span class="op">currentSum = ' + currentSum + '，current range = [' + currentStart + ', ' + i + ']</span>。' });
+      if (currentSum > bestSum) {
+        bestSum = currentSum; bestStart = currentStart; bestEnd = i;
+        snap({ phase:'updateBest', i:i, restart:restart, extend:extend, choice:choice,
+          msg:'currentSum = <b>' + currentSum + '</b> 超过旧 bestSum，更新历史最佳：<span class="op">bestSum = ' + bestSum + '，best range = [' + bestStart + ', ' + bestEnd + ']</span>。' });
+      } else {
+        snap({ phase:'keepBest', i:i, restart:restart, extend:extend, choice:choice,
+          msg:'currentSum = <b>' + currentSum + '</b> 没有超过 bestSum = <b>' + bestSum + '</b>，历史最佳区间保持 [' + bestStart + ', ' + bestEnd + ']。' });
+      }
+    }
+    snap({ phase:'done', i:nums.length - 1, restart:null, extend:null,
+      msg:'扫描完成。最大子数组是 <span class="op">[' + nums.slice(bestStart, bestEnd + 1).join(', ') + ']</span>，下标范围 [' + bestStart + ', ' + bestEnd + ']，最大和为 <b>' + bestSum + '</b>。' });
+    return steps;
+  }
+
+  root.MaximumSubarrayApp = { parseArray:parseArray, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.MaximumSubarrayApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), arrayEl = $('array'), statsEl = $('stats'), statusEl = $('status');
+  var progressEl = $('progress'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], steps = [], stepIndex = 0, timer = null, cells = [];
+
+  function buildArray() {
+    arrayEl.innerHTML = ''; cells = [];
+    arrayEl.style.gridTemplateColumns = 'repeat(' + nums.length + ', 58px)';
+    nums.forEach(function (value, index) {
+      var cell = document.createElement('div'); cell.className = 'cell';
+      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = index;
+      var val = document.createElement('span'); val.textContent = value;
+      var ptr = document.createElement('span'); ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(ptr); arrayEl.appendChild(cell);
+      cells.push({ cell:cell, ptr:ptr });
+    });
+  }
+  function inRange(index, start, end) { return index >= start && index <= end; }
+  function render() {
+    var step = steps[stepIndex];
+    cells.forEach(function (ref, index) {
+      var cls = 'cell';
+      if (index < step.i) cls += ' processed';
+      if (inRange(index, step.bestStart, step.bestEnd)) cls += ' best';
+      if (inRange(index, step.currentStart, step.currentEnd)) cls += ' current-range';
+      if (index === step.i && step.phase !== 'done') cls += ' focus';
+      ref.cell.className = cls; ref.ptr.textContent = index === step.i && step.phase !== 'done' ? 'i' : '';
+    });
+    $('restartValue').textContent = step.restart === null ? '—' : step.restart;
+    $('extendValue').textContent = step.extend === null ? '—' : step.extend;
+    $('restartOption').className = 'option' + (step.choice === 'restart' ? ' chosen' : '');
+    $('extendOption').className = 'option' + (step.choice === 'extend' ? ' chosen' : '');
+    $('currentSum').textContent = step.currentSum;
+    $('currentRange').textContent = '[' + step.currentStart + ', ' + step.currentEnd + ']';
+    $('bestSum').textContent = step.bestSum;
+    $('bestRange').textContent = '[' + step.bestStart + ', ' + step.bestEnd + ']';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    var answer = App.solve(nums);
+    statsEl.innerHTML =
+      '<div class="stat">输入长度<b>' + nums.length + '</b></div>' +
+      '<div class="stat">最大和<b>' + answer.sum + '</b></div>' +
+      '<div class="stat">最佳区间<b>[' + answer.start + ', ' + answer.end + ']</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex >= steps.length - 1) stopPlay(); else next(); }, 760);
+  }
+  function load() {
+    var parsed = App.parseArray(input.value);
+    if (!parsed.arr) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); nums = parsed.arr; steps = App.buildSteps(nums); stepIndex = 0;
+    buildArray(); renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># Kadane · O(n) 时间 · O(1) 额外空间</span>\n' +
+'class Solution:\n' +
+'    def maxSubArray(self, nums: list[int]) -&gt; int:\n' +
+'        current_sum = best_sum = nums[0]\n' +
+'\n' +
+'        for value in nums[1:]:\n' +
+'            current_sum = max(value, current_sum + value)\n' +
+'            best_sum = max(best_sum, current_sum)\n' +
+'\n' +
+'        return best_sum',
+    java:
+'<span class="cmt">// Kadane · O(n) 时间 · O(1) 额外空间</span>\n' +
+'class Solution {\n' +
+'    public int maxSubArray(int[] nums) {\n' +
+'        int currentSum = nums[0];\n' +
+'        int bestSum = nums[0];\n' +
+'\n' +
+'        for (int i = 1; i &lt; nums.length; i++) {\n' +
+'            currentSum = Math.max(nums[i], currentSum + nums[i]);\n' +
+'            bestSum = Math.max(bestSum, currentSum);\n' +
+'        }\n' +
+'\n' +
+'        return bestSum;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>
