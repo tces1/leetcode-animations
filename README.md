@@ -92,6 +92,7 @@ leetcode-animations/
 | 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 后序遍历 · 树形DP · 递归返回值 |
 | 131 | [分割回文串](https://tces1.github.io/leetcode-animations/problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
 | 152 | [乘积最大子数组](https://tces1.github.io/leetcode-animations/problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
+| 160 | [相交链表](https://tces1.github.io/leetcode-animations/problems/160-intersection-of-two-linked-lists.html) | 简单 | 链表 · 双指针 · 路程对齐 · O(1) 空间 |
 | 200 | [岛屿数量](https://tces1.github.io/leetcode-animations/problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
