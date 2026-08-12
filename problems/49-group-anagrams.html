@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 49 字母异位词分组：使用 26 个字母计数签名作为哈希 key 的逐步动画演示。">
+<meta name="tags" content="字符串 · 哈希表 · 计数 · 字母异位词 · 分组">
+<title>49. 字母异位词分组 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#f5f3ff; border:1px solid #ddd6fe; color:#4c1d95; font-size:13px; }
+  .key-note code { background:#ede9fe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:280px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text] {
+    width:100%; min-width:140px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font:12px "SF Mono",Menlo,monospace; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .words-stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fff,#fbfbfd); padding:24px 16px 32px; }
+  .words-row { display:flex; gap:8px; min-width:max-content; }
+  .word-cell {
+    position:relative; min-width:62px; height:50px; border-radius:9px; padding:0 12px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 15px "SF Mono",Menlo,monospace; color:#334155;
+    background:#f8fafc; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .word-cell.future { opacity:.38; }
+  .word-cell.done { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+  .word-cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.2); transform:translateY(-2px); }
+  .word-cell.placed { background:#22c55e; border-color:#16a34a; color:#fff; }
+  .word-cell .idx { position:absolute; top:1px; left:5px; font-size:8px; color:#a5b4fc; }
+  .word-cell .ptr { position:absolute; top:100%; margin-top:6px; font-size:9px; font-weight:800; color:#b45309; }
+  .word-cell.placed .idx { color:#dcfce7; }
+
+  .signature-panel { margin-top:14px; border:1px solid #e5e7eb; border-radius:11px; background:#f8fafc; padding:12px; }
+  .signature-head { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:9px; }
+  .signature-title { font-size:11px; color:#64748b; font-weight:800; }
+  .signature-text { font:700 12px "SF Mono",Menlo,monospace; color:#5b21b6; word-break:break-all; }
+  .count-grid { display:grid; grid-template-columns:repeat(13,minmax(34px,1fr)); gap:6px; }
+  .count-item { border:1px solid #e5e7eb; border-radius:7px; background:#fff; padding:5px 3px; text-align:center; }
+  .count-item .letter { display:block; font:700 10px "SF Mono",Menlo,monospace; color:#94a3b8; }
+  .count-item .value { display:block; font:800 14px "SF Mono",Menlo,monospace; color:#cbd5e1; }
+  .count-item.active { background:#ede9fe; border-color:#c4b5fd; }
+  .count-item.active .letter,.count-item.active .value { color:#5b21b6; }
+
+  .bucket-panel { margin-top:14px; }
+  .bucket-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; min-height:70px; }
+  .bucket {
+    border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px;
+    transition:border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .bucket.current { border-color:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.15); transform:translateY(-1px); }
+  .bucket-key { font:700 11px "SF Mono",Menlo,monospace; color:#64748b; margin-bottom:7px; word-break:break-all; }
+  .bucket-words { display:flex; flex-wrap:wrap; gap:6px; }
+  .bucket-word { font:700 12px "SF Mono",Menlo,monospace; padding:5px 8px; border-radius:7px; background:#ede9fe; border:1px solid #ddd6fe; color:#5b21b6; }
+  .bucket-word.latest { background:#dcfce7; border-color:#4ade80; color:#166534; }
+  .empty { font-size:12px; color:#9ca3af; }
+
+  .summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+  .summary-box { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; text-align:center; font-size:12px; color:#64748b; }
+  .summary-box b { display:block; margin-top:2px; font:800 17px "SF Mono",Menlo,monospace; color:#334155; }
+  .summary-box.current b { color:#b45309; }
+  .summary-box.groups b { color:#16a34a; }
+  .summary-box.processed b { color:#4f46e5; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-done { background:#ede9fe; border-color:#c4b5fd; }
+  .dot-current { background:#fef3c7; border-color:#f59e0b; }
+  .dot-placed { background:#22c55e; border-color:#16a34a; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:720px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .count-grid { grid-template-columns:repeat(7,minmax(32px,1fr)); }
+    .summary-grid { grid-template-columns:1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/group-anagrams/" target="_blank" rel="noopener">LeetCode 49</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>49. 字母异位词分组 · 计数签名动画</h1>
+  <div class="sub">字母异位词拥有完全相同的<b>字母频次</b>。对每个单词统计 26 个小写字母的出现次数，把这 26 个计数组成哈希 key；key 相同的单词放进同一个桶。设全部字符总数为 K，时间 <code>O(K)</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">计数分组四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 创建计数表</div>为当前单词建立长度 26 的数组，分别对应 <code>a..z</code>。</div>
+      <div class="idea-item"><div class="no">② 扫描字符</div>每读到字符 c，就执行 <code>counts[c-'a']++</code>，单词长度为 k 时耗时 O(k)。</div>
+      <div class="idea-item"><div class="no">③ 生成签名 key</div>用分隔符连接 26 个计数，避免歧义；如 eat、tea、ate 都得到 <code>a1#e1#t1</code>。</div>
+      <div class="idea-item"><div class="no">④ 放入分组桶</div>执行 <code>groups[key].append(word)</code>；已有 key 追加，没有就新建桶。</div>
+    </div>
+    <div class="key-note"><b>为什么优先计数而不是排序？</b> 长度为 k 的单词，计数生成 key 是 <code>O(k)</code>，排序则是 <code>O(k log k)</code>。26 位签名中的 0 也属于完整 key；动画用 <code>a1#e1#t1</code> 这样的非零摘要方便阅读。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">strs =</span><input type="text" id="wordsInput" value="eat tea tan ate nat bat" spellcheck="false" placeholder="用空格或逗号分隔单词"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="eat tea tan ate nat bat">经典三组</span>
+      <span class="chip" data-v="a">单个单词</span>
+      <span class="chip" data-v="ab ba abc bca cab">不同长度</span>
+      <span class="chip" data-v="abc abc cba bac">重复单词</span>
+      <span class="chip" data-v="listen silent enlist inlets google">较长单词</span>
+      <span class="chip" data-v="x y z">各自成组</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">仅支持小写英文字母单词；1～12 个单词，每个长度 1～12，总字符数不超过 80。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">输入单词</div>
+    <div class="words-stage"><div class="words-row" id="wordsRow"></div></div>
+
+    <div class="signature-panel">
+      <div class="signature-head">
+        <span class="signature-title">当前单词的 26 字母计数签名</span>
+        <span class="signature-text" id="signatureText">等待开始</span>
+      </div>
+      <div class="count-grid" id="countGrid"></div>
+    </div>
+
+    <div class="bucket-panel">
+      <div class="panel-title">groups：签名 key → 分组桶</div>
+      <div class="bucket-grid" id="bucketGrid"></div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-box current">当前单词<b id="currentWord">—</b></div>
+      <div class="summary-box processed">已处理<b id="processedCount">0</b></div>
+      <div class="summary-box groups">分组数<b id="groupCount">0</b></div>
+    </div>
+    <div class="legend">
+      <span><span class="dot dot-done"></span>已处理单词</span>
+      <span><span class="dot dot-current"></span>正在计算签名</span>
+      <span><span class="dot dot-placed"></span>刚放入桶</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（26 字母计数 key）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：26 字母计数签名 + 哈希分组 ==== */
+(function (root) {
+  'use strict';
+
+  function parseInput(value) {
+    if (typeof value !== 'string') return { err:'strs 必须是文本' };
+    var text = value.trim();
+    if (!text) return { err:'strs 不能为空' };
+    var words = text.split(/[,\s]+/).filter(Boolean);
+    if (words.length < 1 || words.length > 12) return { err:'单词数量须为 1～12' };
+    var total = 0;
+    for (var i = 0; i < words.length; i++) {
+      if (!/^[a-z]+$/.test(words[i])) return { err:'单词只能包含小写英文字母：' + words[i] };
+      if (words[i].length > 12) return { err:'单词长度不能超过 12：' + words[i] };
+      total += words[i].length;
+    }
+    if (total > 80) return { err:'总字符数不能超过 80' };
+    return { words:words, err:null };
+  }
+
+  function countWord(word) {
+    var counts = new Array(26).fill(0);
+    for (var i = 0; i < word.length; i++) counts[word.charCodeAt(i) - 97]++;
+    return counts;
+  }
+
+  function makeKey(counts) {
+    return counts.join('#');
+  }
+
+  function signatureLabel(counts) {
+    var parts = [];
+    for (var i = 0; i < 26; i++) {
+      if (counts[i]) parts.push(String.fromCharCode(97 + i) + counts[i]);
+    }
+    return parts.join('#') || '全为 0';
+  }
+
+  function solve(words) {
+    var groups = new Map();
+    words.forEach(function (word) {
+      var key = makeKey(countWord(word));
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(word);
+    });
+    return Array.from(groups.values()).map(function (group) { return group.slice(); });
+  }
+
+  function buildSteps(words) {
+    var groups = new Map(), steps = [];
+
+    function copyBuckets() {
+      var buckets = [];
+      groups.forEach(function (bucketWords, key) {
+        var counts = key.split('#').map(Number);
+        buckets.push({ key:key, label:signatureLabel(counts), words:bucketWords.slice() });
+      });
+      return buckets;
+    }
+    function snap(o) {
+      steps.push({
+        phase:o.phase || '', index:o.index === undefined ? -1 : o.index,
+        word:o.word || '', counts:(o.counts || new Array(26).fill(0)).slice(),
+        key:o.key || '', label:o.label || '', isNew:!!o.isNew,
+        processed:o.processed || 0, buckets:copyBuckets(), msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', msg:'初始化空哈希表 <code>groups = {}</code>。接下来逐个单词统计 26 个字母的频次。' });
+    for (var i = 0; i < words.length; i++) {
+      var word = words[i], counts = countWord(word);
+      var key = makeKey(counts), label = signatureLabel(counts);
+      var isNew = !groups.has(key);
+      snap({ phase:'signature', index:i, word:word, counts:counts, key:key, label:label, isNew:isNew, processed:i,
+        msg:'扫描单词 <b>"' + word + '"</b> 的每个字符，得到 26 位计数。可读签名为 <code>' + label + '</code>，生成 key 的时间是 O(' + word.length + ')。' });
+      if (isNew) groups.set(key, []);
+      groups.get(key).push(word);
+      snap({ phase:'place', index:i, word:word, counts:counts, key:key, label:label, isNew:isNew, processed:i + 1,
+        msg:isNew
+          ? '哈希表中还没有签名 <code>' + label + '</code>，创建新桶并放入 <span class="ok">"' + word + '"</span>。'
+          : '签名 <code>' + label + '</code> 已有对应桶，<span class="ok">把 "' + word + '" 追加到同一组</span>。' });
+    }
+    snap({ phase:'done', processed:words.length,
+      msg:'全部单词处理完成，共形成 <span class="ok">' + groups.size + ' 个分组</span>。同一桶中的单词拥有完全相同的 26 字母计数。' });
+    return steps;
+  }
+
+  root.GROUP_ANAGRAMS_49 = {
+    parseInput:parseInput, countWord:countWord, makeKey:makeKey,
+    signatureLabel:signatureLabel, solve:solve, buildSteps:buildSteps
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.GROUP_ANAGRAMS_49;
+  var $ = function (id) { return document.getElementById(id); };
+  var wordsInput = $('wordsInput'), errEl = $('err'), wordsRow = $('wordsRow');
+  var countGrid = $('countGrid'), bucketGrid = $('bucketGrid'), statsEl = $('stats');
+  var statusEl = $('status'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var words = [], steps = [], stepIndex = 0, timer = null, wordCells = [], countCells = [];
+
+  function buildStaticViews() {
+    wordsRow.innerHTML = '';
+    wordCells = [];
+    words.forEach(function (word, index) {
+      var cell = document.createElement('div');
+      cell.className = 'word-cell';
+      var idx = document.createElement('span');
+      idx.className = 'idx'; idx.textContent = index;
+      var value = document.createElement('span');
+      value.textContent = word;
+      var ptr = document.createElement('span');
+      ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(value); cell.appendChild(ptr);
+      wordsRow.appendChild(cell);
+      wordCells.push({ cell:cell, ptr:ptr });
+    });
+
+    countGrid.innerHTML = '';
+    countCells = [];
+    for (var i = 0; i < 26; i++) {
+      var item = document.createElement('div');
+      item.className = 'count-item';
+      var letter = document.createElement('span');
+      letter.className = 'letter'; letter.textContent = String.fromCharCode(97 + i);
+      var value = document.createElement('span');
+      value.className = 'value'; value.textContent = '0';
+      item.appendChild(letter); item.appendChild(value);
+      countGrid.appendChild(item);
+      countCells.push({ item:item, value:value });
+    }
+  }
+
+  function renderWords(step) {
+    wordCells.forEach(function (ref, index) {
+      var cls = 'word-cell';
+      if (index < step.processed) cls += ' done';
+      if (step.index >= 0 && index > step.index) cls += ' future';
+      if (index === step.index) cls += step.phase === 'place' ? ' placed' : ' current';
+      ref.cell.className = cls;
+      ref.ptr.textContent = index === step.index ? '当前' : '';
+    });
+  }
+
+  function renderCounts(step) {
+    countCells.forEach(function (ref, index) {
+      var value = step.counts[index] || 0;
+      ref.item.className = 'count-item' + (value ? ' active' : '');
+      ref.value.textContent = value;
+    });
+    $('signatureText').textContent = step.label ? 'key 摘要：' + step.label : '等待计算';
+  }
+
+  function renderBuckets(step) {
+    bucketGrid.innerHTML = '';
+    if (!step.buckets.length) {
+      bucketGrid.innerHTML = '<span class="empty">当前还没有分组桶</span>';
+      return;
+    }
+    step.buckets.forEach(function (bucket) {
+      var card = document.createElement('div');
+      card.className = 'bucket' + (step.key === bucket.key ? ' current' : '');
+      var key = document.createElement('div');
+      key.className = 'bucket-key'; key.textContent = 'key: ' + bucket.label;
+      var list = document.createElement('div');
+      list.className = 'bucket-words';
+      bucket.words.forEach(function (word, index) {
+        var tag = document.createElement('span');
+        var latest = step.phase === 'place' && step.key === bucket.key && index === bucket.words.length - 1;
+        tag.className = 'bucket-word' + (latest ? ' latest' : '');
+        tag.textContent = word;
+        list.appendChild(tag);
+      });
+      card.appendChild(key); card.appendChild(list);
+      bucketGrid.appendChild(card);
+    });
+  }
+
+  function renderStats() {
+    var result = APP.solve(words);
+    var totalChars = words.reduce(function (sum, word) { return sum + word.length; }, 0);
+    statsEl.innerHTML =
+      '<div class="stat">单词数<b>' + words.length + '</b></div>' +
+      '<div class="stat">总字符数 K<b>' + totalChars + '</b></div>' +
+      '<div class="stat">最终分组数<b>' + result.length + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(K)</b></div>' +
+      '<div class="stat">额外空间<b>O(K)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderWords(step);
+    renderCounts(step);
+    renderBuckets(step);
+    $('currentWord').textContent = step.word || '—';
+    $('processedCount').textContent = step.processed + ' / ' + words.length;
+    $('groupCount').textContent = step.buckets.length;
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 850);
+  }
+  function load() {
+    var parsed = APP.parseInput(wordsInput.value);
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    words = parsed.words;
+    steps = APP.buildSteps(words);
+    stepIndex = 0;
+    buildStaticViews(); renderStats(); render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  wordsInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { wordsInput.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === wordsInput) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 26 字母计数签名：生成 key 为 O(k)</span>\n' +
+'from collections import defaultdict\n' +
+'\n' +
+'class Solution:\n' +
+'    def groupAnagrams(self, strs: list[str]) -&gt; list[list[str]]:\n' +
+'        groups = defaultdict(list)\n' +
+'        for word in strs:\n' +
+'            counts = [0] * 26\n' +
+'            for char in word:\n' +
+'                counts[ord(char) - ord("a")] += 1\n' +
+'            groups[tuple(counts)].append(word)\n' +
+'        return list(groups.values())',
+    java:
+'<span class="cmt">// 26 字母计数签名：生成 key 为 O(k)</span>\n' +
+'class Solution {\n' +
+'    public List&lt;List&lt;String&gt;&gt; groupAnagrams(String[] strs) {\n' +
+'        Map&lt;String, List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();\n' +
+'        for (String word : strs) {\n' +
+'            int[] counts = new int[26];\n' +
+'            for (char c : word.toCharArray()) counts[c - \'a\']++;\n' +
+'\n' +
+'            StringBuilder key = new StringBuilder();\n' +
+'            for (int count : counts) key.append(\'#\').append(count);\n' +
+'            groups.computeIfAbsent(key.toString(), k -&gt; new ArrayList&lt;&gt;())\n' +
+'                  .add(word);\n' +
+'        }\n' +
+'        return new ArrayList&lt;&gt;(groups.values());\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>

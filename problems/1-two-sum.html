@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 1 两数之和：用哈希表先查询补数、再存入当前元素的逐步动画演示。">
+<meta name="tags" content="数组 · 哈希表 · 一次遍历 · 补数">
+<title>1. 两数之和 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .order-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:13px; }
+  .order-note code { background:#ffedd5; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .fields { display:grid; grid-template-columns:3fr 1fr; gap:10px; flex:1; min-width:300px; }
+  .field { display:flex; align-items:center; gap:8px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text] {
+    width:100%; min-width:90px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font:12px "SF Mono",Menlo,monospace; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .array-stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fff,#fbfbfd); padding:30px 16px 36px; }
+  .array-row { display:inline-grid; gap:8px; min-width:max-content; }
+  .array-cell {
+    position:relative; width:54px; height:56px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 17px "SF Mono",Menlo,monospace; color:#334155;
+    background:#f8fafc; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .array-cell.future { opacity:.38; }
+  .array-cell.seen { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+  .array-cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.2); transform:translateY(-2px); }
+  .array-cell.match { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 4px rgba(34,197,94,.2); transform:scale(1.04); }
+  .array-cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#a5b4fc; }
+  .array-cell.match .idx { color:#dcfce7; }
+  .array-cell .ptr { position:absolute; top:100%; margin-top:7px; font-size:10px; font-weight:800; color:#b45309; white-space:nowrap; }
+
+  .work-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+  .formula-box {
+    border-radius:11px; background:#0f172a; color:#e2e8f0; padding:14px 16px;
+    min-height:126px; display:flex; flex-direction:column; justify-content:center;
+    font:600 13px "SF Mono",Menlo,monospace; line-height:1.9;
+  }
+  .formula-box .x { color:#fcd34d; font-weight:800; }
+  .formula-box .comp { color:#86efac; font-weight:800; }
+  .formula-box .result { color:#7dd3fc; font-weight:800; }
+  .hash-box { border:1px solid #e5e7eb; border-radius:11px; background:#f8fafc; padding:12px; min-height:126px; }
+  .hash-title { font-size:11px; color:#64748b; font-weight:800; margin-bottom:8px; }
+  .hash-grid { display:flex; flex-wrap:wrap; gap:7px; align-items:flex-start; }
+  .hash-item { font:700 12px "SF Mono",Menlo,monospace; padding:6px 9px; border-radius:7px; background:#ede9fe; border:1px solid #ddd6fe; color:#5b21b6; }
+  .hash-item.lookup { background:#dcfce7; border-color:#4ade80; color:#166534; box-shadow:0 0 0 2px rgba(34,197,94,.18); }
+  .hash-item.stored { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
+  .empty { font-size:12px; color:#9ca3af; }
+
+  .summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+  .summary-box { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; text-align:center; font-size:12px; color:#64748b; }
+  .summary-box b { display:block; margin-top:2px; font:800 18px "SF Mono",Menlo,monospace; color:#334155; }
+  .summary-box.current b { color:#b45309; }
+  .summary-box.complement b { color:#16a34a; }
+  .summary-box.answer b { color:#0284c7; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-seen { background:#ede9fe; border-color:#c4b5fd; }
+  .dot-current { background:#fef3c7; border-color:#f59e0b; }
+  .dot-match { background:#22c55e; border-color:#16a34a; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .no { color:#fca5a5; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:700px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .fields,.work-grid,.summary-grid { grid-template-columns:1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/two-sum/" target="_blank" rel="noopener">LeetCode 1</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>1. 两数之和 · 哈希表动画</h1>
+  <div class="sub">扫描到 <code>x = nums[i]</code> 时，先计算 <code>complement = target - x</code>，再去哈希表查找补数。若找到就返回两个下标；否则才记录 <code>x → i</code>。平均时间 <code>O(n)</code>，额外空间 <code>O(n)</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">一次扫描四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 读取当前值</div>从左到右扫描，令 <code>x = nums[i]</code>。</div>
+      <div class="idea-item"><div class="no">② 计算补数</div>由 <code>x + complement = target</code> 得到 <code>complement = target - x</code>。</div>
+      <div class="idea-item"><div class="no">③ 查询哈希表</div>哈希表保存的是<b>此前元素的值 → 下标</b>，平均 O(1) 判断补数是否出现。</div>
+      <div class="idea-item"><div class="no">④ 未命中才写入</div>找不到补数时记录 <code>seen[x] = i</code>，留给后面的元素匹配。</div>
+    </div>
+    <div class="order-note"><b>顺序不能反：</b>必须<b>先查后存</b>。例如 <code>nums=[3,3], target=6</code>，扫描第一个 3 时哈希表还是空的，不会错误地让同一个下标同时充当两个元素；扫描第二个 3 才会匹配下标 0。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="fields">
+        <label class="field"><span class="lab">nums =</span><input type="text" id="numsInput" value="2 7 11 15" spellcheck="false" placeholder="空格或逗号分隔"></label>
+        <label class="field"><span class="lab">target =</span><input type="text" id="targetInput" value="9" spellcheck="false"></label>
+      </div>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-nums="2 7 11 15" data-target="9">经典 [0,1]</span>
+      <span class="chip" data-nums="3 2 4" data-target="6">答案 [1,2]</span>
+      <span class="chip" data-nums="3 3" data-target="6">先查后存</span>
+      <span class="chip" data-nums="-3 4 3 90" data-target="0">含负数</span>
+      <span class="chip" data-nums="1 5 2 8 12 4" data-target="20">较晚命中</span>
+      <span class="chip" data-nums="1 2 3 4" data-target="10">无解演示</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 2～16 个整数；数组元素限 -1,000,000～1,000,000，target 限 -2,000,000～2,000,000。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">数组 nums</div>
+    <div class="array-stage"><div class="array-row" id="arrayRow"></div></div>
+    <div class="work-grid">
+      <div class="formula-box" id="formulaBox"></div>
+      <div class="hash-box">
+        <div class="hash-title">seen：此前数值 → 下标</div>
+        <div class="hash-grid" id="hashGrid"></div>
+      </div>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-box current">当前 x<b id="currentValue">—</b></div>
+      <div class="summary-box complement">补数 complement<b id="complementValue">—</b></div>
+      <div class="summary-box answer">答案下标<b id="answerValue">—</b></div>
+    </div>
+    <div class="legend">
+      <span><span class="dot dot-seen"></span>已写入哈希表</span>
+      <span><span class="dot dot-current"></span>当前扫描元素</span>
+      <span><span class="dot dot-match"></span>命中的两个元素</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：先查询补数，再记录当前元素 ==== */
+(function (root) {
+  'use strict';
+
+  function parseInputs(numsValue, targetValue) {
+    if (typeof numsValue !== 'string') return { err:'nums 必须是文本' };
+    var trimmed = numsValue.trim();
+    if (!trimmed) return { err:'nums 不能为空' };
+    var parts = trimmed.split(/[,\s]+/).filter(Boolean);
+    if (parts.length < 2 || parts.length > 16) return { err:'nums 长度须为 2～16' };
+    var nums = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { err:'nums 含非整数：' + parts[i] };
+      var value = Number(parts[i]);
+      if (!Number.isSafeInteger(value) || value < -1000000 || value > 1000000) {
+        return { err:'数组元素须在 -1,000,000～1,000,000：' + parts[i] };
+      }
+      nums.push(value);
+    }
+    var targetText = String(targetValue).trim();
+    if (!/^-?\d+$/.test(targetText)) return { err:'target 必须是整数' };
+    var target = Number(targetText);
+    if (!Number.isSafeInteger(target) || target < -2000000 || target > 2000000) {
+      return { err:'target 须在 -2,000,000～2,000,000' };
+    }
+    return { nums:nums, target:target, err:null };
+  }
+
+  function solve(nums, target) {
+    var seen = new Map();
+    for (var i = 0; i < nums.length; i++) {
+      var complement = target - nums[i];
+      if (seen.has(complement)) return [seen.get(complement), i];
+      seen.set(nums[i], i);
+    }
+    return [];
+  }
+
+  function buildSteps(nums, target) {
+    var seen = new Map(), steps = [], answer = [];
+
+    function copySeen() {
+      var entries = [];
+      seen.forEach(function (index, value) { entries.push({ value:value, index:index }); });
+      return entries;
+    }
+    function snap(o) {
+      steps.push({
+        phase:o.phase || '', index:o.index === undefined ? -1 : o.index,
+        current:o.current === undefined ? null : o.current,
+        complement:o.complement === undefined ? null : o.complement,
+        matchedIndex:o.matchedIndex === undefined ? -1 : o.matchedIndex,
+        storedIndex:o.storedIndex === undefined ? -1 : o.storedIndex,
+        seen:copySeen(), answer:answer.slice(), msg:o.msg || ''
+      });
+    }
+
+    snap({ phase:'start', msg:'初始化空哈希表 <code>seen = {}</code>。它只保存<b>当前下标之前</b>出现过的元素。' });
+    for (var i = 0; i < nums.length; i++) {
+      var x = nums[i], complement = target - x;
+      var matched = seen.has(complement) ? seen.get(complement) : -1;
+      snap({ phase:'query', index:i, current:x, complement:complement, matchedIndex:matched,
+        msg:'扫描 <b>nums[' + i + '] = ' + x + '</b>，计算 <code>complement = ' + target + ' - ' + x + ' = ' + complement + '</code>，然后查询 <code>seen</code>。' });
+      if (matched >= 0) {
+        answer = [matched, i];
+        snap({ phase:'found', index:i, current:x, complement:complement, matchedIndex:matched,
+          msg:'查询命中：<code>seen[' + complement + '] = ' + matched + '</code>。因为 nums[' + matched + '] + nums[' + i + '] = ' + complement + ' + ' + x + ' = ' + target + '，<span class="ok">返回下标 [' + matched + ', ' + i + ']</span>。' });
+        snap({ phase:'done', index:i, current:x, complement:complement, matchedIndex:matched,
+          msg:'找到答案后算法结束。哈希表查询平均 O(1)，总时间 O(n)。' });
+        return steps;
+      }
+      snap({ phase:'miss', index:i, current:x, complement:complement,
+        msg:'哈希表中没有补数 <b>' + complement + '</b>，本轮未命中。接下来才把当前元素写入，确保不会重复使用下标 ' + i + '。' });
+      seen.set(x, i);
+      snap({ phase:'store', index:i, current:x, complement:complement, storedIndex:i,
+        msg:'写入 <code>seen[' + x + '] = ' + i + '</code>。之后的元素可以用数值 ' + x + ' 匹配到这个下标。' });
+    }
+    snap({ phase:'done', msg:'扫描完成，哈希表中始终没有出现所需补数，因此当前输入没有两数之和等于 ' + target + ' 的下标对。' });
+    return steps;
+  }
+
+  root.TWO_SUM_1 = { parseInputs:parseInputs, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.TWO_SUM_1;
+  var $ = function (id) { return document.getElementById(id); };
+  var numsInput = $('numsInput'), targetInput = $('targetInput'), errEl = $('err');
+  var arrayRow = $('arrayRow'), hashGrid = $('hashGrid'), formulaBox = $('formulaBox');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], target = 0, steps = [], stepIndex = 0, timer = null, cells = [];
+
+  function buildArray() {
+    arrayRow.innerHTML = '';
+    arrayRow.style.gridTemplateColumns = 'repeat(' + nums.length + ', 54px)';
+    cells = [];
+    nums.forEach(function (value, index) {
+      var cell = document.createElement('div');
+      cell.className = 'array-cell';
+      var idx = document.createElement('span');
+      idx.className = 'idx'; idx.textContent = index;
+      var val = document.createElement('span');
+      val.textContent = value;
+      var ptr = document.createElement('span');
+      ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(ptr);
+      arrayRow.appendChild(cell);
+      cells.push({ cell:cell, ptr:ptr });
+    });
+  }
+
+  function renderArray(step) {
+    var seenIndices = {};
+    step.seen.forEach(function (item) { seenIndices[item.index] = true; });
+    cells.forEach(function (ref, index) {
+      var cls = 'array-cell';
+      if (step.index >= 0 && index > step.index) cls += ' future';
+      if (seenIndices[index]) cls += ' seen';
+      if (index === step.index) cls += ' current';
+      if (step.answer.indexOf(index) >= 0) cls += ' match';
+      ref.cell.className = cls;
+      ref.ptr.textContent = index === step.index ? 'i' : '';
+    });
+  }
+
+  function renderHash(step) {
+    hashGrid.innerHTML = '';
+    if (!step.seen.length) {
+      hashGrid.innerHTML = '<span class="empty">当前为空</span>';
+      return;
+    }
+    step.seen.forEach(function (item) {
+      var tag = document.createElement('span');
+      tag.className = 'hash-item';
+      if (step.complement === item.value && (step.phase === 'query' || step.phase === 'found' || step.phase === 'done')) tag.className += ' lookup';
+      if (step.storedIndex === item.index) tag.className += ' stored';
+      tag.textContent = item.value + ' → ' + item.index;
+      hashGrid.appendChild(tag);
+    });
+  }
+
+  function renderFormula(step) {
+    if (step.current === null) {
+      formulaBox.innerHTML = 'seen = {}<br>等待读取 nums[i]';
+      return;
+    }
+    var lookup = step.matchedIndex >= 0 ? '命中下标 ' + step.matchedIndex : '未命中';
+    formulaBox.innerHTML =
+      'x = nums[' + step.index + '] = <span class="x">' + step.current + '</span><br>' +
+      'complement = ' + target + ' - ' + step.current + ' = <span class="comp">' + step.complement + '</span><br>' +
+      'seen.has(' + step.complement + ') → <span class="result">' + lookup + '</span>';
+  }
+
+  function renderStats() {
+    var answer = APP.solve(nums, target);
+    statsEl.innerHTML =
+      '<div class="stat">数组长度<b>' + nums.length + '</b></div>' +
+      '<div class="stat">target<b>' + target + '</b></div>' +
+      '<div class="stat">最终答案<b>' + (answer.length ? '[' + answer.join(', ') + ']' : '[]') + '</b></div>' +
+      '<div class="stat">平均时间<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(n)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderArray(step);
+    renderHash(step);
+    renderFormula(step);
+    $('currentValue').textContent = step.current === null ? '—' : step.current;
+    $('complementValue').textContent = step.complement === null ? '—' : step.complement;
+    $('answerValue').textContent = step.answer.length ? '[' + step.answer.join(', ') + ']' : '—';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 800);
+  }
+  function load() {
+    var parsed = APP.parseInputs(numsInput.value, targetInput.value);
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    nums = parsed.nums; target = parsed.target;
+    steps = APP.buildSteps(nums, target);
+    stepIndex = 0;
+    buildArray(); renderStats(); render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  [numsInput, targetInput].forEach(function (input) {
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      numsInput.value = chip.dataset.nums;
+      targetInput.value = chip.dataset.target;
+      load();
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === numsInput || document.activeElement === targetInput) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 先查询补数，再记录当前元素</span>\n' +
+'class Solution:\n' +
+'    def twoSum(self, nums: list[int], target: int) -&gt; list[int]:\n' +
+'        seen = {}  <span class="cmt"># 数值 -&gt; 此前出现的下标</span>\n' +
+'        for i, x in enumerate(nums):\n' +
+'            complement = target - x\n' +
+'            if complement in seen:      <span class="cmt"># 先查</span>\n' +
+'                return [seen[complement], i]\n' +
+'            seen[x] = i                 <span class="cmt"># 未命中再存</span>',
+    java:
+'<span class="cmt">// 先查询补数，再记录当前元素</span>\n' +
+'class Solution {\n' +
+'    public int[] twoSum(int[] nums, int target) {\n' +
+'        Map&lt;Integer, Integer&gt; seen = new HashMap&lt;&gt;();\n' +
+'        for (int i = 0; i &lt; nums.length; i++) {\n' +
+'            int complement = target - nums[i];\n' +
+'            if (seen.containsKey(complement)) { <span class="cmt">// 先查</span>\n' +
+'                return new int[]{seen.get(complement), i};\n' +
+'            }\n' +
+'            seen.put(nums[i], i);               <span class="cmt">// 再存</span>\n' +
+'        }\n' +
+'        return new int[0];\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>

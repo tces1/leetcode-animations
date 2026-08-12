@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 双指针 · 原地交换 · 稳定顺序">
+<title>283. 移动零 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.05em; }
+  .idea-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#f5f3ff; border:1px solid #ddd6fe; color:#5b21b6; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:260px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:180px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:34px 18px 30px; text-align:center; }
+  .array { display:inline-grid; gap:7px; min-width:max-content; }
+  .cell {
+    position:relative; width:58px; height:58px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 18px "SF Mono",Menlo,monospace; color:#334155;
+    background:#fff; border:2px solid #e2e8f0; transition:.18s;
+  }
+  .cell .idx { position:absolute; top:2px; left:5px; color:#a5b4fc; font-size:9px; }
+  .cell .ptr { position:absolute; bottom:-22px; left:50%; transform:translateX(-50%); white-space:nowrap; font:800 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .cell.zero { background:#f1f5f9; color:#94a3b8; }
+  .cell.settled { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .cell.fast { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 4px rgba(245,158,11,.18); transform:translateY(-2px); }
+  .cell.slow { border-color:#6366f1; box-shadow:0 0 0 4px rgba(99,102,241,.18); }
+  .cell.swap { background:#ede9fe; border-color:#7c3aed; color:#5b21b6; box-shadow:0 0 0 4px rgba(124,58,237,.2); transform:scale(1.07); }
+  .cell.tail-zero { background:#e2e8f0; border-color:#94a3b8; color:#64748b; }
+  .cell.done-nonzero { background:#22c55e; border-color:#16a34a; color:#fff; }
+  .pf { color:#b45309; } .ps { color:#4f46e5; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; background:#f8fafc; color:#64748b; text-align:center; font-size:12px; }
+  .box b { display:block; min-height:27px; color:#334155; font:800 18px "SF Mono",Menlo,monospace; }
+  .box.slow b { color:#4f46e5; } .box.fast b { color:#b45309; } .box.zero-count b { color:#64748b; }
+  .kept { margin-top:10px; border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; display:flex; align-items:center; flex-wrap:wrap; gap:7px; min-height:49px; }
+  .kept .label { font-size:12px; color:#64748b; font-weight:700; margin-right:3px; }
+  .kept-value { font:800 13px "SF Mono",Menlo,monospace; padding:4px 8px; border-radius:7px; background:#dcfce7; border:1px solid #86efac; color:#166534; }
+  .kept-empty { font-size:12px; color:#9ca3af; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .rule .yes { color:#86efac; font-weight:800; } .rule .no { color:#fca5a5; font-weight:800; } .rule .accent { color:#fcd34d; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; font-weight:700; } .status .muted { color:#cbd5e1; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:650px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .dashboard { grid-template-columns:1fr 1fr; } .progress { width:100%; margin-left:0; }
+    .cell { width:50px; height:50px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/move-zeroes/" target="_blank" rel="noopener">LeetCode 283</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>283. 移动零 · 快慢指针动画</h1>
+  <div class="sub"><code>fast</code> 从左到右逐格扫描，<code>slow</code> 始终指向下一个应放非零元素的位置。fast 遇到非零值时与 slow 交换，然后 <code>slow++</code>；遇到 0 时只移动 fast。所有非零元素按原顺序被依次放到前面，交换出的 0 自然留在尾部。</div>
+
+  <div class="card">
+    <div class="panel-title">快慢指针三步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① fast 负责寻找</div><code>fast</code> 每次前进一格，检查当前元素是否非零，保证整个数组只扫描一遍。</div>
+      <div class="idea-item"><div class="no">② slow 负责安放</div><code>slow</code> 前面的区域已经按原相对顺序放好了所有已发现的非零元素。</div>
+      <div class="idea-item"><div class="no">③ 非零就交换</div>若 <code>nums[fast] != 0</code>，交换 slow 与 fast。两指针重合时无需真的交换，但仍要让 slow 前进。</div>
+    </div>
+    <div class="key-note"><b>为什么相对顺序不变？</b>fast 从左到右发现非零元素，slow 也从左到右依次接收它们。因此非零元素进入前缀的先后顺序与原数组完全相同。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">nums =</span><input type="text" id="input" value="0 1 0 3 12" spellcheck="false" placeholder="空格或逗号分隔，如 0 1 0 3 12"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="0 1 0 3 12">经典示例</span>
+      <span class="chip" data-v="0">单个零</span>
+      <span class="chip" data-v="1">单个非零</span>
+      <span class="chip" data-v="0 0 1">连续零</span>
+      <span class="chip" data-v="4 2 0 0 7 -3 0">负数与多个零</span>
+      <span class="chip" data-v="1 2 3">无需交换</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～18 个整数，空格或逗号分隔；整数范围 −999～999。连续逗号、小数和其它字符会被拒绝。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">fast 逐格扫描；slow 前方是已稳定的非零前缀</div>
+    <div class="stage"><div class="array" id="array"></div></div>
+    <div class="dashboard">
+      <div class="box slow">slow<b id="slowValue">0</b></div>
+      <div class="box fast">fast<b id="fastValue">—</b></div>
+      <div class="box">当前值<b id="currentValue">—</b></div>
+      <div class="box zero-count">已越过的零<b id="zeroCount">0</b></div>
+    </div>
+    <div class="kept" id="kept"></div>
+    <div class="rule" id="rule">fast 遇非零值就放到 slow 位置</div>
+    <div class="legend">
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>fast 正在扫描</span>
+      <span><span class="dot" style="background:#fff;border-color:#6366f1"></span>slow 等待非零</span>
+      <span><span class="dot" style="background:#ede9fe;border-color:#7c3aed"></span>交换两格</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>稳定非零前缀</span>
+      <span><span class="dot" style="background:#e2e8f0;border-color:#94a3b8"></span>尾部零</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-move-zeroes-app>
+(function (root) {
+  'use strict';
+  function parseArray(value) {
+    if (typeof value !== 'string' || !value.trim()) return { arr:null, err:'请输入至少一个整数' };
+    var text = value.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) {
+      return { arr:null, err:'格式无效，请只输入由空格或单个逗号分隔的整数' };
+    }
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length > 18) return { arr:null, err:'长度请不超过 18' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -999 || number > 999) {
+        return { arr:null, err:'整数须在 -999～999：' + parts[i] };
+      }
+      arr.push(number);
+    }
+    return { arr:arr, err:null };
+  }
+
+  function solve(nums) {
+    var a = nums.slice(), slow = 0;
+    for (var fast = 0; fast < a.length; fast++) {
+      if (a[fast] !== 0) {
+        if (slow !== fast) {
+          var temp = a[slow]; a[slow] = a[fast]; a[fast] = temp;
+        }
+        slow++;
+      }
+    }
+    return a;
+  }
+
+  function buildSteps(nums) {
+    var a = nums.slice(), slow = 0, steps = [], kept = [], zerosSeen = 0;
+    function snap(o) {
+      steps.push({
+        arr:a.slice(), phase:o.phase || '',
+        slow:o.slow === undefined ? slow : o.slow,
+        fast:o.fast === undefined ? -1 : o.fast,
+        swap:o.swap ? o.swap.slice() : [],
+        kept:kept.slice(), zerosSeen:zerosSeen, msg:o.msg || ''
+      });
+    }
+    snap({ phase:'start', msg:'slow 从下标 <b>0</b> 开始，fast 即将从左到右逐格扫描。slow 前方始终是已经稳定放好的非零元素。' });
+    for (var fast = 0; fast < a.length; fast++) {
+      snap({ phase:'scan', fast:fast,
+        msg:'fast 扫描下标 <b>' + fast + '</b>，当前值 nums[fast] = <b>' + a[fast] + '</b>。' });
+      if (a[fast] === 0) {
+        zerosSeen++;
+        snap({ phase:'skipZero', fast:fast,
+          msg:'当前值是 <b>0</b>，不放入非零前缀。slow 保持在 ' + slow + '，fast 下一步继续向右。' });
+        continue;
+      }
+      if (slow === fast) {
+        kept.push(a[fast]);
+        snap({ phase:'samePosition', fast:fast,
+          msg:'当前值 <b>' + a[fast] + '</b> 非零，且 slow 与 fast 都在下标 ' + fast + '。元素已在正确位置，<span class="muted">无需实际交换</span>。' });
+        slow++;
+        snap({ phase:'advanceSlow', fast:fast,
+          msg:'已确认一个非零元素，执行 <span class="op">slow++</span>，slow 移到下标 <b>' + slow + '</b>。非零相对顺序保持不变。' });
+      } else {
+        var value = a[fast], displaced = a[slow];
+        snap({ phase:'swapBefore', fast:fast, swap:[slow, fast],
+          msg:'nums[fast] = <b>' + value + '</b> 非零。slow 指向下标 ' + slow + ' 的 ' + displaced + '，准备交换 nums[' + slow + '] 与 nums[' + fast + ']。' });
+        var temp = a[slow]; a[slow] = a[fast]; a[fast] = temp;
+        kept.push(value);
+        snap({ phase:'swapAfter', fast:fast, swap:[slow, fast],
+          msg:'交换完成：非零值 <b>' + value + '</b> 被放到下标 ' + slow + '，原来的 0 被换到后面。数组变为 <span class="op">[' + a.join(', ') + ']</span>。' });
+        slow++;
+        snap({ phase:'advanceSlow', fast:fast,
+          msg:'执行 <span class="op">slow++</span>，slow 移到下标 <b>' + slow + '</b>。已发现的非零序列仍是 [' + kept.join(', ') + ']。' });
+      }
+    }
+    snap({ phase:'done', slow:slow,
+      msg:'扫描完成！前 <b>' + slow + '</b> 格是保持原相对顺序的非零元素，后 <b>' + (a.length - slow) + '</b> 格全部为 0。结果：<span class="op">[' + a.join(', ') + ']</span>。' });
+    return steps;
+  }
+
+  root.MoveZeroesApp = { parseArray:parseArray, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.MoveZeroesApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), arrayEl = $('array'), statsEl = $('stats');
+  var statusEl = $('status'), ruleEl = $('rule'), keptEl = $('kept'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], steps = [], stepIndex = 0, timer = null, cells = [];
+
+  function buildArray() {
+    arrayEl.innerHTML = ''; cells = [];
+    arrayEl.style.gridTemplateColumns = 'repeat(' + nums.length + ', 58px)';
+    nums.forEach(function (_, index) {
+      var cell = document.createElement('div'); cell.className = 'cell';
+      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = index;
+      var value = document.createElement('span');
+      var ptr = document.createElement('span'); ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(value); cell.appendChild(ptr);
+      arrayEl.appendChild(cell); cells.push({ el:cell, value:value, ptr:ptr });
+    });
+    if (window.innerWidth <= 650) arrayEl.style.gridTemplateColumns = 'repeat(' + nums.length + ', 50px)';
+  }
+
+  function renderRule(step) {
+    if (step.phase === 'scan' || step.phase === 'skipZero') {
+      var value = step.arr[step.fast];
+      ruleEl.innerHTML = 'nums[' + step.fast + '] = ' + value + ' → <span class="' + (value !== 0 ? 'yes' : 'no') + '">' +
+        (value !== 0 ? '非零，放到 slow' : '是零，fast 继续') + '</span>';
+    } else if (step.phase === 'samePosition') {
+      ruleEl.innerHTML = 'slow == fast → <span class="accent">位置相同，无需交换</span>';
+    } else if (step.phase === 'swapBefore' || step.phase === 'swapAfter') {
+      ruleEl.innerHTML = 'nums[fast] != 0 → <span class="yes">swap(nums[slow], nums[fast])</span>';
+    } else if (step.phase === 'advanceSlow') {
+      ruleEl.innerHTML = '<span class="yes">非零已安放 → slow++</span>';
+    } else if (step.phase === 'done') {
+      ruleEl.innerHTML = '<span class="yes">完成 · 非零顺序稳定 · 尾部全为 0</span>';
+    } else {
+      ruleEl.textContent = 'fast 遇非零值就放到 slow 位置';
+    }
+  }
+
+  function renderKept(kept) {
+    keptEl.innerHTML = '<span class="label">按原顺序已安放的非零元素：</span>';
+    if (!kept.length) { keptEl.innerHTML += '<span class="kept-empty">暂无</span>'; return; }
+    kept.forEach(function (value, index) {
+      var tag = document.createElement('span'); tag.className = 'kept-value';
+      tag.textContent = (index + 1) + 'º ' + value; keptEl.appendChild(tag);
+    });
+  }
+
+  function render() {
+    var step = steps[stepIndex], swapSet = {};
+    step.swap.forEach(function (index) { swapSet[index] = true; });
+    cells.forEach(function (ref, index) {
+      var value = step.arr[index], cls = 'cell', labels = [];
+      ref.value.textContent = value;
+      if (value === 0) cls += ' zero';
+      if (index < step.slow && value !== 0) cls += ' settled';
+      if (index === step.fast) { cls += ' fast'; labels.push('<span class="pf">fast</span>'); }
+      if (index === step.slow && step.slow < nums.length) { cls += ' slow'; labels.push('<span class="ps">slow</span>'); }
+      if (swapSet[index]) cls += ' swap';
+      if (step.phase === 'done') cls += index < step.slow ? ' done-nonzero' : ' tail-zero';
+      ref.el.className = cls; ref.ptr.innerHTML = labels.join(' · ');
+    });
+    $('slowValue').textContent = step.slow < nums.length ? step.slow : nums.length + '（末尾）';
+    $('fastValue').textContent = step.fast < 0 ? '—' : step.fast;
+    $('currentValue').textContent = step.fast < 0 ? '—' : step.arr[step.fast];
+    $('zeroCount').textContent = step.zerosSeen;
+    renderKept(step.kept); renderRule(step);
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function renderStats() {
+    var result = App.solve(nums), zeroCount = nums.filter(function (x) { return x === 0; }).length;
+    statsEl.innerHTML =
+      '<div class="stat">原数组<b>[' + nums.join(', ') + ']</b></div>' +
+      '<div class="stat">结果<b>[' + result.join(', ') + ']</b></div>' +
+      '<div class="stat">零的数量<b>' + zeroCount + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 760);
+  }
+  function load() {
+    var parsed = App.parseArray(input.value);
+    if (!parsed.arr) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); nums = parsed.arr;
+    steps = App.buildSteps(nums); stepIndex = 0;
+    buildArray(); renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 快慢指针原地交换 · O(n) 时间 · O(1) 空间</span>\n' +
+'class Solution:\n' +
+'    def moveZeroes(self, nums: list[int]) -&gt; None:\n' +
+'        slow = 0\n' +
+'        for fast in range(len(nums)):\n' +
+'            if nums[fast] != 0:\n' +
+'                if slow != fast:             <span class="cmt"># 重合时无需实际交换</span>\n' +
+'                    nums[slow], nums[fast] = nums[fast], nums[slow]\n' +
+'                slow += 1',
+    java:
+'<span class="cmt">// 快慢指针原地交换 · O(n) 时间 · O(1) 空间</span>\n' +
+'class Solution {\n' +
+'    public void moveZeroes(int[] nums) {\n' +
+'        int slow = 0;\n' +
+'        for (int fast = 0; fast &lt; nums.length; fast++) {\n' +
+'            if (nums[fast] != 0) {\n' +
+'                if (slow != fast) {          <span class="cmt">// 重合时无需实际交换</span>\n' +
+'                    int temp = nums[slow];\n' +
+'                    nums[slow] = nums[fast];\n' +
+'                    nums[fast] = temp;\n' +
+'                }\n' +
+'                slow++;\n' +
+'            }\n' +
+'        }\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>

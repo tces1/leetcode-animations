@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="字符串 · 滑动窗口 · 哈希表 · 下标跳跃">
+<title>3. 无重复字符的最长子串 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .jump-note {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#f5f3ff; border:1px solid #ddd6fe; color:#4c1d95; font-size:13px;
+  }
+  .jump-note code { background:#ede9fe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:260px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:180px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .string-stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fff,#fbfbfd); padding:30px 16px 42px; }
+  .string-row { display:inline-grid; gap:6px; min-width:max-content; }
+  .char-cell {
+    position:relative; width:49px; height:54px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 19px "SF Mono",Menlo,monospace; color:#334155;
+    background:#f8fafc; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .char-cell.outside { opacity:.38; }
+  .char-cell.window { background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+  .char-cell.best-known { box-shadow:inset 0 -4px 0 #8b5cf6; }
+  .char-cell.entering { background:#ffedd5; border-color:#f97316; color:#9a3412; box-shadow:0 0 0 3px rgba(249,115,22,.18); transform:scale(1.05); }
+  .char-cell.duplicate { background:#fee2e2; border-color:#ef4444; color:#991b1b; box-shadow:0 0 0 3px rgba(239,68,68,.17); }
+  .char-cell.new-best { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 4px rgba(34,197,94,.22); transform:translateY(-2px); }
+  .char-cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#a5b4fc; }
+  .char-cell.new-best .idx { color:#dcfce7; }
+  .char-cell .ptr { position:absolute; top:100%; margin-top:7px; font-size:10px; font-weight:800; white-space:nowrap; }
+  .ptr-left { color:#4f46e5; }
+  .ptr-right { color:#ea580c; }
+
+  .hash-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:8px; }
+  .hash-item {
+    border:1px solid #e5e7eb; border-radius:9px; padding:8px 10px; background:#f8fafc;
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .hash-item.changed { background:#fff7ed; border-color:#fdba74; box-shadow:0 0 0 3px rgba(249,115,22,.13); }
+  .hash-char {
+    width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    font:800 15px "SF Mono",Menlo,monospace; background:#e2e8f0; color:#334155;
+  }
+  .hash-index { font:800 16px "SF Mono",Menlo,monospace; color:#4f46e5; }
+  .hash-label { display:block; font-size:9px; color:#94a3b8; font-weight:600; }
+  .hash-empty { color:#9ca3af; font-size:12px; }
+
+  .summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:13px; }
+  .summary-box { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; text-align:center; font-size:12px; color:#64748b; }
+  .summary-box b { display:block; margin-top:2px; font:800 16px "SF Mono",Menlo,monospace; color:#334155; }
+  .summary-box.current b { color:#4f46e5; font-size:13px; }
+  .summary-box.best b { color:#16a34a; font-size:13px; }
+  .summary-box.jump b { color:#ea580c; }
+  .rule-box { margin-top:11px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:12px 15px; font:600 13px "SF Mono",Menlo,monospace; min-height:46px; }
+  .rule-box .scan { color:#fdba74; font-weight:800; }
+  .rule-box .jump { color:#fca5a5; font-weight:800; }
+  .rule-box .best { color:#86efac; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-window { background:#e0e7ff; border-color:#a5b4fc; }
+  .dot-enter { background:#ffedd5; border-color:#f97316; }
+  .dot-repeat { background:#fee2e2; border-color:#ef4444; }
+  .dot-best { background:#22c55e; border-color:#16a34a; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .bad { color:#fca5a5; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:720px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .summary-grid { grid-template-columns:1fr 1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/longest-substring-without-repeating-characters/" target="_blank" rel="noopener">LeetCode 3</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>3. 无重复字符的最长子串 · 下标跳跃动画</h1>
+  <div class="sub">用哈希表 <code>lastSeen</code> 记录每个字符最后一次出现的下标。<code>right</code> 每次扫描一个字符；若它上次出现在当前窗口内，<code>left</code> 直接跳到重复位置之后，不必逐格收缩。</div>
+
+  <div class="card">
+    <div class="panel-title">滑动窗口四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 扫描右端</div><code>right</code> 从 0 到 n-1 逐字符前进，当前窗口始终是 <code>[left, right]</code>。</div>
+      <div class="idea-item"><div class="no">② 查最后位置</div>查询 <code>lastSeen[ch]</code>；只有该下标不小于 left，重复字符才仍在窗口内。</div>
+      <div class="idea-item"><div class="no">③ 一步跳跃</div>遇窗口内重复时执行 <code>left=max(left,lastSeen[ch]+1)</code>，直接丢弃到旧字符为止。</div>
+      <div class="idea-item"><div class="no">④ 更新答案</div>写入 <code>lastSeen[ch]=right</code>，再用 <code>right-left+1</code> 更新最长窗口。</div>
+    </div>
+    <div class="jump-note"><b>为什么必须取 max？</b> 某字符上次出现的位置可能已经在窗口左边。例如 left 已前进到 5，而 <code>lastSeen[ch]=2</code>；此时不能把 left 倒退到 3。公式 <code>max(left, lastSeen[ch]+1)</code> 同时保证窗口无重复且 left 只向右移动。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">s =</span><input type="text" id="input" value="abcabcbb" maxlength="24" spellcheck="false" placeholder="如 abcabcbb"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="abcabcbb">经典 abc（3）</span>
+      <span class="chip" data-v="bbbbb">全重复（1）</span>
+      <span class="chip" data-v="pwwkew">跳跃窗口 wke（3）</span>
+      <span class="chip" data-v="abba">防止 left 倒退（2）</span>
+      <span class="chip" data-v="aA1!a">区分大小写与符号（4）</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">动画支持 1～24 个无空白可显示 ASCII 字符（区分大小写，可含数字和常用符号）；长度限制用于保持动画清晰。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">字符串与当前无重复窗口</div>
+    <div class="string-stage"><div class="string-row" id="stringRow"></div></div>
+
+    <div class="panel-title status-title">哈希表 lastSeen：字符 → 最后下标</div>
+    <div class="hash-grid" id="hashGrid"></div>
+
+    <div class="summary-grid">
+      <div class="summary-box jump">left 下标<b id="leftValue">0</b></div>
+      <div class="summary-box">当前长度<b id="currentLength">0</b></div>
+      <div class="summary-box current">当前窗口<b id="currentWindow">—</b></div>
+      <div class="summary-box best">最佳窗口<b id="bestWindow">—</b></div>
+    </div>
+    <div class="rule-box" id="ruleBox"></div>
+
+    <div class="legend">
+      <span><span class="dot dot-window"></span>当前无重复窗口</span>
+      <span><span class="dot dot-enter"></span>right 新扫描字符</span>
+      <span><span class="dot dot-repeat"></span>窗口内旧重复位置</span>
+      <span><span class="dot dot-best"></span>本步刷新最佳</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：滑动窗口 + lastSeen 下标跳跃 ==== */
+(function (root) {
+  'use strict';
+
+  function parseInput(value) {
+    if (typeof value !== 'string' || value.length === 0) return { value:null, err:'字符串不能为空' };
+    if (value.length > 24) return { value:null, err:'字符串长度不能超过 24' };
+    if (!/^[\x21-\x7E]+$/.test(value)) return { value:null, err:'只能输入无空白的可显示 ASCII 字符' };
+    return { value:value, err:null };
+  }
+
+  function longestSubstring(text) {
+    var lastSeen = Object.create(null);
+    var left = 0, best = 0;
+    for (var right = 0; right < text.length; right++) {
+      var char = text[right];
+      if (Object.prototype.hasOwnProperty.call(lastSeen, char)) {
+        left = Math.max(left, lastSeen[char] + 1);
+      }
+      lastSeen[char] = right;
+      best = Math.max(best, right - left + 1);
+    }
+    return best;
+  }
+
+  function buildSteps(text) {
+    var lastSeen = Object.create(null);
+    var left = 0, bestLeft = -1, bestRight = -1, bestLength = 0, steps = [];
+
+    function copyMap(source) {
+      var copy = {};
+      Object.keys(source).forEach(function (key) { copy[key] = source[key]; });
+      return copy;
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, function (char) {
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char];
+      });
+    }
+
+    function shown(char) {
+      return '<code>' + escapeHTML(char) + '</code>';
+    }
+
+    function snap(options) {
+      var right = options.right === undefined ? -1 : options.right;
+      steps.push({
+        phase:options.phase, left:left, right:right,
+        entering:options.entering === undefined ? -1 : options.entering,
+        duplicateIndex:options.duplicateIndex === undefined ? -1 : options.duplicateIndex,
+        previousIndex:options.previousIndex === undefined ? -1 : options.previousIndex,
+        jumpedFrom:options.jumpedFrom === undefined ? left : options.jumpedFrom,
+        changed:options.changed || '',
+        lastSeen:copyMap(lastSeen),
+        currentLength:right >= left ? right - left + 1 : 0,
+        bestLeft:bestLeft, bestRight:bestRight, bestLength:bestLength,
+        updated:!!options.updated, msg:options.msg
+      });
+    }
+
+    snap({ phase:'start', msg:'初始化空哈希表 <b>lastSeen</b>，<code>left=0</code>，最佳长度为 0。right 将从左向右逐字符扫描。' });
+
+    for (var right = 0; right < text.length; right++) {
+      var char = text[right];
+      var hasPrevious = Object.prototype.hasOwnProperty.call(lastSeen, char);
+      var previous = hasPrevious ? lastSeen[char] : -1;
+      var duplicateInWindow = previous >= left;
+      var oldLeft = left;
+      if (hasPrevious) left = Math.max(left, previous + 1);
+      lastSeen[char] = right;
+      var currentLength = right - left + 1;
+      var updated = currentLength > bestLength;
+      if (updated) {
+        bestLeft = left;
+        bestRight = right;
+        bestLength = currentLength;
+      }
+
+      var lookupText = hasPrevious
+        ? shown(char) + ' 上次出现在下标 <b>' + previous + '</b>'
+        : shown(char) + ' 还没有出现过';
+      var jumpText = duplicateInWindow
+        ? '，且 ' + previous + ' ≥ old left ' + oldLeft + '，所以 <span class="bad">left 直接跳到 max(' + oldLeft + ',' + (previous + 1) + ')=' + left + '</span>'
+        : (hasPrevious ? '，但它已在当前窗口左侧，left 保持 ' + left : '，left 保持 ' + left);
+      snap({
+        phase:'scan', right:right, entering:right,
+        duplicateIndex:duplicateInWindow ? previous : -1,
+        previousIndex:previous, jumpedFrom:oldLeft, changed:char, updated:updated,
+        msg:'扫描 <b>s[' + right + ']=' + shown(char) + '</b>：' + lookupText + jumpText + '。更新 <code>lastSeen[' + escapeHTML(char) + ']=' + right + '</code>，当前窗口长度为 ' + currentLength + '。' +
+          (updated ? ' <span class="ok">刷新最佳长度为 ' + bestLength + '</span>。' : '最佳长度仍为 ' + bestLength + '。')
+      });
+    }
+
+    snap({
+      phase:'done', right:text.length - 1,
+      msg:'扫描完成。最长无重复子串长度为 <span class="ok">' + bestLength + '</span>，示例最佳窗口是 <b>"' +
+        escapeHTML(bestLeft < 0 ? '' : text.slice(bestLeft, bestRight + 1)) + '"</b>，范围 [' + bestLeft + '..' + bestRight + ']。'
+    });
+    return steps;
+  }
+
+  root.LONGEST_SUBSTRING_3 = { parseInput:parseInput, longestSubstring:longestSubstring, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.LONGEST_SUBSTRING_3;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), stringRow = $('stringRow'), hashGrid = $('hashGrid');
+  var statsEl = $('stats'), statusEl = $('status'), ruleBox = $('ruleBox'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var text = '', steps = [], stepIndex = 0, timer = null, charCells = [];
+
+  function buildString() {
+    stringRow.innerHTML = '';
+    stringRow.style.gridTemplateColumns = 'repeat(' + text.length + ', 49px)';
+    charCells = [];
+    for (var i = 0; i < text.length; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'char-cell';
+      var index = document.createElement('span');
+      index.className = 'idx';
+      index.textContent = i;
+      var value = document.createElement('span');
+      value.textContent = text[i];
+      var pointer = document.createElement('span');
+      pointer.className = 'ptr';
+      cell.appendChild(index);
+      cell.appendChild(value);
+      cell.appendChild(pointer);
+      stringRow.appendChild(cell);
+      charCells.push({ cell:cell, pointer:pointer });
+    }
+  }
+
+  function renderString(step) {
+    charCells.forEach(function (ref, index) {
+      var inWindow = step.right >= 0 && index >= step.left && index <= step.right;
+      var cls = 'char-cell ' + (inWindow ? 'window' : 'outside');
+      if (step.bestLeft >= 0 && index >= step.bestLeft && index <= step.bestRight) cls += ' best-known';
+      if (index === step.entering) cls += ' entering';
+      if (index === step.duplicateIndex) cls += ' duplicate';
+      if (step.updated && inWindow) cls += ' new-best';
+      ref.cell.className = cls;
+      var labels = [];
+      if (inWindow && index === step.left) labels.push('<span class="ptr-left">L</span>');
+      if (index === step.right) labels.push('<span class="ptr-right">R</span>');
+      ref.pointer.innerHTML = labels.join('·');
+    });
+  }
+
+  function renderHash(step) {
+    hashGrid.innerHTML = '';
+    var keys = Object.keys(step.lastSeen).sort(function (a, b) { return step.lastSeen[a] - step.lastSeen[b]; });
+    if (!keys.length) {
+      hashGrid.innerHTML = '<span class="hash-empty">哈希表暂时为空</span>';
+      return;
+    }
+    keys.forEach(function (char) {
+      var item = document.createElement('div');
+      item.className = 'hash-item' + (step.changed === char ? ' changed' : '');
+      var charBox = document.createElement('span');
+      charBox.className = 'hash-char';
+      charBox.textContent = char;
+      var detail = document.createElement('span');
+      var index = document.createElement('span');
+      index.className = 'hash-index';
+      index.textContent = step.lastSeen[char];
+      var label = document.createElement('span');
+      label.className = 'hash-label';
+      label.textContent = '最后出现下标';
+      detail.appendChild(index);
+      detail.appendChild(label);
+      item.appendChild(charBox);
+      item.appendChild(detail);
+      hashGrid.appendChild(item);
+    });
+  }
+
+  function renderRule(step) {
+    if (step.phase === 'scan' && step.duplicateIndex >= 0) {
+      ruleBox.innerHTML = '<span class="jump">窗口内重复</span>：left = max(' + step.jumpedFrom + ', ' + step.previousIndex + ' + 1) = ' + step.left + '；一次跳过旧重复字符。';
+    } else if (step.phase === 'scan') {
+      ruleBox.innerHTML = '<span class="scan">扫描 right=' + step.right + '</span>：旧位置不在窗口内，left 不动；写入 lastSeen 后计算长度。' +
+        (step.updated ? ' <span class="best">刷新 best=' + step.bestLength + '</span>。' : '');
+    } else if (step.phase === 'done') {
+      ruleBox.innerHTML = '<span class="best">搜索完成</span>：返回遍历中记录的最大窗口长度 ' + step.bestLength + '。';
+    } else {
+      ruleBox.innerHTML = '初始化 left = 0，lastSeen = {}，best = 0。';
+    }
+  }
+
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">字符串长度<b>' + text.length + '</b></div>' +
+      '<div class="stat">最长长度<b>' + APP.longestSubstring(text) + '</b></div>' +
+      '<div class="stat">扫描次数<b>' + text.length + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">哈希表空间<b>O(min(n,字符集))</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderString(step);
+    renderHash(step);
+    renderRule(step);
+    $('leftValue').textContent = step.left;
+    $('currentLength').textContent = step.currentLength;
+    $('currentWindow').textContent = step.currentLength ? '"' + text.slice(step.left, step.right + 1) + '"' : '—';
+    $('bestWindow').textContent = step.bestLength ? '"' + text.slice(step.bestLeft, step.bestRight + 1) + '" (' + step.bestLength + ')' : '—';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 850);
+  }
+
+  function load() {
+    var parsed = APP.parseInput(input.value);
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    text = parsed.value;
+    steps = APP.buildSteps(text);
+    stepIndex = 0;
+    buildString();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 滑动窗口 + last_seen 跳跃 · 时间 O(n)</span>\n' +
+'class Solution:\n' +
+'    def lengthOfLongestSubstring(self, s: str) -&gt; int:\n' +
+'        last_seen = {}\n' +
+'        left = 0\n' +
+'        best = 0\n' +
+'\n' +
+'        for right, char in enumerate(s):\n' +
+'            <span class="cmt"># 旧位置在窗口外时，max 防止 left 倒退</span>\n' +
+'            if char in last_seen:\n' +
+'                left = max(left, last_seen[char] + 1)\n' +
+'\n' +
+'            last_seen[char] = right\n' +
+'            best = max(best, right - left + 1)\n' +
+'\n' +
+'        return best',
+    java:
+'<span class="cmt">// 滑动窗口 + lastSeen 跳跃 · 时间 O(n)</span>\n' +
+'class Solution {\n' +
+'    public int lengthOfLongestSubstring(String s) {\n' +
+'        Map&lt;Character, Integer&gt; lastSeen = new HashMap&lt;&gt;();\n' +
+'        int left = 0, best = 0;\n' +
+'\n' +
+'        for (int right = 0; right &lt; s.length(); right++) {\n' +
+'            char c = s.charAt(right);\n' +
+'            if (lastSeen.containsKey(c)) {\n' +
+'                left = Math.max(left, lastSeen.get(c) + 1);\n' +
+'            }\n' +
+'\n' +
+'            lastSeen.put(c, right);\n' +
+'            best = Math.max(best, right - left + 1);\n' +
+'        }\n' +
+'        return best;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>

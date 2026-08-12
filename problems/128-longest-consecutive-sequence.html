@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 哈希集合 · 连续序列 · O(n)">
+<title>128. 最长连续序列 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.05em; }
+  .idea-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:260px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:180px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#f8fbff,#fff); padding:20px 16px; }
+  .source-row,.axis-row { display:flex; align-items:center; gap:6px; min-width:max-content; }
+  .source-row { margin-bottom:22px; }
+  .row-name { width:72px; flex:0 0 72px; color:#64748b; font-size:11px; font-weight:700; text-align:right; padding-right:8px; }
+  .source-cell,.axis-cell {
+    width:54px; height:48px; display:flex; align-items:center; justify-content:center;
+    border:2px solid #e2e8f0; border-radius:9px; background:#fff; color:#334155;
+    font:800 16px "SF Mono",Menlo,monospace; transition:.18s;
+  }
+  .source-cell.duplicate { background:#f1f5f9; border-color:#cbd5e1; color:#94a3b8; text-decoration:line-through; }
+  .axis-cell { position:relative; height:58px; border-radius:50%; }
+  .axis-cell::after { content:""; position:absolute; left:50%; bottom:-12px; width:2px; height:9px; background:#cbd5e1; }
+  .axis-cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 4px rgba(245,158,11,.18); transform:translateY(-2px); }
+  .axis-cell.predecessor { background:#fee2e2; border-color:#ef4444; color:#991b1b; }
+  .axis-cell.chain { background:#dbeafe; border-color:#3b82f6; color:#1e40af; }
+  .axis-cell.best { opacity:1; background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 3px rgba(34,197,94,.18); }
+  .axis-cell.skipped { opacity:.45; background:#f1f5f9; }
+  .axis-cell.best.skipped { opacity:1; background:#22c55e; }
+  .gap { width:42px; color:#94a3b8; text-align:center; font:11px "SF Mono",Menlo,monospace; }
+  .axis-line { height:2px; margin:10px 0 0 80px; min-width:calc(100% - 80px); background:#cbd5e1; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; background:#f8fafc; color:#64748b; text-align:center; font-size:12px; }
+  .box b { display:block; min-height:27px; color:#334155; font:800 18px "SF Mono",Menlo,monospace; }
+  .box.start b { color:#b45309; } .box.current-length b { color:#2563eb; } .box.best-length b { color:#16a34a; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .rule .yes { color:#86efac; font-weight:800; } .rule .no { color:#fca5a5; font-weight:800; } .rule .accent { color:#fcd34d; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; font-weight:700; } .status .warn { color:#fca5a5; font-weight:700; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:650px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .dashboard { grid-template-columns:1fr 1fr; } .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/longest-consecutive-sequence/" target="_blank" rel="noopener">LeetCode 128</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>128. 最长连续序列 · 哈希集合动画</h1>
+  <div class="sub">先把所有数字放入哈希集合。对每个数字 <code>x</code>，只有当集合中<b>不存在 x−1</b> 时，x 才是连续序列的起点；从这里不断检查 <code>x+1、x+2…</code>。这样每个数字至多参与一次有效扩展，平均时间复杂度为 <code>O(n)</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">哈希集合三步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 集合去重</div>把数组放进 <code>set</code>。重复元素不会让连续序列变长，例如两个 2 在集合中只保留一个 2。</div>
+      <div class="idea-item"><div class="no">② 只认真正起点</div>若 <code>x−1 in set</code>，说明 x 左边还有前驱，从 x 开始会重复计算，直接跳过。</div>
+      <div class="idea-item"><div class="no">③ 一路向右扩展</div>对没有前驱的 x，持续检查 <code>current+1</code>，记录当前长度并更新最佳长度。</div>
+    </div>
+    <div class="key-note"><b>为什么是 O(n)？</b>虽然代码里有 while，但只有序列起点会进入有效扩展；每个去重后的数字只会被某一条连续链访问一次。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">nums =</span><input type="text" id="input" value="100 4 200 1 3 2" spellcheck="false" placeholder="空格或逗号分隔，如 100 4 200 1 3 2"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="100 4 200 1 3 2">经典 → 4</span>
+      <span class="chip" data-v="0 3 7 2 5 8 4 6 0 1">含重复 → 9</span>
+      <span class="chip" data-v="-2 -1 0 1 2 2">负数与重复 → 5</span>
+      <span class="chip" data-v="5 5 5">全重复 → 1</span>
+      <span class="chip" data-v="9">单元素 → 1</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～18 个整数，空格或逗号分隔；整数范围 −999～999。连续逗号、小数和其它字符会被拒绝。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">原数组与去重后的哈希集合 / 数字轴</div>
+    <div class="stage">
+      <div class="source-row" id="sourceRow"></div>
+      <div class="axis-row" id="axisRow"></div>
+      <div class="axis-line"></div>
+    </div>
+    <div class="dashboard">
+      <div class="box start">候选起点 x<b id="startValue">—</b></div>
+      <div class="box">向右检查<b id="nextValue">—</b></div>
+      <div class="box current-length">当前长度<b id="currentLength">0</b></div>
+      <div class="box best-length">最佳长度<b id="bestLength">0</b></div>
+    </div>
+    <div class="rule" id="rule">先判断 x−1 是否存在</div>
+    <div class="legend">
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>候选起点</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>存在前驱，跳过</span>
+      <span><span class="dot" style="background:#dbeafe;border-color:#3b82f6"></span>当前连续链</span>
+      <span><span class="dot" style="background:#22c55e;border-color:#16a34a"></span>当前最佳链</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-longest-consecutive-app>
+(function (root) {
+  'use strict';
+  function parseArray(value) {
+    if (typeof value !== 'string' || !value.trim()) return { arr:null, err:'请输入至少一个整数' };
+    var text = value.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) {
+      return { arr:null, err:'格式无效，请只输入由空格或单个逗号分隔的整数' };
+    }
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length > 18) return { arr:null, err:'长度请不超过 18' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -999 || number > 999) {
+        return { arr:null, err:'整数须在 -999～999：' + parts[i] };
+      }
+      arr.push(number);
+    }
+    return { arr:arr, err:null };
+  }
+
+  function solve(nums) {
+    var set = new Set(nums), best = 0;
+    set.forEach(function (x) {
+      if (!set.has(x - 1)) {
+        var current = x, length = 1;
+        while (set.has(current + 1)) { current++; length++; }
+        if (length > best) best = length;
+      }
+    });
+    return best;
+  }
+
+  function buildSteps(nums) {
+    var set = new Set(nums);
+    var values = Array.from(set).sort(function (a, b) { return a - b; });
+    var duplicates = nums.length - values.length, steps = [], best = 0, bestChain = [];
+    function snap(o) {
+      steps.push({
+        phase:o.phase || '', x:o.x === undefined ? null : o.x,
+        next:o.next === undefined ? null : o.next,
+        chain:(o.chain || []).slice(), length:o.length || 0, best:best,
+        bestChain:bestChain.slice(), predecessor:!!o.predecessor,
+        skipped:(o.skipped || []).slice(), msg:o.msg || ''
+      });
+    }
+    snap({ phase:'input', msg:'原数组共有 <b>' + nums.length + '</b> 个元素。先建立哈希集合，重复值会自动合并。' });
+    snap({ phase:'dedupe', msg:duplicates
+      ? '集合得到 <b>{' + values.join(', ') + '}</b>，去掉了 <span class="warn">' + duplicates + ' 个重复元素</span>；重复值不增加序列长度。'
+      : '集合得到 <b>{' + values.join(', ') + '}</b>，本例没有重复元素。' });
+    var skipped = [];
+    for (var i = 0; i < values.length; i++) {
+      var x = values[i], hasPredecessor = set.has(x - 1);
+      snap({ phase:'checkStart', x:x, next:x - 1, predecessor:hasPredecessor, skipped:skipped,
+        msg:'检查 <b>x = ' + x + '</b>：集合中' + (hasPredecessor ? '存在' : '不存在') + '前驱 <b>x−1 = ' + (x - 1) + '</b>。' });
+      if (hasPredecessor) {
+        skipped.push(x);
+        snap({ phase:'skip', x:x, next:x - 1, predecessor:true, skipped:skipped,
+          msg:'因为 <b>' + (x - 1) + '</b> 存在，' + x + ' 不是起点；从它扩展会重复计算，直接跳过。' });
+        continue;
+      }
+      var current = x, chain = [x], length = 1;
+      snap({ phase:'startChain', x:x, next:x + 1, chain:chain, length:length, skipped:skipped,
+        msg:'<b>' + x + '</b> 没有前驱，是一条新连续序列的起点。当前链为 <b>[' + chain.join(', ') + ']</b>，长度 1。' });
+      while (set.has(current + 1)) {
+        snap({ phase:'extendCheck', x:x, next:current + 1, chain:chain, length:length, skipped:skipped,
+          msg:'检查右邻 <b>' + (current + 1) + '</b>：它在集合中，可以继续扩展。' });
+        current++;
+        chain.push(current);
+        length++;
+        snap({ phase:'extend', x:x, next:current + 1, chain:chain, length:length, skipped:skipped,
+          msg:'把 <b>' + current + '</b> 加入连续链，当前链为 <span class="op">[' + chain.join(', ') + ']</span>，长度变为 <b>' + length + '</b>。' });
+      }
+      snap({ phase:'stopChain', x:x, next:current + 1, chain:chain, length:length, skipped:skipped,
+        msg:'集合中没有 <b>' + (current + 1) + '</b>，本条连续链在这里结束，长度为 <b>' + length + '</b>。' });
+      if (length > best) {
+        best = length; bestChain = chain.slice();
+        snap({ phase:'updateBest', x:x, next:current + 1, chain:chain, length:length, skipped:skipped,
+          msg:'当前长度 ' + length + ' 超过旧最佳值，更新：<span class="op">best = ' + best + '</span>。' });
+      } else {
+        snap({ phase:'keepBest', x:x, next:current + 1, chain:chain, length:length, skipped:skipped,
+          msg:'当前长度 ' + length + ' 没有超过最佳值 <b>' + best + '</b>，best 保持不变。' });
+      }
+    }
+    snap({ phase:'done', length:best, chain:bestChain, msg:'扫描完成。最长连续序列为 <span class="op">[' + bestChain.join(', ') + ']</span>，长度是 <b>' + best + '</b>。' });
+    return { values:values, duplicates:duplicates, steps:steps };
+  }
+
+  root.LongestConsecutiveApp = { parseArray:parseArray, solve:solve, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.LongestConsecutiveApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), sourceRow = $('sourceRow'), axisRow = $('axisRow');
+  var statusEl = $('status'), ruleEl = $('rule'), statsEl = $('stats'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], values = [], duplicates = 0, steps = [], stepIndex = 0, timer = null, axisCells = {};
+
+  function buildStage() {
+    sourceRow.innerHTML = '<span class="row-name">原数组</span>';
+    var seen = {};
+    nums.forEach(function (value) {
+      var cell = document.createElement('span');
+      cell.className = 'source-cell' + (seen[value] ? ' duplicate' : '');
+      cell.textContent = value; sourceRow.appendChild(cell); seen[value] = true;
+    });
+    axisRow.innerHTML = '<span class="row-name">set / 数字轴</span>'; axisCells = {};
+    values.forEach(function (value, index) {
+      if (index && value - values[index - 1] > 1) {
+        var gap = document.createElement('span'); gap.className = 'gap';
+        gap.textContent = '… +' + (value - values[index - 1] - 1); axisRow.appendChild(gap);
+      }
+      var cell = document.createElement('span'); cell.className = 'axis-cell'; cell.textContent = value;
+      axisRow.appendChild(cell); axisCells[String(value)] = cell;
+    });
+  }
+
+  function renderRule(step) {
+    if (step.phase === 'checkStart' || step.phase === 'skip') {
+      ruleEl.innerHTML = (step.x - 1) + ' in set ? → <span class="' + (step.predecessor ? 'no' : 'yes') + '">' +
+        (step.predecessor ? '是，x 不是起点' : '否，x 是起点') + '</span>';
+    } else if (step.phase === 'extendCheck' || step.phase === 'extend' || step.phase === 'stopChain') {
+      var exists = step.phase !== 'stopChain';
+      ruleEl.innerHTML = step.next + ' in set ? → <span class="' + (exists ? 'yes' : 'no') + '">' +
+        (exists ? '继续向右扩展' : '不存在，当前链结束') + '</span>';
+    } else if (step.phase === 'updateBest') {
+      ruleEl.innerHTML = 'currentLength &gt; best → <span class="accent">更新 best = ' + step.best + '</span>';
+    } else if (step.phase === 'done') {
+      ruleEl.innerHTML = '<span class="yes">完成 · 最佳长度 ' + step.best + '</span>';
+    } else {
+      ruleEl.textContent = 'set 自动去重；只有没有 x−1 的数字才开始扩展';
+    }
+  }
+
+  function render() {
+    var step = steps[stepIndex], chainSet = {}, bestSet = {}, skippedSet = {};
+    step.chain.forEach(function (x) { chainSet[x] = true; });
+    step.bestChain.forEach(function (x) { bestSet[x] = true; });
+    step.skipped.forEach(function (x) { skippedSet[x] = true; });
+    values.forEach(function (value) {
+      var cls = 'axis-cell';
+      if (skippedSet[value]) cls += ' skipped';
+      if (bestSet[value]) cls += ' best';
+      if (chainSet[value]) cls += ' chain';
+      if (value === step.x && (step.phase === 'checkStart' || step.phase === 'startChain')) cls += ' current';
+      if (value === step.x && step.predecessor) cls += ' predecessor';
+      axisCells[String(value)].className = cls;
+    });
+    $('startValue').textContent = step.x === null ? '—' : step.x;
+    $('nextValue').textContent = step.next === null ? '—' : step.next;
+    $('currentLength').textContent = step.length;
+    $('bestLength').textContent = step.best;
+    renderRule(step);
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">输入长度<b>' + nums.length + '</b></div>' +
+      '<div class="stat">集合大小<b>' + values.length + '</b></div>' +
+      '<div class="stat">去除重复<b>' + duplicates + '</b></div>' +
+      '<div class="stat">答案<b>' + App.solve(nums) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(n)</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 780);
+  }
+  function load() {
+    var parsed = App.parseArray(input.value);
+    if (!parsed.arr) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); nums = parsed.arr;
+    var data = App.buildSteps(nums);
+    values = data.values; duplicates = data.duplicates; steps = data.steps; stepIndex = 0;
+    buildStage(); renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 哈希集合 · 平均 O(n) 时间 · O(n) 空间</span>\n' +
+'class Solution:\n' +
+'    def longestConsecutive(self, nums: list[int]) -&gt; int:\n' +
+'        values = set(nums)             <span class="cmt"># 自动去重</span>\n' +
+'        best = 0\n' +
+'\n' +
+'        for x in values:\n' +
+'            if x - 1 in values:        <span class="cmt"># 不是序列起点</span>\n' +
+'                continue\n' +
+'            current = x\n' +
+'            length = 1\n' +
+'            while current + 1 in values:\n' +
+'                current += 1\n' +
+'                length += 1\n' +
+'            best = max(best, length)\n' +
+'\n' +
+'        return best',
+    java:
+'<span class="cmt">// 哈希集合 · 平均 O(n) 时间 · O(n) 空间</span>\n' +
+'class Solution {\n' +
+'    public int longestConsecutive(int[] nums) {\n' +
+'        Set&lt;Integer&gt; values = new HashSet&lt;&gt;();\n' +
+'        for (int x : nums) values.add(x);  <span class="cmt">// 自动去重</span>\n' +
+'\n' +
+'        int best = 0;\n' +
+'        for (int x : values) {\n' +
+'            if (values.contains(x - 1)) continue;\n' +
+'            int current = x, length = 1;\n' +
+'            while (values.contains(current + 1)) {\n' +
+'                current++;\n' +
+'                length++;\n' +
+'            }\n' +
+'            best = Math.max(best, length);\n' +
+'        }\n' +
+'        return best;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>

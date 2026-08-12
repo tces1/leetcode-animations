@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 双指针 · 贪心">
+<title>11. 盛最多水的容器 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .safe-note {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px;
+  }
+  .safe-note code { background:#dbeafe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:260px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:180px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#f8fbff,#fff); padding:18px; }
+  .chart-shell { display:inline-block; min-width:max-content; }
+  .chart {
+    position:relative; height:270px; display:flex; align-items:flex-end; gap:8px;
+    border-bottom:2px solid #cbd5e1; padding:0 0 0; isolation:isolate;
+  }
+  .water-box {
+    position:absolute; bottom:0; z-index:1; background:rgba(56,189,248,.34);
+    border:2px solid #38bdf8; border-top-color:#0284c7; pointer-events:none;
+    transition:left .2s,width .2s,height .2s; overflow:hidden;
+  }
+  .water-box::after { content:"≈ ≈ ≈ ≈ ≈"; position:absolute; left:8px; top:3px; color:#0284c7; font-size:11px; white-space:nowrap; }
+  .bar-wrap { position:relative; z-index:2; width:42px; height:100%; display:flex; align-items:flex-end; justify-content:center; }
+  .bar {
+    width:18px; min-height:2px; border-radius:5px 5px 0 0; background:#64748b; border:1px solid #475569;
+    box-shadow:inset 0 -3px 0 rgba(15,23,42,.12); transition:height .2s,background .2s,box-shadow .2s;
+  }
+  .bar.current-left { background:#4f46e5; border-color:#3730a3; box-shadow:0 0 0 4px rgba(79,70,229,.15); }
+  .bar.current-right { background:#f97316; border-color:#c2410c; box-shadow:0 0 0 4px rgba(249,115,22,.15); }
+  .bar.best-line { box-shadow:0 0 0 3px rgba(34,197,94,.32); }
+  .labels { display:grid; gap:8px; margin-top:6px; }
+  .label-cell { width:42px; text-align:center; font-family:"SF Mono",Menlo,monospace; }
+  .height-cell { font-size:12px; font-weight:800; color:#334155; background:#f1f5f9; border-radius:5px; padding:2px 0; }
+  .index-cell { font-size:10px; color:#94a3b8; }
+  .pointer-cell { height:17px; font-size:10px; font-weight:800; }
+  .pointer-cell.left { color:#4f46e5; }
+  .pointer-cell.right { color:#ea580c; }
+  .pointer-cell.both { color:#7c3aed; }
+
+  .measure-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:14px; }
+  .measure { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; text-align:center; font-size:12px; color:#64748b; }
+  .measure b { display:block; margin-top:2px; font:800 18px "SF Mono",Menlo,monospace; color:#334155; }
+  .measure.area b { color:#0284c7; }
+  .measure.best b { color:#16a34a; }
+  .equation {
+    margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0;
+    padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:14px; text-align:center;
+  }
+  .equation .water { color:#7dd3fc; font-weight:800; }
+  .equation .best { color:#86efac; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-water { background:#bae6fd; border-color:#38bdf8; }
+  .dot-left { background:#4f46e5; }
+  .dot-right { background:#f97316; }
+  .dot-best { background:#dcfce7; border-color:#22c55e; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .left-op { color:#c7d2fe; font-weight:700; }
+  .status .right-op { color:#fed7aa; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:680px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .measure-grid { grid-template-columns:1fr 1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/container-with-most-water/" target="_blank" rel="noopener">LeetCode 11</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>11. 盛最多水的容器 · 双指针动画</h1>
+  <div class="sub">两条竖线能盛的水由<b>较短边</b>决定：<code>area = (right-left) × min(height[left], height[right])</code>。双指针从最宽的容器开始，每轮只移动较短边，寻找可能更高的新边界。</div>
+
+  <div class="card">
+    <div class="panel-title">双指针四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 最宽开始</div><code>left=0</code>、<code>right=n-1</code>，先检查宽度最大的容器。</div>
+      <div class="idea-item"><div class="no">② 计算面积</div>宽度是 <code>right-left</code>，水面高度是两边柱高中较小的一个。</div>
+      <div class="idea-item"><div class="no">③ 更新最优</div>用当前面积更新 <code>best</code>，同时记住构成最优容器的两根柱子。</div>
+      <div class="idea-item"><div class="no">④ 移动短边</div>宽度必然缩小，只有换掉短边，水面高度才有机会升高并抵消宽度损失。</div>
+    </div>
+    <div class="safe-note"><b>为什么排除短边安全？</b> 假设 <code>height[left] ≤ height[right]</code>。如果保留 left 而把 right 向左移动，新容器宽度更小，水面又不可能超过 <code>height[left]</code>，面积一定不优于当前值。因此所有以当前 left 为短边、配更近右边界的方案都可以一次排除；相等时移动任意一边都安全。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">height =</span><input type="text" id="input" value="1 8 6 2 5 4 8 3 7" spellcheck="false" placeholder="空格或逗号分隔，如 1 8 6 2 5"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="1 8 6 2 5 4 8 3 7">经典答案 49</span>
+      <span class="chip" data-v="1 1">两根等高柱</span>
+      <span class="chip" data-v="4 3 2 1 4">两端最优 16</span>
+      <span class="chip" data-v="1 2 4 3">内部最优 4</span>
+      <span class="chip" data-v="0 0 0 0">全为 0</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 2～16 个非负整数，高度 0～20；可用空格或逗号分隔，负数、小数和其他字符都会被拒绝。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">柱高、当前容器与水面</div>
+    <div class="stage">
+      <div class="chart-shell">
+        <div class="chart" id="chart"><div class="water-box" id="waterBox"></div></div>
+        <div class="labels" id="heightRow"></div>
+        <div class="labels" id="indexRow"></div>
+        <div class="labels" id="pointerRow"></div>
+      </div>
+    </div>
+
+    <div class="measure-grid">
+      <div class="measure">宽度 width<b id="widthValue">—</b></div>
+      <div class="measure">短边 min height<b id="minHeight">—</b></div>
+      <div class="measure area">当前面积 area<b id="areaValue">—</b></div>
+      <div class="measure best">历史最优 best<b id="bestValue">0</b></div>
+    </div>
+    <div class="equation" id="equation">准备从最大宽度开始</div>
+
+    <div class="legend">
+      <span><span class="dot dot-water"></span>当前容器水面</span>
+      <span><span class="dot dot-left"></span>左指针 L</span>
+      <span><span class="dot dot-right"></span>右指针 R</span>
+      <span><span class="dot dot-best"></span>当前最优边界</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：左右双指针 ==== */
+(function (root) {
+  'use strict';
+
+  function parseHeights(value) {
+    if (typeof value !== 'string' || !value.trim()) return { arr:null, err:'输入不能为空' };
+    var raw = value.trim();
+    var parts = raw.split(/[,\s]+/);
+    if (parts.length < 2 || parts.length > 16) return { arr:null, err:'长度必须为 2～16' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^\d+$/.test(parts[i])) return { arr:null, err:'第 ' + (i + 1) + ' 项不是非负整数：' + parts[i] };
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number > 20) return { arr:null, err:'第 ' + (i + 1) + ' 项须在 0～20：' + parts[i] };
+      arr.push(number);
+    }
+    return { arr:arr, err:null };
+  }
+
+  function maxArea(heights) {
+    var left = 0, right = heights.length - 1, best = 0;
+    while (left < right) {
+      var area = (right - left) * Math.min(heights[left], heights[right]);
+      if (area > best) best = area;
+      if (heights[left] <= heights[right]) left++;
+      else right--;
+    }
+    return best;
+  }
+
+  function buildSteps(heights) {
+    var left = 0, right = heights.length - 1, best = 0;
+    var bestLeft = -1, bestRight = -1, steps = [];
+
+    function snap(options) {
+      steps.push({
+        phase:options.phase,
+        left:left, right:right,
+        width:options.width === undefined ? null : options.width,
+        minHeight:options.minHeight === undefined ? null : options.minHeight,
+        area:options.area === undefined ? null : options.area,
+        best:best, bestLeft:bestLeft, bestRight:bestRight,
+        move:options.move || '', updated:!!options.updated, msg:options.msg
+      });
+    }
+
+    snap({ phase:'start', msg:'左右指针从数组两端出发：<span class="left-op">left = 0</span>，<span class="right-op">right = ' + right + '</span>。这是所有候选中宽度最大的容器。' });
+
+    while (left < right) {
+      var width = right - left;
+      var minHeight = Math.min(heights[left], heights[right]);
+      var area = width * minHeight;
+      var updated = area > best;
+      if (updated) {
+        best = area;
+        bestLeft = left;
+        bestRight = right;
+      }
+      var moveLeft = heights[left] <= heights[right];
+      var move = moveLeft ? 'left' : 'right';
+      var relation = moveLeft ? '≤' : '&gt;';
+      var safety = moveLeft
+        ? '固定当前 left 再把 right 向左移，只会让宽度变小，水面仍不可能超过 height[left]=' + heights[left] + '，所以可以安全排除当前 left。'
+        : '固定当前 right 再把 left 向右移，只会让宽度变小，水面仍不可能超过 height[right]=' + heights[right] + '，所以可以安全排除当前 right。';
+      snap({
+        phase:'measure', width:width, minHeight:minHeight, area:area, move:move, updated:updated,
+        msg:'计算 <code>width=' + width + '</code>，<code>min(' + heights[left] + ',' + heights[right] + ')=' + minHeight + '</code>，面积为 <b>' + area + '</b>。' +
+          (updated ? ' <span class="ok">刷新 best=' + best + '</span>。' : ' 没有超过 best=' + best + '。') +
+          ' 因为 <code>height[L] ' + relation + ' height[R]</code>，下一轮移动' + (moveLeft ? '左' : '右') + '指针。' + safety
+      });
+      if (moveLeft) left++;
+      else right--;
+    }
+
+    snap({
+      phase:'done',
+      msg:'左右指针相遇，所有可能改进答案的边界组合都已检查。最大面积为 <span class="ok">' + best + '</span>' +
+        (bestLeft >= 0 ? '，最优边界是 [' + bestLeft + ', ' + bestRight + ']。' : '。')
+    });
+    return steps;
+  }
+
+  root.CONTAINER_11 = { parseHeights:parseHeights, maxArea:maxArea, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.CONTAINER_11;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), chart = $('chart'), waterBox = $('waterBox');
+  var heightRow = $('heightRow'), indexRow = $('indexRow'), pointerRow = $('pointerRow');
+  var statsEl = $('stats'), statusEl = $('status'), equationEl = $('equation'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var heights = [], steps = [], stepIndex = 0, timer = null, bars = [];
+  var barSlot = 50, chartHeight = 250, scale = 1;
+
+  function buildChart() {
+    Array.prototype.slice.call(chart.querySelectorAll('.bar-wrap')).forEach(function (node) { node.remove(); });
+    heightRow.innerHTML = '';
+    indexRow.innerHTML = '';
+    pointerRow.innerHTML = '';
+    var maxHeight = Math.max.apply(null, heights.concat([1]));
+    scale = Math.min(12, chartHeight / maxHeight);
+    chart.style.width = (heights.length * barSlot - 8) + 'px';
+    [heightRow, indexRow, pointerRow].forEach(function (row) {
+      row.style.gridTemplateColumns = 'repeat(' + heights.length + ', 42px)';
+    });
+    bars = [];
+    heights.forEach(function (height, index) {
+      var wrap = document.createElement('div');
+      wrap.className = 'bar-wrap';
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = Math.max(2, height * scale) + 'px';
+      wrap.appendChild(bar);
+      chart.appendChild(wrap);
+      bars.push(bar);
+
+      var hv = document.createElement('div');
+      hv.className = 'label-cell height-cell';
+      hv.textContent = height;
+      heightRow.appendChild(hv);
+      var iv = document.createElement('div');
+      iv.className = 'label-cell index-cell';
+      iv.textContent = index;
+      indexRow.appendChild(iv);
+      var pv = document.createElement('div');
+      pv.className = 'label-cell pointer-cell';
+      pointerRow.appendChild(pv);
+    });
+  }
+
+  function renderChart(step) {
+    bars.forEach(function (bar, index) {
+      var cls = 'bar';
+      if (index === step.left) cls += ' current-left';
+      if (index === step.right) cls += ' current-right';
+      if (index === step.bestLeft || index === step.bestRight) cls += ' best-line';
+      bar.className = cls;
+    });
+    Array.prototype.forEach.call(pointerRow.children, function (cell, index) {
+      var isLeft = index === step.left, isRight = index === step.right;
+      cell.className = 'label-cell pointer-cell' + (isLeft && isRight ? ' both' : (isLeft ? ' left' : (isRight ? ' right' : '')));
+      cell.textContent = isLeft && isRight ? 'L·R ▲' : (isLeft ? 'L ▲' : (isRight ? '▲ R' : ''));
+    });
+
+    if (step.area === null || step.left >= step.right) {
+      waterBox.style.display = 'none';
+    } else {
+      waterBox.style.display = 'block';
+      waterBox.style.left = (step.left * barSlot + 21) + 'px';
+      waterBox.style.width = ((step.right - step.left) * barSlot) + 'px';
+      waterBox.style.height = Math.max(2, step.minHeight * scale) + 'px';
+    }
+  }
+
+  function renderEquation(step) {
+    if (step.phase === 'measure') {
+      equationEl.innerHTML = '<span class="water">area = ' + step.width + ' × ' + step.minHeight + ' = ' + step.area + '</span>；<span class="best">best = ' + step.best + '</span>';
+    } else if (step.phase === 'done') {
+      equationEl.innerHTML = '最大面积 = <span class="best">' + step.best + '</span>';
+    } else {
+      equationEl.textContent = '准备检查最大宽度的容器';
+    }
+  }
+
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">输入长度<b>' + heights.length + '</b></div>' +
+      '<div class="stat">最大高度<b>' + Math.max.apply(null, heights) + '</b></div>' +
+      '<div class="stat">最大面积<b>' + APP.maxArea(heights) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderChart(step);
+    renderEquation(step);
+    $('widthValue').textContent = step.width === null ? '—' : step.width;
+    $('minHeight').textContent = step.minHeight === null ? '—' : step.minHeight;
+    $('areaValue').textContent = step.area === null ? '—' : step.area;
+    $('bestValue').textContent = step.best;
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = '▶ 自动播放';
+    }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 900);
+  }
+
+  function load() {
+    var parsed = APP.parseHeights(input.value);
+    if (!parsed.arr) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    heights = parsed.arr;
+    steps = APP.buildSteps(heights);
+    stepIndex = 0;
+    buildChart();
+    renderStats();
+    render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 双指针 · 时间 O(n) · 额外空间 O(1)</span>\n' +
+'class Solution:\n' +
+'    def maxArea(self, height: list[int]) -&gt; int:\n' +
+'        left, right = 0, len(height) - 1\n' +
+'        best = 0\n' +
+'\n' +
+'        while left &lt; right:\n' +
+'            width = right - left\n' +
+'            area = width * min(height[left], height[right])\n' +
+'            best = max(best, area)\n' +
+'\n' +
+'            <span class="cmt"># 只有替换短边，水面才可能升高</span>\n' +
+'            if height[left] &lt;= height[right]:\n' +
+'                left += 1\n' +
+'            else:\n' +
+'                right -= 1\n' +
+'\n' +
+'        return best',
+    java:
+'<span class="cmt">// 双指针 · 时间 O(n) · 额外空间 O(1)</span>\n' +
+'class Solution {\n' +
+'    public int maxArea(int[] height) {\n' +
+'        int left = 0, right = height.length - 1;\n' +
+'        int best = 0;\n' +
+'\n' +
+'        while (left &lt; right) {\n' +
+'            int width = right - left;\n' +
+'            int area = width * Math.min(height[left], height[right]);\n' +
+'            best = Math.max(best, area);\n' +
+'\n' +
+'            <span class="cmt">// 排除短边</span>\n' +
+'            if (height[left] &lt;= height[right]) left++;\n' +
+'            else right--;\n' +
+'        }\n' +
+'        return best;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>
