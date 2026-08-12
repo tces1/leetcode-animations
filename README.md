@@ -102,6 +102,7 @@ leetcode-animations/
 | 160 | [相交链表](https://tces1.github.io/leetcode-animations/problems/160-intersection-of-two-linked-lists.html) | 简单 | 链表 · 双指针 · 路程对齐 · O(1) 空间 |
 | 189 | [轮转数组](https://tces1.github.io/leetcode-animations/problems/189-rotate-array.html) | 中等 | 数组 · 数学 · 双指针 · 三次反转 · O(1) 空间 |
 | 200 | [岛屿数量](https://tces1.github.io/leetcode-animations/problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
+| 206 | [反转链表](https://tces1.github.io/leetcode-animations/problems/206-reverse-linked-list.html) | 简单 | 链表 · 迭代 · 递归 · 双指针 · 调用栈 · 原地修改 |
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
 | 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
