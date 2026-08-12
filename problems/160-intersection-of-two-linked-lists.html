@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="链表 · 双指针 · 路程对齐 · O(1) 空间">
+<title>160. 相交链表 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .formula {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; text-align:center;
+  }
+  .formula code { background:#dbeafe; color:#1e40af; font-weight:700; }
+
+  .input-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] {
+    width:100%; min-width:0; padding:9px 11px; font-size:13px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .load-row { display:flex; justify-content:flex-end; margin-top:10px; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font:12px "SF Mono",Menlo,monospace; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:28px 20px; }
+  .graph {
+    display:grid; grid-template-columns:minmax(140px,auto) 42px auto; grid-template-rows:auto auto;
+    gap:28px 6px; align-items:center; min-width:max-content; width:max-content; margin:0 auto;
+  }
+  .prefix { display:flex; align-items:center; justify-content:flex-end; min-height:66px; }
+  .prefix-a { grid-column:1; grid-row:1; }
+  .prefix-b { grid-column:1; grid-row:2; }
+  .junction {
+    width:42px; text-align:center; color:#94a3b8; font-size:28px; line-height:1;
+  }
+  .junction-a { grid-column:2; grid-row:1; transform:translateY(14px); }
+  .junction-b { grid-column:2; grid-row:2; transform:translateY(-14px); }
+  .shared { grid-column:3; grid-row:1 / 3; display:flex; align-items:center; min-height:160px; }
+  .lane-label {
+    flex:0 0 auto; margin-right:8px; padding:3px 7px; border-radius:6px;
+    font-size:10px; font-weight:800; letter-spacing:.04em;
+  }
+  .lane-label.a { background:#e0e7ff; color:#4338ca; }
+  .lane-label.b { background:#ffedd5; color:#c2410c; }
+  .lane-label.common { background:#dcfce7; color:#166534; }
+  .chain { display:flex; align-items:center; }
+  .arrow { width:24px; text-align:center; color:#94a3b8; font-size:18px; flex:0 0 24px; }
+  .node {
+    position:relative; width:58px; height:58px; flex:0 0 58px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border:2px solid #e2e8f0; border-radius:50%; background:#fff; color:#334155;
+    transition:all .18s; box-shadow:0 2px 5px rgba(15,23,42,.04);
+  }
+  .node .value { font:800 17px "SF Mono",Menlo,monospace; line-height:1.1; }
+  .node .identity { font:800 8px "SF Mono",Menlo,monospace; color:#94a3b8; margin-top:3px; }
+  .node.unique-a { border-color:#c7d2fe; background:#eef2ff; }
+  .node.unique-b { border-color:#fed7aa; background:#fff7ed; }
+  .node.common { border-color:#86efac; background:#f0fdf4; }
+  .node.active-a { box-shadow:0 0 0 5px rgba(79,70,229,.2); border-color:#4f46e5; transform:scale(1.08); z-index:3; }
+  .node.active-b { box-shadow:0 0 0 5px rgba(234,88,12,.2); border-color:#ea580c; transform:scale(1.08); z-index:3; }
+  .node.active-a.active-b { background:#22c55e; border-color:#15803d; color:#fff; box-shadow:0 0 0 6px rgba(34,197,94,.25); }
+  .node.active-a.active-b .identity { color:#dcfce7; }
+  .pointer-badges {
+    position:absolute; top:-23px; left:50%; transform:translateX(-50%);
+    display:flex; gap:3px; white-space:nowrap;
+  }
+  .pointer-badge { font:800 9px "SF Mono",Menlo,monospace; padding:2px 5px; border-radius:5px; color:#fff; }
+  .pointer-badge.a { background:#4f46e5; }
+  .pointer-badge.b { background:#ea580c; }
+  .empty-prefix { color:#cbd5e1; font:12px "SF Mono",Menlo,monospace; padding:0 10px; }
+  .null-node {
+    position:relative; width:54px; height:34px; flex:0 0 54px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center; background:#f1f5f9;
+    border:2px dashed #cbd5e1; color:#64748b; font:700 11px "SF Mono",Menlo,monospace;
+  }
+  .null-node.active-a { box-shadow:0 0 0 4px rgba(79,70,229,.18); border-color:#4f46e5; }
+  .null-node.active-b { box-shadow:0 0 0 4px rgba(234,88,12,.18); border-color:#ea580c; }
+  .null-node.active-a.active-b { background:#dcfce7; border-color:#22c55e; color:#166534; }
+
+  .current-boxes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px; }
+  .current-box { border:1px solid #e5e7eb; border-radius:10px; padding:9px 12px; background:#f8fafc; text-align:center; font-size:12px; color:#64748b; }
+  .current-box b { display:block; min-height:25px; font:800 16px "SF Mono",Menlo,monospace; margin-top:2px; }
+  .current-box.pa b { color:#4338ca; }
+  .current-box.pb b { color:#c2410c; }
+  .current-box.result b { color:#15803d; }
+
+  .journeys { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+  .journey { border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; background:#fff; min-width:0; }
+  .journey-title { font-size:11px; font-weight:800; margin-bottom:6px; }
+  .journey-title.a { color:#4338ca; }
+  .journey-title.b { color:#c2410c; }
+  .trail { display:flex; gap:5px; align-items:center; flex-wrap:wrap; font:11px "SF Mono",Menlo,monospace; color:#64748b; }
+  .trail-chip { padding:3px 6px; border-radius:5px; background:#f1f5f9; border:1px solid #e2e8f0; }
+  .trail-chip.latest-a { color:#4338ca; background:#e0e7ff; border-color:#a5b4fc; font-weight:800; }
+  .trail-chip.latest-b { color:#c2410c; background:#ffedd5; border-color:#fdba74; font-weight:800; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .a { color:#a5b4fc; font-weight:700; }
+  .status .b { color:#fdba74; font-weight:700; }
+  .status .ok { color:#86efac; font-weight:700; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:700px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .input-grid { grid-template-columns:1fr; }
+    .current-boxes { grid-template-columns:1fr 1fr; }
+    .current-box.result { grid-column:1 / -1; }
+    .journeys { grid-template-columns:1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/intersection-of-two-linked-lists/" target="_blank" rel="noopener">LeetCode 160</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>160. 相交链表 · 双指针换头动画</h1>
+  <div class="sub">让两个指针分别从 A、B 出发；走到链尾后，切换到<b>另一条链表的头部</b>继续。这样两个指针最终走过相同总路程，长度差被自动抵消，并在第一个公共节点相遇；若不相交，则同时到达 <code>null</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">为什么换头后一定对齐</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 分解路径</div>A 独有段长度为 <b>a</b>，B 独有段长度为 <b>b</b>，公共尾部长度为 <b>c</b>。</div>
+      <div class="idea-item"><div class="no">② 交换起点</div><code>pA</code> 先走 A，再走 B；<code>pB</code> 先走 B，再走 A。两者都会走过双方的长度差。</div>
+      <div class="idea-item"><div class="no">③ 路程相等</div>到达交点前，两条行程分别是 <code>a+c+b</code> 和 <code>b+c+a</code>，总长度相同。</div>
+      <div class="idea-item"><div class="no">④ 比较对象身份</div>相交要求两个指针指向<b>同一个节点对象</b>，不是节点值碰巧相等。</div>
+    </div>
+    <div class="formula"><code>pA: A → B</code>　与　<code>pB: B → A</code>　消除长度差；空间 <code>O(1)</code>，且不修改链表。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">A 的独有前缀</span><input type="text" id="prefixAInput" value="4 1" spellcheck="false" placeholder="可为空，如 4 1"></label>
+      <label class="field"><span class="lab">B 的独有前缀</span><input type="text" id="prefixBInput" value="5 6 1" spellcheck="false" placeholder="可为空，如 5 6 1"></label>
+      <label class="field"><span class="lab">公共尾部（空 = 不相交）</span><input type="text" id="sharedInput" value="8 4 5" spellcheck="false" placeholder="可为空，如 8 4 5"></label>
+    </div>
+    <div class="load-row"><button type="button" id="loadBtn">演示</button></div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-a="4 1" data-b="5 6 1" data-s="8 4 5">经典交点 8</span>
+      <span class="chip" data-a="1 9 1" data-b="3" data-s="2 4">交点 2</span>
+      <span class="chip" data-a="" data-b="7 3" data-s="1 2">A 头就是交点</span>
+      <span class="chip" data-a="" data-b="" data-s="1 2 3">两链表完全相同</span>
+      <span class="chip" data-a="2 6 4" data-b="1 5" data-s="">不相交</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">元素表示节点值；每段最多 6 个整数。即使值相同，只要身份标签不同，也不是同一个节点。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">链表拓扑（公共尾部只绘制一次，表示同一批节点对象）</div>
+    <div class="stage">
+      <div class="graph">
+        <div class="prefix prefix-a"><span class="lane-label a">A 独有</span><div class="chain" id="prefixAChain"></div></div>
+        <div class="junction junction-a" id="junctionA">↘</div>
+        <div class="prefix prefix-b"><span class="lane-label b">B 独有</span><div class="chain" id="prefixBChain"></div></div>
+        <div class="junction junction-b" id="junctionB">↗</div>
+        <div class="shared"><span class="lane-label common" id="sharedLabel">公共尾部</span><div class="chain" id="sharedChain"></div></div>
+      </div>
+    </div>
+
+    <div class="current-boxes">
+      <div class="current-box pa">pA 当前指向<b id="currentA">—</b></div>
+      <div class="current-box pb">pB 当前指向<b id="currentB">—</b></div>
+      <div class="current-box result">相交节点<b id="result">尚未确定</b></div>
+    </div>
+
+    <div class="journeys">
+      <div class="journey"><div class="journey-title a">pA 已走路径（A → B）</div><div class="trail" id="trailA"></div></div>
+      <div class="journey"><div class="journey-title b">pB 已走路径（B → A）</div><div class="trail" id="trailB"></div></div>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>A 独有节点</span>
+      <span><span class="dot" style="background:#fff7ed;border-color:#fed7aa"></span>B 独有节点</span>
+      <span><span class="dot" style="background:#f0fdf4;border-color:#86efac"></span>公共节点对象</span>
+      <span><span class="dot" style="background:#4f46e5"></span>指针 pA</span>
+      <span><span class="dot" style="background:#ea580c"></span>指针 pB</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：构建共享节点身份并模拟双指针 ==== */
+(function (root) {
+  'use strict';
+  function parseSegment(value, name) {
+    if (typeof value !== 'string') return { values:null, err:name + '输入无效' };
+    var trimmed = value.trim();
+    if (!trimmed) return { values:[], err:null };
+    var parts = trimmed.split(/[,\s]+/).filter(Boolean);
+    if (parts.length > 6) return { values:null, err:name + '最多 6 个节点' };
+    var values = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { values:null, err:name + '含非整数：' + parts[i] };
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || Math.abs(number) > 999) return { values:null, err:name + '节点值须在 -999～999' };
+      values.push(number);
+    }
+    return { values:values, err:null };
+  }
+
+  function buildModel(prefixA, prefixB, shared) {
+    var nodes = {}, aKeys = [], bKeys = [], sharedKeys = [];
+    function add(values, prefix, keys, kind) {
+      values.forEach(function (value, index) {
+        var key = prefix + index;
+        nodes[key] = { key:key, value:value, next:null, kind:kind, identity:prefix + (index + 1) };
+        keys.push(key);
+      });
+    }
+    add(prefixA, 'A', aKeys, 'a');
+    add(prefixB, 'B', bKeys, 'b');
+    add(shared, 'C', sharedKeys, 'shared');
+
+    function connect(keys, tail) {
+      for (var i = 0; i < keys.length; i++) nodes[keys[i]].next = i + 1 < keys.length ? keys[i + 1] : tail;
+    }
+    var sharedHead = sharedKeys.length ? sharedKeys[0] : null;
+    connect(sharedKeys, null);
+    connect(aKeys, sharedHead);
+    connect(bKeys, sharedHead);
+    return {
+      nodes:nodes, aKeys:aKeys, bKeys:bKeys, sharedKeys:sharedKeys,
+      headA:aKeys.length ? aKeys[0] : sharedHead,
+      headB:bKeys.length ? bKeys[0] : sharedHead,
+      intersection:sharedHead
+    };
+  }
+
+  function buildSteps(model) {
+    var nodes = model.nodes, pA = model.headA, pB = model.headB, steps = [];
+    var historyA = [pA], historyB = [pB], moves = 0;
+    function label(key) { return key === null ? 'null' : nodes[key].identity + '(' + nodes[key].value + ')'; }
+    function snap(phase, message, switchedA, switchedB) {
+      steps.push({
+        phase:phase, pA:pA, pB:pB, moves:moves,
+        historyA:historyA.slice(), historyB:historyB.slice(),
+        switchedA:!!switchedA, switchedB:!!switchedB, msg:message
+      });
+    }
+
+    if (pA === pB) {
+      snap('done', pA === null
+        ? '两条链表都为空，同时位于 <b>null</b>，没有相交节点。'
+        : '两个头指针一开始就指向同一节点 <span class="ok">' + label(pA) + '</span>，它就是交点。', false, false);
+      return steps;
+    }
+
+    snap('start', '初始化：<span class="a">pA = ' + label(pA) + '</span>，<span class="b">pB = ' + label(pB) + '</span>。两者不是同一个节点，同时前进一步。', false, false);
+    var guard = 0;
+    while (pA !== pB && guard < 40) {
+      var oldA = pA, oldB = pB;
+      var switchedA = oldA === null, switchedB = oldB === null;
+      pA = switchedA ? model.headB : nodes[oldA].next;
+      pB = switchedB ? model.headA : nodes[oldB].next;
+      moves++;
+      historyA.push(pA); historyB.push(pB);
+
+      var moveA = switchedA ? 'pA 到达链尾，切换到 <b>headB</b>' : 'pA 沿 next 前进';
+      var moveB = switchedB ? 'pB 到达链尾，切换到 <b>headA</b>' : 'pB 沿 next 前进';
+      if (pA === pB) {
+        snap('done', moveA + '；' + moveB + '。现在两个指针' +
+          (pA === null
+            ? '同时到达 <span class="ok">null</span>，说明两条链表不相交。'
+            : '都指向 <span class="ok">' + label(pA) + '</span>，找到第一个公共节点！'), switchedA, switchedB);
+      } else {
+        snap('move', moveA + '，来到 <span class="a">' + label(pA) + '</span>；' +
+          moveB + '，来到 <span class="b">' + label(pB) + '</span>。节点身份不同，继续。', switchedA, switchedB);
+      }
+      guard++;
+    }
+    return steps;
+  }
+
+  root.IntersectionListApp = { parseSegment:parseSegment, buildModel:buildModel, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var App = window.IntersectionListApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var inputA = $('prefixAInput'), inputB = $('prefixBInput'), inputShared = $('sharedInput');
+  var errEl = $('err'), statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var model = null, steps = [], stepIndex = 0, timer = null, nodeEls = {}, nullEl = null;
+
+  function appendArrow(chain) {
+    var arrow = document.createElement('span'); arrow.className = 'arrow'; arrow.textContent = '→'; chain.appendChild(arrow);
+  }
+  function createNode(key) {
+    var data = model.nodes[key], node = document.createElement('div');
+    node.className = 'node ' + (data.kind === 'a' ? 'unique-a' : data.kind === 'b' ? 'unique-b' : 'common');
+    node.dataset.key = key;
+    var badges = document.createElement('span'); badges.className = 'pointer-badges';
+    var value = document.createElement('span'); value.className = 'value'; value.textContent = data.value;
+    var identity = document.createElement('span'); identity.className = 'identity'; identity.textContent = 'id:' + data.identity;
+    node.appendChild(badges); node.appendChild(value); node.appendChild(identity);
+    nodeEls[key] = node;
+    return node;
+  }
+  function fillChain(element, keys, showEmpty) {
+    element.innerHTML = '';
+    if (!keys.length && showEmpty) {
+      var empty = document.createElement('span'); empty.className = 'empty-prefix'; empty.textContent = '∅';
+      element.appendChild(empty);
+      return;
+    }
+    keys.forEach(function (key, index) {
+      if (index) appendArrow(element);
+      element.appendChild(createNode(key));
+    });
+  }
+  function buildGraph() {
+    nodeEls = {};
+    fillChain($('prefixAChain'), model.aKeys, true);
+    fillChain($('prefixBChain'), model.bKeys, true);
+    var sharedChain = $('sharedChain');
+    fillChain(sharedChain, model.sharedKeys, false);
+    if (model.sharedKeys.length) appendArrow(sharedChain);
+    nullEl = document.createElement('div'); nullEl.className = 'null-node'; nullEl.textContent = 'null';
+    var badges = document.createElement('span'); badges.className = 'pointer-badges'; nullEl.appendChild(badges);
+    sharedChain.appendChild(nullEl);
+    $('sharedLabel').textContent = model.sharedKeys.length ? '公共尾部' : '无公共尾部';
+    $('junctionA').textContent = model.sharedKeys.length ? '↘' : '→';
+    $('junctionB').textContent = model.sharedKeys.length ? '↗' : '→';
+  }
+
+  function addBadge(container, text, cls) {
+    var badge = document.createElement('span'); badge.className = 'pointer-badge ' + cls; badge.textContent = text; container.appendChild(badge);
+  }
+  function pointerTarget(key) { return key === null ? nullEl : nodeEls[key]; }
+  function renderPointers(step) {
+    Object.keys(nodeEls).forEach(function (key) {
+      var node = nodeEls[key];
+      node.classList.remove('active-a', 'active-b');
+      node.querySelector('.pointer-badges').innerHTML = '';
+    });
+    nullEl.classList.remove('active-a', 'active-b');
+    nullEl.querySelector('.pointer-badges').innerHTML = '';
+    var targetA = pointerTarget(step.pA), targetB = pointerTarget(step.pB);
+    targetA.classList.add('active-a'); addBadge(targetA.querySelector('.pointer-badges'), 'pA', 'a');
+    targetB.classList.add('active-b'); addBadge(targetB.querySelector('.pointer-badges'), 'pB', 'b');
+  }
+  function nodeLabel(key) {
+    if (key === null) return 'null';
+    var node = model.nodes[key];
+    return node.identity + '(' + node.value + ')';
+  }
+  function renderTrail(element, history, cls) {
+    element.innerHTML = '';
+    history.forEach(function (key, index) {
+      if (index) {
+        var arrow = document.createElement('span'); arrow.textContent = '→'; element.appendChild(arrow);
+      }
+      var chip = document.createElement('span');
+      chip.className = 'trail-chip' + (index === history.length - 1 ? ' latest-' + cls : '');
+      chip.textContent = nodeLabel(key);
+      element.appendChild(chip);
+    });
+  }
+  function render() {
+    var step = steps[stepIndex];
+    renderPointers(step);
+    $('currentA').textContent = nodeLabel(step.pA);
+    $('currentB').textContent = nodeLabel(step.pB);
+    $('result').textContent = step.phase === 'done'
+      ? (step.pA === null ? 'null（不相交）' : nodeLabel(step.pA))
+      : '尚未确定';
+    renderTrail($('trailA'), step.historyA, 'a');
+    renderTrail($('trailB'), step.historyB, 'b');
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '同步移动 ' + step.moves + ' 次 · 步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function renderStats(prefixA, prefixB, shared) {
+    statsEl.innerHTML =
+      '<div class="stat">链表 A 长度<b>' + (prefixA.length + shared.length) + '</b></div>' +
+      '<div class="stat">链表 B 长度<b>' + (prefixB.length + shared.length) + '</b></div>' +
+      '<div class="stat">公共尾部长度<b>' + shared.length + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(m+n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+  function parseAll() {
+    var a = App.parseSegment(inputA.value, 'A 独有前缀');
+    if (!a.values) return { err:a.err };
+    var b = App.parseSegment(inputB.value, 'B 独有前缀');
+    if (!b.values) return { err:b.err };
+    var shared = App.parseSegment(inputShared.value, '公共尾部');
+    if (!shared.values) return { err:shared.err };
+    if (!a.values.length && !shared.values.length) return { err:'链表 A 不能为空' };
+    if (!b.values.length && !shared.values.length) return { err:'链表 B 不能为空' };
+    return { a:a.values, b:b.values, shared:shared.values, err:null };
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 850);
+  }
+  function load() {
+    var parsed = parseAll();
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return;
+    }
+    errEl.classList.remove('show'); stopPlay();
+    model = App.buildModel(parsed.a, parsed.b, parsed.shared);
+    steps = App.buildSteps(model); stepIndex = 0;
+    buildGraph(); renderStats(parsed.a, parsed.b, parsed.shared); render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  [inputA, inputB, inputShared].forEach(function (input) {
+    input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      inputA.value = chip.dataset.a; inputB.value = chip.dataset.b; inputShared.value = chip.dataset.s; load();
+    };
+  });
+  document.addEventListener('keydown', function (event) {
+    if ([inputA, inputB, inputShared].indexOf(document.activeElement) >= 0) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># 双指针换头 · 时间 O(m+n) · 额外空间 O(1)</span>\n' +
+'class Solution:\n' +
+'    def getIntersectionNode(self, headA: ListNode, headB: ListNode):\n' +
+'        pA, pB = headA, headB\n' +
+'\n' +
+'        while pA is not pB:           <span class="cmt"># 比较节点身份，不是节点值</span>\n' +
+'            pA = pA.next if pA else headB\n' +
+'            pB = pB.next if pB else headA\n' +
+'\n' +
+'        return pA                     <span class="cmt"># 交点，或 null</span>',
+    java:
+'<span class="cmt">// 双指针换头 · 时间 O(m+n) · 额外空间 O(1)</span>\n' +
+'public class Solution {\n' +
+'    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {\n' +
+'        ListNode pA = headA, pB = headB;\n' +
+'\n' +
+'        while (pA != pB) {             <span class="cmt">// 比较节点引用</span>\n' +
+'            pA = (pA == null) ? headB : pA.next;\n' +
+'            pB = (pB == null) ? headA : pB.next;\n' +
+'        }\n' +
+'\n' +
+'        return pA;                     <span class="cmt">// 交点，或 null</span>\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>
