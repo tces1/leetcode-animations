@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 206 反转链表迭代法与递归法逐帧动画：真实展示 next 指向、调用栈下探与逐层回溯。">
+<meta name="tags" content="链表 · 迭代 · 递归 · 双指针 · 调用栈 · 原地修改">
+<title>206. 反转链表 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .mode-switch {
+    display:inline-flex; gap:4px; padding:4px; margin:0 0 16px;
+    border:1px solid #dbe1ea; border-radius:11px; background:#eef0f4;
+  }
+  button.mode-btn { padding:7px 18px; border-radius:8px; background:transparent; color:#4b5563; }
+  button.mode-btn:hover { background:#e2e5eb; }
+  button.mode-btn.active { background:#fff; color:#4338ca; box-shadow:0 1px 4px rgba(15,23,42,.12); }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phase-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item,.phase {
+    border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px;
+    font-size:13px; color:#4b5563; background:#f8fafc; transition:.18s;
+  }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:260px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:180px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4;
+    border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage {
+    overflow:auto; border:1px solid #eef0f4; border-radius:12px;
+    background:linear-gradient(#fafbff,#fff); padding:56px 22px 48px; text-align:center;
+  }
+  .chain { display:inline-flex; align-items:center; min-width:max-content; }
+  .node,.null-node {
+    position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    background:#fff; transition:.18s; font-family:"SF Mono",Menlo,monospace;
+  }
+  .node {
+    width:62px; height:62px; border:2px solid #cbd5e1; border-radius:50%;
+    color:#334155; font-size:18px; font-weight:800; box-shadow:0 2px 5px rgba(15,23,42,.04);
+  }
+  .node .idx { position:absolute; bottom:5px; color:#94a3b8; font-size:8px; font-weight:700; }
+  .node.reversed { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .node.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 5px rgba(245,158,11,.18); transform:scale(1.07); }
+  .node.saved { border-color:#0ea5e9; box-shadow:0 0 0 4px rgba(14,165,233,.16); }
+  .node.new-head { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 5px rgba(34,197,94,.2); }
+  .null-node {
+    width:58px; height:36px; border:2px dashed #cbd5e1; border-radius:8px;
+    color:#64748b; background:#f1f5f9; font-size:11px; font-weight:700;
+  }
+  .null-node.current { border-color:#f59e0b; box-shadow:0 0 0 4px rgba(245,158,11,.16); }
+  .null-node.saved { border-color:#0ea5e9; box-shadow:0 0 0 4px rgba(14,165,233,.16); }
+  .null-node.new-head { border-color:#16a34a; background:#dcfce7; color:#166534; }
+  .edge {
+    position:relative; width:48px; flex:0 0 48px; text-align:center;
+    font:800 25px "SF Mono",Menlo,monospace; color:#94a3b8;
+  }
+  .edge.left { color:#16a34a; }
+  .edge.right { color:#64748b; }
+  .edge.cycle { color:#dc2626; font-size:21px; background:#fee2e2; border-radius:8px; }
+  .edge.broken { color:#ef4444; font-size:18px; }
+  .edge.saved-edge { color:#0284c7; background:#e0f2fe; border-radius:8px; }
+  .badge-row {
+    position:absolute; left:50%; transform:translateX(-50%); white-space:nowrap;
+    display:flex; gap:3px; z-index:3;
+  }
+  .badge-row.top { top:-31px; }
+  .badge-row.bottom { bottom:-31px; }
+  .badge { padding:2px 6px; border-radius:5px; color:#fff; font:800 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .badge.prev { background:#16a34a; }
+  .badge.curr { background:#d97706; }
+  .badge.next { background:#0284c7; }
+  .badge.head { background:#d97706; }
+  .badge.newhead { background:#16a34a; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:9px 12px; background:#f8fafc; color:#64748b; text-align:center; font-size:12px; }
+  .box b { display:block; min-height:25px; font:800 16px "SF Mono",Menlo,monospace; color:#334155; }
+  .box.prev b { color:#15803d; }
+  .box.curr b { color:#b45309; }
+  .box.next b { color:#0369a1; }
+  .stack-panel { margin-top:10px; border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; background:#f8fafc; }
+  .stack-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:8px; font-size:12px; color:#64748b; }
+  .stack-list { display:flex; flex-wrap:wrap; gap:7px; }
+  .frame {
+    border:1px solid #cbd5e1; border-radius:8px; padding:6px 9px; background:#fff;
+    font:11px "SF Mono",Menlo,monospace; color:#475569;
+  }
+  .frame.active { border-color:#f59e0b; background:#fffbeb; color:#92400e; box-shadow:0 0 0 2px rgba(245,158,11,.12); }
+  .rule {
+    margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0;
+    padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center;
+    font:14px "SF Mono",Menlo,monospace; text-align:center;
+  }
+  .rule .save,.rule .dive { color:#7dd3fc; font-weight:800; }
+  .rule .rewire,.rule .cut { color:#86efac; font-weight:800; }
+  .rule .advance,.rule .return { color:#fcd34d; font-weight:800; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .save,.status .dive { color:#7dd3fc; font-weight:700; }
+  .status .rewire,.status .cut { color:#86efac; font-weight:700; }
+  .status .advance,.status .return { color:#fde68a; font-weight:700; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:700px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea,.phase-strip { grid-template-columns:1fr; }
+    .dashboard { grid-template-columns:1fr 1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/reverse-linked-list/" target="_blank" rel="noopener">LeetCode 206</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <div class="mode-switch" role="group" aria-label="解法模式">
+    <button type="button" class="mode-btn active" data-mode="iterative">迭代法</button>
+    <button type="button" class="mode-btn" data-mode="recursive">递归法</button>
+  </div>
+  <h1 id="pageHeading">206. 反转链表 · 迭代法逐帧动画</h1>
+  <div class="sub" id="pageSub"></div>
+
+  <div class="card">
+    <div class="panel-title" id="ideaTitle"></div>
+    <div class="idea" id="ideaContent"></div>
+    <div class="key-note" id="keyNote"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">head =</span><input type="text" id="input" value="1 2 3 4 5" spellcheck="false" placeholder="空格或逗号分隔，如 1 2 3 4 5"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="1 2 3 4 5">经典五节点</span>
+      <span class="chip" data-v="1 2">两个节点</span>
+      <span class="chip" data-v="7">单节点</span>
+      <span class="chip" data-v="-3 0 8 -2">含负数</span>
+      <span class="chip" data-v="9 9 -1">重复值</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～10 个整数，整数范围 −999～999；只接受空格或单个逗号分隔。连续逗号、小数和其它字符会被拒绝。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip"></div>
+    <div class="panel-title" id="visualTitle" style="margin-top:16px;"></div>
+    <div class="stage"><div class="chain" id="chain"></div></div>
+    <div class="dashboard" id="dashboard"></div>
+    <div class="stack-panel" id="stackPanel" hidden>
+      <div class="stack-head"><b>调用栈（左侧最早，右侧当前）</b><span id="stackDepth"></span></div>
+      <div class="stack-list" id="stackList"></div>
+    </div>
+    <div class="rule" id="rule">准备初始化 prev 与 curr</div>
+    <div class="legend" id="legend"></div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs" id="codeTabs"></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-reverse-linked-list-app>
+(function (root) {
+  'use strict';
+  function parseInput(value) {
+    if (typeof value !== 'string' || !value.trim()) return { values:null, err:'请输入至少一个整数' };
+    var text = value.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) {
+      return { values:null, err:'格式无效，请只输入由空格或单个逗号分隔的整数' };
+    }
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length > 10) return { values:null, err:'链表长度请不超过 10' };
+    var values = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -999 || number > 999) {
+        return { values:null, err:'节点值须在 -999～999：' + parts[i] };
+      }
+      values.push(number);
+    }
+    return { values:values, err:null };
+  }
+
+  function reverseValues(values) {
+    var result = [];
+    for (var i = values.length - 1; i >= 0; i--) result.push(values[i]);
+    return result;
+  }
+
+  function buildSteps(values) {
+    var n = values.length, nextOf = [], steps = [];
+    for (var i = 0; i < n; i++) nextOf.push(i + 1 < n ? i + 1 : null);
+    var prev = null, curr = 0, next = null, nextReady = false, round = 0;
+    function label(index) { return index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'; }
+    function snap(phase, message) {
+      steps.push({
+        phase:phase, round:round, values:values.slice(), nextOf:nextOf.slice(),
+        prev:prev, curr:curr, next:next, nextReady:nextReady, msg:message
+      });
+    }
+    snap('start', '初始化：<b>prev = null</b>，<b>curr = head = ' + label(curr) + '</b>。所有节点仍按原方向指向右侧。');
+    while (curr !== null) {
+      round++;
+      next = nextOf[curr];
+      nextReady = true;
+      snap('save', '第 ' + round + ' 轮 · <span class="save">先保存后继</span>：next = curr.next = <b>' + label(next) + '</b>。即使下一步改写 curr.next，右侧剩余链表也不会丢失。');
+
+      var oldNext = nextOf[curr];
+      nextOf[curr] = prev;
+      snap('rewire', '第 ' + round + ' 轮 · <span class="rewire">反转当前箭头</span>：curr.next 从 <b>' + label(oldNext) + '</b> 改为 <b>' + label(prev) + '</b>。当前节点加入左侧已反转部分。');
+
+      prev = curr;
+      curr = next;
+      snap('advance', '第 ' + round + ' 轮 · <span class="advance">双指针整体前进</span>：prev = ' + label(prev) + '，curr = ' + label(curr) + '。' + (curr === null ? '原链表已扫描完毕。' : '进入下一轮。'));
+    }
+    snap('done', '完成：<b>curr = null</b>，循环结束；<b>prev = ' + label(prev) + '</b> 是新头。链表已原地反转为 <span class="rewire">[' + reverseValues(values).join(', ') + ']</span>。');
+    return steps;
+  }
+
+  function buildRecursiveSteps(values) {
+    var n = values.length, nextOf = [], steps = [], stack = [], newHead = null;
+    for (var i = 0; i < n; i++) nextOf.push(i + 1 < n ? i + 1 : null);
+    function label(index) { return index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'; }
+    function copyStack() {
+      return stack.map(function (frame) { return { head:frame.head, state:frame.state }; });
+    }
+    function snap(phase, stage, head, message) {
+      steps.push({
+        phase:phase, stage:stage, values:values.slice(), nextOf:nextOf.slice(),
+        head:head, newHead:newHead, stack:copyStack(), depth:stack.length, msg:message
+      });
+    }
+    if (n === 0) {
+      stack.push({ head:null, state:'检查基例' });
+      snap('base', 'dive', null, '<span class="dive">基例</span>：head == null，直接返回 <b>null</b>。');
+      newHead = null;
+      stack[0].state = 'return null';
+      snap('return', 'return', null, '<span class="return">返回</span>：空链表的 newHead 始终是 <b>null</b>。');
+      stack.pop();
+      snap('done', 'return', null, '完成：递归调用栈已清空，返回 <b>null</b>。');
+      return steps;
+    }
+
+    stack.push({ head:0, state:'进入 reverseList(head)' });
+    snap('start', 'dive', 0, '进入 <b>reverseList(' + label(0) + ')</b>，准备沿着 head.next 递归下探。');
+    for (var head = 0; head < n - 1; head++) {
+      stack[stack.length - 1].state = '等待 reverseList(head.next)';
+      snap('dive', 'dive', head, '<span class="dive">递归下探</span>：' + label(head) + ' 需要先得到 <b>reverseList(' + label(head + 1) + ')</b> 的结果，当前栈帧暂停等待。');
+      stack.push({ head:head + 1, state:'进入 reverseList(head)' });
+      snap('dive', 'dive', head + 1, '调用 <b>reverseList(' + label(head + 1) + ')</b>，调用栈深度增加到 <b>' + stack.length + '</b>。');
+    }
+
+    newHead = n - 1;
+    stack[stack.length - 1].state = '命中 head.next == null';
+    snap('base', 'dive', n - 1, '<span class="dive">命中基例</span>：' + label(n - 1) + '.next == null，原尾节点就是 <b>newHead</b>。');
+    stack[stack.length - 1].state = 'return newHead';
+    snap('return', 'return', n - 1, '<span class="return">基例返回</span>：返回 newHead = <b>' + label(newHead) + '</b>；之后每一层都会原样返回它。');
+
+    for (head = n - 2; head >= 0; head--) {
+      stack.pop();
+      stack[stack.length - 1].state = '执行 head.next.next = head';
+      var child = nextOf[head];
+      nextOf[child] = head;
+      snap('rewire', 'unwind', head, '<span class="rewire">回溯改向</span>：令 <b>head.next.next = head</b>，即 ' + label(child) + '.next = ' + label(head) + '。此刻两节点暂时互指成环。');
+
+      stack[stack.length - 1].state = '执行 head.next = null';
+      nextOf[head] = null;
+      snap('cut', 'unwind', head, '<span class="cut">断开旧边</span>：令 <b>head.next = null</b>。若省略这句，' + label(head) + ' 仍指向 ' + label(child) + '，会与刚建立的反向边组成环，结果不再是合法单链表。');
+
+      stack[stack.length - 1].state = 'return newHead';
+      snap('return', 'return', head, '<span class="return">当前层返回</span>：不返回 head，而是继续返回同一个 <b>newHead = ' + label(newHead) + '</b>。');
+    }
+    stack.pop();
+    snap('done', 'return', null, '完成：调用栈已清空；所有层返回同一个 <b>newHead = ' + label(newHead) + '</b>，链表反转为 <span class="rewire">[' + reverseValues(values).join(', ') + ']</span>。');
+    return steps;
+  }
+
+  root.ReverseLinkedListApp = {
+    parseInput:parseInput,
+    reverseValues:reverseValues,
+    buildSteps:buildSteps,
+    buildIterativeSteps:buildSteps,
+    buildRecursiveSteps:buildRecursiveSteps
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.ReverseLinkedListApp, $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), chainEl = $('chain'), statsEl = $('stats');
+  var statusEl = $('status'), progressEl = $('progress'), ruleEl = $('rule');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var values = [], steps = [], stepIndex = 0, timer = null, mode = 'iterative', activeLanguage = 'py';
+
+  function pointerLabel(index) { return index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'; }
+  function isReversed(index, step) {
+    if (step.phase === 'done') return true;
+    if (mode === 'recursive') {
+      return step.newHead !== null && (index === step.newHead || step.nextOf[index] === index - 1);
+    }
+    return (step.prev !== null && index <= step.prev) || (step.phase === 'rewire' && step.curr === index);
+  }
+  function badge(text, cls) {
+    var span = document.createElement('span'); span.className = 'badge ' + cls; span.textContent = text; return span;
+  }
+  function addPointers(element, index, step) {
+    var top = document.createElement('span'), bottom = document.createElement('span');
+    top.className = 'badge-row top'; bottom.className = 'badge-row bottom';
+    if (mode === 'iterative') {
+      if (step.prev === index) top.appendChild(badge('prev', 'prev'));
+      if (step.curr === index) top.appendChild(badge('curr', 'curr'));
+      if (step.nextReady && step.next === index) bottom.appendChild(badge('next', 'next'));
+    } else {
+      if (step.head === index) top.appendChild(badge('head', 'head'));
+      if (step.newHead === index) bottom.appendChild(badge('newHead', 'newhead'));
+    }
+    element.appendChild(top); element.appendChild(bottom);
+  }
+  function renderNull(side, step) {
+    var node = document.createElement('div'), isLeft = side === 'left';
+    node.className = 'null-node';
+    node.textContent = 'null';
+    var top = document.createElement('span'), bottom = document.createElement('span');
+    top.className = 'badge-row top'; bottom.className = 'badge-row bottom';
+    if (mode === 'iterative') {
+      var prevHere = step.prev === null && (isLeft || step.phase === 'done');
+      var currHere = step.curr === null && !isLeft;
+      var nextHere = step.nextReady && step.next === null && !isLeft;
+      if (prevHere && step.phase === 'done') node.className += ' new-head';
+      if (currHere) node.className += ' current';
+      if (nextHere) node.className += ' saved';
+      if (prevHere) top.appendChild(badge('prev', 'prev'));
+      if (currHere) top.appendChild(badge('curr', 'curr'));
+      if (nextHere) bottom.appendChild(badge('next', 'next'));
+    } else if (!isLeft && step.head === null) {
+      node.className += ' current';
+      top.appendChild(badge('head', 'head'));
+    }
+    node.appendChild(top); node.appendChild(bottom);
+    return node;
+  }
+  function makeEdge(leftIndex, step) {
+    var edge = document.createElement('div'), leftNext = step.nextOf[leftIndex], rightNext = step.nextOf[leftIndex + 1];
+    if (leftNext === leftIndex + 1 && rightNext === leftIndex) { edge.className = 'edge cycle'; edge.textContent = '↔'; }
+    else if (leftNext === leftIndex + 1) { edge.className = 'edge right'; edge.textContent = '→'; }
+    else if (rightNext === leftIndex) { edge.className = 'edge left'; edge.textContent = '←'; }
+    else { edge.className = 'edge broken'; edge.textContent = '⋯×⋯'; }
+    if (mode === 'iterative' && step.phase === 'save' && step.curr === leftIndex && step.next === leftIndex + 1) edge.className += ' saved-edge';
+    return edge;
+  }
+  function renderChain(step) {
+    chainEl.innerHTML = '';
+    chainEl.appendChild(renderNull('left', step));
+    var firstEdge = document.createElement('div'); firstEdge.className = 'edge left';
+    firstEdge.textContent = isReversed(0, step) && step.nextOf[0] === null ? '←' : '·'; chainEl.appendChild(firstEdge);
+    values.forEach(function (value, index) {
+      var node = document.createElement('div'), reversed = isReversed(index, step);
+      node.className = 'node' + (reversed ? ' reversed' : '');
+      if ((mode === 'iterative' && step.curr === index) || (mode === 'recursive' && step.head === index)) node.className += ' current';
+      if (mode === 'iterative' && step.nextReady && step.next === index) node.className += ' saved';
+      if ((mode === 'iterative' && step.phase === 'done' && step.prev === index) ||
+          (mode === 'recursive' && step.newHead === index)) node.className += ' new-head';
+      node.textContent = value;
+      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = 'N' + (index + 1); node.appendChild(idx);
+      addPointers(node, index, step); chainEl.appendChild(node);
+      if (index < values.length - 1) chainEl.appendChild(makeEdge(index, step));
+    });
+    var lastEdge = document.createElement('div'); lastEdge.className = 'edge right';
+    lastEdge.textContent = !isReversed(values.length - 1, step) && step.nextOf[values.length - 1] === null ? '→' : '·'; chainEl.appendChild(lastEdge);
+    chainEl.appendChild(renderNull('right', step));
+  }
+  function renderPhases(step) {
+    var key = mode === 'iterative' ? step.phase : step.stage;
+    var order = mode === 'iterative' ? ['save','rewire','advance'] : ['dive','unwind','return'];
+    var active = order.indexOf(key);
+    Array.prototype.forEach.call($('phaseStrip').children, function (phase, index) {
+      phase.className = 'phase';
+      if (step.phase === 'done' || (active >= 0 && index < active)) phase.className += ' done';
+      if (phase.dataset.stage === key) phase.className += ' active';
+    });
+  }
+  function renderDashboard(step) {
+    if (mode === 'iterative') {
+      $('dashboard').innerHTML =
+        '<div class="box prev">prev<b>' + pointerLabel(step.prev) + '</b></div>' +
+        '<div class="box curr">curr<b>' + pointerLabel(step.curr) + '</b></div>' +
+        '<div class="box next">next<b>' + (step.nextReady ? pointerLabel(step.next) : '未保存') + '</b></div>' +
+        '<div class="box">已反转节点<b>' + (step.prev === null ? 0 : step.prev + 1) + '</b></div>';
+      $('stackPanel').hidden = true;
+      return;
+    }
+    var headNext = step.head === null ? null : step.nextOf[step.head];
+    $('dashboard').innerHTML =
+      '<div class="box curr">head<b>' + pointerLabel(step.head) + '</b></div>' +
+      '<div class="box next">head.next<b>' + pointerLabel(headNext) + '</b></div>' +
+      '<div class="box prev">newHead<b>' + pointerLabel(step.newHead) + '</b></div>' +
+      '<div class="box">调用栈深度<b>' + step.depth + '</b></div>';
+    $('stackPanel').hidden = false;
+    $('stackDepth').textContent = 'depth = ' + step.depth;
+    $('stackList').innerHTML = '';
+    step.stack.forEach(function (frame, index) {
+      var item = document.createElement('div');
+      item.className = 'frame' + (index === step.stack.length - 1 ? ' active' : '');
+      item.textContent = 'reverseList(' + pointerLabel(frame.head) + ') · ' + frame.state;
+      $('stackList').appendChild(item);
+    });
+    if (!step.stack.length) $('stackList').innerHTML = '<span class="hint">调用栈已清空</span>';
+  }
+  function render() {
+    var step = steps[stepIndex];
+    renderChain(step); renderPhases(step);
+    renderDashboard(step);
+    if (mode === 'iterative') {
+      if (step.phase === 'save') ruleEl.innerHTML = '<span class="save">next = curr.next</span>';
+      else if (step.phase === 'rewire') ruleEl.innerHTML = '<span class="rewire">curr.next = prev</span>';
+      else if (step.phase === 'advance') ruleEl.innerHTML = '<span class="advance">prev = curr; curr = next</span>';
+      else if (step.phase === 'done') ruleEl.innerHTML = '<span class="rewire">return prev</span>';
+      else ruleEl.textContent = 'prev = null; curr = head';
+    } else {
+      if (step.phase === 'dive' || step.phase === 'start') ruleEl.innerHTML = '<span class="dive">newHead = reverseList(head.next)</span>';
+      else if (step.phase === 'base') ruleEl.innerHTML = '<span class="dive">if head == null or head.next == null: return head</span>';
+      else if (step.phase === 'rewire') ruleEl.innerHTML = '<span class="rewire">head.next.next = head</span>';
+      else if (step.phase === 'cut') ruleEl.innerHTML = '<span class="cut">head.next = null</span>';
+      else ruleEl.innerHTML = '<span class="return">return newHead</span>';
+    }
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = (mode === 'iterative' ? '轮次 ' + step.round + ' / ' + values.length + ' · ' : '栈深度 ' + step.depth + ' · ') +
+      '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    statsEl.innerHTML =
+      '<div class="stat">原链表<b>[' + values.join(', ') + ']</b></div>' +
+      '<div class="stat">反转结果<b>[' + App.reverseValues(values).join(', ') + ']</b></div>' +
+      '<div class="stat">节点数<b>' + values.length + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>' + (mode === 'iterative' ? 'O(1)' : 'O(n) 调用栈') + '</b></div>' +
+      '<div class="stat">修改方式<b>原地修改</b></div>';
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 850);
+  }
+  function renderCodeTabs() {
+    var tabs = $('codeTabs');
+    tabs.innerHTML = '';
+    ['py','java'].forEach(function (language) {
+      var tab = document.createElement('span');
+      tab.className = 'code-tab' + (language === activeLanguage ? ' active' : '');
+      tab.dataset.lang = language;
+      tab.textContent = (mode === 'iterative' ? '迭代 ' : '递归 ') + (language === 'py' ? 'Python' : 'Java');
+      tab.onclick = function () {
+        activeLanguage = language;
+        renderCodeTabs();
+      };
+      tabs.appendChild(tab);
+    });
+    $('codeBlock').innerHTML = codes[mode][activeLanguage];
+  }
+  function renderMethod() {
+    Array.prototype.forEach.call(document.querySelectorAll('.mode-btn'), function (button) {
+      var active = button.dataset.mode === mode;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    if (mode === 'iterative') {
+      $('pageHeading').textContent = '206. 反转链表 · 迭代法逐帧动画';
+      $('pageSub').innerHTML = '用 <code>prev</code> 保存已反转链表的头，<code>curr</code> 扫描原链表。每轮必须先保存后继，再改写当前节点的 <code>next</code>；最终 <code>prev</code> 是新头。';
+      $('ideaTitle').textContent = '每一轮固定三个动作';
+      $('ideaContent').innerHTML =
+        '<div class="idea-item"><div class="no">① 保存后继</div><code>next = curr.next</code>。必须先记住右侧链表入口，否则改箭头后会失去剩余节点。</div>' +
+        '<div class="idea-item"><div class="no">② 反转箭头</div><code>curr.next = prev</code>。当前节点从指向右侧改为指向左侧，正式加入已反转部分。</div>' +
+        '<div class="idea-item"><div class="no">③ 双指针前进</div><code>prev = curr</code>，<code>curr = next</code>。两个指针整体右移，开始下一轮。</div>';
+      $('keyNote').innerHTML = '<b>原地迭代：</b>节点本身不移动，只改变 <code>next</code> 引用。时间复杂度 <code>O(n)</code>，额外空间复杂度 <code>O(1)</code>。';
+      $('phaseStrip').innerHTML =
+        '<div class="phase" data-stage="save"><div class="no">动作 1</div><b>next = curr.next</b></div>' +
+        '<div class="phase" data-stage="rewire"><div class="no">动作 2</div><b>curr.next = prev</b></div>' +
+        '<div class="phase" data-stage="advance"><div class="no">动作 3</div><b>prev = curr; curr = next</b></div>';
+      $('visualTitle').textContent = '节点位置不动，箭头真实反映当前 next 引用；红色断点表示两部分暂时断开';
+      $('legend').innerHTML =
+        '<span><span class="dot" style="background:#ecfdf5;border-color:#86efac"></span>已反转部分（箭头向左）</span>' +
+        '<span><span class="dot" style="background:#fff;border-color:#cbd5e1"></span>未处理部分（箭头向右）</span>' +
+        '<span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>curr 当前节点</span>' +
+        '<span><span class="dot" style="background:#e0f2fe;border-color:#0ea5e9"></span>next 已保存</span>' +
+        '<span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>断开的旧边</span>';
+    } else {
+      $('pageHeading').textContent = '206. 反转链表 · 递归法逐帧动画';
+      $('pageSub').innerHTML = '先用 <code>reverseList(head.next)</code> 下探到原尾节点，再逐层回溯：建立反向边、断开旧正向边，并始终返回同一个 <code>newHead</code>。';
+      $('ideaTitle').textContent = '递归的三个阶段';
+      $('ideaContent').innerHTML =
+        '<div class="idea-item"><div class="no">① dive · 下探</div>当前层暂停，调用 <code>reverseList(head.next)</code>；调用栈逐层加深，直到命中基例。</div>' +
+        '<div class="idea-item"><div class="no">② unwind · 回溯</div><code>head.next.next = head</code> 让后一节点指回当前节点，再用 <code>head.next = null</code> 断开旧边。</div>' +
+        '<div class="idea-item"><div class="no">③ return · 返回</div>原尾节点是 <code>newHead</code>；每一层都原样返回它，而不是返回当前 <code>head</code>。</div>';
+      $('keyNote').innerHTML = '<b><code>head.next = null</code> 不可省：</b>回指后旧的 <code>head → head.next</code> 仍存在，会形成双向环；必须立即断开。时间 <code>O(n)</code>，额外空间 <code>O(n)</code> 调用栈。';
+      $('phaseStrip').innerHTML =
+        '<div class="phase" data-stage="dive"><div class="no">阶段 1</div><b>dive · 递归下探 / 基例</b></div>' +
+        '<div class="phase" data-stage="unwind"><div class="no">阶段 2</div><b>unwind · 回指并断旧边</b></div>' +
+        '<div class="phase" data-stage="return"><div class="no">阶段 3</div><b>return · 返回 newHead</b></div>';
+      $('visualTitle').textContent = '箭头按真实 next 拓扑绘制；红色 ↔ 是回指后、断旧边前的短暂环';
+      $('legend').innerHTML =
+        '<span><span class="dot" style="background:#22c55e;border-color:#16a34a"></span>newHead（原尾节点）</span>' +
+        '<span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>当前 head</span>' +
+        '<span><span class="dot" style="background:#ecfdf5;border-color:#86efac"></span>已建立的反向边</span>' +
+        '<span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>未断旧边造成的短暂环</span>';
+    }
+    renderCodeTabs();
+  }
+  function load() {
+    var parsed = App.parseInput(input.value);
+    if (!parsed.values) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); values = parsed.values;
+    steps = mode === 'iterative' ? App.buildIterativeSteps(values) : App.buildRecursiveSteps(values);
+    stepIndex = 0; renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.mode-btn'), function (button) {
+    button.onclick = function () {
+      if (mode === button.dataset.mode) return;
+      stopPlay(); mode = button.dataset.mode; activeLanguage = 'py'; renderMethod(); load();
+    };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    iterative:{
+      py:'<span class="cmt"># 迭代法 · O(n) 时间 · O(1) 额外空间 · 原地修改 next</span>\n' +
+      'class Solution:\n' +
+      '    def reverseList(self, head: Optional[ListNode]) -&gt; Optional[ListNode]:\n' +
+      '        prev, curr = None, head\n' +
+      '\n' +
+      '        while curr:\n' +
+      '            nxt = curr.next       <span class="cmt"># ① 先保存后继，避免断链</span>\n' +
+      '            curr.next = prev      <span class="cmt"># ② 反转当前箭头</span>\n' +
+      '            prev, curr = curr, nxt <span class="cmt"># ③ 双指针整体前进</span>\n' +
+      '\n' +
+      '        return prev               <span class="cmt"># 新的链表头</span>',
+      java:'<span class="cmt">// 迭代法 · O(n) 时间 · O(1) 额外空间 · 原地修改 next</span>\n' +
+      'class Solution {\n' +
+      '    public ListNode reverseList(ListNode head) {\n' +
+      '        ListNode prev = null, curr = head;\n' +
+      '\n' +
+      '        while (curr != null) {\n' +
+      '            ListNode next = curr.next; <span class="cmt">// ① 先保存后继</span>\n' +
+      '            curr.next = prev;          <span class="cmt">// ② 反转当前箭头</span>\n' +
+      '            prev = curr;               <span class="cmt">// ③ 双指针前进</span>\n' +
+      '            curr = next;\n' +
+      '        }\n' +
+      '\n' +
+      '        return prev;\n' +
+      '    }\n' +
+      '}'
+    },
+    recursive:{
+      py:'<span class="cmt"># 递归法 · O(n) 时间 · O(n) 调用栈</span>\n' +
+      'class Solution:\n' +
+      '    def reverseList(self, head: Optional[ListNode]) -&gt; Optional[ListNode]:\n' +
+      '        if head is None or head.next is None:\n' +
+      '            return head                 <span class="cmt"># 基例：原尾节点成为 newHead</span>\n' +
+      '\n' +
+      '        new_head = self.reverseList(head.next) <span class="cmt"># dive：先递归下探</span>\n' +
+      '        head.next.next = head           <span class="cmt"># unwind：后一节点指回当前节点</span>\n' +
+      '        head.next = None                <span class="cmt"># 断开旧正向边，否则会成环</span>\n' +
+      '        return new_head                 <span class="cmt"># 每层返回同一个原尾节点</span>',
+      java:'<span class="cmt">// 递归法 · O(n) 时间 · O(n) 调用栈</span>\n' +
+      'class Solution {\n' +
+      '    public ListNode reverseList(ListNode head) {\n' +
+      '        if (head == null || head.next == null) {\n' +
+      '            return head;                <span class="cmt">// 基例</span>\n' +
+      '        }\n' +
+      '\n' +
+      '        ListNode newHead = reverseList(head.next); <span class="cmt">// dive</span>\n' +
+      '        head.next.next = head;          <span class="cmt">// unwind：建立反向边</span>\n' +
+      '        head.next = null;               <span class="cmt">// 断旧边，防止成环</span>\n' +
+      '        return newHead;                 <span class="cmt">// 始终返回原尾节点</span>\n' +
+      '    }\n' +
+      '}'
+    }
+  };
+  renderMethod();
+  load();
+})();
+</script>
+</body>
+</html>
