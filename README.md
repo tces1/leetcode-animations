@@ -73,6 +73,7 @@ leetcode-animations/
 | 15 | [三数之和](https://tces1.github.io/leetcode-animations/problems/15-3sum.html) | 中等 | 数组 · 排序 · 双指针 · 去重 · 剪枝 |
 | 31 | [下一个排列](https://tces1.github.io/leetcode-animations/problems/31-next-permutation.html) | 中等 | 数组 · 双指针 · 字典序 · O(n) |
 | 32 | [最长有效括号](https://tces1.github.io/leetcode-animations/problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
+| 41 | [缺失的第一个正数](https://tces1.github.io/leetcode-animations/problems/41-first-missing-positive.html) | 困难 | 数组 · 原地哈希 · 交换归位 · O(1) 空间 |
 | 42 | [接雨水](https://tces1.github.io/leetcode-animations/problems/42-trapping-rain-water.html) | 困难 | 数组 · 双指针 · 前后缀最大值 · 空间优化 |
 | 45 | [跳跃游戏 II](https://tces1.github.io/leetcode-animations/problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
 | 48 | [旋转图像](https://tces1.github.io/leetcode-animations/problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
@@ -83,6 +84,7 @@ leetcode-animations/
 | 64 | [最小路径和](https://tces1.github.io/leetcode-animations/problems/64-minimum-path-sum.html) | 中等 | 动态规划 · 二维 DP · 网格 |
 | 70 | [爬楼梯](https://tces1.github.io/leetcode-animations/problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
 | 72 | [编辑距离](https://tces1.github.io/leetcode-animations/problems/72-edit-distance.html) | 困难 | 动态规划 · 二维 DP · 字符串 |
+| 73 | [矩阵置零](https://tces1.github.io/leetcode-animations/problems/73-set-matrix-zeroes.html) | 中等 | 矩阵 · 原地标记 · 数组 · O(1) 空间 |
 | 76 | [最小覆盖子串](https://tces1.github.io/leetcode-animations/problems/76-minimum-window-substring.html) | 困难 | 字符串 · 滑动窗口 · 哈希表 · 计数 |
 | 84 | [柱状图中最大的矩形](https://tces1.github.io/leetcode-animations/problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
 | 118 | [杨辉三角](https://tces1.github.io/leetcode-animations/problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
