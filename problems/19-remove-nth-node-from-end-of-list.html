@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 19 删除链表的倒数第 N 个结点双指针逐帧动画：展示 dummy、固定间距与删除边重连。">
+<meta name="tags" content="链表 · 双指针 · dummy · 前后指针 · 原地删除 · O(1) 空间">
+<title>19. 删除链表的倒数第 N 个结点 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phase-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .idea-item,.phase { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; transition:.18s; }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(140px,1fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] { width:100%; min-width:0; padding:9px 11px; font-size:13px; font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; transition:background .15s; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .controls-spaced { margin-bottom:14px; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:8px; text-align:center; }
+  #topology { display:block; margin:0 auto; min-width:100%; }
+  .edge { fill:none; stroke:#64748b; stroke-width:2.4; marker-end:url(#arrow); }
+  .edge.deleted { stroke:#ef4444; stroke-dasharray:6 4; marker-end:url(#redArrow); }
+  .edge.rewired { stroke:#16a34a; stroke-width:4; marker-end:url(#greenArrow); }
+  .node-circle { fill:#fff; stroke:#cbd5e1; stroke-width:2.2; transition:.18s; }
+  .node.dummy .node-circle { fill:#eef2ff; stroke:#818cf8; stroke-dasharray:5 3; }
+  .node.fast .node-circle { stroke:#db2777; stroke-width:4; }
+  .node.slow .node-circle { stroke:#7c3aed; stroke-width:4; }
+  .node.target .node-circle { fill:#fee2e2; stroke:#ef4444; stroke-width:5; }
+  .node.removed { opacity:.38; }
+  .node-value { fill:#334155; text-anchor:middle; font:800 17px "SF Mono",Menlo,monospace; }
+  .node-id { fill:#94a3b8; text-anchor:middle; font:800 9px "SF Mono",Menlo,monospace; }
+  .pointer-pill text { fill:#fff; text-anchor:middle; font-size:10px; font-weight:800; }
+  .pointer-pill.slow rect { fill:#7c3aed; } .pointer-pill.fast rect { fill:#db2777; }
+  .null-box { fill:#f1f5f9; stroke:#cbd5e1; stroke-width:2; stroke-dasharray:5 3; }
+  .null-text,.head-label { fill:#64748b; text-anchor:middle; font:700 10px "SF Mono",Menlo,monospace; }
+  .gap-line { stroke:#f59e0b; stroke-width:2; stroke-dasharray:5 3; }
+  .gap-text { fill:#b45309; text-anchor:middle; font-size:11px; font-weight:800; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:8px 6px; background:#f8fafc; color:#64748b; text-align:center; font-size:11px; }
+  .box b { display:block; min-height:23px; font:800 13px "SF Mono",Menlo,monospace; color:#334155; }
+  .box.fast b { color:#be185d; } .box.slow b { color:#6d28d9; } .box.target b { color:#dc2626; } .box.result b { color:#15803d; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .rule .fast { color:#f9a8d4; } .rule .sync { color:#c4b5fd; } .rule .delete { color:#86efac; } .rule .return { color:#fcd34d; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .visual-title { margin-top:16px; }
+  .dot.dummy-dot { background:#eef2ff; border-color:#818cf8; }
+  .dot.fast-dot { background:#db2777; }
+  .dot.slow-dot { background:#7c3aed; }
+  .dot.target-dot { background:#fee2e2; border-color:#ef4444; }
+  .dot.rewired-dot { background:#16a34a; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .fast { color:#f9a8d4; font-weight:700; } .status .slow { color:#c4b5fd; font-weight:700; } .status .delete { color:#fca5a5; font-weight:700; } .status .ok { color:#86efac; font-weight:700; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:760px) { body { padding:16px 12px; } .card { padding:14px; } .idea,.phase-strip { grid-template-columns:1fr 1fr; } .input-grid { grid-template-columns:1fr; } .dashboard { grid-template-columns:repeat(2,1fr); } .progress { width:100%; margin-left:0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/remove-nth-node-from-end-of-list/" target="_blank" rel="noopener">LeetCode 19</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>19. 删除链表的倒数第 N 个结点 · 双指针动画</h1>
+  <div class="sub">增加 <code>dummy</code> 统一处理删头；让 <code>fast</code> 先走 <code>n+1</code> 步，再与 <code>slow</code> 同步前进。fast 到达 <code>null</code> 时，slow 恰好停在待删节点的<b>前驱</b>。</div>
+
+  <div class="card">
+    <div class="panel-title">为什么保持 n+1 的指针距离</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 增加哨兵</div><code>dummy.next = head</code>，fast 与 slow 都从 dummy 出发，删头也有合法前驱。</div>
+      <div class="idea-item"><div class="no">② 拉开间距</div>fast 先走 <code>n+1</code> 步，使两个指针之间隔着 n 个真实节点。</div>
+      <div class="idea-item"><div class="no">③ 同步前进</div>之后 fast、slow 每轮各走一步，固定间距不会改变。</div>
+      <div class="idea-item"><div class="no">④ 重连删除</div>fast 到 null 时，执行 <code>slow.next = slow.next.next</code>，跨过目标节点。</div>
+    </div>
+    <div class="key-note"><b>边界统一：</b>当删除头节点时 slow 留在 dummy；删除尾节点时 slow 停在倒数第二个节点；单节点链表删除后返回 <code>dummy.next = null</code>。时间 <code>O(n)</code>，额外空间 <code>O(1)</code>。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">链表节点值</span><input type="text" id="valuesInput" value="1 2 3 4 5" spellcheck="false" placeholder="空格或逗号分隔，如 1 2 3 4 5"></label>
+      <label class="field"><span class="lab">n（倒数第 n 个）</span><input type="text" id="nInput" value="2" spellcheck="false" placeholder="1～链表长度"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="1 2 3 4 5" data-n="2">经典删除 4</span>
+      <span class="chip" data-v="1 2 3" data-n="3">删除头节点</span>
+      <span class="chip" data-v="1 2 3" data-n="1">删除尾节点</span>
+      <span class="chip" data-v="1" data-n="1">单节点</span>
+      <span class="chip" data-v="-3 0 8 -2" data-n="2">含负数</span>
+      <span class="chip" data-v="7 7 7" data-n="2">重复值</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">严格支持 1～12 个 −999～999 的整数；n 必须是整数且满足 1 ≤ n ≤ 链表长度。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls controls-spaced">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip">
+      <div class="phase" data-phase="init"><div class="no">阶段 1</div><b>建立 dummy 哨兵</b></div>
+      <div class="phase" data-phase="lead"><div class="no">阶段 2</div><b>fast 先走 n+1 步</b></div>
+      <div class="phase" data-phase="sync"><div class="no">阶段 3</div><b>fast / slow 同步前进</b></div>
+      <div class="phase" data-phase="delete"><div class="no">阶段 4</div><b>跨过目标并重连</b></div>
+    </div>
+    <div class="panel-title visual-title">真实 next 拓扑（重连时绿色边跨过红色待删节点）</div>
+    <div class="stage"><svg id="topology" role="img" aria-label="删除链表倒数第 N 个节点动画"></svg></div>
+    <div class="dashboard" id="dashboard"></div>
+    <div class="rule" id="rule"></div>
+    <div class="legend">
+      <span><span class="dot dummy-dot"></span>dummy 哨兵</span>
+      <span><span class="dot fast-dot"></span>fast</span>
+      <span><span class="dot slow-dot"></span>slow</span>
+      <span><span class="dot target-dot"></span>待删节点</span>
+      <span><span class="dot rewired-dot"></span>重连后的 next 边</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-remove-nth-node-logic>
+(function (root) {
+  'use strict';
+  function parseInput(valuesText, nText) {
+    if (typeof valuesText !== 'string' || !valuesText.trim()) return { values:null, n:null, err:'请输入至少一个整数' };
+    var text = valuesText.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) return { values:null, n:null, err:'节点值格式无效，请只输入由空格或单个逗号分隔的整数' };
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length < 1 || parts.length > 12) return { values:null, n:null, err:'链表长度必须为 1～12' };
+    var values = [];
+    for (var i = 0; i < parts.length; i++) {
+      var value = Number(parts[i]);
+      if (!Number.isSafeInteger(value) || value < -999 || value > 999) return { values:null, n:null, err:'节点值须在 -999～999：' + parts[i] };
+      values.push(value);
+    }
+    if (typeof nText !== 'string' || !/^\d+$/.test(nText.trim())) return { values:null, n:null, err:'n 必须是正整数' };
+    var n = Number(nText.trim());
+    if (!Number.isSafeInteger(n) || n < 1 || n > values.length) return { values:null, n:null, err:'n 必须满足 1 ≤ n ≤ ' + values.length };
+    return { values:values, n:n, err:null };
+  }
+  function buildModel(inputValues, n) {
+    var values = inputValues.slice(), nextOf = [];
+    for (var i = 0; i < values.length; i++) nextOf.push(i + 1 < values.length ? i + 1 : null);
+    return { values:values, nextOf:nextOf, dummyNext:0, n:n };
+  }
+  function buildSteps(model) {
+    var values = model.values.slice(), nextOf = model.nextOf.slice(), dummyNext = model.dummyNext;
+    var fast = -1, slow = -1, target = null, removed = null, leadMoves = 0, syncMoves = 0, result = null, steps = [];
+    function next(index) { return index === -1 ? dummyNext : (index === null ? null : nextOf[index]); }
+    function label(index) { return index === -1 ? 'dummy' : (index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'); }
+    function resultValues() {
+      var output = [], cursor = dummyNext, guard = 0;
+      while (cursor !== null && guard <= values.length) { output.push(values[cursor]); cursor = nextOf[cursor]; guard++; }
+      return output;
+    }
+    function snap(phase, action, message) {
+      steps.push({ phase:phase, action:action, values:values.slice(), nextOf:nextOf.slice(), dummyNext:dummyNext, n:model.n,
+        fast:fast, slow:slow, target:target, removed:removed, leadMoves:leadMoves, syncMoves:syncMoves,
+        result:result === null ? null : result.slice(), msg:message });
+    }
+    snap('init', 'start', '建立哨兵：<b>dummy.next = head</b>，并令 <span class="fast">fast = dummy</span>、<span class="slow">slow = dummy</span>。');
+    for (var i = 1; i <= model.n + 1; i++) {
+      fast = next(fast);
+      leadMoves++;
+      snap('lead', 'lead-move', '<span class="fast">fast 先行第 ' + i + ' / ' + (model.n + 1) + ' 步</span>，到达 <b>' + label(fast) + '</b>。' +
+        (i === model.n + 1 ? '现在 fast 与 slow 的位置之间隔着 n 个真实节点。' : '继续拉开间距。'));
+    }
+    while (fast !== null) {
+      fast = next(fast);
+      slow = next(slow);
+      syncMoves++;
+      snap('sync', 'sync-move', '同步第 ' + syncMoves + ' 轮：<span class="fast">fast → ' + label(fast) + '</span>，<span class="slow">slow → ' + label(slow) + '</span>，间距保持不变。');
+    }
+    target = next(slow);
+    snap('delete', 'target', 'fast 已到 <b>null</b>，slow 停在待删节点的前驱 <b>' + label(slow) + '</b>；锁定待删节点 <span class="delete">' + label(target) + '</span>。');
+    var successor = nextOf[target];
+    if (slow === -1) dummyNext = successor;
+    else nextOf[slow] = successor;
+    removed = target;
+    snap('delete', 'rewire', '执行 <span class="ok">slow.next = slow.next.next</span>：让 ' + label(slow) + ' 直接指向 <b>' + label(successor) + '</b>，跨过 ' + label(target) + '。');
+    result = resultValues();
+    snap('done', 'return', '删除完成，返回 <b>dummy.next</b>。结果链表为 <span class="ok">[' + result.join(', ') + ']</span>。');
+    return steps;
+  }
+  function solve(values, n) {
+    var steps = buildSteps(buildModel(values, n));
+    return steps[steps.length - 1].result.slice();
+  }
+  root.RemoveNthNodeApp = { parseInput:parseInput, buildModel:buildModel, buildSteps:buildSteps, solve:solve };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.RemoveNthNodeApp, $ = function (id) { return document.getElementById(id); };
+  var valuesInput = $('valuesInput'), nInput = $('nInput'), errEl = $('err'), statsEl = $('stats');
+  var statusEl = $('status'), progressEl = $('progress'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var values = [], n = 0, steps = [], stepIndex = 0, timer = null, NS = 'http://www.w3.org/2000/svg';
+  function svgElement(name, attrs, text) {
+    var element = document.createElementNS(NS, name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    if (text !== undefined) element.textContent = text;
+    return element;
+  }
+  function label(index) { return index === -1 ? 'dummy' : (index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'); }
+  function addPointer(layer, x, y, text, cls) {
+    var item = svgElement('g', { class:'pointer-pill ' + cls });
+    item.appendChild(svgElement('rect', { x:x - 22, y:y - 10, width:44, height:19, rx:6 }));
+    item.appendChild(svgElement('text', { x:x, y:y + 3 }, text)); layer.appendChild(item);
+  }
+  function renderTopology(step) {
+    var svg = $('topology'), total = values.length + 1, gap = 90, left = 62, y = 126;
+    var width = Math.max(760, left * 2 + (total + 1) * gap), height = 235;
+    svg.innerHTML = ''; svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height); svg.setAttribute('width', width); svg.setAttribute('height', height);
+    var defs = svgElement('defs');
+    [['arrow','#64748b'],['redArrow','#ef4444'],['greenArrow','#16a34a']].forEach(function (pair) {
+      var marker = svgElement('marker', { id:pair[0], markerWidth:8, markerHeight:8, refX:7, refY:3, orient:'auto', markerUnits:'strokeWidth' });
+      marker.appendChild(svgElement('path', { d:'M0,0 L0,6 L8,3 z', fill:pair[1] })); defs.appendChild(marker);
+    });
+    svg.appendChild(defs);
+    function xOf(index) { return left + (index + 1) * gap; }
+    function actualNext(index) { return index === -1 ? step.dummyNext : step.nextOf[index]; }
+    var rewired = step.removed !== null && (step.action === 'rewire' || step.action === 'return');
+    for (var index = -1; index < values.length; index++) {
+      if (index === step.removed) continue;
+      var successor = actualNext(index);
+      if (successor === null) continue;
+      var edgeClass = 'edge' + (rewired && successor !== index + 1 ? ' rewired' : '');
+      var x1 = xOf(index) + 29, x2 = xOf(successor) - 31;
+      if (successor === index + 1) svg.appendChild(svgElement('path', { class:edgeClass, d:'M' + x1 + ',' + y + ' L' + x2 + ',' + y }));
+      else svg.appendChild(svgElement('path', { class:'edge rewired', d:'M' + x1 + ',' + y + ' Q' + ((x1 + x2) / 2) + ',' + (y - 58) + ' ' + x2 + ',' + y }));
+    }
+    if (step.target !== null && step.action === 'target') {
+      var predecessor = step.slow, oldX1 = xOf(predecessor) + 29, oldX2 = xOf(step.target) - 31;
+      svg.appendChild(svgElement('path', { class:'edge deleted', d:'M' + oldX1 + ',' + (y + 5) + ' L' + oldX2 + ',' + (y + 5) }));
+    }
+    var nullX = xOf(values.length);
+    var tail = null;
+    for (index = values.length - 1; index >= 0; index--) if (index !== step.removed) { tail = index; break; }
+    if (tail === null) {
+      svg.appendChild(svgElement('path', { class:rewired ? 'edge rewired' : 'edge', d:'M' + (xOf(-1) + 29) + ',' + y + ' L' + (nullX - 32) + ',' + y }));
+    } else {
+      svg.appendChild(svgElement('path', { class:'edge', d:'M' + (xOf(tail) + 29) + ',' + y + ' L' + (nullX - 32) + ',' + y }));
+    }
+    svg.appendChild(svgElement('rect', { class:'null-box', x:nullX - 29, y:y - 18, width:58, height:36, rx:8 }));
+    svg.appendChild(svgElement('text', { class:'null-text', x:nullX, y:y + 4 }, 'null'));
+    if (step.phase === 'sync' && step.fast !== null && step.slow !== null) {
+      var gx1 = xOf(step.slow), gx2 = xOf(step.fast);
+      svg.appendChild(svgElement('line', { class:'gap-line', x1:gx1, y1:y - 73, x2:gx2, y2:y - 73 }));
+      svg.appendChild(svgElement('text', { class:'gap-text', x:(gx1 + gx2) / 2, y:y - 81 }, '固定间距 n+1 条边'));
+    }
+    var pointerLayer = svgElement('g');
+    for (index = -1; index < values.length; index++) {
+      var removed = step.removed === index, classes = 'node' + (index === -1 ? ' dummy' : '') +
+        (step.fast === index ? ' fast' : '') + (step.slow === index ? ' slow' : '') +
+        (step.target === index ? ' target' : '') + (removed ? ' removed' : '');
+      var group = svgElement('g', { class:classes }), x = xOf(index);
+      group.appendChild(svgElement('circle', { class:'node-circle', cx:x, cy:y, r:29 }));
+      group.appendChild(svgElement('text', { class:'node-value', x:x, y:y + 2 }, index === -1 ? 'D' : String(values[index])));
+      group.appendChild(svgElement('text', { class:'node-id', x:x, y:y + 18 }, index === -1 ? 'dummy' : 'id:N' + (index + 1)));
+      if (index === -1) group.appendChild(svgElement('text', { class:'head-label', x:x, y:y + 52 }, 'dummy.next 是返回头'));
+      svg.appendChild(group);
+      var pointers = [];
+      if (step.fast === index) pointers.push(['fast','fast']);
+      if (step.slow === index) pointers.push(['slow','slow']);
+      pointers.forEach(function (pointer, order) { addPointer(pointerLayer, x, y - 35 - order * 22, pointer[0], pointer[1]); });
+    }
+    if (step.fast === null) addPointer(pointerLayer, nullX, y - 35, 'fast', 'fast');
+    svg.appendChild(pointerLayer);
+  }
+  function renderPhases(step) {
+    var order = ['init','lead','sync','delete'], key = step.phase === 'done' ? 'delete' : step.phase, current = order.indexOf(key);
+    Array.prototype.forEach.call($('phaseStrip').children, function (phase, index) {
+      phase.className = 'phase';
+      if (index < current || step.phase === 'done') phase.className += ' done';
+      if (phase.dataset.phase === key && step.phase !== 'done') phase.className += ' active';
+    });
+  }
+  function render() {
+    var step = steps[stepIndex], resultText = step.result === null ? '尚未返回' : '[' + step.result.join(', ') + ']';
+    renderTopology(step); renderPhases(step);
+    $('dashboard').innerHTML =
+      '<div class="box fast">fast<b>' + label(step.fast) + '</b></div><div class="box slow">slow<b>' + label(step.slow) + '</b></div>' +
+      '<div class="box">先行步数<b>' + step.leadMoves + ' / ' + (n + 1) + '</b></div>' +
+      '<div class="box target">待删节点<b>' + (step.target === null ? '未锁定' : label(step.target)) + '</b></div>' +
+      '<div class="box result">结果<b>' + resultText + '</b></div>';
+    if (step.action === 'lead-move') $('rule').innerHTML = '<span class="fast">fast = fast.next　// 共 n+1 次</span>';
+    else if (step.action === 'sync-move') $('rule').innerHTML = '<span class="sync">fast = fast.next; slow = slow.next</span>';
+    else if (step.action === 'target') $('rule').innerHTML = '<span class="delete">target = slow.next</span>';
+    else if (step.action === 'rewire') $('rule').innerHTML = '<span class="delete">slow.next = slow.next.next</span>';
+    else if (step.action === 'return') $('rule').innerHTML = '<span class="return">return dummy.next</span>';
+    else $('rule').textContent = 'dummy.next = head; fast = slow = dummy';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '先行 ' + step.leadMoves + ' 步 · 同步 ' + step.syncMoves + ' 次 · 步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    var result = App.solve(values, n);
+    statsEl.innerHTML =
+      '<div class="stat">原链表<b>[' + values.join(', ') + ']</b></div><div class="stat">n<b>' + n + '</b></div>' +
+      '<div class="stat">删除值<b>' + values[values.length - n] + '</b></div><div class="stat">结果<b>[' + result.join(', ') + ']</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div><div class="stat">额外空间<b>O(1)</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex >= steps.length - 1) stopPlay(); else next(); }, 800);
+  }
+  function load() {
+    var parsed = App.parseInput(valuesInput.value, nInput.value);
+    if (!parsed.values) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); values = parsed.values; n = parsed.n;
+    steps = App.buildSteps(App.buildModel(values, n)); stepIndex = 0; renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); }; nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay; $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); }; $('loadBtn').onclick = load;
+  [valuesInput,nInput].forEach(function (input) { input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { valuesInput.value = chip.dataset.v; nInput.value = chip.dataset.n; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === valuesInput || document.activeElement === nInput) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); } if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+  var codes = {
+    py:'<span class="cmt"># 双指针 + dummy · O(n) 时间 · O(1) 额外空间</span>\n' +
+      'class Solution:\n' +
+      '    def removeNthFromEnd(self, head: Optional[ListNode], n: int) -&gt; Optional[ListNode]:\n' +
+      '        dummy = ListNode(0, head)\n' +
+      '        fast = slow = dummy\n\n' +
+      '        for _ in range(n + 1):          <span class="cmt"># 拉开 n+1 条边</span>\n' +
+      '            fast = fast.next\n\n' +
+      '        while fast:\n' +
+      '            fast = fast.next\n' +
+      '            slow = slow.next\n\n' +
+      '        slow.next = slow.next.next      <span class="cmt"># 跨过倒数第 n 个节点</span>\n' +
+      '        return dummy.next               <span class="cmt"># 正确覆盖删除头节点</span>',
+    java:'<span class="cmt">// 双指针 + dummy · O(n) 时间 · O(1) 额外空间</span>\n' +
+      'class Solution {\n' +
+      '    public ListNode removeNthFromEnd(ListNode head, int n) {\n' +
+      '        ListNode dummy = new ListNode(0, head);\n' +
+      '        ListNode fast = dummy, slow = dummy;\n\n' +
+      '        for (int i = 0; i &lt; n + 1; i++) { <span class="cmt">// 拉开 n+1 条边</span>\n' +
+      '            fast = fast.next;\n' +
+      '        }\n\n' +
+      '        while (fast != null) {\n' +
+      '            fast = fast.next;\n' +
+      '            slow = slow.next;\n' +
+      '        }\n\n' +
+      '        slow.next = slow.next.next;     <span class="cmt">// 删除并重连</span>\n' +
+      '        return dummy.next;\n' +
+      '    }\n' +
+      '}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py; load();
+})();
+</script>
+</body>
+</html>

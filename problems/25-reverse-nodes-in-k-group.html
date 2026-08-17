@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 25 K 个一组翻转链表逐帧动画：查找第 k 个节点、标记组边界、组内原地反转并重新连接。">
+<meta name="tags" content="链表 · dummy 节点 · 分组反转 · 原地修改 · O(1) 空间">
+<title>25. K 个一组翻转链表 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  .wrap { max-width:1080px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phase-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .idea-item,.phase { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; transition:.18s; }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(110px,.7fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] { width:100%; min-width:0; padding:9px 11px; font-size:13px; font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; transition:background .15s; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:8px; text-align:center; }
+  #topology { display:block; margin:0 auto; min-width:100%; }
+  .edge { fill:none; stroke:#64748b; stroke-width:2.3; marker-end:url(#arrow); }
+  .edge.changed { stroke:#dc2626; stroke-width:3.2; marker-end:url(#changedArrow); }
+  .edge.null-edge { stroke-dasharray:4 3; }
+  .group-zone { fill:#fff7ed; fill-opacity:.62; stroke:#fb923c; stroke-width:1.5; stroke-dasharray:6 4; }
+  .zone-label { fill:#c2410c; text-anchor:middle; font-size:10px; font-weight:800; }
+  .node-circle { fill:#fff; stroke:#cbd5e1; stroke-width:2.2; }
+  .node.in-group .node-circle { fill:#fff7ed; stroke:#fb923c; }
+  .node.kth .node-circle { fill:#f3e8ff; stroke:#9333ea; stroke-width:3.5; }
+  .node.curr .node-circle { fill:#fef3c7; stroke:#f59e0b; stroke-width:3.5; }
+  .node.saved .node-circle { fill:#e0f2fe; stroke:#0ea5e9; stroke-width:3.5; }
+  .node.changed .node-circle { filter:drop-shadow(0 0 5px rgba(220,38,38,.4)); }
+  .dummy .node-circle { fill:#f1f5f9; stroke:#94a3b8; stroke-dasharray:5 3; }
+  .node-value { fill:#334155; text-anchor:middle; font:800 17px "SF Mono",Menlo,monospace; }
+  .node-id { fill:#94a3b8; text-anchor:middle; font:800 9px "SF Mono",Menlo,monospace; }
+  .pointer { fill:#fff; text-anchor:middle; font-size:8.5px; font-weight:800; }
+  .pointer-bg.group-prev { fill:#16a34a; } .pointer-bg.kth { fill:#9333ea; }
+  .pointer-bg.curr { fill:#d97706; } .pointer-bg.prev { fill:#db2777; }
+  .pointer-bg.next { fill:#0284c7; } .pointer-bg.group-next { fill:#475569; }
+  .null-box { fill:#f1f5f9; stroke:#cbd5e1; stroke-width:2; stroke-dasharray:5 3; }
+  .null-text { fill:#64748b; text-anchor:middle; font:700 11px "SF Mono",Menlo,monospace; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:8px 5px; background:#f8fafc; color:#64748b; text-align:center; font-size:11px; }
+  .box b { display:block; min-height:23px; font:800 12px "SF Mono",Menlo,monospace; color:#334155; }
+  .box.group-prev b { color:#15803d; } .box.kth b { color:#7e22ce; } .box.curr b { color:#b45309; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .rule .find { color:#c4b5fd; } .rule .reverse { color:#7dd3fc; } .rule .connect { color:#86efac; } .rule .advance { color:#fcd34d; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .find { color:#c4b5fd; } .status .reverse { color:#7dd3fc; } .status .connect { color:#86efac; } .status .keep { color:#fca5a5; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:800px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea,.phase-strip { grid-template-columns:1fr 1fr; } .input-grid { grid-template-columns:1fr; }
+    .dashboard { grid-template-columns:repeat(3,1fr); } .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/reverse-nodes-in-k-group/" target="_blank" rel="noopener">LeetCode 25</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>25. K 个一组翻转链表 · 逐帧动画</h1>
+  <div class="sub">以 <code>dummy + groupPrev</code> 管理分组；每轮先确认存在完整的 k 个节点，再在半开区间 <code>[groupPrev.next, groupNext)</code> 内原地反转。</div>
+
+  <div class="card">
+    <div class="panel-title">一组翻转的四个阶段</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 找到 kth</div>从 <code>groupPrev</code> 向前走 k 步。中途到 <code>null</code> 说明不足 k 个，剩余节点必须原样保留。</div>
+      <div class="idea-item"><div class="no">② 固定右边界</div>保存 <code>groupNext = kth.next</code>；它既是反转循环的停止边界，也是旧组头的新后继。</div>
+      <div class="idea-item"><div class="no">③ 组内逐条反转</div>令 <code>prev = groupNext</code>，在 <code>curr != groupNext</code> 时执行保存后继、<code>curr.next = prev</code>、双指针前进。</div>
+      <div class="idea-item"><div class="no">④ 连接并前进</div><code>groupPrev.next = kth</code> 接入新组头；旧组头已指向 <code>groupNext</code>，最后令 <code>groupPrev = 旧组头</code>。</div>
+    </div>
+    <div class="key-note"><b>先检查、后修改：</b>只有找到第 k 个节点后才开始改写 next，因此最后不足 k 个的节点从未被破坏。每个节点只被常数次访问，时间 <code>O(n)</code>；只使用固定数量指针，额外空间 <code>O(1)</code>。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">head（节点值）</span><input type="text" id="valuesInput" value="1 2 3 4 5" spellcheck="false" placeholder="空格或逗号分隔，如 1 2 3 4 5"></label>
+      <label class="field"><span class="lab">k</span><input type="text" id="kInput" value="2" spellcheck="false" placeholder="1～链表长度"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="1 2 3 4 5" data-k="2">不整除 · k=2</span>
+      <span class="chip" data-v="1 2 3 4 5 6" data-k="3">整除 · k=3</span>
+      <span class="chip" data-v="1 2 3 4" data-k="1">k=1</span>
+      <span class="chip" data-v="1 2 3 4 5" data-k="5">k=长度</span>
+      <span class="chip" data-v="-1 8 8 0 3" data-k="3">负数与重复值</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">严格支持 1～10 个 −999～999 的整数；k 必须是 1～链表长度的十进制整数。空值、符号、小数、前后混入字符均会被拒绝。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip">
+      <div class="phase" data-stage="find"><div class="no">阶段 1</div><b>向前寻找 kth</b></div>
+      <div class="phase" data-stage="boundary"><div class="no">阶段 2</div><b>保存 groupNext</b></div>
+      <div class="phase" data-stage="reverse"><div class="no">阶段 3</div><b>组内逐条反转</b></div>
+      <div class="phase" data-stage="connect"><div class="no">阶段 4</div><b>连接前后并前进</b></div>
+    </div>
+    <div class="panel-title" style="margin-top:16px;">虚线框是真实分组边界；节点固定按身份排列，曲线箭头反映每帧 next 引用</div>
+    <div class="stage"><svg id="topology" role="img" aria-label="K 个一组翻转链表拓扑动画"></svg></div>
+    <div class="dashboard" id="dashboard"></div>
+    <div class="rule" id="rule"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#fff7ed;border-color:#fb923c"></span>当前完整组</span>
+      <span><span class="dot" style="background:#f3e8ff;border-color:#9333ea"></span>kth</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>curr</span>
+      <span><span class="dot" style="background:#e0f2fe;border-color:#0ea5e9"></span>已保存的 next</span>
+      <span><span class="dot" style="background:#dc2626"></span>本帧改写的引用</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-reverse-k-group-logic>
+(function (root) {
+  'use strict';
+
+  function parseValues(value) {
+    if (typeof value !== 'string' || !value.trim()) return { values:null, err:'请输入至少一个整数' };
+    var text = value.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) return { values:null, err:'节点格式无效，请只输入由空格或单个逗号分隔的整数' };
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length > 10) return { values:null, err:'链表长度请不超过 10' };
+    var values = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -999 || number > 999) return { values:null, err:'节点值须在 -999～999：' + parts[i] };
+      values.push(number);
+    }
+    return { values:values, err:null };
+  }
+
+  function parseInput(valuesText, kText) {
+    var parsed = parseValues(valuesText);
+    if (!parsed.values) return { values:null, k:null, err:parsed.err };
+    if (typeof kText !== 'string' || !/^\d+$/.test(kText.trim())) return { values:null, k:null, err:'k 必须是十进制正整数' };
+    var k = Number(kText.trim());
+    if (!Number.isSafeInteger(k) || k < 1 || k > parsed.values.length) return { values:null, k:null, err:'k 必须在 1～链表长度 ' + parsed.values.length + ' 之间' };
+    return { values:parsed.values, k:k, err:null };
+  }
+
+  function solve(values, k) {
+    var result = values.slice();
+    for (var start = 0; start + k <= result.length; start += k) {
+      var left = start, right = start + k - 1;
+      while (left < right) {
+        var temp = result[left]; result[left] = result[right]; result[right] = temp; left++; right--;
+      }
+    }
+    return result;
+  }
+
+  function traverse(values, nextOf, head) {
+    var result = [], ids = [], seen = {}, at = head;
+    while (at !== null && !seen[at]) {
+      seen[at] = true; ids.push(at); result.push(values[at]); at = nextOf[at];
+    }
+    return { values:result, ids:ids, terminated:at === null };
+  }
+
+  function buildSteps(inputValues, k) {
+    var values = inputValues.slice(), n = values.length, nextOf = [], steps = [];
+    for (var i = 0; i < n; i++) nextOf.push(i + 1 < n ? i + 1 : null);
+    var dummyNext = n ? 0 : null, groupPrev = -1, kth = null, groupNext = null;
+    var oldGroupHead = null, prev = null, curr = null, savedNext = null, group = 0, scan = 0, groupIds = [];
+    function next(index) { return index === -1 ? dummyNext : index === null ? null : nextOf[index]; }
+    function label(index) { return index === -1 ? 'dummy' : index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'; }
+    function collect(start, stop) {
+      var ids = [], at = start, guard = 0;
+      while (at !== null && at !== stop && guard++ <= n) { ids.push(at); at = nextOf[at]; }
+      return ids;
+    }
+    function snap(stage, action, message, changedFrom, changedTo) {
+      steps.push({
+        stage:stage, action:action, group:group, scan:scan, k:k, values:values.slice(), nextOf:nextOf.slice(),
+        dummyNext:dummyNext, groupPrev:groupPrev, kth:kth, groupNext:groupNext, oldGroupHead:oldGroupHead,
+        prev:prev, curr:curr, savedNext:savedNext, groupIds:groupIds.slice(),
+        changedFrom:changedFrom == null ? null : changedFrom, changedTo:changedTo == null ? null : changedTo, msg:message
+      });
+    }
+    snap('start', 'start', '初始化：<b>dummy.next = head</b>，<b>groupPrev = dummy</b>。尚未改写任何输入节点。', null, null);
+    while (true) {
+      group++;
+      kth = groupPrev; groupNext = null; oldGroupHead = next(groupPrev);
+      prev = null; curr = null; savedNext = null; scan = 0;
+      groupIds = [];
+      snap('find', 'find-start', '第 ' + group + ' 组：从 <b>groupPrev = ' + label(groupPrev) + '</b> 出发，准备向前走 k = <b>' + k + '</b> 步寻找 kth。', null, null);
+      for (scan = 1; scan <= k; scan++) {
+        kth = next(kth);
+        if (kth !== null) groupIds.push(kth);
+        snap('find', 'find-step', '寻找第 ' + group + ' 组 kth：第 <b>' + scan + ' / ' + k + '</b> 步到达 <span class="find">' + label(kth) + '</span>。', null, null);
+        if (kth === null) break;
+      }
+      if (kth === null) {
+        groupIds = collect(oldGroupHead, null);
+        snap('remainder', 'keep', '<span class="keep">不足 k 个</span>：向前第 ' + scan + ' 步已到 null。由于本轮尚未改写任何 next，剩余 <b>[' + groupIds.map(function (id) { return values[id]; }).join(', ') + ']</b> 原样保留。', null, null);
+        snap('done', 'done', '完成：返回 <b>dummy.next = ' + label(dummyNext) + '</b>；共翻转 ' + (group - 1) + ' 个完整分组。', null, null);
+        break;
+      }
+
+      groupNext = nextOf[kth];
+      oldGroupHead = next(groupPrev);
+      groupIds = collect(oldGroupHead, groupNext);
+      prev = groupNext; curr = oldGroupHead; savedNext = null;
+      snap('boundary', 'boundary', '找到完整第 ' + group + ' 组：左边界是 <b>' + label(oldGroupHead) + '</b>，<b>kth = ' + label(kth) + '</b>，保存右边界 <b>groupNext = kth.next = ' + label(groupNext) + '</b>。', null, null);
+
+      while (curr !== groupNext) {
+        savedNext = nextOf[curr];
+        snap('reverse', 'save', '组内反转 · 先保存：<b>next = curr.next = ' + label(savedNext) + '</b>，随后改写 curr.next 也不会丢失后续节点。', null, null);
+        nextOf[curr] = prev;
+        snap('reverse', 'rewire', '<span class="reverse">逐条反转</span>：<b>' + label(curr) + '.next = ' + label(prev) + '</b>。' + (curr === oldGroupHead ? '旧组头第一次改写时已接到 groupNext。' : '当前节点已加入本组的反向链。'), curr, prev);
+        prev = curr; curr = savedNext;
+        snap('reverse', 'advance-reverse', '组内指针前进：<b>prev = ' + label(prev) + '</b>，<b>curr = ' + label(curr) + '</b>。' + (curr === groupNext ? '已到半开区间右边界，组内反转结束。' : '继续处理当前组。'), null, null);
+      }
+
+      snap('connect', 'tail-connected', '<span class="connect">确认后边界</span>：旧组头 <b>' + label(oldGroupHead) + '.next = groupNext = ' + label(groupNext) + '</b>，这条连接在组内第一次反转时已经建立。', oldGroupHead, groupNext);
+      if (groupPrev === -1) dummyNext = kth; else nextOf[groupPrev] = kth;
+      snap('connect', 'front-connected', '<span class="connect">连接前边界</span>：<b>groupPrev.next = kth</b>，即 ' + label(groupPrev) + '.next = ' + label(kth) + '。新组头重新接入已处理前缀。', groupPrev, kth);
+      groupPrev = oldGroupHead;
+      snap('connect', 'advance-group', '第 ' + group + ' 组完成：<b>groupPrev = 旧组头 = ' + label(groupPrev) + '</b>，下一组从 groupPrev.next 开始。', null, null);
+    }
+    return steps;
+  }
+
+  root.ReverseKGroupApp = { parseValues:parseValues, parseInput:parseInput, solve:solve, traverse:traverse, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.ReverseKGroupApp, $ = function (id) { return document.getElementById(id); };
+  var valuesInput = $('valuesInput'), kInput = $('kInput'), errEl = $('err'), svg = $('topology');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var values = [], k = 2, steps = [], stepIndex = 0, timer = null, activeLanguage = 'py';
+
+  function label(index) { return index === -1 ? 'dummy' : index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'; }
+  function xOf(index) { return index === -1 ? 65 : 165 + index * 100; }
+  function addSvg(tag, attrs, parent) {
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
+    (parent || svg).appendChild(el); return el;
+  }
+  function edgePath(from, to, nullX) {
+    var x1 = xOf(from), x2 = to === null ? nullX : xOf(to), y = 132;
+    if (x2 > x1 && x2 - x1 <= 105) return 'M ' + (x1 + 29) + ' ' + y + ' L ' + (x2 - 31) + ' ' + y;
+    var right = x2 > x1, bend = right ? 53 : 214;
+    return 'M ' + x1 + ' ' + (y + (right ? -29 : 29)) + ' Q ' + ((x1 + x2) / 2) + ' ' + bend + ' ' + x2 + ' ' + (y + (right ? -29 : 29));
+  }
+  function pointerPill(group, x, y, text, cls) {
+    var width = Math.max(32, text.length * 6.3 + 10);
+    addSvg('rect', { x:x - width / 2, y:y, width:width, height:17, rx:5, class:'pointer-bg ' + cls }, group);
+    var t = addSvg('text', { x:x, y:y + 11.5, class:'pointer' }, group); t.textContent = text;
+  }
+  function renderTopology(step) {
+    svg.innerHTML = '';
+    var width = Math.max(740, 260 + values.length * 100), nullX = 165 + values.length * 100;
+    svg.setAttribute('viewBox', '0 0 ' + width + ' 275'); svg.setAttribute('width', width); svg.setAttribute('height', 275);
+    var defs = addSvg('defs', {});
+    var marker = addSvg('marker', { id:'arrow', viewBox:'0 0 10 10', refX:9, refY:5, markerWidth:7, markerHeight:7, orient:'auto-start-reverse' }, defs);
+    addSvg('path', { d:'M 0 0 L 10 5 L 0 10 z', fill:'#64748b' }, marker);
+    var changedMarker = addSvg('marker', { id:'changedArrow', viewBox:'0 0 10 10', refX:9, refY:5, markerWidth:7, markerHeight:7, orient:'auto-start-reverse' }, defs);
+    addSvg('path', { d:'M 0 0 L 10 5 L 0 10 z', fill:'#dc2626' }, changedMarker);
+
+    if (step.groupIds.length) {
+      var xs = step.groupIds.map(xOf), minX = Math.min.apply(null, xs) - 43, maxX = Math.max.apply(null, xs) + 43;
+      addSvg('rect', { x:minX, y:83, width:maxX - minX, height:98, rx:12, class:'group-zone' });
+      var zoneText = addSvg('text', { x:(minX + maxX) / 2, y:78, class:'zone-label' });
+      zoneText.textContent = step.stage === 'remainder' ? '不足 k 个 · 保持原样' :
+        step.stage === 'find' ? '寻找 kth · 已扫描 ' + step.scan + ' / ' + step.k :
+        '第 ' + step.group + ' 组 [groupPrev.next, groupNext)';
+    }
+
+    var all = [-1];
+    for (var i = 0; i < values.length; i++) all.push(i);
+    all.forEach(function (from) {
+      var to = from === -1 ? step.dummyNext : step.nextOf[from];
+      var cls = 'edge' + (step.changedFrom === from ? ' changed' : '') + (to === null ? ' null-edge' : '');
+      addSvg('path', { d:edgePath(from, to, nullX), class:cls });
+    });
+    addSvg('rect', { x:nullX - 27, y:115, width:54, height:34, rx:8, class:'null-box' });
+    var nullText = addSvg('text', { x:nullX, y:136, class:'null-text' }); nullText.textContent = 'null';
+
+    all.forEach(function (index) {
+      var classes = 'node' + (index === -1 ? ' dummy' : '');
+      if (step.groupIds.indexOf(index) >= 0) classes += ' in-group';
+      if (index === step.kth) classes += ' kth';
+      if (index === step.curr) classes += ' curr';
+      if (index === step.savedNext && step.action === 'save') classes += ' saved';
+      if (index === step.changedFrom || index === step.changedTo) classes += ' changed';
+      var group = addSvg('g', { class:classes });
+      addSvg('circle', { cx:xOf(index), cy:132, r:29, class:'node-circle' }, group);
+      var valueText = addSvg('text', { x:xOf(index), y:129, class:'node-value' }, group);
+      valueText.textContent = index === -1 ? 'D' : values[index];
+      var idText = addSvg('text', { x:xOf(index), y:146, class:'node-id' }, group);
+      idText.textContent = index === -1 ? 'dummy' : 'N' + (index + 1);
+      var y = 188;
+      if (step.groupPrev === index) { pointerPill(group, xOf(index), y, 'groupPrev', 'group-prev'); y += 19; }
+      if (step.kth === index) { pointerPill(group, xOf(index), y, 'kth', 'kth'); y += 19; }
+      if (step.curr === index) { pointerPill(group, xOf(index), y, 'curr', 'curr'); y += 19; }
+      if (step.prev === index) { pointerPill(group, xOf(index), y, 'prev', 'prev'); y += 19; }
+      if (step.savedNext === index && step.action === 'save') { pointerPill(group, xOf(index), y, 'next', 'next'); y += 19; }
+      if (step.groupNext === index) pointerPill(group, xOf(index), y, 'groupNext', 'group-next');
+    });
+  }
+  function renderPhases(step) {
+    var order = ['find','boundary','reverse','connect'], active = order.indexOf(step.stage);
+    Array.prototype.forEach.call($('phaseStrip').children, function (el, index) {
+      el.className = 'phase';
+      if (step.stage === 'done' || step.stage === 'remainder' || (active >= 0 && index < active)) el.className += ' done';
+      if (el.dataset.stage === step.stage) el.className += ' active';
+    });
+  }
+  function render() {
+    var step = steps[stepIndex], current = App.traverse(values, step.nextOf, step.dummyNext);
+    renderTopology(step); renderPhases(step);
+    $('dashboard').innerHTML =
+      '<div class="box group-prev">groupPrev<b>' + label(step.groupPrev) + '</b></div>' +
+      '<div class="box kth">kth<b>' + label(step.kth) + '</b></div>' +
+      '<div class="box">groupNext<b>' + label(step.groupNext) + '</b></div>' +
+      '<div class="box curr">curr<b>' + label(step.curr) + '</b></div>' +
+      '<div class="box">prev / next<b>' + label(step.prev) + ' / ' + label(step.savedNext) + '</b></div>' +
+      '<div class="box">当前可达链表<b>[' + current.values.join(', ') + ']</b></div>';
+    var rules = {
+      start:'dummy.next = head; groupPrev = dummy', 'find-start':'<span class="find">kth = groupPrev</span>',
+      'find-step':'<span class="find">重复 k 次：kth = kth.next</span>', boundary:'groupNext = kth.next; prev = groupNext',
+      save:'next = curr.next', rewire:'<span class="reverse">curr.next = prev</span>',
+      'advance-reverse':'prev = curr; curr = next', 'tail-connected':'旧组头.next = groupNext',
+      'front-connected':'<span class="connect">groupPrev.next = kth</span>', 'advance-group':'<span class="advance">groupPrev = 旧组头</span>',
+      keep:'kth == null → 剩余节点不修改', done:'return dummy.next'
+    };
+    $('rule').innerHTML = rules[step.action]; $('status').innerHTML = step.msg;
+    $('progress').textContent = '分组 ' + step.group + ' · 查找 ' + Math.min(step.scan, k) + ' / ' + k + ' · 步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    $('stats').innerHTML =
+      '<div class="stat">原链表<b>[' + values.join(', ') + ']</b></div>' +
+      '<div class="stat">k<b>' + k + '</b></div>' +
+      '<div class="stat">翻转结果<b>[' + App.solve(values, k).join(', ') + ']</b></div>' +
+      '<div class="stat">完整分组<b>' + Math.floor(values.length / k) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex === steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex === steps.length - 1) { stopPlay(); return; } next(); }, 800);
+  }
+  function load() {
+    var parsed = App.parseInput(valuesInput.value, kInput.value);
+    if (!parsed.values) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); values = parsed.values; k = parsed.k;
+    steps = App.buildSteps(values, k); stepIndex = 0; renderStats(); render();
+  }
+  var codes = {
+    py:'<span class="cmt"># O(n) 时间 · O(1) 额外空间 · 原地反转每个完整分组</span>\n' +
+      'class Solution:\n' +
+      '    def reverseKGroup(self, head: Optional[ListNode], k: int) -&gt; Optional[ListNode]:\n' +
+      '        dummy = ListNode(0, head)\n' +
+      '        group_prev = dummy\n\n' +
+      '        while True:\n' +
+      '            kth = group_prev\n' +
+      '            for _ in range(k):\n' +
+      '                kth = kth.next\n' +
+      '                if kth is None:\n' +
+      '                    return dummy.next  <span class="cmt"># 不足 k 个，原样结束</span>\n\n' +
+      '            group_next = kth.next\n' +
+      '            old_group_head = group_prev.next\n' +
+      '            prev, curr = group_next, old_group_head\n' +
+      '            while curr is not group_next:\n' +
+      '                nxt = curr.next\n' +
+      '                curr.next = prev       <span class="cmt"># 组内逐条反转</span>\n' +
+      '                prev, curr = curr, nxt\n\n' +
+      '            group_prev.next = kth     <span class="cmt"># 连接新组头</span>\n' +
+      '            group_prev = old_group_head',
+    java:'<span class="cmt">// O(n) 时间 · O(1) 额外空间 · 原地反转每个完整分组</span>\n' +
+      'class Solution {\n' +
+      '    public ListNode reverseKGroup(ListNode head, int k) {\n' +
+      '        ListNode dummy = new ListNode(0, head);\n' +
+      '        ListNode groupPrev = dummy;\n\n' +
+      '        while (true) {\n' +
+      '            ListNode kth = groupPrev;\n' +
+      '            for (int i = 0; i &lt; k; i++) {\n' +
+      '                kth = kth.next;\n' +
+      '                if (kth == null) return dummy.next; <span class="cmt">// 不足 k 个</span>\n' +
+      '            }\n\n' +
+      '            ListNode groupNext = kth.next;\n' +
+      '            ListNode oldGroupHead = groupPrev.next;\n' +
+      '            ListNode prev = groupNext, curr = oldGroupHead;\n' +
+      '            while (curr != groupNext) {\n' +
+      '                ListNode next = curr.next;\n' +
+      '                curr.next = prev;      <span class="cmt">// 组内逐条反转</span>\n' +
+      '                prev = curr;\n' +
+      '                curr = next;\n' +
+      '            }\n\n' +
+      '            groupPrev.next = kth;     <span class="cmt">// 连接新组头</span>\n' +
+      '            groupPrev = oldGroupHead;\n' +
+      '        }\n' +
+      '    }\n' +
+      '}'
+  };
+  function renderCode() {
+    $('codeBlock').innerHTML = codes[activeLanguage];
+    Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) { tab.classList.toggle('active', tab.dataset.lang === activeLanguage); });
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  valuesInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  kInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { valuesInput.value = chip.dataset.v; kInput.value = chip.dataset.k; load(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) { tab.onclick = function () { activeLanguage = tab.dataset.lang; renderCode(); }; });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === valuesInput || document.activeElement === kInput) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+  renderCode(); load();
+})();
+</script>
+</body>
+</html>

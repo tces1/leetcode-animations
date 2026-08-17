@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 142 环形链表 II Floyd 快慢指针逐帧动画：展示真实回边、相遇点、指针重置与同步寻找入环点。">
+<meta name="tags" content="链表 · Floyd 判圈 · 快慢指针 · 环入口 · 双指针 · O(1) 空间">
+<title>142. 环形链表 II — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phase-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .idea-item,.phase { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; transition:.18s; }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .formula { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; text-align:center; }
+  .formula code { background:#dbeafe; color:#1e40af; font-weight:700; }
+  .input-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(150px,1fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] { width:100%; min-width:0; padding:9px 11px; font-size:13px; font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; transition:background .15s; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .controls-spaced { margin-bottom:14px; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:8px; text-align:center; }
+  #topology { display:block; margin:0 auto; min-width:100%; }
+  .edge { fill:none; stroke:#64748b; stroke-width:2.2; marker-end:url(#arrow); }
+  .edge.cycle { stroke:#dc2626; stroke-width:3; marker-end:url(#cycleArrow); }
+  .cycle-track { fill:#fff1f2; stroke:#fecdd3; stroke-width:1; stroke-dasharray:5 4; }
+  .edge-label { fill:#b91c1c; font-size:11px; font-weight:800; }
+  .node-circle { fill:#fff; stroke:#cbd5e1; stroke-width:2.2; transition:.18s; }
+  .node.in-cycle .node-circle { fill:#fff7ed; stroke:#fdba74; }
+  .node.meeting .node-circle { fill:#fef3c7; stroke:#f59e0b; stroke-width:5; }
+  .node.entry .node-circle { fill:#dcfce7; stroke:#16a34a; stroke-width:5; }
+  .node.slow .node-circle { stroke:#7c3aed; stroke-width:4; }
+  .node.fast .node-circle { stroke:#db2777; stroke-width:4; }
+  .node.finder .node-circle { stroke:#0284c7; stroke-width:4; }
+  .node-value { fill:#334155; text-anchor:middle; font:800 17px "SF Mono",Menlo,monospace; }
+  .node-id { fill:#94a3b8; text-anchor:middle; font:800 9px "SF Mono",Menlo,monospace; }
+  .pointer-pill text { fill:#fff; text-anchor:middle; font-size:9px; font-weight:800; }
+  .pointer-pill.slow rect { fill:#7c3aed; }
+  .pointer-pill.fast rect { fill:#db2777; }
+  .pointer-pill.finder rect { fill:#0284c7; }
+  .null-box { fill:#f1f5f9; stroke:#cbd5e1; stroke-width:2; stroke-dasharray:5 3; }
+  .null-text,.head-label { fill:#64748b; text-anchor:middle; font:700 10px "SF Mono",Menlo,monospace; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:8px 6px; background:#f8fafc; color:#64748b; text-align:center; font-size:11px; }
+  .box b { display:block; min-height:23px; font:800 13px "SF Mono",Menlo,monospace; color:#334155; }
+  .box.slow b { color:#6d28d9; } .box.fast b { color:#be185d; } .box.finder b { color:#0369a1; } .box.result b { color:#15803d; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .rule .detect { color:#f9a8d4; } .rule .locate { color:#7dd3fc; } .rule .return { color:#86efac; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .visual-title { margin-top:16px; }
+  .dot.cycle-node { background:#fff7ed; border-color:#fdba74; }
+  .dot.slow-dot { background:#7c3aed; }
+  .dot.fast-dot { background:#db2777; }
+  .dot.finder-dot { background:#0284c7; }
+  .dot.meeting-dot { background:#fef3c7; border-color:#f59e0b; }
+  .dot.entry-dot { background:#dcfce7; border-color:#16a34a; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .slow { color:#c4b5fd; font-weight:700; } .status .fast { color:#f9a8d4; font-weight:700; } .status .finder { color:#7dd3fc; font-weight:700; } .status .ok { color:#86efac; font-weight:700; } .status .bad { color:#fca5a5; font-weight:700; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:760px) { body { padding:16px 12px; } .card { padding:14px; } .idea,.phase-strip { grid-template-columns:1fr 1fr; } .input-grid { grid-template-columns:1fr; } .dashboard { grid-template-columns:repeat(2,1fr); } .progress { width:100%; margin-left:0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/linked-list-cycle-ii/" target="_blank" rel="noopener">LeetCode 142</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>142. 环形链表 II · Floyd 定位入环点动画</h1>
+  <div class="sub">先用快慢指针确认环并得到<b>相遇点</b>；再把一个指针放回 <code>head</code>，两个指针每次各走一步，下一次相遇的节点就是入环点。无环时返回 <code>null</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">为什么第二次相遇就是环入口</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 第一次追赶</div><code>slow</code> 每轮走 1 步，<code>fast</code> 每轮走 2 步；有环时两者一定在环内相遇。</div>
+      <div class="idea-item"><div class="no">② 距离分解</div>设头到入口为 <code>a</code>，入口到相遇点为 <code>b</code>，环长为 <code>L</code>。</div>
+      <div class="idea-item"><div class="no">③ 路程等式</div>相遇时 fast 路程是 slow 的 2 倍，所以 <code>a+b = kL</code>，即 <code>a = kL-b</code>。</div>
+      <div class="idea-item"><div class="no">④ 同步到入口</div>head 走 <code>a</code> 步到入口；相遇点走 <code>kL-b</code> 步也到入口，因此必然相遇。</div>
+    </div>
+    <div class="formula"><code>2(a+b) = a+b+kL</code>　⇒　<code>a+b=kL</code>　⇒　<code>a=kL-b</code>。比较的是节点身份，不是节点值。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">节点值列表</span><input type="text" id="valuesInput" value="3 2 0 -4" spellcheck="false" placeholder="空格或逗号分隔，如 3 2 0 -4"></label>
+      <label class="field"><span class="lab">pos（尾节点指向的下标）</span><input type="text" id="posInput" value="1" spellcheck="false" placeholder="-1 或 0～n-1"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="3 2 0 -4" data-pos="1">经典入口 2</span>
+      <span class="chip" data-v="1 2" data-pos="0">入口为 head</span>
+      <span class="chip" data-v="7" data-pos="0">单节点自环</span>
+      <span class="chip" data-v="1 2 3 4" data-pos="-1">无环</span>
+      <span class="chip" data-v="8 6 4 2 9 7 5" data-pos="5">长前缀短环</span>
+      <span class="chip" data-v="4 4 4 4" data-pos="2">重复值有环</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">严格支持 1～12 个 −999～999 的整数；pos 必须是 −1 或 0～n−1。−1 表示尾节点指向 null。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls controls-spaced">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip">
+      <div class="phase" data-phase="detect"><div class="no">阶段 1</div><b>快慢指针寻找相遇点</b></div>
+      <div class="phase" data-phase="meeting"><div class="no">阶段 2</div><b>确认环内相遇点</b></div>
+      <div class="phase" data-phase="reset"><div class="no">阶段 3</div><b>finder 重置到 head</b></div>
+      <div class="phase" data-phase="locate"><div class="no">阶段 4</div><b>两指针同步到入口</b></div>
+    </div>
+    <div class="panel-title visual-title">真实 next 拓扑（红色曲线是尾节点回边）</div>
+    <div class="stage"><svg id="topology" role="img" aria-label="Floyd 寻找链表入环点动画"></svg></div>
+    <div class="dashboard" id="dashboard"></div>
+    <div class="rule" id="rule"></div>
+    <div class="legend">
+      <span><span class="dot cycle-node"></span>环内节点</span>
+      <span><span class="dot slow-dot"></span>slow</span>
+      <span><span class="dot fast-dot"></span>fast</span>
+      <span><span class="dot finder-dot"></span>finder（从 head 出发）</span>
+      <span><span class="dot meeting-dot"></span>第一阶段相遇点</span>
+      <span><span class="dot entry-dot"></span>入环点</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-linked-list-cycle-ii-logic>
+(function (root) {
+  'use strict';
+  function parseInput(valuesText, posText) {
+    if (typeof valuesText !== 'string' || !valuesText.trim()) return { values:null, pos:null, err:'请输入至少一个整数' };
+    var text = valuesText.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) return { values:null, pos:null, err:'节点值格式无效，请只输入由空格或单个逗号分隔的整数' };
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length < 1 || parts.length > 12) return { values:null, pos:null, err:'链表长度必须为 1～12' };
+    var values = [];
+    for (var i = 0; i < parts.length; i++) {
+      var value = Number(parts[i]);
+      if (!Number.isSafeInteger(value) || value < -999 || value > 999) return { values:null, pos:null, err:'节点值须在 -999～999：' + parts[i] };
+      values.push(value);
+    }
+    if (typeof posText !== 'string' || !/^-?\d+$/.test(posText.trim())) return { values:null, pos:null, err:'pos 必须是一个整数' };
+    var pos = Number(posText.trim());
+    if (!Number.isSafeInteger(pos) || pos < -1 || pos >= values.length) return { values:null, pos:null, err:'pos 必须是 -1 或 0～' + (values.length - 1) };
+    return { values:values, pos:pos, err:null };
+  }
+  function buildModel(inputValues, pos) {
+    var values = inputValues.slice(), nextOf = [];
+    for (var i = 0; i < values.length; i++) nextOf.push(i + 1 < values.length ? i + 1 : (pos === -1 ? null : pos));
+    return { values:values, nextOf:nextOf, pos:pos, head:0 };
+  }
+  function buildSteps(model) {
+    var values = model.values.slice(), nextOf = model.nextOf.slice(), slow = model.head, fast = model.head;
+    var finder = null, meeting = null, result = null, round = 0, syncMoves = 0, steps = [];
+    function label(index) { return index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'; }
+    function snap(phase, action, message) {
+      steps.push({ phase:phase, action:action, round:round, syncMoves:syncMoves, values:values.slice(), nextOf:nextOf.slice(),
+        pos:model.pos, slow:slow, fast:fast, finder:finder, meeting:meeting, result:result, msg:message });
+    }
+    snap('detect', 'start', '初始化：<b>slow = fast = head = ' + label(slow) + '</b>。初始重合不算相遇，先移动再检查。');
+    var guard = 0;
+    while (fast !== null && nextOf[fast] !== null) {
+      round++;
+      slow = nextOf[slow];
+      fast = nextOf[nextOf[fast]];
+      snap('detect', 'detect-move', '第 ' + round + ' 轮：<span class="slow">slow 走 1 步到 ' + label(slow) + '</span>；<span class="fast">fast 走 2 步到 ' + label(fast) + '</span>。');
+      if (slow === fast) {
+        meeting = slow;
+        snap('meeting', 'meet', '比较节点身份：<span class="ok">slow === fast</span>，第一阶段在 <b>' + label(meeting) + '</b> 相遇，确认存在环。');
+        break;
+      }
+      snap('detect', 'check', 'slow 与 fast 不是同一节点，继续在真实 next 拓扑上追赶。');
+      if (++guard > values.length * 2 + 2) throw new Error('Floyd 第一阶段超过理论步数');
+    }
+    if (meeting === null) {
+      result = null;
+      snap('done', 'return-null', '<span class="bad">fast 或 fast.next 到达 null</span>，链表无环，返回 <b>null</b>。');
+      return steps;
+    }
+    finder = model.head;
+    fast = null;
+    snap('reset', 'reset', '第二阶段重置：令 <span class="finder">finder = head = ' + label(finder) + '</span>；slow 保持在相遇点 <span class="slow">' + label(slow) + '</span>。');
+    if (finder === slow) {
+      result = slow;
+      snap('done', 'found', '重置后两指针已指向同一节点：<span class="ok">' + label(result) + '</span>，它就是入环点。');
+      return steps;
+    }
+    guard = 0;
+    while (finder !== slow) {
+      finder = nextOf[finder];
+      slow = nextOf[slow];
+      syncMoves++;
+      snap('locate', 'sync-move', '同步第 ' + syncMoves + ' 步：<span class="finder">finder → ' + label(finder) + '</span>，<span class="slow">slow → ' + label(slow) + '</span>。两者每次都只走一步。');
+      if (++guard > values.length + 1) throw new Error('Floyd 第二阶段超过理论步数');
+    }
+    result = slow;
+    snap('done', 'found', '两指针在同一个节点 <span class="ok">' + label(result) + '</span> 相遇；根据距离等式，它就是入环点，返回该节点。');
+    return steps;
+  }
+  function solve(values, pos) {
+    var steps = buildSteps(buildModel(values, pos));
+    return steps[steps.length - 1].result;
+  }
+  root.LinkedListCycleIIApp = { parseInput:parseInput, buildModel:buildModel, buildSteps:buildSteps, solve:solve };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.LinkedListCycleIIApp, $ = function (id) { return document.getElementById(id); };
+  var valuesInput = $('valuesInput'), posInput = $('posInput'), errEl = $('err'), statsEl = $('stats');
+  var statusEl = $('status'), progressEl = $('progress'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var values = [], model = null, steps = [], stepIndex = 0, timer = null, NS = 'http://www.w3.org/2000/svg';
+  function svgElement(name, attrs, text) {
+    var element = document.createElementNS(NS, name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    if (text !== undefined) element.textContent = text;
+    return element;
+  }
+  function label(index) { return index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'; }
+  function addPointer(layer, x, y, text, cls) {
+    var item = svgElement('g', { class:'pointer-pill ' + cls }), width = text === 'finder' ? 48 : 42;
+    item.appendChild(svgElement('rect', { x:x - width / 2, y:y - 10, width:width, height:19, rx:6 }));
+    item.appendChild(svgElement('text', { x:x, y:y + 3 }, text)); layer.appendChild(item);
+  }
+  function renderTopology(step) {
+    var svg = $('topology'), n = values.length, gap = 88, left = 64, y = 112, hasCycle = model.pos !== -1;
+    var width = Math.max(720, left * 2 + n * gap + 48), height = hasCycle ? 300 : 205;
+    svg.innerHTML = ''; svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height); svg.setAttribute('width', width); svg.setAttribute('height', height);
+    var defs = svgElement('defs');
+    var marker = svgElement('marker', { id:'arrow', markerWidth:8, markerHeight:8, refX:7, refY:3, orient:'auto', markerUnits:'strokeWidth' });
+    marker.appendChild(svgElement('path', { d:'M0,0 L0,6 L8,3 z', fill:'#64748b' }));
+    var cycleMarker = svgElement('marker', { id:'cycleArrow', markerWidth:8, markerHeight:8, refX:7, refY:3, orient:'auto', markerUnits:'strokeWidth' });
+    cycleMarker.appendChild(svgElement('path', { d:'M0,0 L0,6 L8,3 z', fill:'#dc2626' }));
+    defs.appendChild(marker); defs.appendChild(cycleMarker); svg.appendChild(defs);
+    function xOf(index) { return left + index * gap; }
+    for (var i = 0; i < n - 1; i++) svg.appendChild(svgElement('path', { class:'edge', d:'M' + (xOf(i) + 29) + ',' + y + ' L' + (xOf(i + 1) - 31) + ',' + y }));
+    if (hasCycle) {
+      var tailX = xOf(n - 1), targetX = xOf(model.pos), path;
+      if (model.pos === n - 1) path = 'M' + (tailX + 23) + ',' + (y + 17) + ' C' + (tailX + 82) + ',' + (y + 70) + ' ' + (tailX - 82) + ',' + (y + 106) + ' ' + (tailX - 22) + ',' + (y + 17);
+      else path = 'M' + (tailX + 27) + ',' + (y + 12) + ' C' + (tailX + 52) + ',' + (y + 112) + ' ' + (targetX - 52) + ',' + (y + 112) + ' ' + targetX + ',' + (y + 30);
+      svg.appendChild(svgElement('path', { class:'cycle-track', d:path }));
+      svg.appendChild(svgElement('path', { class:'edge cycle', d:path }));
+      svg.appendChild(svgElement('text', { class:'edge-label', x:(tailX + targetX) / 2, y:y + 126, 'text-anchor':'middle' }, 'tail.next → N' + (model.pos + 1) + '（pos=' + model.pos + '）'));
+    } else {
+      var nullX = xOf(n);
+      svg.appendChild(svgElement('path', { class:'edge', d:'M' + (xOf(n - 1) + 29) + ',' + y + ' L' + (nullX - 32) + ',' + y }));
+      svg.appendChild(svgElement('rect', { class:'null-box', x:nullX - 29, y:y - 18, width:58, height:36, rx:8 }));
+      svg.appendChild(svgElement('text', { class:'null-text', x:nullX, y:y + 4 }, 'null'));
+    }
+    var pointerLayer = svgElement('g');
+    values.forEach(function (value, index) {
+      var classes = 'node' + (hasCycle && index >= model.pos ? ' in-cycle' : '') + (step.meeting === index ? ' meeting' : '') +
+        (step.result === index && step.action === 'found' ? ' entry' : '') + (step.slow === index ? ' slow' : '') +
+        (step.fast === index ? ' fast' : '') + (step.finder === index ? ' finder' : '');
+      var group = svgElement('g', { class:classes }), x = xOf(index);
+      group.appendChild(svgElement('circle', { class:'node-circle', cx:x, cy:y, r:29 }));
+      group.appendChild(svgElement('text', { class:'node-value', x:x, y:y + 2 }, String(value)));
+      group.appendChild(svgElement('text', { class:'node-id', x:x, y:y + 18 }, 'id:N' + (index + 1)));
+      if (index === 0) group.appendChild(svgElement('text', { class:'head-label', x:x, y:y - 70 }, 'head'));
+      svg.appendChild(group);
+      var pointers = [];
+      if (step.slow === index) pointers.push(['slow','slow']);
+      if (step.fast === index) pointers.push(['fast','fast']);
+      if (step.finder === index) pointers.push(['finder','finder']);
+      pointers.forEach(function (pointer, order) { addPointer(pointerLayer, x, y - 34 - order * 22, pointer[0], pointer[1]); });
+    });
+    svg.appendChild(pointerLayer);
+  }
+  function renderPhases(step) {
+    var order = ['detect','meeting','reset','locate'], key = step.phase === 'done' ? 'locate' : step.phase, current = order.indexOf(key);
+    Array.prototype.forEach.call($('phaseStrip').children, function (phase, index) {
+      phase.className = 'phase';
+      if (index < current || step.phase === 'done') phase.className += ' done';
+      if (phase.dataset.phase === key && step.phase !== 'done') phase.className += ' active';
+    });
+  }
+  function render() {
+    var step = steps[stepIndex], resultText = step.action === 'return-null' ? 'null（无环）' : (step.result === null ? '尚未确定' : label(step.result));
+    renderTopology(step); renderPhases(step);
+    $('dashboard').innerHTML =
+      '<div class="box">阶段<b>' + (step.phase === 'done' ? '完成' : step.phase) + '</b></div>' +
+      '<div class="box slow">slow<b>' + label(step.slow) + '</b></div>' +
+      '<div class="box fast">fast<b>' + label(step.fast) + '</b></div>' +
+      '<div class="box finder">finder<b>' + (step.finder === null ? '未启用' : label(step.finder)) + '</b></div>' +
+      '<div class="box result">入环点<b>' + resultText + '</b></div>';
+    if (step.action === 'reset') $('rule').innerHTML = '<span class="locate">finder = head　// slow 留在相遇点</span>';
+    else if (step.action === 'sync-move') $('rule').innerHTML = '<span class="locate">finder = finder.next; slow = slow.next</span>';
+    else if (step.action === 'found') $('rule').innerHTML = '<span class="return">return slow　// 入环点</span>';
+    else if (step.action === 'return-null') $('rule').innerHTML = '<span class="return">return null　// 无环</span>';
+    else $('rule').innerHTML = '<span class="detect">slow = slow.next; fast = fast.next.next</span>';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '检测轮次 ' + step.round + ' · 同步 ' + step.syncMoves + ' 步 · 步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    var last = steps[steps.length - 1];
+    statsEl.innerHTML =
+      '<div class="stat">链表长度<b>' + values.length + '</b></div><div class="stat">pos<b>' + model.pos + '</b></div>' +
+      '<div class="stat">环长度<b>' + (model.pos === -1 ? '—' : values.length - model.pos) + '</b></div>' +
+      '<div class="stat">返回节点<b>' + (last.result === null ? 'null' : label(last.result)) + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div><div class="stat">额外空间<b>O(1)</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex >= steps.length - 1) stopPlay(); else next(); }, 800);
+  }
+  function load() {
+    var parsed = App.parseInput(valuesInput.value, posInput.value);
+    if (!parsed.values) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    errEl.classList.remove('show'); stopPlay(); values = parsed.values; model = App.buildModel(values, parsed.pos);
+    steps = App.buildSteps(model); stepIndex = 0; renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); }; nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay; $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); }; $('loadBtn').onclick = load;
+  [valuesInput,posInput].forEach(function (input) { input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { valuesInput.value = chip.dataset.v; posInput.value = chip.dataset.pos; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === valuesInput || document.activeElement === posInput) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); } if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+  var codes = {
+    py:'<span class="cmt"># Floyd 两阶段 · O(n) 时间 · O(1) 额外空间</span>\n' +
+      'class Solution:\n' +
+      '    def detectCycle(self, head: Optional[ListNode]) -&gt; Optional[ListNode]:\n' +
+      '        slow = fast = head\n\n' +
+      '        while fast and fast.next:\n' +
+      '            slow = slow.next\n' +
+      '            fast = fast.next.next\n' +
+      '            if slow is fast:              <span class="cmt"># 第一阶段：环内相遇</span>\n' +
+      '                finder = head\n' +
+      '                while finder is not slow:\n' +
+      '                    finder = finder.next  <span class="cmt"># 第二阶段：同步一步</span>\n' +
+      '                    slow = slow.next\n' +
+      '                return slow               <span class="cmt"># 入环点</span>\n\n' +
+      '        return None                       <span class="cmt"># 无环</span>',
+    java:'<span class="cmt">// Floyd 两阶段 · O(n) 时间 · O(1) 额外空间</span>\n' +
+      'class Solution {\n' +
+      '    public ListNode detectCycle(ListNode head) {\n' +
+      '        ListNode slow = head, fast = head;\n\n' +
+      '        while (fast != null &amp;&amp; fast.next != null) {\n' +
+      '            slow = slow.next;\n' +
+      '            fast = fast.next.next;\n' +
+      '            if (slow == fast) {           <span class="cmt">// 第一阶段：环内相遇</span>\n' +
+      '                ListNode finder = head;\n' +
+      '                while (finder != slow) {\n' +
+      '                    finder = finder.next; <span class="cmt">// 第二阶段：同步一步</span>\n' +
+      '                    slow = slow.next;\n' +
+      '                }\n' +
+      '                return slow;              <span class="cmt">// 入环点</span>\n' +
+      '            }\n' +
+      '        }\n' +
+      '        return null;                     <span class="cmt">// 无环</span>\n' +
+      '    }\n' +
+      '}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py; load();
+})();
+</script>
+</body>
+</html>

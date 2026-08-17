@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 2 两数相加 dummy + tail 逐位动画：逆序链表计算 x + y + carry，新建结果节点并处理最终进位。">
+<meta name="tags" content="链表 · 数学 · 模拟 · 进位 · dummy · O(1) 空间">
+<title>2. 两数相加 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar,.controls,.examples,.legend { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .navbar { margin-bottom:16px; gap:12px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phase-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item,.phase { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; transition:.18s; }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] { width:100%; min-width:0; padding:9px 11px; font:13px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; gap:8px; }
+  .examples .lab,.hint { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .controls-spaced { margin-bottom:14px; }
+  .section-title { margin-top:16px; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:28px 18px; }
+  .lane { display:grid; grid-template-columns:82px minmax(max-content,1fr); align-items:center; min-height:82px; }
+  .lane + .lane { border-top:1px dashed #e5e7eb; }
+  .lane-name { font-size:11px; font-weight:800; color:#64748b; }
+  .chain { display:inline-flex; align-items:center; min-width:max-content; padding:24px 4px 18px; }
+  .node,.null-node { position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-family:"SF Mono",Menlo,monospace; transition:.18s; }
+  .node { width:58px; height:58px; border:2px solid #cbd5e1; border-radius:50%; background:#fff; color:#334155; font-size:17px; font-weight:800; }
+  .node.a { background:#eef2ff; border-color:#a5b4fc; }
+  .node.b { background:#fff7ed; border-color:#fdba74; }
+  .node.result { background:#ecfdf5; border-color:#86efac; }
+  .node.dummy { width:62px; border-radius:14px; border-style:dashed; background:#f1f5f9; color:#64748b; font-size:11px; }
+  .node.used { opacity:.38; }
+  .node.current { opacity:1; transform:scale(1.07); border-color:#f59e0b; box-shadow:0 0 0 5px rgba(245,158,11,.18); }
+  .node.fresh { background:#dcfce7; border-color:#22c55e; box-shadow:0 0 0 5px rgba(34,197,94,.17); }
+  .node .id { position:absolute; bottom:4px; color:#64748b; font-size:8px; }
+  .null-node { width:52px; height:32px; border:2px dashed #cbd5e1; border-radius:8px; background:#f1f5f9; color:#64748b; font-size:10px; font-weight:700; }
+  .edge { width:38px; flex:0 0 38px; text-align:center; font:800 22px "SF Mono",Menlo,monospace; color:#94a3b8; }
+  .edge.new-edge { color:#16a34a; }
+  .badges { position:absolute; top:-24px; left:50%; transform:translateX(-50%); display:flex; gap:3px; white-space:nowrap; }
+  .badge { padding:2px 5px; border-radius:5px; color:#fff; font:800 9px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .badge.p1 { background:#4f46e5; } .badge.p2 { background:#ea580c; } .badge.tail { background:#16a34a; }
+  .formula {
+    margin-top:12px; padding:14px; border-radius:10px; background:#0f172a; color:#e2e8f0;
+    display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px;
+    font:800 15px "SF Mono",Menlo,monospace; text-align:center;
+  }
+  .formula .input { color:#fcd34d; } .formula .digit { color:#86efac; } .formula .carry { color:#7dd3fc; }
+  .dashboard { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; margin-top:12px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:8px 5px; background:#f8fafc; color:#64748b; text-align:center; font-size:11px; }
+  .box b { display:block; min-height:23px; font:800 13px "SF Mono",Menlo,monospace; color:#334155; }
+  .legend { margin-top:13px; font-size:12px; color:#6b7280; gap:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.1); }
+  .dot.a { background:#eef2ff; border-color:#a5b4fc; }
+  .dot.b { background:#fff7ed; border-color:#fdba74; }
+  .dot.result { background:#ecfdf5; border-color:#86efac; }
+  .dot.current { background:#fff; border-color:#f59e0b; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .ok { color:#86efac; font-weight:700; } .status .carry { color:#7dd3fc; font-weight:700; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:720px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea,.phase-strip { grid-template-columns:1fr; }
+    .input-grid { grid-template-columns:1fr; }
+    .dashboard { grid-template-columns:repeat(3,1fr); }
+    .progress { width:100%; margin-left:0; }
+    .lane { grid-template-columns:68px minmax(max-content,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/add-two-numbers/" target="_blank" rel="noopener">LeetCode 2</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>2. 两数相加 · 逐位进位动画</h1>
+  <div class="sub">两个链表都按个位到高位的<b>逆序</b>保存数字。每轮读取当前数位，计算 <code>x + y + carry</code>，用 <code>dummy / tail</code> 新建并串起结果节点。</div>
+
+  <div class="card">
+    <div class="panel-title">每个数位固定三步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 读取当前位</div>指针为空时该数位按 <code>0</code> 计算，因此两条链长度可以不同。</div>
+      <div class="idea-item"><div class="no">② 求数字与进位</div><code>sum = x + y + carry</code>，<code>digit = sum % 10</code>，<code>carry = sum // 10</code>。</div>
+      <div class="idea-item"><div class="no">③ 新建结果节点</div><code>tail.next = ListNode(digit)</code>，移动 <code>tail</code> 与仍存在的输入指针。</div>
+    </div>
+    <div class="key-note"><b>循环不能只看两个指针：</b>条件必须是 <code>while p1 or p2 or carry</code>。这样最高位产生的最终进位会额外生成一个结果节点。时间 <code>O(max(m,n))</code>；除结果链表外额外空间 <code>O(1)</code>。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">l1（逆序数字链）</span><input id="input1" type="text" value="2 4 3" spellcheck="false" placeholder="如 2 4 3 表示 342"></label>
+      <label class="field"><span class="lab">l2（逆序数字链）</span><input id="input2" type="text" value="5 6 4" spellcheck="false" placeholder="如 5 6 4 表示 465"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-a="2 4 3" data-b="5 6 4">342 + 465</span>
+      <span class="chip" data-a="9 9 9 9 9 9 9" data-b="9 9 9 9">最终进位</span>
+      <span class="chip" data-a="1 8" data-b="0">长度不同</span>
+      <span class="chip" data-a="0" data-b="0">0 + 0</span>
+      <span class="chip" data-a="5" data-b="5">单节点进位</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">每条链必须含 1～10 个节点，每个节点只能是 0～9 的一位数字；只接受空格或单个逗号分隔。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls controls-spaced">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip">
+      <div class="phase" data-phase="read"><div class="no">阶段 1</div><b>读取 x、y、carry</b></div>
+      <div class="phase" data-phase="compute"><div class="no">阶段 2</div><b>计算 digit 与新 carry</b></div>
+      <div class="phase" data-phase="append"><div class="no">阶段 3</div><b>新建并接入结果节点</b></div>
+    </div>
+    <div class="panel-title section-title">输入节点只读取；结果行展示 dummy/tail 新建的独立节点身份</div>
+    <div class="stage">
+      <div class="lane"><div class="lane-name">l1 · 低→高</div><div class="chain" id="laneA"></div></div>
+      <div class="lane"><div class="lane-name">l2 · 低→高</div><div class="chain" id="laneB"></div></div>
+      <div class="lane"><div class="lane-name">结果 · 低→高</div><div class="chain" id="laneOut"></div></div>
+    </div>
+    <div class="formula" id="formula"></div>
+    <div class="dashboard" id="dashboard"></div>
+    <div class="legend">
+      <span><span class="dot a"></span>l1 输入节点</span>
+      <span><span class="dot b"></span>l2 输入节点</span>
+      <span><span class="dot result"></span>新建结果节点</span>
+      <span><span class="dot current"></span>当前读取节点</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-add-two-numbers-logic>
+(function (root) {
+  'use strict';
+  function parseDigits(value, name) {
+    if (typeof value !== 'string' || !value.trim()) return { values:null, err:name + ' 不能为空' };
+    var text = value.trim();
+    if (!/^\d(?:(?:\s*,\s*|\s+)\d)*$/.test(text)) return { values:null, err:name + ' 格式无效：每个节点必须是 0～9，并用空格或单个逗号分隔' };
+    var parts = text.match(/\d/g) || [];
+    if (parts.length > 10) return { values:null, err:name + ' 最多 10 个节点' };
+    return { values:parts.map(Number), err:null };
+  }
+  function digitsToText(values) {
+    var text = values.slice().reverse().join('').replace(/^0+(?=\d)/, '');
+    return text || '0';
+  }
+  function buildSteps(a, b) {
+    var steps = [], p1 = 0, p2 = 0, carry = 0, round = 0, result = [], resultNodes = [];
+    var phaseData = null, tail = 'dummy';
+    function pointer(index, values) { return index < values.length ? index : null; }
+    function label(source, index, values) { return index === null ? 'null' : source + (index + 1) + '(' + values[index] + ')'; }
+    function copyPhaseData() {
+      if (!phaseData) return null;
+      return { x:phaseData.x, y:phaseData.y, carryIn:phaseData.carryIn, sum:phaseData.sum, digit:phaseData.digit, carryOut:phaseData.carryOut };
+    }
+    function snap(phase, message, fresh) {
+      steps.push({
+        phase:phase, round:round, a:a.slice(), b:b.slice(), p1:pointer(p1, a), p2:pointer(p2, b),
+        carry:carry, result:result.slice(), resultNodes:resultNodes.map(function (node) { return { id:node.id, value:node.value }; }),
+        tail:tail, fresh:fresh || null, data:copyPhaseData(), msg:message
+      });
+    }
+    snap('start', '初始化：<b>p1 = l1</b>，<b>p2 = l2</b>，<span class="carry">carry = 0</span>，<b>tail = dummy</b>。');
+    while (p1 < a.length || p2 < b.length || carry !== 0) {
+      round++;
+      var p1Now = pointer(p1, a), p2Now = pointer(p2, b);
+      var x = p1Now === null ? 0 : a[p1], y = p2Now === null ? 0 : b[p2], carryIn = carry;
+      phaseData = { x:x, y:y, carryIn:carryIn, sum:null, digit:null, carryOut:null };
+      snap('read', '第 ' + round + ' 位：从 <b>' + label('A', p1Now, a) + '</b> 读取 x = ' + x + '，从 <b>' + label('B', p2Now, b) + '</b> 读取 y = ' + y + '，带入 carry = ' + carryIn + '。');
+      var sum = x + y + carryIn, digit = sum % 10, carryOut = Math.floor(sum / 10);
+      phaseData.sum = sum; phaseData.digit = digit; phaseData.carryOut = carryOut;
+      snap('compute', '<b>sum = ' + x + ' + ' + y + ' + ' + carryIn + ' = ' + sum + '</b>；得到 <span class="ok">digit = ' + digit + '</span>，<span class="carry">carry = ' + carryOut + '</span>。');
+      var id = 'R' + round;
+      result.push(digit); resultNodes.push({ id:id, value:digit }); tail = id; carry = carryOut;
+      if (p1Now !== null) p1++;
+      if (p2Now !== null) p2++;
+      snap('append', '新建结果节点 <span class="ok">' + id + '(' + digit + ')</span>，执行 <b>tail.next = new ListNode(' + digit + ')</b> 并移动 tail；输入指针前进一步。', id);
+    }
+    phaseData = null;
+    snap('done', '两个指针均为 null 且 carry = 0，循环结束。返回 <b>dummy.next</b>，结果链为 <span class="ok">[' + result.join(', ') + ']</span>（表示十进制 ' + digitsToText(result) + '）。');
+    return steps;
+  }
+  function solve(a, b) {
+    var steps = buildSteps(a, b);
+    return steps[steps.length - 1].result.slice();
+  }
+  root.AddTwoNumbersApp = { parseDigits:parseDigits, digitsToText:digitsToText, buildSteps:buildSteps, solve:solve };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.AddTwoNumbersApp, $ = function (id) { return document.getElementById(id); };
+  var input1 = $('input1'), input2 = $('input2'), steps = [], index = 0, timer = null;
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  function badge(text, cls) { var el = document.createElement('span'); el.className = 'badge ' + cls; el.textContent = text; return el; }
+  function inputNode(value, position, source, step) {
+    var el = document.createElement('div');
+    el.className = 'node ' + source.toLowerCase();
+    var pointer = source === 'A' ? step.p1 : step.p2;
+    if (position < (pointer === null ? (source === 'A' ? step.a.length : step.b.length) : pointer)) el.className += ' used';
+    if (pointer === position && (step.phase === 'read' || step.phase === 'compute')) el.className += ' current';
+    el.textContent = value;
+    var id = document.createElement('span'); id.className = 'id'; id.textContent = source + (position + 1); el.appendChild(id);
+    var badges = document.createElement('span'); badges.className = 'badges';
+    if (pointer === position) badges.appendChild(badge(source === 'A' ? 'p1' : 'p2', source === 'A' ? 'p1' : 'p2'));
+    el.appendChild(badges); return el;
+  }
+  function resultNode(data, step) {
+    var el = document.createElement('div'); el.className = 'node result';
+    if (data.id === step.fresh) el.className += ' fresh';
+    el.textContent = data.value;
+    var id = document.createElement('span'); id.className = 'id'; id.textContent = data.id; el.appendChild(id);
+    var badges = document.createElement('span'); badges.className = 'badges';
+    if (data.id === step.tail) badges.appendChild(badge('tail', 'tail'));
+    el.appendChild(badges); return el;
+  }
+  function dummyNode(step) {
+    var el = document.createElement('div'); el.className = 'node dummy'; el.textContent = 'dummy';
+    var badges = document.createElement('span'); badges.className = 'badges';
+    if (step.tail === 'dummy') badges.appendChild(badge('tail', 'tail'));
+    el.appendChild(badges); return el;
+  }
+  function edge(isNew) { var el = document.createElement('span'); el.className = 'edge' + (isNew ? ' new-edge' : ''); el.textContent = '→'; return el; }
+  function nullNode() { var el = document.createElement('span'); el.className = 'null-node'; el.textContent = 'null'; return el; }
+  function inputLane(element, values, source, step) {
+    element.innerHTML = '';
+    values.forEach(function (value, i) { if (i) element.appendChild(edge(false)); element.appendChild(inputNode(value, i, source, step)); });
+    element.appendChild(edge(false)); element.appendChild(nullNode());
+  }
+  function resultLane(step) {
+    var el = $('laneOut'); el.innerHTML = ''; el.appendChild(dummyNode(step));
+    step.resultNodes.forEach(function (data) { el.appendChild(edge(data.id === step.fresh)); el.appendChild(resultNode(data, step)); });
+    el.appendChild(edge(false)); el.appendChild(nullNode());
+  }
+  function renderPhases(step) {
+    var order = ['read','compute','append'], current = step.phase === 'done' ? 3 : order.indexOf(step.phase);
+    Array.prototype.forEach.call(document.querySelectorAll('.phase'), function (el, i) {
+      el.className = 'phase';
+      if (i < current || step.phase === 'done') el.className += ' done';
+      if (el.dataset.phase === step.phase) el.className += ' active';
+    });
+  }
+  function renderFormula(step) {
+    var d = step.data;
+    if (!d) {
+      $('formula').innerHTML = step.phase === 'done' ? '<span class="digit">return dummy.next</span>' : '<span>等待第一位计算</span>';
+      return;
+    }
+    $('formula').innerHTML =
+      '<span class="input">sum = ' + d.x + ' + ' + d.y + ' + ' + d.carryIn + (d.sum === null ? '</span>' : ' = ' + d.sum + '</span>') +
+      '<span>→</span><span class="digit">digit = ' + (d.digit === null ? '?' : d.digit) + '</span>' +
+      '<span>·</span><span class="carry">carry = ' + (d.carryOut === null ? '?' : d.carryOut) + '</span>';
+  }
+  function pointerText(source, step) {
+    var pointer = source === 'A' ? step.p1 : step.p2, values = source === 'A' ? step.a : step.b;
+    return pointer === null ? 'null' : source + (pointer + 1) + '(' + values[pointer] + ')';
+  }
+  function render() {
+    var step = steps[index], d = step.data || {};
+    inputLane($('laneA'), step.a, 'A', step); inputLane($('laneB'), step.b, 'B', step); resultLane(step);
+    renderPhases(step); renderFormula(step);
+    $('dashboard').innerHTML =
+      '<div class="box">p1<b>' + pointerText('A', step) + '</b></div><div class="box">p2<b>' + pointerText('B', step) + '</b></div>' +
+      '<div class="box">x / y<b>' + (d.x === undefined ? '—' : d.x + ' / ' + d.y) + '</b></div>' +
+      '<div class="box">carry<b>' + step.carry + '</b></div><div class="box">tail<b>' + step.tail + '</b></div>' +
+      '<div class="box">结果链<b>[' + step.result.join(', ') + ']</b></div>';
+    $('status').innerHTML = step.msg;
+    $('progress').textContent = '数位 ' + step.round + ' · 步骤 ' + (index + 1) + ' / ' + steps.length;
+    prevBtn.disabled = index === 0; nextBtn.disabled = index === steps.length - 1;
+  }
+  function stop() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (index < steps.length - 1) { index++; render(); } }
+  function load() {
+    var a = App.parseDigits(input1.value, 'l1'), b = App.parseDigits(input2.value, 'l2'), error = a.err || b.err;
+    if (error) { $('err').textContent = '输入有误：' + error + '。'; $('err').classList.add('show'); return; }
+    $('err').classList.remove('show'); stop(); steps = App.buildSteps(a.values, b.values); index = 0;
+    var result = App.solve(a.values, b.values);
+    $('stats').innerHTML =
+      '<div class="stat">l1 表示<b>' + App.digitsToText(a.values) + '</b></div><div class="stat">l2 表示<b>' + App.digitsToText(b.values) + '</b></div>' +
+      '<div class="stat">相加结果<b>' + App.digitsToText(result) + '</b></div><div class="stat">结果链<b>[' + result.join(', ') + ']</b></div>' +
+      '<div class="stat">时间复杂度<b>O(max(m,n))</b></div><div class="stat">结果外空间<b>O(1)</b></div>';
+    render();
+  }
+  prevBtn.onclick = function () { stop(); if (index) { index--; render(); } };
+  nextBtn.onclick = function () { stop(); next(); };
+  playBtn.onclick = function () {
+    if (timer) { stop(); return; }
+    if (index === steps.length - 1) { index = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (index === steps.length - 1) stop(); else next(); }, 800);
+  };
+  $('resetBtn').onclick = function () { stop(); index = 0; render(); };
+  $('loadBtn').onclick = load;
+  [input1,input2].forEach(function (input) { input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input1.value = chip.dataset.a; input2.value = chip.dataset.b; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input1 || document.activeElement === input2) return;
+    if (event.key === 'ArrowRight') { stop(); next(); }
+    if (event.key === 'ArrowLeft') { stop(); if (index) { index--; render(); } }
+  });
+  var codes = {
+    py:'<span class="cmt"># O(max(m,n)) 时间 · 除结果链表外 O(1) 空间</span>\n' +
+      'class Solution:\n' +
+      '    def addTwoNumbers(self, l1: Optional[ListNode],\n' +
+      '                      l2: Optional[ListNode]) -&gt; Optional[ListNode]:\n' +
+      '        dummy = tail = ListNode()\n' +
+      '        p1, p2, carry = l1, l2, 0\n\n' +
+      '        while p1 or p2 or carry:  <span class="cmt"># carry 保证最终进位不丢</span>\n' +
+      '            x = p1.val if p1 else 0\n' +
+      '            y = p2.val if p2 else 0\n' +
+      '            total = x + y + carry\n' +
+      '            digit, carry = total % 10, total // 10\n\n' +
+      '            tail.next = ListNode(digit)\n' +
+      '            tail = tail.next\n' +
+      '            p1 = p1.next if p1 else None\n' +
+      '            p2 = p2.next if p2 else None\n\n' +
+      '        return dummy.next',
+    java:'<span class="cmt">// O(max(m,n)) 时间 · 除结果链表外 O(1) 空间</span>\n' +
+      'class Solution {\n' +
+      '    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {\n' +
+      '        ListNode dummy = new ListNode();\n' +
+      '        ListNode tail = dummy, p1 = l1, p2 = l2;\n' +
+      '        int carry = 0;\n\n' +
+      '        while (p1 != null || p2 != null || carry != 0) {\n' +
+      '            int x = (p1 == null) ? 0 : p1.val;\n' +
+      '            int y = (p2 == null) ? 0 : p2.val;\n' +
+      '            int sum = x + y + carry;\n' +
+      '            int digit = sum % 10;\n' +
+      '            carry = sum / 10;\n\n' +
+      '            tail.next = new ListNode(digit);\n' +
+      '            tail = tail.next;\n' +
+      '            if (p1 != null) p1 = p1.next;\n' +
+      '            if (p2 != null) p2 = p2.next;\n' +
+      '        }\n' +
+      '        return dummy.next;\n' +
+      '    }\n' +
+      '}'
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); $('codeBlock').innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  $('codeBlock').innerHTML = codes.py; load();
+})();
+</script>
+</body>
+</html>
