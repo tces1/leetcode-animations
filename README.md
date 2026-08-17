@@ -70,10 +70,15 @@ leetcode-animations/
 | # | 题目 | 难度 | 考点 |
 |---|------|------|------|
 | 1 | [两数之和](https://tces1.github.io/leetcode-animations/problems/1-two-sum.html) | 简单 | 数组 · 哈希表 · 一次遍历 · 补数 |
+| 2 | [两数相加](https://tces1.github.io/leetcode-animations/problems/2-add-two-numbers.html) | 中等 | 链表 · 数学 · 模拟 · 进位 · dummy · O(1) 空间 |
 | 3 | [无重复字符的最长子串](https://tces1.github.io/leetcode-animations/problems/3-longest-substring-without-repeating-characters.html) | 中等 | 字符串 · 滑动窗口 · 哈希表 · 下标跳跃 |
 | 5 | [最长回文子串](https://tces1.github.io/leetcode-animations/problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 字符串 |
 | 11 | [盛最多水的容器](https://tces1.github.io/leetcode-animations/problems/11-container-with-most-water.html) | 中等 | 数组 · 双指针 · 贪心 |
 | 15 | [三数之和](https://tces1.github.io/leetcode-animations/problems/15-3sum.html) | 中等 | 数组 · 排序 · 双指针 · 去重 · 剪枝 |
+| 19 | [删除链表的倒数第 N 个结点](https://tces1.github.io/leetcode-animations/problems/19-remove-nth-node-from-end-of-list.html) | 中等 | 链表 · 双指针 · dummy · 前后指针 · 原地删除 · O(1) 空间 |
+| 21 | [合并两个有序链表](https://tces1.github.io/leetcode-animations/problems/21-merge-two-sorted-lists.html) | 简单 | 链表 · 双指针 · dummy · 迭代 · 稳定合并 · O(1) 空间 |
+| 24 | [两两交换链表中的节点](https://tces1.github.io/leetcode-animations/problems/24-swap-nodes-in-pairs.html) | 中等 | 链表 · dummy 节点 · 原地修改 · 迭代 · 节点交换 |
+| 25 | [K 个一组翻转链表](https://tces1.github.io/leetcode-animations/problems/25-reverse-nodes-in-k-group.html) | 困难 | 链表 · dummy 节点 · 分组反转 · 原地修改 · O(1) 空间 |
 | 31 | [下一个排列](https://tces1.github.io/leetcode-animations/problems/31-next-permutation.html) | 中等 | 数组 · 双指针 · 字典序 · O(n) |
 | 32 | [最长有效括号](https://tces1.github.io/leetcode-animations/problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
 | 41 | [缺失的第一个正数](https://tces1.github.io/leetcode-animations/problems/41-first-missing-positive.html) | 困难 | 数组 · 原地哈希 · 交换归位 · O(1) 空间 |
@@ -99,6 +104,7 @@ leetcode-animations/
 | 128 | [最长连续序列](https://tces1.github.io/leetcode-animations/problems/128-longest-consecutive-sequence.html) | 中等 | 数组 · 哈希集合 · 连续序列 · O(n) |
 | 131 | [分割回文串](https://tces1.github.io/leetcode-animations/problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
 | 141 | [环形链表](https://tces1.github.io/leetcode-animations/problems/141-linked-list-cycle.html) | 简单 | 链表 · Floyd 判圈 · 快慢指针 · 双指针 · O(1) 空间 |
+| 142 | [环形链表 II](https://tces1.github.io/leetcode-animations/problems/142-linked-list-cycle-ii.html) | 中等 | 链表 · Floyd 判圈 · 快慢指针 · 环入口 · 双指针 · O(1) 空间 |
 | 152 | [乘积最大子数组](https://tces1.github.io/leetcode-animations/problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
 | 160 | [相交链表](https://tces1.github.io/leetcode-animations/problems/160-intersection-of-two-linked-lists.html) | 简单 | 链表 · 双指针 · 路程对齐 · O(1) 空间 |
 | 189 | [轮转数组](https://tces1.github.io/leetcode-animations/problems/189-rotate-array.html) | 中等 | 数组 · 数学 · 双指针 · 三次反转 · O(1) 空间 |
