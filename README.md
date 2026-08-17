@@ -103,6 +103,7 @@ leetcode-animations/
 | 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 后序遍历 · 树形DP · 递归返回值 |
 | 128 | [最长连续序列](https://tces1.github.io/leetcode-animations/problems/128-longest-consecutive-sequence.html) | 中等 | 数组 · 哈希集合 · 连续序列 · O(n) |
 | 131 | [分割回文串](https://tces1.github.io/leetcode-animations/problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
+| 138 | [随机链表的复制](https://tces1.github.io/leetcode-animations/problems/138-copy-list-with-random-pointer.html) | 中等 | 链表 · 随机指针 · 原地穿插 · 节点身份 · O(1) 空间 |
 | 141 | [环形链表](https://tces1.github.io/leetcode-animations/problems/141-linked-list-cycle.html) | 简单 | 链表 · Floyd 判圈 · 快慢指针 · 双指针 · O(1) 空间 |
 | 142 | [环形链表 II](https://tces1.github.io/leetcode-animations/problems/142-linked-list-cycle-ii.html) | 中等 | 链表 · Floyd 判圈 · 快慢指针 · 环入口 · 双指针 · O(1) 空间 |
 | 152 | [乘积最大子数组](https://tces1.github.io/leetcode-animations/problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
