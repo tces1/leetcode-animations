@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 234 回文链表 O(n) 时间、O(1) 空间逐帧动画：快慢指针定位、原地反转后半段并逐节点比较。">
+<meta name="tags" content="链表 · 快慢指针 · 原地反转 · 回文 · O(1) 空间">
+<title>234. 回文链表 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phase-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item,.phase {
+    border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px;
+    font-size:13px; color:#4b5563; background:#f8fafc; transition:.18s;
+  }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .key-note {
+    margin-top:12px; padding:11px 14px; border-radius:10px;
+    background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px;
+  }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:260px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text] {
+    flex:1; min-width:180px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4;
+    border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .stat .yes { color:#15803d; }
+  .stat .no-result { color:#b91c1c; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .stage {
+    overflow:auto; border:1px solid #eef0f4; border-radius:12px;
+    background:linear-gradient(#fafbff,#fff); padding:58px 20px 52px; text-align:center;
+  }
+  .chain { display:inline-flex; align-items:center; min-width:max-content; }
+  .node,.null-node {
+    position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    transition:.18s; font-family:"SF Mono",Menlo,monospace;
+  }
+  .node {
+    width:60px; height:60px; border:2px solid #cbd5e1; border-radius:50%;
+    background:#fff; color:#334155; font-size:18px; font-weight:800; box-shadow:0 2px 5px rgba(15,23,42,.04);
+  }
+  .node .idx { position:absolute; bottom:4px; color:#94a3b8; font-size:8px; font-weight:700; }
+  .node.reverse-zone { background:#ecfeff; border-color:#67e8f9; }
+  .node.reversed-half { background:#ecfeff; border-color:#67e8f9; }
+  .node.compare { background:#fef3c7; border-color:#f59e0b; box-shadow:0 0 0 4px rgba(245,158,11,.15); }
+  .node.match { background:#dcfce7; border-color:#22c55e; color:#166534; }
+  .node.mismatch { background:#fee2e2; border-color:#ef4444; color:#991b1b; }
+  .null-node {
+    width:54px; height:34px; border:2px dashed #cbd5e1; border-radius:8px;
+    color:#64748b; background:#f1f5f9; font-size:11px; font-weight:700;
+  }
+  .edge {
+    width:40px; flex:0 0 40px; text-align:center;
+    font:800 23px "SF Mono",Menlo,monospace; color:#94a3b8;
+  }
+  .edge.right { color:#64748b; }
+  .edge.left { color:#0891b2; }
+  .edge.broken { color:#ef4444; font-size:16px; }
+  .edge.both { color:#dc2626; }
+  .badge-row {
+    position:absolute; left:50%; transform:translateX(-50%); white-space:nowrap;
+    display:flex; gap:3px; z-index:3;
+  }
+  .badge-row.top { top:-30px; }
+  .badge-row.bottom { bottom:-30px; }
+  .badge { padding:2px 5px; border-radius:5px; color:#fff; font:800 9px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .badge.slow { background:#7c3aed; }
+  .badge.fast { background:#db2777; }
+  .badge.prev { background:#16a34a; }
+  .badge.curr { background:#d97706; }
+  .badge.next { background:#0284c7; }
+  .badge.p1 { background:#4f46e5; }
+  .badge.p2 { background:#ea580c; }
+  .dashboard { margin-top:14px; display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:8px 6px; background:#f8fafc; color:#64748b; text-align:center; font-size:11px; }
+  .box b { display:block; min-height:23px; font:800 13px "SF Mono",Menlo,monospace; color:#334155; }
+  .rule {
+    margin-top:10px; border-radius:10px; background:#0f172a; color:#e2e8f0;
+    padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center;
+    font:14px "SF Mono",Menlo,monospace; text-align:center;
+  }
+  .rule .locate { color:#f0abfc; }
+  .rule .reverse { color:#67e8f9; }
+  .rule .compare-rule { color:#fcd34d; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .bad { color:#fca5a5; font-weight:700; }
+  .status .cyan { color:#67e8f9; font-weight:700; }
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:760px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .idea,.phase-strip { grid-template-columns:1fr 1fr; }
+    .dashboard { grid-template-columns:repeat(3,1fr); }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/palindrome-linked-list/" target="_blank" rel="noopener">LeetCode 234</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>234. 回文链表 · 原地反转动画</h1>
+  <div class="sub">用 <code>fast / slow</code> 找到后半段起点，原地反转后以 <code>p1 / p2</code> 比较。全过程时间 <code>O(n)</code>，额外空间 <code>O(1)</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">三个阶段</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 定位后半段</div><code>slow</code> 每次走一步，<code>fast</code> 每次走两步；循环条件为 <code>fast &amp;&amp; fast.next</code>。</div>
+      <div class="idea-item"><div class="no">② 原地反转</div>从 <code>slow</code> 开始逐条改写 <code>next</code>，得到后半段的新头 <code>secondHead</code>。</div>
+      <div class="idea-item"><div class="no">③ 逐节点比较</div><code>p1 = head</code>、<code>p2 = secondHead</code> 同步前进；遇到不相等立即返回 <code>false</code>，否则比较到 <code>p2 = null</code> 后返回 <code>true</code>。</div>
+    </div>
+    <div class="key-note"><b>为什么只比较后半段长度？</b>反转后的 <code>p2</code> 恰好覆盖需要配对的后半段；偶数长度比较 <code>n/2</code> 对，奇数长度会额外让中间节点与自身比较一次，不影响结果。LeetCode 本题不要求保持输入链表结构，因此无需恢复；代价是算法结束后，后半段节点的 <code>next</code> 指针仍保持反转状态。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">head =</span><input type="text" id="input" value="1 2 3 2 1" spellcheck="false" placeholder="空格或逗号分隔，如 1 2 2 1"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="1 2 3 2 1">奇数回文</span>
+      <span class="chip" data-v="1 2 2 1">偶数回文</span>
+      <span class="chip" data-v="1 2 3">非回文</span>
+      <span class="chip" data-v="7">单节点</span>
+      <span class="chip" data-v="-1 2 2 -1">含负数</span>
+      <span class="chip" data-v="4 4 4 4">重复值</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～10 个整数，节点值范围 −999～999；只接受空格或单个逗号分隔。连续逗号、小数和其它字符会被拒绝。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip">
+      <div class="phase" data-stage="locate"><div class="no">阶段 1</div><b>快慢指针找中点</b></div>
+      <div class="phase" data-stage="reverse"><div class="no">阶段 2</div><b>反转后半段</b></div>
+      <div class="phase" data-stage="compare"><div class="no">阶段 3</div><b>两端逐节点比较</b></div>
+    </div>
+    <div class="panel-title" style="margin-top:16px;">节点位置保持不动，箭头真实反映每一帧的 next 引用</div>
+    <div class="stage"><div class="chain" id="chain"></div></div>
+    <div class="dashboard" id="dashboard"></div>
+    <div class="rule" id="rule"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#fff;border-color:#cbd5e1"></span>普通节点</span>
+      <span><span class="dot" style="background:#ecfeff;border-color:#67e8f9"></span>正在反转的后半段</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>当前比较节点</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>本次比较值相等</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>值不相等 / 临时断点</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-palindrome-linked-list-logic>
+(function (root) {
+  'use strict';
+
+  function parseInput(value) {
+    if (typeof value !== 'string' || !value.trim()) return { values:null, err:'请输入至少一个整数' };
+    var text = value.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) {
+      return { values:null, err:'格式无效，请只输入由空格或单个逗号分隔的整数' };
+    }
+    var parts = text.match(/-?\d+/g) || [];
+    if (parts.length > 10) return { values:null, err:'链表长度请不超过 10' };
+    var values = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -999 || number > 999) {
+        return { values:null, err:'节点值须在 -999～999：' + parts[i] };
+      }
+      values.push(number);
+    }
+    return { values:values, err:null };
+  }
+
+  function buildSteps(inputValues) {
+    var values = inputValues.slice(), n = values.length, nextOf = [], steps = [];
+    for (var i = 0; i < n; i++) nextOf.push(i + 1 < n ? i + 1 : null);
+
+    var slow = 0, fast = 0, prev = null, curr = null, next = null;
+    var p1 = null, p2 = null, secondHead = null, result = true;
+    var locateMoves = 0, reverseMoves = 0, compared = 0;
+    var comparison = null;
+
+    function label(index) {
+      return index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')';
+    }
+    function snap(phase, action, message) {
+      steps.push({
+        phase:phase, action:action, values:values.slice(), nextOf:nextOf.slice(),
+        slow:slow, fast:fast, prev:prev, curr:curr, next:next,
+        p1:p1, p2:p2, secondHead:secondHead, result:result, comparison:comparison,
+        locateMoves:locateMoves, reverseMoves:reverseMoves, compared:compared,
+        msg:message
+      });
+    }
+
+    snap('locate', 'start', '初始化：<b>slow = fast = head = ' + label(0) + '</b>。只要 <code>fast &amp;&amp; fast.next</code>，slow 走一步、fast 走两步。');
+    while (fast !== null && nextOf[fast] !== null) {
+      slow = nextOf[slow];
+      fast = nextOf[nextOf[fast]];
+      locateMoves++;
+      snap('locate', 'move', '第 ' + locateMoves + ' 次移动：<b>slow = ' + label(slow) + '</b>，<b>fast = ' + label(fast) + '</b>。' +
+        (fast === null || nextOf[fast] === null ? '循环条件不再成立，slow 就是后半段起点。' : 'fast 仍有后继，继续。'));
+    }
+
+    curr = slow; prev = null; next = null;
+    snap('reverse', 'start', '定位完成：从 <span class="cyan">' + label(slow) + '</span> 开始原地反转后半段；初始化 <b>prev = null</b>、<b>curr = slow</b>。');
+    while (curr !== null) {
+      next = nextOf[curr];
+      snap('reverse', 'save', '反转第 ' + (reverseMoves + 1) + ' 个节点：先保存 <b>next = curr.next = ' + label(next) + '</b>，避免改箭头后丢失剩余链表。');
+      var oldNext = nextOf[curr];
+      nextOf[curr] = prev;
+      snap('reverse', 'rewire', '改写箭头：<b>' + label(curr) + '.next</b> 从 ' + label(oldNext) + ' 改为 <span class="cyan">' + label(prev) + '</span>。');
+      prev = curr;
+      curr = next;
+      reverseMoves++;
+      snap('reverse', 'advance', '指针前进：<b>prev = ' + label(prev) + '</b>，<b>curr = ' + label(curr) + '</b>。' + (curr === null ? '后半段反转完毕。' : '继续处理下一个节点。'));
+    }
+    secondHead = prev;
+
+    p1 = 0; p2 = secondHead; prev = null; curr = null; next = null;
+    snap('compare', 'start', '后半段新头 <b>secondHead = ' + label(secondHead) + '</b>。令 <b>p1 = head</b>、<b>p2 = secondHead</b>，同步比较直到 p2 = null。');
+    while (p2 !== null) {
+      comparison = values[p1] === values[p2];
+      compared++;
+      snap('compare', 'check', '第 ' + compared + ' 对：' + label(p1) + ' 与 ' + label(p2) + ' 的值 ' +
+        (comparison
+          ? '<span class="ok">相等（' + values[p1] + ' = ' + values[p2] + '）</span>。'
+          : '<span class="bad">不相等（' + values[p1] + ' ≠ ' + values[p2] + '）</span>。'));
+      if (!comparison) {
+        result = false;
+        snap('done', 'return-false', '发现首个不匹配节点，立即返回 <b>false</b>。后半段保持反转后的真实 <code>next</code> 拓扑。');
+        return steps;
+      }
+      p1 = nextOf[p1];
+      p2 = nextOf[p2];
+    }
+    comparison = null;
+    snap('done', 'return-true', '<b>p2 = null</b>，后半段全部匹配，返回 <b>true</b>。后半段保持反转后的真实 <code>next</code> 拓扑。');
+    return steps;
+  }
+
+  function solve(values) {
+    var steps = buildSteps(values);
+    var last = steps[steps.length - 1];
+    return { result:last.result, nextOf:last.nextOf.slice() };
+  }
+
+  root.PalindromeLinkedListApp = {
+    parseInput:parseInput,
+    buildSteps:buildSteps,
+    solve:solve
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.PalindromeLinkedListApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err'), statsEl = $('stats'), statusEl = $('status');
+  var progressEl = $('progress'), chainEl = $('chain'), dashboardEl = $('dashboard'), ruleEl = $('rule');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var values = [], steps = [], stepIndex = 0, timer = null;
+
+  function label(index) { return index === null ? 'null' : 'N' + (index + 1) + '(' + values[index] + ')'; }
+  function badge(text, cls) {
+    var span = document.createElement('span');
+    span.className = 'badge ' + cls; span.textContent = text; return span;
+  }
+  function addPointers(element, index, step, isRightNull) {
+    var top = document.createElement('span'), bottom = document.createElement('span');
+    top.className = 'badge-row top'; bottom.className = 'badge-row bottom';
+    function points(pointer) { return pointer === index || (isRightNull && pointer === null); }
+    if (step.phase === 'locate' || step.phase === 'reverse') {
+      if (points(step.slow)) top.appendChild(badge('slow', 'slow'));
+      if (points(step.fast)) top.appendChild(badge('fast', 'fast'));
+    }
+    if (step.phase === 'reverse') {
+      if (points(step.prev)) top.appendChild(badge('prev', 'prev'));
+      if (points(step.curr)) top.appendChild(badge('curr', 'curr'));
+      if ((step.action === 'save' || step.action === 'rewire') && points(step.next)) bottom.appendChild(badge('next', 'next'));
+    }
+    if (step.phase === 'compare') {
+      if (points(step.p1)) top.appendChild(badge('p1', 'p1'));
+      if (points(step.p2)) bottom.appendChild(badge('p2', 'p2'));
+    }
+    element.appendChild(top); element.appendChild(bottom);
+  }
+  function makeNull(step) {
+    var node = document.createElement('div');
+    node.className = 'null-node'; node.textContent = 'null';
+    addPointers(node, -1, step, true);
+    return node;
+  }
+  function makeEdge(leftIndex, step) {
+    var edge = document.createElement('div');
+    var rightward = step.nextOf[leftIndex] === leftIndex + 1;
+    var leftward = step.nextOf[leftIndex + 1] === leftIndex;
+    if (rightward && leftward) { edge.className = 'edge both'; edge.textContent = '↔'; }
+    else if (rightward) { edge.className = 'edge right'; edge.textContent = '→'; }
+    else if (leftward) { edge.className = 'edge left'; edge.textContent = '←'; }
+    else { edge.className = 'edge broken'; edge.textContent = '⋯×⋯'; }
+    return edge;
+  }
+  function renderChain(step) {
+    chainEl.innerHTML = '';
+    values.forEach(function (value, index) {
+      if (index) chainEl.appendChild(makeEdge(index - 1, step));
+      var node = document.createElement('div');
+      node.className = 'node';
+      if (step.phase === 'reverse' &&
+          (index === step.curr || index === step.prev || index === step.next)) node.className += ' reverse-zone';
+      if ((step.phase === 'compare' || step.phase === 'done') && index >= step.slow) node.className += ' reversed-half';
+      if (step.phase === 'compare' && step.action === 'check' && (index === step.p1 || index === step.p2)) {
+        node.className += ' compare ' + (step.comparison ? 'match' : 'mismatch');
+      }
+      node.textContent = value;
+      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = 'N' + (index + 1);
+      node.appendChild(idx); addPointers(node, index, step, false); chainEl.appendChild(node);
+    });
+    var finalEdge = document.createElement('div');
+    finalEdge.className = step.nextOf[values.length - 1] === null ? 'edge right' : 'edge broken';
+    finalEdge.textContent = step.nextOf[values.length - 1] === null ? '→' : '⋯×⋯';
+    chainEl.appendChild(finalEdge); chainEl.appendChild(makeNull(step));
+  }
+  function renderPhases(step) {
+    var order = ['locate','reverse','compare'];
+    var current = step.phase === 'done' ? order.length : order.indexOf(step.phase);
+    Array.prototype.forEach.call($('phaseStrip').children, function (phase, index) {
+      phase.className = 'phase';
+      if (index < current || step.phase === 'done') phase.className += ' done';
+      if (phase.dataset.stage === step.phase) phase.className += ' active';
+    });
+  }
+  function renderDashboard(step) {
+    function box(name, value) { return '<div class="box">' + name + '<b>' + value + '</b></div>'; }
+    dashboardEl.innerHTML =
+      box('slow', label(step.slow)) + box('fast', label(step.fast)) +
+      box('prev / curr', label(step.prev) + ' / ' + label(step.curr)) +
+      box('next', label(step.next)) + box('p1 / p2', label(step.p1) + ' / ' + label(step.p2)) +
+      box('累计比较', step.compared + ' 对');
+  }
+  function renderRule(step) {
+    if (step.phase === 'locate') ruleEl.innerHTML = '<span class="locate">while fast &amp;&amp; fast.next: slow = slow.next; fast = fast.next.next</span>';
+    else if (step.phase === 'reverse') {
+      if (step.action === 'save') ruleEl.innerHTML = '<span class="reverse">next = curr.next</span>';
+      else if (step.action === 'rewire') ruleEl.innerHTML = '<span class="reverse">curr.next = prev</span>';
+      else ruleEl.innerHTML = '<span class="reverse">prev = curr; curr = next</span>';
+    } else if (step.phase === 'compare') {
+      ruleEl.innerHTML = '<span class="compare-rule">if p1.val != p2.val: return false; p1 = p1.next; p2 = p2.next</span>';
+    } else {
+      ruleEl.innerHTML = '<span class="compare-rule">return ' + (step.result ? 'true' : 'false') + '</span>';
+    }
+  }
+  function render() {
+    var step = steps[stepIndex];
+    renderChain(step); renderPhases(step); renderDashboard(step); renderRule(step);
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '阶段 ' + (step.phase === 'done' ? '完成' : step.phase) +
+      ' · 步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    var last = steps[steps.length - 1];
+    statsEl.innerHTML =
+      '<div class="stat">输入链表<b>[' + values.join(', ') + ']</b></div>' +
+      '<div class="stat">判定结果<b class="' + (last.result ? 'yes' : 'no-result') + '">' + (last.result ? 'true · 回文' : 'false · 非回文') + '</b></div>' +
+      '<div class="stat">节点数<b>' + values.length + '</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>' +
+      '<div class="stat">结构副作用<b>后半段已反转</b></div>';
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 750);
+  }
+  function load() {
+    var parsed = App.parseInput(input.value);
+    if (!parsed.values) {
+      errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return;
+    }
+    errEl.classList.remove('show'); stopPlay();
+    values = parsed.values; steps = App.buildSteps(values); stepIndex = 0;
+    renderStats(); render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># O(n) 时间 · O(1) 额外空间 · 会修改后半段 next</span>\n' +
+'class Solution:\n' +
+'    def isPalindrome(self, head: Optional[ListNode]) -&gt; bool:\n' +
+'        slow = fast = head\n' +
+'        while fast and fast.next:\n' +
+'            slow = slow.next\n' +
+'            fast = fast.next.next\n' +
+'\n' +
+'        second_head = self.reverse(slow)  <span class="cmt"># 原地反转后半段</span>\n' +
+'        p1, p2 = head, second_head\n' +
+'        while p2:                         <span class="cmt"># 只比较后半段长度</span>\n' +
+'            if p1.val != p2.val:\n' +
+'                return False               <span class="cmt"># 首次不匹配立即结束</span>\n' +
+'            p1, p2 = p1.next, p2.next\n' +
+'\n' +
+'        return True\n' +
+'\n' +
+'    def reverse(self, head: Optional[ListNode]) -&gt; Optional[ListNode]:\n' +
+'        prev, curr = None, head\n' +
+'        while curr:\n' +
+'            nxt = curr.next\n' +
+'            curr.next = prev\n' +
+'            prev, curr = curr, nxt\n' +
+'        return prev',
+    java:
+'<span class="cmt">// O(n) 时间 · O(1) 额外空间 · 会修改后半段 next</span>\n' +
+'class Solution {\n' +
+'    public boolean isPalindrome(ListNode head) {\n' +
+'        ListNode slow = head, fast = head;\n' +
+'        while (fast != null &amp;&amp; fast.next != null) {\n' +
+'            slow = slow.next;\n' +
+'            fast = fast.next.next;\n' +
+'        }\n' +
+'\n' +
+'        ListNode secondHead = reverse(slow); <span class="cmt">// 原地反转后半段</span>\n' +
+'        ListNode p1 = head, p2 = secondHead;\n' +
+'        while (p2 != null) {                 <span class="cmt">// 只比较后半段长度</span>\n' +
+'            if (p1.val != p2.val) {\n' +
+'                return false;                 <span class="cmt">// 首次不匹配立即结束</span>\n' +
+'            }\n' +
+'            p1 = p1.next;\n' +
+'            p2 = p2.next;\n' +
+'        }\n' +
+'\n' +
+'        return true;\n' +
+'    }\n' +
+'\n' +
+'    private ListNode reverse(ListNode head) {\n' +
+'        ListNode prev = null, curr = head;\n' +
+'        while (curr != null) {\n' +
+'            ListNode next = curr.next;\n' +
+'            curr.next = prev;\n' +
+'            prev = curr;\n' +
+'            curr = next;\n' +
+'        }\n' +
+'        return prev;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>
