@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 138 随机链表的复制三趟原地穿插法逐帧动画：穿插副本、借助相邻节点设置 random、拆分并恢复原链表。">
+<meta name="tags" content="链表 · 随机指针 · 原地穿插 · 节点身份 · O(1) 空间">
+<title>138. 随机链表的复制 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1080px; margin:0 auto; }
+  .navbar,.controls,.examples,.legend { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .navbar { margin-bottom:16px; gap:12px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phase-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item,.phase { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; transition:.18s; }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] { width:100%; min-width:0; padding:9px 11px; font:13px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; gap:8px; }
+  .examples .lab,.hint { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 15px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .section-title { margin-top:16px; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:8px; }
+  #topology { display:block; min-width:100%; margin:0 auto; }
+  .lane-guide { stroke:#e2e8f0; stroke-width:1; stroke-dasharray:4 5; }
+  .lane-label { fill:#64748b; font-size:11px; font-weight:800; }
+  .next-edge { fill:none; stroke:#2563eb; stroke-width:2.4; marker-end:url(#nextArrow); }
+  .random-edge { fill:none; stroke:#db2777; stroke-width:2; stroke-dasharray:7 5; marker-end:url(#randomArrow); opacity:.9; }
+  .edge-label { font-size:9px; font-weight:800; }
+  .edge-label.next { fill:#2563eb; }
+  .edge-label.random { fill:#be185d; }
+  .node circle { stroke-width:2.5; }
+  .node.original circle { fill:#eef2ff; stroke:#6366f1; }
+  .node.copy circle { fill:#ecfdf5; stroke:#16a34a; }
+  .node.current circle { stroke:#f59e0b; stroke-width:5; filter:drop-shadow(0 0 4px rgba(245,158,11,.4)); }
+  .node-value { fill:#1e293b; text-anchor:middle; font:800 16px "SF Mono",Menlo,monospace; }
+  .node-id { fill:#64748b; text-anchor:middle; font:800 10px "SF Mono",Menlo,monospace; }
+  .pointer text { fill:#fff; text-anchor:middle; font-size:9px; font-weight:800; }
+  .pointer.curr rect { fill:#d97706; }
+  .pointer.copy rect { fill:#059669; }
+  .null-box { fill:#f8fafc; stroke:#cbd5e1; stroke-width:1.5; stroke-dasharray:4 3; }
+  .null-text { fill:#64748b; text-anchor:middle; font:700 9px "SF Mono",Menlo,monospace; }
+  .random-null { fill:#be185d; text-anchor:middle; font:700 9px "SF Mono",Menlo,monospace; }
+  .dashboard { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-top:12px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:8px; background:#f8fafc; color:#64748b; text-align:center; font-size:11px; }
+  .box b { display:block; min-height:23px; font:800 13px "SF Mono",Menlo,monospace; color:#334155; overflow-wrap:anywhere; }
+  .box.curr b { color:#b45309; }
+  .box.copy b { color:#047857; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#fcd34d; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .legend { margin-top:13px; font-size:12px; color:#6b7280; gap:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:5px; vertical-align:-2px; border:2px solid; }
+  .line-sample { display:inline-block; width:24px; margin-right:5px; vertical-align:3px; border-top:3px solid #2563eb; }
+  .line-sample.random { border-top:2px dashed #db2777; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .original { color:#a5b4fc; font-weight:700; }
+  .status .copy { color:#6ee7b7; font-weight:700; }
+  .status .ok { color:#86efac; font-weight:700; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:760px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea,.phase-strip,.input-grid { grid-template-columns:1fr; }
+    .dashboard { grid-template-columns:1fr 1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/copy-list-with-random-pointer/" target="_blank" rel="noopener">LeetCode 138</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>138. 随机链表的复制 · 原地穿插三趟动画</h1>
+  <div class="sub">不用哈希表：先把每个副本紧邻放在原节点后，再借助这个位置关系复制 <code>random</code>，最后拆成两条独立链表并恢复原链表。</div>
+
+  <div class="card">
+    <div class="panel-title">O(1) 额外空间的三个阶段</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① weave · 穿插</div><code>copy = Node(curr.val, curr.next)</code>，再令 <code>curr.next = copy</code>，逐节点形成 <b>O0→C0→O1→C1…</b>。</div>
+      <div class="idea-item"><div class="no">② random · 映射</div><code>copy.random = curr.random.next</code>。原 random 目标的紧邻后继，正是该目标的副本。</div>
+      <div class="idea-item"><div class="no">③ detach · 拆分</div>同时恢复 <code>curr.next</code>，并让 <code>copy.next</code> 跳到下一个副本；最终两条链完全独立。</div>
+    </div>
+    <div class="key-note"><b>为什么是 <code>curr.random.next</code>？</b>穿插完成后，每个原节点 <code>Oj</code> 的后继恒为自己的副本 <code>Cj</code>。若 <code>Oi.random = Oj</code>，则 <code>Oi.random.next = Oj.next = Cj</code>，无需额外的原→副本映射表。时间 <code>O(n)</code>，输出链表外额外空间 <code>O(1)</code>。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">节点值列表 values</span><input id="valuesInput" type="text" value="7 13 11 10 1" spellcheck="false" placeholder="如 7 13 11 10 1"></label>
+      <label class="field"><span class="lab">random 下标列表（-1 表示 null）</span><input id="randomInput" type="text" value="-1 0 4 2 0" spellcheck="false" placeholder="如 -1 0 4 2 0"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="7 13 11 10 1" data-r="-1 0 4 2 0">LeetCode 经典</span>
+      <span class="chip" data-v="1 2" data-r="1 0">两节点互指</span>
+      <span class="chip" data-v="7" data-r="0">单节点自指</span>
+      <span class="chip" data-v="1 2 3 4" data-r="-1 -1 -1 -1">全部 null</span>
+      <span class="chip" data-v="5 5 5" data-r="2 0 1">重复值（看身份）</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">严格支持 1～8 个 −999～999 的整数节点；random 项数必须相同，每项只能是 −1 或 0～n−1。重复值不会合并，random 按节点身份连接。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip">
+      <div class="phase" data-phase="weave"><div class="no">第 1 趟</div><b>weave · 逐节点穿插</b></div>
+      <div class="phase" data-phase="random"><div class="no">第 2 趟</div><b>random · 逐节点映射</b></div>
+      <div class="phase" data-phase="detach"><div class="no">第 3 趟</div><b>detach · 逐节点拆分</b></div>
+    </div>
+    <div class="panel-title section-title">真实引用拓扑（节点固定分行，箭头按当前快照中的引用绘制）</div>
+    <div class="stage"><svg id="topology" role="img" aria-label="随机链表复制的 next 与 random 拓扑动画"></svg></div>
+    <div class="dashboard" id="dashboard"></div>
+    <div class="rule" id="rule"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#eef2ff;border-color:#6366f1"></span>原节点 Oi</span>
+      <span><span class="dot" style="background:#ecfdf5;border-color:#16a34a"></span>复制节点 Ci（全新身份）</span>
+      <span><span class="line-sample"></span>next 实线</span>
+      <span><span class="line-sample random"></span>random 虚线弧</span>
+      <span><span class="dot" style="background:#fff;border-color:#f59e0b"></span>curr / copy</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页三趟动画一致）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-copy-random-list-logic>
+(function (root) {
+  'use strict';
+
+  function parseIntegerList(text, name) {
+    if (typeof text !== 'string' || !text.trim()) return { values:null, err:'请输入' + name };
+    var value = text.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(value)) {
+      return { values:null, err:name + ' 格式无效，请只用空格或单个逗号分隔整数' };
+    }
+    var parts = value.match(/-?\d+/g) || [], result = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number)) return { values:null, err:name + ' 含非安全整数：' + parts[i] };
+      result.push(number);
+    }
+    return { values:result, err:null };
+  }
+
+  function parseInput(valuesText, randomText) {
+    var parsedValues = parseIntegerList(valuesText, '节点值列表');
+    if (parsedValues.err) return { values:null, random:null, err:parsedValues.err };
+    if (parsedValues.values.length < 1 || parsedValues.values.length > 8) {
+      return { values:null, random:null, err:'节点数量必须为 1～8' };
+    }
+    for (var i = 0; i < parsedValues.values.length; i++) {
+      if (parsedValues.values[i] < -999 || parsedValues.values[i] > 999) {
+        return { values:null, random:null, err:'节点值须在 -999～999：' + parsedValues.values[i] };
+      }
+    }
+    var parsedRandom = parseIntegerList(randomText, 'random 下标列表');
+    if (parsedRandom.err) return { values:null, random:null, err:parsedRandom.err };
+    if (parsedRandom.values.length !== parsedValues.values.length) {
+      return { values:null, random:null, err:'random 项数必须与节点数一致（当前 ' + parsedRandom.values.length + ' 项，对应 ' + parsedValues.values.length + ' 个节点）' };
+    }
+    for (i = 0; i < parsedRandom.values.length; i++) {
+      if (parsedRandom.values[i] < -1 || parsedRandom.values[i] >= parsedValues.values.length) {
+        return { values:null, random:null, err:'random[' + i + '] 必须是 -1 或 0～' + (parsedValues.values.length - 1) };
+      }
+    }
+    return { values:parsedValues.values, random:parsedRandom.values, err:null };
+  }
+
+  function RandomNode(value, id, kind, index) {
+    this.val = value;
+    this.id = id;
+    this.kind = kind;
+    this.index = index;
+    this.next = null;
+    this.random = null;
+  }
+
+  function createList(values, randomIndices) {
+    var nodes = values.map(function (value, index) { return new RandomNode(value, 'O' + index, 'original', index); });
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].next = i + 1 < nodes.length ? nodes[i + 1] : null;
+      nodes[i].random = randomIndices[i] === -1 ? null : nodes[randomIndices[i]];
+    }
+    return { head:nodes[0] || null, nodes:nodes };
+  }
+
+  function copyRandomList(head) {
+    if (head === null) return null;
+    var curr = head;
+    while (curr !== null) {
+      var copy = new RandomNode(curr.val, '', 'copy', -1);
+      copy.next = curr.next;
+      curr.next = copy;
+      curr = copy.next;
+    }
+    curr = head;
+    while (curr !== null) {
+      copy = curr.next;
+      copy.random = curr.random === null ? null : curr.random.next;
+      curr = copy.next;
+    }
+    curr = head;
+    var copyHead = head.next;
+    while (curr !== null) {
+      copy = curr.next;
+      curr.next = copy.next;
+      copy.next = copy.next === null ? null : copy.next.next;
+      curr = curr.next;
+    }
+    return copyHead;
+  }
+
+  function serialize(head) {
+    var nodes = [], indexOf = new Map(), curr = head, guard = 0;
+    while (curr !== null) {
+      if (indexOf.has(curr) || guard > 1000) throw new Error('next 拓扑不是有限无环链表');
+      indexOf.set(curr, nodes.length); nodes.push(curr); curr = curr.next; guard++;
+    }
+    return {
+      values:nodes.map(function (node) { return node.val; }),
+      random:nodes.map(function (node) { return node.random === null ? -1 : (indexOf.has(node.random) ? indexOf.get(node.random) : -2); }),
+      nodes:nodes
+    };
+  }
+
+  function buildSteps(values, randomIndices) {
+    var built = createList(values, randomIndices), originals = built.nodes, copies = new Array(values.length).fill(null);
+    var head = built.head, copyHead = null, curr = head, copy = null, steps = [], round = 0;
+    function allNodes() { return originals.concat(copies.filter(function (node) { return node !== null; })); }
+    function label(node) { return node === null ? 'null' : node.id + '(' + node.val + ')'; }
+    function snapshot(phase, message, processed) {
+      var nodes = allNodes().map(function (node) {
+        return { id:node.id, kind:node.kind, index:node.index, value:node.val, next:node.next === null ? null : node.next.id, random:node.random === null ? null : node.random.id };
+      });
+      steps.push({
+        phase:phase, round:round, processed:processed, total:values.length,
+        curr:curr === null ? null : curr.id, copy:copy === null ? null : copy.id,
+        originalHead:head === null ? null : head.id, copyHead:copyHead === null ? null : copyHead.id,
+        mappings:copies.map(function (node, index) { return node === null ? null : 'O' + index + ' → C' + index; }).filter(Boolean),
+        nodes:nodes, msg:message
+      });
+    }
+
+    snapshot('weave', '初始化：<span class="original">curr = O0</span>。副本尚未创建；原链的 next 与 random 拓扑保持不变。', 0);
+    for (var i = 0; i < originals.length; i++) {
+      round = i + 1;
+      curr = originals[i];
+      copy = new RandomNode(curr.val, 'C' + i, 'copy', i);
+      copy.next = curr.next;
+      curr.next = copy;
+      copies[i] = copy;
+      snapshot('weave', 'weave 第 ' + round + ' 个节点：创建全新身份 <span class="copy">' + label(copy) + '</span>，执行 <b>copy.next = 原 curr.next; curr.next = copy</b>。映射 <b>O' + i + ' → C' + i + '</b> 由相邻位置编码。', i + 1);
+    }
+
+    round = 0; curr = head; copy = curr.next;
+    for (i = 0; i < originals.length; i++) {
+      round = i + 1;
+      curr = originals[i];
+      copy = curr.next;
+      copy.random = curr.random === null ? null : curr.random.next;
+      var target = curr.random === null ? 'null' : curr.random.id + '.next = ' + copy.random.id;
+      snapshot('random', 'random 第 ' + round + ' 个节点：<b>' + copy.id + '.random = ' + curr.id + '.random.next</b>。' +
+        (curr.random === null ? '因为 ' + curr.id + '.random = null，所以副本也指向 null。' : curr.id + '.random = ' + target + '；紧邻位置保证得到对应副本 <span class="copy">' + copy.random.id + '</span>。'), i + 1);
+    }
+
+    copyHead = head.next; round = 0;
+    for (i = 0; i < originals.length; i++) {
+      round = i + 1;
+      curr = originals[i];
+      copy = curr.next;
+      var nextOriginal = copy.next;
+      curr.next = nextOriginal;
+      copy.next = nextOriginal === null ? null : nextOriginal.next;
+      snapshot('detach', 'detach 第 ' + round + ' 个节点：恢复 <b>' + curr.id + '.next = ' + label(nextOriginal) + '</b>，同时令 <b>' + copy.id + '.next = ' + label(copy.next) + '</b>。两条链的已处理前缀都向前延伸。', i + 1);
+    }
+    curr = null; copy = null;
+    snapshot('done', '完成：<span class="ok">原链表已恢复，复制链表已独立</span>。所有 Ci 都是新对象；复制链表的 next/random 只指向 C 节点或 null。', values.length);
+    return steps;
+  }
+
+  function solve(values, randomIndices) {
+    var built = createList(values, randomIndices), originalNodes = built.nodes.slice();
+    var copyHead = copyRandomList(built.head), original = serialize(built.head), copied = serialize(copyHead);
+    return {
+      original:{ values:original.values, random:original.random },
+      copy:{ values:copied.values, random:copied.random },
+      restored:original.nodes.every(function (node, index) { return node === originalNodes[index]; }),
+      distinct:copied.nodes.every(function (node) { return originalNodes.indexOf(node) === -1; })
+    };
+  }
+
+  root.CopyRandomListApp = {
+    RandomNode:RandomNode,
+    parseInput:parseInput,
+    createList:createList,
+    copyRandomList:copyRandomList,
+    serialize:serialize,
+    buildSteps:buildSteps,
+    solve:solve
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.CopyRandomListApp, $ = function (id) { return document.getElementById(id); };
+  var valuesInput = $('valuesInput'), randomInput = $('randomInput'), steps = [], index = 0, timer = null, values = [];
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn'), NS = 'http://www.w3.org/2000/svg';
+
+  function svgEl(name, attrs, text) {
+    var element = document.createElementNS(NS, name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    if (text !== undefined) element.textContent = text;
+    return element;
+  }
+  function position(node) { return { x:90 + node.index * 122, y:node.kind === 'original' ? 125 : 315 }; }
+  function addMarker(defs, id, color) {
+    var marker = svgEl('marker', { id:id, markerWidth:8, markerHeight:8, refX:7, refY:3, orient:'auto', markerUnits:'strokeWidth' });
+    marker.appendChild(svgEl('path', { d:'M0,0 L0,6 L8,3 z', fill:color })); defs.appendChild(marker);
+  }
+  function nextPath(source, target) {
+    var a = position(source), b = position(target);
+    if (a.y === b.y) {
+      var direction = b.x >= a.x ? 1 : -1;
+      return 'M' + (a.x + direction * 35) + ',' + a.y + ' L' + (b.x - direction * 38) + ',' + b.y;
+    }
+    var down = b.y > a.y;
+    return 'M' + a.x + ',' + (a.y + (down ? 35 : -35)) + ' C' + (a.x + 28) + ',' + (a.y + (down ? 82 : -82)) + ' ' + (b.x - 28) + ',' + (b.y + (down ? -82 : 82)) + ' ' + b.x + ',' + (b.y + (down ? -38 : 38));
+  }
+  function randomPath(source, target) {
+    var a = position(source), b = position(target), upper = source.kind === 'original', lift = upper ? -72 : 72;
+    if (source.id === target.id) {
+      var side = upper ? -1 : 1;
+      return 'M' + (a.x - 24) + ',' + (a.y + side * 25) + ' C' + (a.x - 72) + ',' + (a.y + side * 78) + ' ' + (a.x + 72) + ',' + (a.y + side * 78) + ' ' + (a.x + 24) + ',' + (a.y + side * 25);
+    }
+    var direction = b.x > a.x ? 1 : -1;
+    return 'M' + (a.x + direction * 20) + ',' + (a.y + (upper ? -29 : 29)) +
+      ' C' + (a.x + direction * 34) + ',' + (a.y + lift) + ' ' + (b.x - direction * 34) + ',' + (b.y + lift) + ' ' + (b.x - direction * 20) + ',' + (b.y + (upper ? -31 : 31));
+  }
+  function addPointer(svg, node, text, cls, offset) {
+    var p = position(node), group = svgEl('g', { class:'pointer ' + cls });
+    group.appendChild(svgEl('rect', { x:p.x - 24 + offset, y:p.y - 55, width:48, height:18, rx:5 }));
+    group.appendChild(svgEl('text', { x:p.x + offset, y:p.y - 43 }, text)); svg.appendChild(group);
+  }
+  function renderTopology(step) {
+    var svg = $('topology'), width = Math.max(760, 190 + values.length * 122), height = 455, byId = {};
+    step.nodes.forEach(function (node) { byId[node.id] = node; });
+    svg.innerHTML = ''; svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height); svg.setAttribute('width', width); svg.setAttribute('height', height);
+    var defs = svgEl('defs'); addMarker(defs, 'nextArrow', '#2563eb'); addMarker(defs, 'randomArrow', '#db2777'); svg.appendChild(defs);
+    svg.appendChild(svgEl('line', { class:'lane-guide', x1:52, y1:125, x2:width - 30, y2:125 }));
+    svg.appendChild(svgEl('line', { class:'lane-guide', x1:52, y1:315, x2:width - 30, y2:315 }));
+    svg.appendChild(svgEl('text', { class:'lane-label', x:12, y:129 }, '原链 O'));
+    svg.appendChild(svgEl('text', { class:'lane-label', x:12, y:319 }, '副本 C'));
+
+    step.nodes.forEach(function (node) {
+      if (node.next !== null && byId[node.next]) {
+        svg.appendChild(svgEl('path', { class:'next-edge', d:nextPath(node, byId[node.next]) }));
+      } else if (node.next === null) {
+        var p = position(node), nullX = p.x + 54;
+        svg.appendChild(svgEl('path', { class:'next-edge', d:'M' + (p.x + 35) + ',' + p.y + ' L' + (nullX - 18) + ',' + p.y }));
+        svg.appendChild(svgEl('rect', { class:'null-box', x:nullX - 17, y:p.y - 12, width:34, height:24, rx:6 }));
+        svg.appendChild(svgEl('text', { class:'null-text', x:nullX, y:p.y + 3 }, 'null'));
+      }
+    });
+    step.nodes.forEach(function (node) {
+      if (node.random !== null && byId[node.random]) {
+        svg.appendChild(svgEl('path', { class:'random-edge', d:randomPath(node, byId[node.random]) }));
+        var p = position(node);
+        svg.appendChild(svgEl('text', { class:'edge-label random', x:p.x, y:p.y + (node.kind === 'original' ? -77 : 82), 'text-anchor':'middle' }, 'random'));
+      }
+    });
+    step.nodes.forEach(function (node) {
+      var p = position(node), group = svgEl('g', { class:'node ' + node.kind + ((step.curr === node.id || step.copy === node.id) ? ' current' : '') });
+      group.appendChild(svgEl('circle', { cx:p.x, cy:p.y, r:34 }));
+      group.appendChild(svgEl('text', { class:'node-value', x:p.x, y:p.y + 2 }, String(node.value)));
+      group.appendChild(svgEl('text', { class:'node-id', x:p.x, y:p.y + 20 }, node.id));
+      if (node.random === null) group.appendChild(svgEl('text', { class:'random-null', x:p.x, y:p.y + (node.kind === 'original' ? -43 : 50) }, 'random:null'));
+      svg.appendChild(group);
+    });
+    if (step.curr !== null && byId[step.curr]) addPointer(svg, byId[step.curr], 'curr', 'curr', step.copy === step.curr ? -22 : 0);
+    if (step.copy !== null && byId[step.copy]) addPointer(svg, byId[step.copy], 'copy', 'copy', step.copy === step.curr ? 22 : 0);
+  }
+  function renderPhases(step) {
+    var order = ['weave','random','detach'], phase = step.phase === 'done' ? 'detach' : step.phase, current = order.indexOf(phase);
+    Array.prototype.forEach.call(document.querySelectorAll('.phase'), function (element, i) {
+      element.className = 'phase';
+      if (i < current || step.phase === 'done') element.className += ' done';
+      if (element.dataset.phase === step.phase) element.className += ' active';
+    });
+  }
+  function label(id) {
+    if (id === null) return 'null';
+    var node = steps[index].nodes.filter(function (item) { return item.id === id; })[0];
+    return node ? id + '(' + node.value + ')' : id;
+  }
+  function render() {
+    var step = steps[index], phaseName = step.phase === 'weave' ? 'weave · 穿插' : step.phase === 'random' ? 'random · 设置' : step.phase === 'detach' ? 'detach · 拆分' : 'done · 完成';
+    renderTopology(step); renderPhases(step);
+    $('dashboard').innerHTML =
+      '<div class="box">阶段<b>' + phaseName + '</b></div>' +
+      '<div class="box curr">curr<b>' + label(step.curr) + '</b></div>' +
+      '<div class="box copy">copy<b>' + label(step.copy) + '</b></div>' +
+      '<div class="box">当前映射<b>' + (step.mappings.join('，') || '尚未建立') + '</b></div>' +
+      '<div class="box">阶段进度<b>' + step.processed + ' / ' + step.total + '</b></div>';
+    $('rule').textContent = step.phase === 'weave' ? (step.processed ? 'copy = Node(curr.val, curr.next); curr.next = copy' : 'curr = head') :
+      step.phase === 'random' ? 'copy.random = curr.random ? curr.random.next : null' :
+      step.phase === 'detach' ? 'curr.next = copy.next; copy.next = copy.next ? copy.next.next : null' : 'return copyHead';
+    $('status').innerHTML = step.msg;
+    $('progress').textContent = '第 ' + (step.phase === 'weave' ? 1 : step.phase === 'random' ? 2 : step.phase === 'detach' ? 3 : 3) + ' 趟 · 步骤 ' + (index + 1) + ' / ' + steps.length;
+    prevBtn.disabled = index === 0; nextBtn.disabled = index === steps.length - 1;
+  }
+  function stop() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (index < steps.length - 1) { index++; render(); } }
+  function load() {
+    var parsed = App.parseInput(valuesInput.value, randomInput.value);
+    if (parsed.err) { $('err').textContent = '输入有误：' + parsed.err + '。'; $('err').classList.add('show'); return; }
+    $('err').classList.remove('show'); stop(); values = parsed.values; steps = App.buildSteps(parsed.values, parsed.random); index = 0;
+    var result = App.solve(parsed.values, parsed.random);
+    $('stats').innerHTML =
+      '<div class="stat">节点数<b>' + values.length + '</b></div>' +
+      '<div class="stat">原 random<b>[' + parsed.random.join(', ') + ']</b></div>' +
+      '<div class="stat">复制 random<b>[' + result.copy.random.join(', ') + ']</b></div>' +
+      '<div class="stat">时间复杂度<b>O(n)</b></div>' +
+      '<div class="stat">额外空间<b>O(1)</b></div>' +
+      '<div class="stat">身份 / 恢复<b>' + (result.distinct && result.restored ? '全新 / 已恢复' : '验证失败') + '</b></div>';
+    render();
+  }
+  prevBtn.onclick = function () { stop(); if (index > 0) { index--; render(); } };
+  nextBtn.onclick = function () { stop(); next(); };
+  playBtn.onclick = function () {
+    if (timer) { stop(); return; }
+    if (index === steps.length - 1) { index = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (index === steps.length - 1) stop(); else next(); }, 850);
+  };
+  $('resetBtn').onclick = function () { stop(); index = 0; render(); };
+  $('loadBtn').onclick = load;
+  [valuesInput,randomInput].forEach(function (input) { input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { valuesInput.value = chip.dataset.v; randomInput.value = chip.dataset.r; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === valuesInput || document.activeElement === randomInput) return;
+    if (event.key === 'ArrowRight') { stop(); next(); }
+    if (event.key === 'ArrowLeft') { stop(); if (index > 0) { index--; render(); } }
+  });
+
+  var codes = {
+    py:'<span class="cmt"># 三趟原地穿插 · O(n) 时间 · O(1) 额外空间（输出不计）</span>\n' +
+      'class Solution:\n' +
+      '    def copyRandomList(self, head: &quot;Optional[Node]&quot;) -&gt; &quot;Optional[Node]&quot;:\n' +
+      '        if head is None:\n' +
+      '            return None\n\n' +
+      '        curr = head\n' +
+      '        while curr:                         <span class="cmt"># ① weave</span>\n' +
+      '            copy = Node(curr.val, curr.next)\n' +
+      '            curr.next = copy\n' +
+      '            curr = copy.next\n\n' +
+      '        curr = head\n' +
+      '        while curr:                         <span class="cmt"># ② random</span>\n' +
+      '            copy = curr.next\n' +
+      '            copy.random = curr.random.next if curr.random else None\n' +
+      '            curr = copy.next\n\n' +
+      '        copy_head = head.next\n' +
+      '        curr = head\n' +
+      '        while curr:                         <span class="cmt"># ③ detach，并恢复原链</span>\n' +
+      '            copy = curr.next\n' +
+      '            curr.next = copy.next\n' +
+      '            copy.next = copy.next.next if copy.next else None\n' +
+      '            curr = curr.next\n\n' +
+      '        return copy_head',
+    java:'<span class="cmt">// 三趟原地穿插 · O(n) 时间 · O(1) 额外空间（输出不计）</span>\n' +
+      'class Solution {\n' +
+      '    public Node copyRandomList(Node head) {\n' +
+      '        if (head == null) return null;\n\n' +
+      '        Node curr = head;\n' +
+      '        while (curr != null) {              <span class="cmt">// ① weave</span>\n' +
+      '            Node copy = new Node(curr.val);\n' +
+      '            copy.next = curr.next;\n' +
+      '            curr.next = copy;\n' +
+      '            curr = copy.next;\n' +
+      '        }\n\n' +
+      '        curr = head;\n' +
+      '        while (curr != null) {              <span class="cmt">// ② random</span>\n' +
+      '            Node copy = curr.next;\n' +
+      '            copy.random = (curr.random == null) ? null : curr.random.next;\n' +
+      '            curr = copy.next;\n' +
+      '        }\n\n' +
+      '        Node copyHead = head.next;\n' +
+      '        curr = head;\n' +
+      '        while (curr != null) {              <span class="cmt">// ③ detach，并恢复原链</span>\n' +
+      '            Node copy = curr.next;\n' +
+      '            curr.next = copy.next;\n' +
+      '            copy.next = (copy.next == null) ? null : copy.next.next;\n' +
+      '            curr = curr.next;\n' +
+      '        }\n' +
+      '        return copyHead;\n' +
+      '    }\n' +
+      '}'
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); $('codeBlock').innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  $('codeBlock').innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>
