@@ -98,6 +98,7 @@ leetcode-animations/
 | 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 后序遍历 · 树形DP · 递归返回值 |
 | 128 | [最长连续序列](https://tces1.github.io/leetcode-animations/problems/128-longest-consecutive-sequence.html) | 中等 | 数组 · 哈希集合 · 连续序列 · O(n) |
 | 131 | [分割回文串](https://tces1.github.io/leetcode-animations/problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
+| 141 | [环形链表](https://tces1.github.io/leetcode-animations/problems/141-linked-list-cycle.html) | 简单 | 链表 · Floyd 判圈 · 快慢指针 · 双指针 · O(1) 空间 |
 | 152 | [乘积最大子数组](https://tces1.github.io/leetcode-animations/problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
 | 160 | [相交链表](https://tces1.github.io/leetcode-animations/problems/160-intersection-of-two-linked-lists.html) | 简单 | 链表 · 双指针 · 路程对齐 · O(1) 空间 |
 | 189 | [轮转数组](https://tces1.github.io/leetcode-animations/problems/189-rotate-array.html) | 中等 | 数组 · 数学 · 双指针 · 三次反转 · O(1) 空间 |
@@ -106,6 +107,7 @@ leetcode-animations/
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
 | 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
+| 234 | [回文链表](https://tces1.github.io/leetcode-animations/problems/234-palindrome-linked-list.html) | 简单 | 链表 · 快慢指针 · 原地反转 · 回文 · O(1) 空间 |
 | 238 | [除了自身以外数组的乘积](https://tces1.github.io/leetcode-animations/problems/238-product-of-array-except-self.html) | 中等 | 数组 · 前缀积 · 后缀积 · 不使用除法 · O(1) 额外空间 |
 | 239 | [滑动窗口最大值](https://tces1.github.io/leetcode-animations/problems/239-sliding-window-maximum.html) | 困难 | 数组 · 滑动窗口 · 单调队列 · 双端队列 |
 | 240 | [搜索二维矩阵 II](https://tces1.github.io/leetcode-animations/problems/240-search-a-2d-matrix-ii.html) | 中等 | 矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n) |
