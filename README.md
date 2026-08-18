@@ -99,6 +99,7 @@ leetcode-animations/
 | 73 | [矩阵置零](https://tces1.github.io/leetcode-animations/problems/73-set-matrix-zeroes.html) | 中等 | 矩阵 · 原地标记 · 数组 · O(1) 空间 |
 | 76 | [最小覆盖子串](https://tces1.github.io/leetcode-animations/problems/76-minimum-window-substring.html) | 困难 | 字符串 · 滑动窗口 · 哈希表 · 计数 |
 | 84 | [柱状图中最大的矩形](https://tces1.github.io/leetcode-animations/problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
+| 94 | [二叉树的中序遍历](https://tces1.github.io/leetcode-animations/problems/94-binary-tree-inorder-traversal.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 中序遍历 · 调用栈 · O(n) |
 | 118 | [杨辉三角](https://tces1.github.io/leetcode-animations/problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
 | 121 | [买卖股票的最佳时机](https://tces1.github.io/leetcode-animations/problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
 | 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 后序遍历 · 树形DP · 递归返回值 |
