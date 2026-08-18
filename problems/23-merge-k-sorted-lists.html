@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 23 合并 K 个升序链表逐帧动画：read/write 原地压缩、自底向上两两稳定归并、奇数链表搬运与 del 尾部旧槽位。">
+<meta name="tags" content="链表 · 分治 · 自底向上归并 · dummy · 稳定合并 · 原地压缩 · O(N log k)">
+<title>23. 合并 K 个升序链表 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1160px; margin:0 auto; }
+  .navbar,.controls,.examples,.legend { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .navbar { margin-bottom:16px; gap:12px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea,.phase-strip { display:grid; gap:10px; }
+  .idea { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .phase-strip { grid-template-columns:repeat(6,minmax(0,1fr)); }
+  .idea-item,.phase { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; transition:.18s; }
+  .idea-item .no,.phase .no { font-size:11px; font-weight:700; color:#6366f1; letter-spacing:.04em; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); color:#3730a3; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .complexity-note { margin-top:10px; padding:11px 14px; border-radius:10px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] { width:100%; min-width:0; padding:9px 11px; font:13px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; gap:8px; }
+  .examples .lab,.hint { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { margin-top:8px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 14px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .slots { display:flex; gap:9px; overflow:auto; padding:8px 2px 12px; min-height:105px; }
+  .slot { flex:0 0 150px; position:relative; border:2px solid #dbe1ea; border-radius:10px; padding:9px; background:#f8fafc; transition:.18s; }
+  .slot.read { border-color:#f59e0b; background:#fffbeb; }
+  .slot.write { box-shadow:0 0 0 4px rgba(99,102,241,.15); border-color:#6366f1; }
+  .slot.written { background:#ecfdf5; border-color:#86efac; }
+  .slot.deleted { background:#fef2f2; border-color:#fca5a5; opacity:.65; text-decoration:line-through; }
+  .slot-index { display:flex; justify-content:space-between; gap:5px; font:800 11px "SF Mono",Menlo,monospace; color:#64748b; }
+  .slot-head { margin-top:8px; font:800 12px "SF Mono",Menlo,monospace; color:#334155; overflow-wrap:anywhere; }
+  .slot-values { margin-top:4px; color:#64748b; font:11px "SF Mono",Menlo,monospace; overflow-wrap:anywhere; }
+  .slot-badge { color:#7c3aed; }
+  .trim-note { min-height:24px; color:#b91c1c; font-size:12px; }
+  .stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); padding:16px 12px; }
+  .lane { display:grid; grid-template-columns:105px minmax(max-content,1fr); align-items:center; min-height:82px; }
+  .lane + .lane { border-top:1px dashed #e5e7eb; }
+  .lane-name { font-size:11px; font-weight:800; color:#64748b; }
+  .chain { display:inline-flex; align-items:center; min-width:max-content; padding:23px 4px 15px; }
+  .node,.null-node { position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-family:"SF Mono",Menlo,monospace; }
+  .node { width:58px; height:58px; border:2px solid #cbd5e1; border-radius:50%; background:#fff; color:#334155; font-size:17px; font-weight:800; }
+  .node.left { background:#eef2ff; border-color:#818cf8; }
+  .node.right { background:#fff7ed; border-color:#fb923c; }
+  .node.output { background:#dcfce7; border-color:#22c55e; }
+  .node.focus { box-shadow:0 0 0 5px rgba(245,158,11,.18); border-color:#f59e0b; }
+  .node.tail { box-shadow:0 0 0 5px rgba(34,197,94,.17); }
+  .node .id { position:absolute; bottom:4px; font-size:8px; color:#64748b; }
+  .node .next-label { position:absolute; top:-22px; white-space:nowrap; font-size:8px; color:#64748b; }
+  .null-node { width:52px; height:32px; border:2px dashed #cbd5e1; border-radius:8px; background:#f1f5f9; color:#64748b; font-size:10px; font-weight:700; }
+  .edge { width:36px; flex:0 0 36px; text-align:center; font:800 21px "SF Mono",Menlo,monospace; color:#94a3b8; }
+  .topology-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(145px,1fr)); gap:8px; }
+  .topology-item { border:1px solid #e5e7eb; border-radius:9px; padding:7px 9px; background:#f8fafc; font:11px "SF Mono",Menlo,monospace; color:#475569; }
+  .topology-item.changed { border-color:#fca5a5; background:#fef2f2; color:#b91c1c; }
+  .dashboard { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; margin-top:12px; }
+  .box { border:1px solid #e5e7eb; border-radius:10px; padding:8px 5px; background:#f8fafc; color:#64748b; text-align:center; font-size:11px; }
+  .box b { display:block; min-height:22px; font:800 12px "SF Mono",Menlo,monospace; color:#334155; overflow-wrap:anywhere; }
+  .rule { margin-top:10px; border-radius:10px; background:#0f172a; color:#fcd34d; padding:11px 14px; min-height:45px; display:flex; align-items:center; justify-content:center; font:14px "SF Mono",Menlo,monospace; text-align:center; }
+  .legend { margin-top:13px; font-size:12px; color:#6b7280; gap:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.1); }
+  .status-title,.section-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .ok { color:#86efac; } .status .carry { color:#fca5a5; } .status .left { color:#a5b4fc; } .status .right { color:#fdba74; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:900px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea { grid-template-columns:1fr 1fr; } .phase-strip { grid-template-columns:repeat(3,1fr); }
+    .dashboard { grid-template-columns:repeat(3,1fr); } .progress { width:100%; margin-left:0; }
+  }
+  @media (max-width:560px) {
+    .idea,.phase-strip,.input-grid { grid-template-columns:1fr; }
+    .lane { grid-template-columns:76px minmax(max-content,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/merge-k-sorted-lists/" target="_blank" rel="noopener">LeetCode 23</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>23. 合并 K 个升序链表 · 平衡两两归并</h1>
+  <div class="sub">把 <code>lists</code> 当作待合并链表头的工作区：每轮用 <code>read = 0, 2, 4...</code> 读取，用 <code>write = 0, 1, 2...</code> 写回前缀，最后一次 <code>del lists[write:]</code> 压缩有效槽位。</div>
+
+  <div class="card">
+    <div class="panel-title">自底向上归并的四个动作</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 成对读取</div>每轮固定当前有效槽位，从 <code>read = 0</code> 开始，每次读取相邻两条链并令 <code>read += 2</code>。</div>
+      <div class="idea-item"><div class="no">② 稳定 merge</div><code>dummy + tail</code> 复用原节点；值相等时用 <code>&lt;=</code> 先选左链，保持稳定。</div>
+      <div class="idea-item"><div class="no">③ 奇数项直接写</div>最后只剩一条链时，不参与 merge，直接执行 <code>lists[write] = lists[read]</code>。</div>
+      <div class="idea-item"><div class="no">④ 一次删除旧尾部</div>本轮写完后执行 <code>del lists[write:]</code>；有效链表数从 k 变成 <code>ceil(k / 2)</code>。</div>
+    </div>
+    <div class="key-note"><b>轮次平衡：</b>有效链表数按 <code>k → ceil(k/2) → ... → 1</code> 下降；等价地，每条结果链覆盖的原链表数量约按 <code>1 → 2 → 4 → 8</code> 增长。</div>
+    <div class="complexity-note"><b>为什么是 O(N log k)：</b>设所有链表共有 N 个节点。每轮所有节点合计只被 merge 一次，代价 O(N)；共有 O(log k) 轮，所以总时间 O(N log k)。朴素做法每取一个节点都扫描 k 个链表头，需 O(Nk)。实际算法只维护指针并原地复用输入数组，额外空间 O(1)。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">lists（分号分隔链表）</span><input id="listsInput" type="text" value="1 4 5; 1 3 4; 2 6" spellcheck="false" placeholder="如 1 4 5; 1 3 4; 2 6"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-v="1 4 5; 1 3 4; 2 6">LeetCode 经典</span>
+      <span class="chip" data-v="1 5; 2 6; 3 7; 4 8; 0 9">奇数 5 条</span>
+      <span class="chip" data-v="∅; 1 2; ∅; 3 4">含空链</span>
+      <span class="chip" data-v="∅; ∅; ∅">全空</span>
+      <span class="chip" data-v="-2 0 7">单链</span>
+      <span class="chip" data-v="1 1 4; 1 1 3; 1 2; 1; ∅">重复值 · 稳定</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">严格支持 1～8 条链、总计最多 24 个节点、每条最多 10 个 −999～999 整数。链表之间只用 <code>;</code>；节点只用空格或单个逗号分隔；空链必须明确写成 <code>∅</code>。每条非空链必须非递减。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip">
+      <div class="phase" data-stage="round"><div class="no">阶段 1</div><b>开始一轮</b></div>
+      <div class="phase" data-stage="pair"><div class="no">阶段 2</div><b>read 成对读取</b></div>
+      <div class="phase" data-stage="compare"><div class="no">阶段 3</div><b>逐节点比较</b></div>
+      <div class="phase" data-stage="attach"><div class="no">阶段 4</div><b>tail.next 接入</b></div>
+      <div class="phase" data-stage="carry"><div class="no">阶段 5</div><b>奇数链直接写</b></div>
+      <div class="phase" data-stage="compress"><div class="no">阶段 6</div><b>del 尾部旧槽位</b></div>
+    </div>
+
+    <div class="panel-title section-title">当前 lists 槽位（read 读旧槽位，write 写有效前缀）</div>
+    <div class="slots" id="slots"></div>
+    <div class="trim-note" id="trimNote"></div>
+
+    <div class="panel-title section-title">当前配对与已确认输出前缀（节点标签始终代表原节点身份）</div>
+    <div class="stage">
+      <div class="lane"><div class="lane-name">左链 / p1</div><div class="chain" id="leftLane"></div></div>
+      <div class="lane"><div class="lane-name">右链 / p2</div><div class="chain" id="rightLane"></div></div>
+      <div class="lane"><div class="lane-name">merge 输出</div><div class="chain" id="outputLane"></div></div>
+    </div>
+
+    <div class="panel-title section-title">全体原节点的真实 next 拓扑</div>
+    <div class="topology-grid" id="topology"></div>
+    <div class="dashboard" id="dashboard"></div>
+    <div class="rule" id="rule"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#eef2ff;border-color:#818cf8"></span>左链</span>
+      <span><span class="dot" style="background:#fff7ed;border-color:#fb923c"></span>右链</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>已确认输出</span>
+      <span><span class="dot" style="background:#fffbeb;border-color:#f59e0b"></span>read / 当前比较</span>
+      <span><span class="dot" style="background:#fef2f2;border-color:#fca5a5"></span>将被 del 的旧槽位</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-merge-k-sorted-lists-logic>
+(function (root) {
+  'use strict';
+
+  function parseInput(value) {
+    if (typeof value !== 'string' || !value.trim()) return { lists:null, err:'请输入至少一条链表；空链请写 ∅' };
+    var parts = value.split(';');
+    if (parts.length > 8) return { lists:null, err:'链表总数最多 8 条' };
+    var lists = [], total = 0;
+    for (var listIndex = 0; listIndex < parts.length; listIndex++) {
+      var text = parts[listIndex].trim(), name = '第 ' + (listIndex + 1) + ' 条链表';
+      if (!text) return { lists:null, err:name + ' 为空白；空链必须明确写成 ∅' };
+      if (text === '∅') { lists.push([]); continue; }
+      if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(text)) {
+        return { lists:null, err:name + ' 格式无效，请只用空格或单个逗号分隔整数' };
+      }
+      var tokens = text.match(/-?\d+/g) || [];
+      if (tokens.length > 10) return { lists:null, err:name + ' 最多 10 个节点' };
+      var numbers = [];
+      for (var i = 0; i < tokens.length; i++) {
+        var number = Number(tokens[i]);
+        if (!Number.isSafeInteger(number) || number < -999 || number > 999) return { lists:null, err:name + ' 的节点值须在 -999～999：' + tokens[i] };
+        if (i && number < numbers[i - 1]) return { lists:null, err:name + ' 必须非递减：' + numbers[i - 1] + ' 后不能出现 ' + number };
+        numbers.push(number);
+      }
+      total += numbers.length;
+      if (total > 24) return { lists:null, err:'所有链表的节点总数最多 24 个' };
+      lists.push(numbers);
+    }
+    return { lists:lists, total:total, err:null };
+  }
+
+  function buildModel(inputLists) {
+    var nodes = [], heads = [], nextOf = [];
+    inputLists.forEach(function (values, source) {
+      var keys = [];
+      values.forEach(function (value, local) {
+        var key = nodes.length;
+        nodes.push({ key:key, value:value, source:source, local:local, id:'L' + (source + 1) + 'N' + (local + 1) });
+        nextOf.push(null); keys.push(key);
+      });
+      for (var i = 0; i + 1 < keys.length; i++) nextOf[keys[i]] = keys[i + 1];
+      heads.push(keys.length ? keys[0] : null);
+    });
+    return { nodes:nodes, heads:heads, nextOf:nextOf };
+  }
+
+  function traverse(nextOf, head) {
+    var ids = [], seen = {}, at = head;
+    while (at !== null && at >= 0 && at < nextOf.length && !seen[at] && ids.length <= nextOf.length) {
+      seen[at] = true; ids.push(at); at = nextOf[at];
+    }
+    return { ids:ids, terminated:at === null, cycle:at !== null && !!seen[at] };
+  }
+
+  function buildSteps(inputLists) {
+    var model = buildModel(inputLists), nodes = model.nodes, nextOf = model.nextOf.slice();
+    var slots = model.heads.slice(), steps = [], round = 0, pair = 0, read = 0, write = 0;
+    var sourceHeads = slots.slice(), writeTarget = null, leftHead = null, rightHead = null, carryHead = null;
+    var p1 = null, p2 = null, tail = null, outputHead = null, confirmedIds = [];
+    var changedFrom = null, changedTo = null, deletedIndices = [], removedCount = 0;
+    var comparisons = 0, linkWrites = 0, slotWrites = 0;
+    function copyNodes() {
+      return nodes.map(function (node) { return { key:node.key, value:node.value, source:node.source, local:node.local, id:node.id }; });
+    }
+    function label(key) { return key === null ? 'null' : nodes[key].id + '(' + nodes[key].value + ')'; }
+    function collect(head) { return traverse(nextOf, head).ids; }
+    function snap(stage, action, message, rule) {
+      steps.push({
+        stage:stage, action:action, round:round, pair:pair, read:read, write:write, writeTarget:writeTarget,
+        sourceCount:sourceHeads.length, sourceHeads:sourceHeads.slice(), slots:slots.slice(),
+        leftHead:leftHead, rightHead:rightHead, carryHead:carryHead, p1:p1, p2:p2, tail:tail,
+        outputHead:outputHead, confirmedIds:confirmedIds.slice(), nodes:copyNodes(), nextOf:nextOf.slice(),
+        changedFrom:changedFrom, changedTo:changedTo, deletedIndices:deletedIndices.slice(), removedCount:removedCount,
+        comparisons:comparisons, linkWrites:linkWrites, slotWrites:slotWrites, msg:message, rule:rule
+      });
+      changedFrom = changedTo = null;
+    }
+    snap('start', 'start', '初始化：<b>lists</b> 中共有 <b>' + slots.length + '</b> 个槽位、' + nodes.length + ' 个真实节点。尚未改写任何 next。', 'round = 0; lists 保持输入头指针');
+
+    while (slots.length > 1) {
+      round++; pair = 0; read = 0; write = 0; writeTarget = null;
+      sourceHeads = slots.slice(); leftHead = rightHead = carryHead = p1 = p2 = tail = outputHead = null;
+      confirmedIds = []; deletedIndices = []; removedCount = 0;
+      snap('round', 'round-start', '第 <b>' + round + '</b> 轮开始：固定本轮 ' + sourceHeads.length + ' 个输入槽位；read 每次加 2，write 每次加 1。', 'read = 0; write = 0');
+
+      while (read < sourceHeads.length) {
+        pair++; writeTarget = write; leftHead = sourceHeads[read]; rightHead = null; carryHead = null;
+        p1 = p2 = tail = outputHead = null; confirmedIds = [];
+        if (read + 1 >= sourceHeads.length) {
+          carryHead = leftHead; confirmedIds = collect(carryHead);
+          snap('carry', 'carry-ready', 'read = <b>' + read + '</b> 是本轮最后一个槽位，没有右侧配对。它从 <span class="carry">' + label(carryHead) + '</span> 开始，整条链直接搬到 write = <b>' + write + '</b>。', 'lists[write] = lists[read]  # 不 merge');
+          slots[write] = carryHead; slotWrites++;
+          snap('carry', 'carry-write', '已执行 <b>lists[' + write + '] = lists[' + read + ']</b>。这条奇数链现在位于有效前缀槽位 ' + write + '；稍后的 del 从新 write 之后开始，不会删除它。', 'lists[' + write + '] = lists[' + read + ']');
+          write++; read += 2;
+          continue;
+        }
+
+        rightHead = sourceHeads[read + 1]; p1 = leftHead; p2 = rightHead;
+        snap('pair', 'pair-ready', '第 ' + pair + ' 对：read = <b>' + read + '</b> 与 <b>' + (read + 1) + '</b>，准备把 ' + label(p1) + ' 和 ' + label(p2) + ' 稳定归并后写入 lists[' + write + ']。', 'merged = mergeTwoLists(lists[read], lists[read + 1])');
+        while (p1 !== null && p2 !== null) {
+          comparisons++;
+          var takeLeft = nodes[p1].value <= nodes[p2].value;
+          snap('compare', 'compare', '比较 <span class="left">' + label(p1) + '</span> 与 <span class="right">' + label(p2) + '</span>：' +
+            (nodes[p1].value === nodes[p2].value ? '值相等，按 <code>&lt;=</code> 先取左侧，保持稳定。' : '选择较小的 <b>' + label(takeLeft ? p1 : p2) + '</b>。'),
+            'if p1.val <= p2.val: choose p1');
+          var chosen = takeLeft ? p1 : p2, following = nextOf[chosen];
+          if (takeLeft) p1 = following; else p2 = following;
+          if (tail === null) outputHead = chosen;
+          else { nextOf[tail] = chosen; changedFrom = tail; changedTo = chosen; linkWrites++; }
+          tail = chosen; confirmedIds.push(chosen);
+          snap('attach', 'attach', '<b>tail.next</b> 接入原节点 ' + label(chosen) + '，对应输入指针前进；输出身份前缀为 <span class="ok">' + confirmedIds.map(function (id) { return nodes[id].id; }).join(' → ') + '</span>。', 'tail.next = chosen; tail = chosen');
+        }
+        var remaining = p1 !== null ? p1 : p2, restIds = collect(remaining);
+        if (tail === null) outputHead = remaining;
+        else { nextOf[tail] = remaining; changedFrom = tail; changedTo = remaining; linkWrites++; }
+        confirmedIds = confirmedIds.concat(restIds);
+        snap('attach', 'remainder', remaining === null
+          ? '两侧同时耗尽，<b>tail.next = null</b>，本对归并完成。'
+          : '一侧耗尽；执行 <b>tail.next = ' + label(remaining) + '</b>，一次接上已经有序的剩余链。',
+          'tail.next = p1 or p2');
+        slots[write] = outputHead; slotWrites++;
+        snap('pair', 'pair-write', '把本对结果头 <b>' + label(outputHead) + '</b> 写入 <b>lists[' + write + ']</b>。原节点身份与当前 next 拓扑都被保留。', 'lists[write] = merged');
+        write++; read += 2;
+      }
+
+      writeTarget = null; read = sourceHeads.length;
+      deletedIndices = [];
+      for (var old = write; old < slots.length; old++) deletedIndices.push(old);
+      removedCount = deletedIndices.length;
+      snap('compress', 'trim-ready', '本轮写出 <b>' + write + '</b> 条有效链。现在执行 <b>del lists[' + write + ':]</b>，只删除索引 ' +
+        (deletedIndices.length ? deletedIndices.join(', ') : '（无）') + ' 的尾部旧槽位；有效前缀 0…' + (write - 1) + ' 全部保留。', 'del lists[write:]');
+      slots = slots.slice(0, write);
+      sourceHeads = slots.slice();
+      snap('compress', 'trim-done', '压缩完成：lists 现在只有 <b>' + slots.length + '</b> 个有效槽位，链表数量约减半。' +
+        (slots.length > 1 ? ' 下一轮继续从 read = 0 开始。' : ' 只剩一条结果链。'), 'active count = ' + slots.length);
+    }
+
+    leftHead = rightHead = carryHead = p1 = p2 = tail = null; writeTarget = null;
+    outputHead = slots.length ? slots[0] : null; confirmedIds = collect(outputHead);
+    sourceHeads = slots.slice(); deletedIndices = []; removedCount = 0;
+    snap('done', 'done', '完成：返回 <b>' + label(outputHead) + '</b>。最终值为 <span class="ok">[' + confirmedIds.map(function (id) { return nodes[id].value; }).join(', ') + ']</span>；节点完整、无环、有序且稳定。', 'return lists[0] if lists else None');
+    return steps;
+  }
+
+  function finalState(inputLists) {
+    var steps = buildSteps(inputLists), last = steps[steps.length - 1];
+    var walked = traverse(last.nextOf, last.outputHead), ids = walked.ids;
+    var values = ids.map(function (id) { return last.nodes[id].value; });
+    var expected = last.nodes.map(function (node) { return node.key; }).sort(function (a, b) {
+      var left = last.nodes[a], right = last.nodes[b];
+      return left.value - right.value || left.source - right.source || left.local - right.local;
+    });
+    var sorted = values.every(function (value, index) { return index === 0 || values[index - 1] <= value; });
+    var stable = ids.length === expected.length && ids.every(function (id, index) { return id === expected[index]; });
+    var complete = ids.length === last.nodes.length && new Set(ids).size === last.nodes.length;
+    return {
+      values:values, ids:ids, nextOf:last.nextOf.slice(), head:last.outputHead, steps:steps,
+      validation:{ terminated:walked.terminated, acyclic:walked.terminated && !walked.cycle, sorted:sorted, stable:stable, complete:complete }
+    };
+  }
+
+  function solve(inputLists) { return finalState(inputLists).values; }
+
+  root.MergeKSortedListsApp = {
+    parseInput:parseInput, buildModel:buildModel, traverse:traverse,
+    buildSteps:buildSteps, finalState:finalState, solve:solve
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.MergeKSortedListsApp, $ = function (id) { return document.getElementById(id); };
+  var input = $('listsInput'), steps = [], stepIndex = 0, timer = null, lists = [], nodes = [];
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+
+  function label(step, key) { return key === null ? 'null' : step.nodes[key].id + '(' + step.nodes[key].value + ')'; }
+  function reachable(step, head) { return App.traverse(step.nextOf, head).ids; }
+  function valuesText(step, head) {
+    var ids = reachable(step, head);
+    return ids.length ? '[' + ids.map(function (id) { return step.nodes[id].value; }).join(', ') + ']' : '∅';
+  }
+  function renderSlots(step) {
+    var el = $('slots'); el.innerHTML = '';
+    step.slots.forEach(function (head, index) {
+      var item = document.createElement('div'), classes = 'slot';
+      if ((index === step.read || index === step.read + 1) && step.stage !== 'compress') classes += ' read';
+      if (index === step.writeTarget) classes += ' write';
+      if (index < step.write && step.stage !== 'round') classes += ' written';
+      if (step.deletedIndices.indexOf(index) >= 0 && step.action === 'trim-ready') classes += ' deleted';
+      item.className = classes;
+      var badges = [];
+      if (index === step.read) badges.push('read');
+      if (index === step.read + 1 && step.stage !== 'carry') badges.push('read+1');
+      if (index === step.writeTarget) badges.push('write');
+      item.innerHTML = '<div class="slot-index"><span>lists[' + index + ']</span><span class="slot-badge">' + badges.join(' · ') + '</span></div>' +
+        '<div class="slot-head">' + label(step, head) + '</div><div class="slot-values">' + valuesText(step, head) + '</div>';
+      el.appendChild(item);
+    });
+    if (!step.slots.length) el.innerHTML = '<span class="hint">lists 为空</span>';
+    $('trimNote').textContent = step.action === 'trim-ready'
+      ? 'del lists[' + step.write + ':]：红色槽位是尾部旧引用；写入前缀中的奇数链不会被删。'
+      : step.action === 'trim-done' && step.removedCount ? '已删除 ' + step.removedCount + ' 个尾部旧槽位；上方只显示压缩后的有效前缀。' : '';
+  }
+  function nodeElement(step, key, kind) {
+    var data = step.nodes[key], el = document.createElement('div');
+    el.className = 'node ' + kind;
+    if (key === step.p1 || key === step.p2) el.className += ' focus';
+    if (key === step.tail) el.className += ' tail';
+    el.textContent = data.value;
+    var id = document.createElement('span'); id.className = 'id'; id.textContent = data.id; el.appendChild(id);
+    var next = document.createElement('span'); next.className = 'next-label'; next.textContent = 'next→' + (step.nextOf[key] === null ? 'null' : step.nodes[step.nextOf[key]].id); el.appendChild(next);
+    return el;
+  }
+  function renderChain(element, step, ids, kind) {
+    element.innerHTML = '';
+    ids.forEach(function (key, index) {
+      if (index) { var edge = document.createElement('span'); edge.className = 'edge'; edge.textContent = '→'; element.appendChild(edge); }
+      element.appendChild(nodeElement(step, key, kind));
+    });
+    if (ids.length) { var edge = document.createElement('span'); edge.className = 'edge'; edge.textContent = '→'; element.appendChild(edge); }
+    var end = document.createElement('span'); end.className = 'null-node'; end.textContent = ids.length ? '… / null' : 'null'; element.appendChild(end);
+  }
+  function renderTopology(step) {
+    var el = $('topology'); el.innerHTML = '';
+    step.nodes.forEach(function (node) {
+      var item = document.createElement('div');
+      item.className = 'topology-item' + (node.key === step.changedFrom ? ' changed' : '');
+      item.textContent = node.id + '(' + node.value + ').next → ' + (step.nextOf[node.key] === null ? 'null' : step.nodes[step.nextOf[node.key]].id);
+      el.appendChild(item);
+    });
+    if (!step.nodes.length) el.innerHTML = '<span class="hint">没有数据节点；所有槽位都是空链。</span>';
+  }
+  function renderPhases(step) {
+    Array.prototype.forEach.call($('phaseStrip').children, function (el) {
+      el.className = 'phase' + (el.dataset.stage === step.stage ? ' active' : '');
+    });
+  }
+  function render() {
+    var step = steps[stepIndex];
+    renderSlots(step); renderPhases(step); renderTopology(step);
+    renderChain($('leftLane'), step, reachable(step, step.leftHead), 'left');
+    renderChain($('rightLane'), step, reachable(step, step.rightHead), 'right');
+    renderChain($('outputLane'), step, step.confirmedIds, 'output');
+    $('dashboard').innerHTML =
+      '<div class="box">轮次 / 配对<b>' + step.round + ' / ' + step.pair + '</b></div>' +
+      '<div class="box">read<b>' + step.read + '</b></div>' +
+      '<div class="box">write / 目标<b>' + step.write + ' / ' + (step.writeTarget === null ? '—' : step.writeTarget) + '</b></div>' +
+      '<div class="box">p1 / p2<b>' + label(step, step.p1) + ' / ' + label(step, step.p2) + '</b></div>' +
+      '<div class="box">tail<b>' + label(step, step.tail) + '</b></div>' +
+      '<div class="box">比较 / next 改写<b>' + step.comparisons + ' / ' + step.linkWrites + '</b></div>' +
+      '<div class="box">lists 写入<b>' + step.slotWrites + '</b></div>';
+    $('rule').textContent = step.rule; $('status').innerHTML = step.msg;
+    $('progress').textContent = '轮次 ' + step.round + ' · 有效槽位 ' + step.slots.length + ' · 步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function renderStats() {
+    var state = App.finalState(lists), checks = state.validation;
+    $('stats').innerHTML =
+      '<div class="stat">链表数 k<b>' + lists.length + '</b></div>' +
+      '<div class="stat">总节点 N<b>' + nodes.length + '</b></div>' +
+      '<div class="stat">归并轮数<b>' + Math.ceil(Math.log2(Math.max(1, lists.length))) + '</b></div>' +
+      '<div class="stat">结果<b>[' + state.values.join(', ') + ']</b></div>' +
+      '<div class="stat">平衡归并<b>O(N log k)</b></div>' +
+      '<div class="stat">朴素扫描<b>O(Nk)</b></div>' +
+      '<div class="stat">终态校验<b>' + (checks.acyclic && checks.sorted && checks.stable && checks.complete ? '完整 · 无环 · 有序 · 稳定' : '失败') + '</b></div>';
+  }
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function load() {
+    var parsed = App.parseInput(input.value);
+    if (!parsed.lists) { $('err').textContent = '输入有误：' + parsed.err + '。'; $('err').classList.add('show'); return; }
+    $('err').classList.remove('show'); stopPlay(); lists = parsed.lists;
+    var model = App.buildModel(lists); nodes = model.nodes; steps = App.buildSteps(lists); stepIndex = 0;
+    renderStats(); render();
+  }
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = function () {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex === steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex === steps.length - 1) stopPlay(); else next(); }, 800);
+  };
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.dataset.v; load(); };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  var codes = {
+    py:`<span class="cmt"># 平衡两两归并 · O(N log k) 时间 · 原地压缩 lists</span>
+class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -&gt; Optional[ListNode]:
+        while len(lists) &gt; 1:
+            write = 0
+            for read in range(0, len(lists), 2):
+                if read + 1 &lt; len(lists):
+                    lists[write] = self.mergeTwoLists(
+                        lists[read], lists[read + 1]
+                    )
+                else:
+                    lists[write] = lists[read]  <span class="cmt"># 奇数最后一条直接写入</span>
+                write += 1
+
+            del lists[write:]              <span class="cmt"># 一次删除尾部旧槽位</span>
+
+        return lists[0] if lists else None
+
+    def mergeTwoLists(self, left, right):
+        dummy = tail = ListNode()
+        while left and right:
+            if left.val &lt;= right.val:     <span class="cmt"># 相等先取左侧，保持稳定</span>
+                tail.next, left = left, left.next
+            else:
+                tail.next, right = right, right.next
+            tail = tail.next
+
+        tail.next = left or right
+        return dummy.next`,
+    java:`<span class="cmt">// active 表示数组有效前缀；等价于 Python 的 read/write/del</span>
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        int active = lists.length;
+        while (active &gt; 1) {
+            int write = 0;
+            for (int read = 0; read &lt; active; read += 2) {
+                if (read + 1 &lt; active) {
+                    lists[write++] = mergeTwoLists(lists[read], lists[read + 1]);
+                } else {
+                    lists[write++] = lists[read]; <span class="cmt">// 奇数最后一条直接写</span>
+                }
+            }
+            active = write;                 <span class="cmt">// 只保留有效前缀</span>
+        }
+        return active == 0 ? null : lists[0];
+    }
+
+    private ListNode mergeTwoLists(ListNode left, ListNode right) {
+        ListNode dummy = new ListNode(), tail = dummy;
+        while (left != null &amp;&amp; right != null) {
+            if (left.val &lt;= right.val) {  <span class="cmt">// 稳定：相等取左侧</span>
+                tail.next = left;
+                left = left.next;
+            } else {
+                tail.next = right;
+                right = right.next;
+            }
+            tail = tail.next;
+        }
+        tail.next = (left != null) ? left : right;
+        return dummy.next;
+    }
+}`
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); $('codeBlock').innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  $('codeBlock').innerHTML = codes.py; load();
+})();
+</script>
+</body>
+</html>
