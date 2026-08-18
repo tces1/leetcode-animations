@@ -77,6 +77,7 @@ leetcode-animations/
 | 15 | [三数之和](https://tces1.github.io/leetcode-animations/problems/15-3sum.html) | 中等 | 数组 · 排序 · 双指针 · 去重 · 剪枝 |
 | 19 | [删除链表的倒数第 N 个结点](https://tces1.github.io/leetcode-animations/problems/19-remove-nth-node-from-end-of-list.html) | 中等 | 链表 · 双指针 · dummy · 前后指针 · 原地删除 · O(1) 空间 |
 | 21 | [合并两个有序链表](https://tces1.github.io/leetcode-animations/problems/21-merge-two-sorted-lists.html) | 简单 | 链表 · 双指针 · dummy · 迭代 · 稳定合并 · O(1) 空间 |
+| 23 | [合并 K 个升序链表](https://tces1.github.io/leetcode-animations/problems/23-merge-k-sorted-lists.html) | 困难 | 链表 · 分治 · 自底向上归并 · dummy · 稳定合并 · 原地压缩 · O(N log k) |
 | 24 | [两两交换链表中的节点](https://tces1.github.io/leetcode-animations/problems/24-swap-nodes-in-pairs.html) | 中等 | 链表 · dummy 节点 · 原地修改 · 迭代 · 节点交换 |
 | 25 | [K 个一组翻转链表](https://tces1.github.io/leetcode-animations/problems/25-reverse-nodes-in-k-group.html) | 困难 | 链表 · dummy 节点 · 分组反转 · 原地修改 · O(1) 空间 |
 | 31 | [下一个排列](https://tces1.github.io/leetcode-animations/problems/31-next-permutation.html) | 中等 | 数组 · 双指针 · 字典序 · O(n) |
