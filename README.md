@@ -100,6 +100,7 @@ leetcode-animations/
 | 76 | [最小覆盖子串](https://tces1.github.io/leetcode-animations/problems/76-minimum-window-substring.html) | 困难 | 字符串 · 滑动窗口 · 哈希表 · 计数 |
 | 84 | [柱状图中最大的矩形](https://tces1.github.io/leetcode-animations/problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
 | 94 | [二叉树的中序遍历](https://tces1.github.io/leetcode-animations/problems/94-binary-tree-inorder-traversal.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 中序遍历 · 调用栈 · O(n) |
+| 104 | [二叉树的最大深度](https://tces1.github.io/leetcode-animations/problems/104-maximum-depth-of-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 最大深度 · 调用栈 · O(n) |
 | 118 | [杨辉三角](https://tces1.github.io/leetcode-animations/problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
 | 121 | [买卖股票的最佳时机](https://tces1.github.io/leetcode-animations/problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
 | 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 后序遍历 · 树形DP · 递归返回值 |
@@ -118,6 +119,7 @@ leetcode-animations/
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
 | 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
+| 226 | [翻转二叉树](https://tces1.github.io/leetcode-animations/problems/226-invert-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 翻转二叉树 · 调用栈 · O(n) |
 | 234 | [回文链表](https://tces1.github.io/leetcode-animations/problems/234-palindrome-linked-list.html) | 简单 | 链表 · 快慢指针 · 原地反转 · 回文 · O(1) 空间 |
 | 238 | [除了自身以外数组的乘积](https://tces1.github.io/leetcode-animations/problems/238-product-of-array-except-self.html) | 中等 | 数组 · 前缀积 · 后缀积 · 不使用除法 · O(1) 额外空间 |
 | 239 | [滑动窗口最大值](https://tces1.github.io/leetcode-animations/problems/239-sliding-window-maximum.html) | 困难 | 数组 · 滑动窗口 · 单调队列 · 双端队列 |
