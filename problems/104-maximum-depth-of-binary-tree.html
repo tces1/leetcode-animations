@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 104 二叉树的最大深度逐帧动画：自顶向下 DFS、递归调用栈、当前路径与全局最大深度。">
+<meta name="tags" content="二叉树 · 深度优先搜索 · 递归 · 最大深度 · 调用栈 · O(n)">
+<title>104. 二叉树的最大深度 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1160px; margin:0 auto; }
+  .navbar,.controls,.examples,.legend,.stats,.path { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .navbar { margin-bottom:16px; gap:12px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:800; color:#6366f1; letter-spacing:.04em; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:13px; }
+  .compare { margin-top:10px; color:#64748b; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] {
+    width:100%; min-width:0; padding:9px 11px; font:13px "SF Mono",Menlo,monospace;
+    border:1px solid #d1d5db; border-radius:8px; outline:none; background:#fff;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; gap:8px; }
+  .examples .lab,.hint { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover,.chip.active { background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { margin-top:8px; line-height:1.65; }
+  .stats { gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 14px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .stat.max b { color:#dc2626; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .phase-strip { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; margin-bottom:14px; }
+  .phase { border:1px solid #e5e7eb; border-radius:9px; padding:8px 6px; font-size:10px; color:#64748b; background:#f8fafc; transition:.18s; text-align:center; }
+  .phase b { display:block; color:#334155; font-size:11px; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.11); color:#4338ca; }
+  .visual-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(270px,.75fr); gap:14px; }
+  .tree-box,.side-box { border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); min-height:340px; }
+  .tree-box { padding:12px; overflow:auto; position:relative; }
+  .tree-box svg { display:block; margin:0 auto; overflow:visible; }
+  .empty-tree { min-height:290px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:#94a3b8; font-size:13px; }
+  .empty-tree b { font:800 20px "SF Mono",Menlo,monospace; color:#64748b; }
+  .null-call { position:absolute; top:12px; right:12px; max-width:245px; padding:7px 10px; border:1px dashed #f59e0b; border-radius:8px; background:#fffbeb; color:#92400e; font:700 11px "SF Mono",Menlo,monospace; display:none; }
+  .null-call.show { display:block; }
+  .ruler { stroke:#e2e8f0; stroke-width:1; stroke-dasharray:4 5; }
+  .ruler-label { fill:#94a3b8; font:700 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .ruler.active { stroke:#818cf8; stroke-width:2; }
+  .ruler-label.active { fill:#4f46e5; }
+  .edge { stroke:#cbd5e1; stroke-width:2.5; transition:.18s; }
+  .edge.active { stroke:#f59e0b; stroke-width:4; }
+  .edge.path { stroke:#818cf8; }
+  .edge.done { stroke:#86efac; }
+  .edge-label { fill:#94a3b8; font:800 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .node circle { fill:#fff; stroke:#cbd5e1; stroke-width:2.5; transition:.18s; }
+  .node text { fill:#334155; font:800 14px "SF Mono",Menlo,monospace; }
+  .node.visited circle { fill:#fef3c7; stroke:#f59e0b; }
+  .node.path circle { fill:#ede9fe; stroke:#8b5cf6; }
+  .node.done circle { fill:#dcfce7; stroke:#22c55e; }
+  .node.current circle { fill:#e0e7ff; stroke:#6366f1; stroke-width:4; filter:drop-shadow(0 2px 4px rgba(79,70,229,.22)); }
+  .node.current text { fill:#3730a3; }
+  .node-depth { fill:#94a3b8!important; font-size:9px!important; font-weight:600!important; }
+  .side-box { padding:14px; display:flex; flex-direction:column; gap:13px; }
+  .action { border:1px solid #ddd6fe; background:#f5f3ff; border-radius:10px; padding:11px 12px; color:#5b21b6; min-height:72px; }
+  .action .kind { font-size:11px; font-weight:800; letter-spacing:.05em; }
+  .action b { display:block; color:#3730a3; font-size:13px; margin-top:3px; }
+  .stack { display:flex; flex-direction:column-reverse; gap:6px; min-height:90px; }
+  .frame { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; padding:7px 9px; border:1px solid #e5e7eb; border-radius:8px; background:#f8fafc; font:11px "SF Mono",Menlo,monospace; color:#475569; }
+  .frame.top { border-color:#818cf8; background:#eef2ff; color:#3730a3; }
+  .frame.null { border-style:dashed; border-color:#f59e0b; background:#fffbeb; color:#92400e; }
+  .frame .depth { border-radius:999px; min-width:30px; height:20px; display:flex; align-items:center; justify-content:center; background:#e2e8f0; font-weight:800; }
+  .frame.top .depth { background:#c7d2fe; }
+  .frame.null .depth { background:#fde68a; }
+  .stack-empty { color:#94a3b8; font-size:12px; text-align:center; padding:25px 0; }
+  .path { min-height:38px; gap:5px; border:1px dashed #cbd5e1; border-radius:9px; padding:7px; background:#f8fafc; }
+  .path .item { padding:4px 7px; border-radius:7px; background:#ede9fe; border:1px solid #8b5cf6; color:#5b21b6; text-align:center; font:800 12px "SF Mono",Menlo,monospace; }
+  .path .arrow,.path .none { color:#94a3b8; font-size:12px; }
+  .current-line { border-radius:8px; background:#0f172a; color:#fcd34d; padding:9px 11px; min-height:39px; font:12px "SF Mono",Menlo,monospace; }
+  .legend { margin-top:13px; font-size:12px; color:#6b7280; gap:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.1); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; } .status code { background:#1f2937; color:#93c5fd; }
+  .complexity { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .complexity > div { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; color:#4b5563; font-size:13px; }
+  .complexity b { display:block; color:#1d2129; margin-bottom:3px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:850px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea,.complexity { grid-template-columns:1fr; }
+    .visual-grid,.input-grid { grid-template-columns:1fr; }
+    .phase-strip { grid-template-columns:repeat(3,1fr); }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/maximum-depth-of-binary-tree/" target="_blank" rel="noopener">LeetCode 104</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>104. 二叉树的最大深度 · 自顶向下 DFS</h1>
+  <div class="sub">沿根到节点的路径携带 <code>depth</code>，访问节点时用 <code>depth + 1</code> 更新全局 <code>maxDepth</code>，再递归左右子树。</div>
+
+  <div class="card">
+    <div class="panel-title">自顶向下的三步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① CALL</div><code>dfs(node, depth)</code> 中，<code>depth</code> 表示当前节点之前已有多少个节点；根收到 <code>depth = 0</code>。</div>
+      <div class="idea-item"><div class="no">② UPDATE</div>当前节点按节点数计的深度是 <code>depth + 1</code>，执行 <code>maxDepth = max(maxDepth, depth + 1)</code>。</div>
+      <div class="idea-item"><div class="no">③ DESCEND</div>分别调用 <code>dfs(node.left, depth + 1)</code> 与 <code>dfs(node.right, depth + 1)</code>，null 由统一基例返回。</div>
+    </div>
+    <div class="key-note"><b>根节点深度按节点数为 1。</b>用户代码从 <code>dfs(root, 0)</code> 开始，因此访问根时使用 <code>0 + 1</code>。无需先写 <code>if node.left/right</code>，因为 <code>dfs(None, ...)</code> 已由基例安全处理；变量建议拼写为 <code>depth</code>，不是 <code>deepth</code>。</div>
+    <div class="compare"><b>另一种简洁视角（自底向上）：</b><code>depth(node) = 1 + max(depth(left), depth(right))</code>。它等待子树答案返回；本页动画主线仍是携带深度的自顶向下 DFS。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">二叉树（LeetCode 层序格式，0～31 个 token）</span><input id="treeInput" type="text" value="3 9 20 null null 15 7" spellcheck="false" autocomplete="off" placeholder="例如：3 9 20 null null 15 7"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-spec="3 9 20 null null 15 7">经典深度 3</span>
+      <span class="chip" data-spec="1 null 2 null 3 null 4">右斜树</span>
+      <span class="chip" data-spec="4 3 null 2 null 1">左斜树</span>
+      <span class="chip" data-spec="1 2 3 4 5 6 7">完全树</span>
+      <span class="chip" data-spec="-7">单节点</span>
+      <span class="chip" data-spec="">空树</span>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">
+      接受空白分隔（<code>1 null 2</code>）或逗号分隔（<code>[1,null,2]</code>），可带一对方括号；<code>null</code> 与 <code>#</code> 表示空位置，且必须小写。
+      空输入、<code>[]</code>、单独的 <code>null</code> 或 <code>#</code> 表示空树。支持负数与重复值；节点值须为 −1,000,000～1,000,000 的整数。严格拒绝空 token、混合分隔、未配对括号、根为空后仍有 token，以及没有可用父节点的孤儿 token。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip">
+      <div class="phase" data-phase="call"><span>CALL</span><b>进入调用</b></div>
+      <div class="phase" data-phase="update"><span>UPDATE</span><b>更新最大深度</b></div>
+      <div class="phase" data-phase="left"><span>LEFT</span><b>下探左子树</b></div>
+      <div class="phase" data-phase="right"><span>RIGHT</span><b>下探右子树</b></div>
+      <div class="phase" data-phase="null"><span>BASE</span><b>null 基例</b></div>
+      <div class="phase" data-phase="return"><span>RETURN</span><b>递归返回</b></div>
+    </div>
+
+    <div class="visual-grid">
+      <div class="tree-box" id="treeBox">
+        <svg id="treeSvg" aria-label="带深度标尺的二叉树可视化"></svg>
+        <div class="empty-tree" id="emptyTree"><b>root = null</b><span>空树最大深度为 0</span></div>
+        <div class="null-call" id="nullCall"></div>
+      </div>
+      <div class="side-box">
+        <div>
+          <div class="panel-title">当前动作</div>
+          <div class="action" id="action"></div>
+        </div>
+        <div>
+          <div class="panel-title">递归调用栈（栈顶在上）</div>
+          <div class="stack" id="stack"></div>
+        </div>
+        <div>
+          <div class="panel-title">当前根到节点路径</div>
+          <div class="path" id="path"></div>
+        </div>
+        <div class="current-line" id="currentLine"></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>当前节点</span>
+      <span><span class="dot" style="background:#ede9fe;border-color:#8b5cf6"></span>当前路径</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>已访问、仍在调用中</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>左右子树已完成</span>
+    </div>
+    <div class="panel-title status-title">状态栏</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">复杂度</div>
+    <div class="complexity">
+      <div><b>时间 O(n)</b>每个实际节点恰好访问一次；对 null 的常数次调用不改变渐进复杂度。</div>
+      <div><b>空间 O(h)</b>额外空间来自递归调用栈，h 是树高；当前路径只是调用栈的可视化。</div>
+      <div><b>平衡树 O(log n)，最坏 O(n)</b>平衡树高度为对数级；左斜树或右斜树的调用栈会增长到 n 层。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看 Python / Java 参考代码</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-max-depth-logic>
+(function (root) {
+  'use strict';
+  var MIN_VALUE = -1000000, MAX_VALUE = 1000000, MAX_TOKENS = 31;
+
+  function tokenize(input) {
+    if (typeof input !== 'string') return { error:'输入必须是字符串' };
+    var text = input.trim();
+    if (!text) return { tokens:[], tokenCount:0, error:null };
+    if (text[0] === '[' || text[text.length - 1] === ']') {
+      if (text[0] !== '[' || text[text.length - 1] !== ']') return { error:'方括号必须成对并包住整个输入' };
+      text = text.slice(1, -1).trim();
+    }
+    if (text.indexOf('[') >= 0 || text.indexOf(']') >= 0) return { error:'方括号只能出现在输入最外层' };
+    if (!text) return { tokens:[], tokenCount:0, error:null };
+
+    var raw;
+    if (text.indexOf(',') >= 0) {
+      raw = text.split(',');
+      for (var i = 0; i < raw.length; i++) {
+        raw[i] = raw[i].trim();
+        if (!raw[i]) return { error:'逗号之间、开头或结尾不能出现空 token' };
+        if (/\s/.test(raw[i])) return { error:'不能混用逗号与空白分隔 token' };
+      }
+    } else {
+      raw = text.split(/\s+/);
+    }
+    if (raw.length > MAX_TOKENS) return { error:'最多允许 ' + MAX_TOKENS + ' 个 token，当前有 ' + raw.length + ' 个' };
+
+    var tokens = [];
+    for (var j = 0; j < raw.length; j++) {
+      var word = raw[j];
+      if (word === 'null' || word === '#') {
+        tokens.push(null);
+      } else {
+        if (!/^-?\d+$/.test(word)) return { error:'第 ' + (j + 1) + ' 个 token「' + word + '」不是小写 null、# 或整数' };
+        var value = Number(word);
+        if (!Number.isSafeInteger(value) || value < MIN_VALUE || value > MAX_VALUE) {
+          return { error:'第 ' + (j + 1) + ' 个节点值须在 -1,000,000～1,000,000' };
+        }
+        tokens.push(value);
+      }
+    }
+    if (tokens[0] === null && tokens.length > 1) return { error:'根节点为空时不能再提供其它 token' };
+    return { tokens:tokens, tokenCount:raw.length, error:null };
+  }
+
+  function buildTree(tokens) {
+    if (!Array.isArray(tokens)) return { error:'tokens 必须是数组' };
+    if (!tokens.length || tokens[0] === null) return { nodes:[], rootId:-1, error:null };
+    var nodes = [{ id:0, value:tokens[0], left:-1, right:-1, parent:-1, side:'root', tokenIndex:0 }];
+    var queue = [0], queueIndex = 0, tokenIndex = 1;
+    while (tokenIndex < tokens.length) {
+      if (queueIndex >= queue.length) {
+        return { error:'第 ' + (tokenIndex + 1) + ' 个 token 没有可用父节点，属于孤儿 token' };
+      }
+      var parentId = queue[queueIndex++], parent = nodes[parentId];
+      var leftToken = tokens[tokenIndex++];
+      if (leftToken !== null) {
+        var leftId = nodes.length;
+        nodes.push({ id:leftId, value:leftToken, left:-1, right:-1, parent:parentId, side:'left', tokenIndex:tokenIndex - 1 });
+        parent.left = leftId;
+        queue.push(leftId);
+      }
+      if (tokenIndex >= tokens.length) break;
+      var rightToken = tokens[tokenIndex++];
+      if (rightToken !== null) {
+        var rightId = nodes.length;
+        nodes.push({ id:rightId, value:rightToken, left:-1, right:-1, parent:parentId, side:'right', tokenIndex:tokenIndex - 1 });
+        parent.right = rightId;
+        queue.push(rightId);
+      }
+    }
+    return { nodes:nodes, rootId:0, error:null };
+  }
+
+  function cloneNodes(nodes) {
+    return nodes.map(function (node) {
+      return { id:node.id, value:node.value, left:node.left, right:node.right, parent:node.parent, side:node.side, tokenIndex:node.tokenIndex };
+    });
+  }
+
+  function parseInput(input) {
+    var parsed = tokenize(input);
+    if (parsed.error) return parsed;
+    var built = buildTree(parsed.tokens);
+    if (built.error) return { error:built.error };
+    return { tokens:parsed.tokens.slice(), tokenCount:parsed.tokenCount, nodes:cloneNodes(built.nodes), rootId:built.rootId, error:null };
+  }
+
+  function layout(nodes, options) {
+    options = options || {};
+    var xGap = options.xGap || 76, yGap = options.yGap || 84;
+    var padX = options.padX || 70, padY = options.padY || 42;
+    var positions = {}, column = 0, maxDepth = 0;
+    function walk(id, depth) {
+      if (id < 0) return;
+      var node = nodes[id];
+      walk(node.left, depth + 1);
+      positions[id] = { x:padX + column * xGap, y:padY + depth * yGap, depth:depth + 1 };
+      column++;
+      if (depth + 1 > maxDepth) maxDepth = depth + 1;
+      walk(node.right, depth + 1);
+    }
+    if (nodes.length) walk(0, 0);
+    return {
+      positions:positions,
+      width:Math.max(280, padX * 2 + Math.max(0, column - 1) * xGap),
+      height:Math.max(290, padY * 2 + Math.max(0, maxDepth - 1) * yGap + 32),
+      heightLevels:maxDepth
+    };
+  }
+
+  function buildSteps(nodes) {
+    var steps = [], visited = [], completed = [], stack = [], path = [], maxDepth = 0;
+    function cloneStack() {
+      return stack.map(function (frame) {
+        return { nodeId:frame.nodeId, value:frame.value, depth:frame.depth, state:frame.state, via:frame.via, parentId:frame.parentId };
+      });
+    }
+    function snap(phase, currentNode, sourceNode, edgeSide, action, codeLine, message) {
+      steps.push({
+        phase:phase, currentNode:currentNode, sourceNode:sourceNode, edgeSide:edgeSide || null,
+        action:action, codeLine:codeLine, message:message, maxDepth:maxDepth,
+        stack:cloneStack(), path:path.slice(), visited:visited.slice(), completed:completed.slice()
+      });
+    }
+    function nodeLabel(id) { return id < 0 ? 'null' : String(nodes[id].value); }
+    function dfs(id, depth, via, parentId) {
+      if (id < 0) {
+        stack.push({ nodeId:null, value:null, depth:depth, state:'call', via:via, parentId:parentId });
+        snap('call-null', null, parentId, via,
+          '调用 dfs(null, ' + depth + ')', 'dfs(None, ' + depth + ')',
+          '即使子指针为空也可直接调用；创建 <b>null</b> 帧，传入的 <code>depth = ' + depth + '</code>。');
+        stack[stack.length - 1].state = 'base';
+        snap('null-base', null, parentId, via,
+          '命中 null 基例', 'if node is None: return',
+          '<code>node is None</code>，直接返回；<b>maxDepth 仍为 ' + maxDepth + '</b>。');
+        stack[stack.length - 1].state = 'return';
+        snap('null-return', null, parentId, via,
+          'null 调用返回', 'return',
+          '<b>null</b> 调用结束并弹栈，回到上一层继续 DFS。');
+        stack.pop();
+        return;
+      }
+
+      var node = nodes[id];
+      stack.push({ nodeId:id, value:node.value, depth:depth, state:'call', via:via, parentId:parentId });
+      path.push(id);
+      snap('call', id, parentId, via,
+        '进入 dfs(' + node.value + ', ' + depth + ')', 'def dfs(node, depth):',
+        '访问节点 <b>' + node.value + '</b>。参数 <code>depth = ' + depth + '</code> 表示它之前的路径节点数。');
+
+      stack[stack.length - 1].state = 'update';
+      visited.push(id);
+      var oldMax = maxDepth, nodeDepth = depth + 1;
+      maxDepth = Math.max(maxDepth, nodeDepth);
+      snap('update-max', id, id, null,
+        '比较 maxDepth 与 ' + nodeDepth, 'maxDepth = max(maxDepth, depth + 1)',
+        '节点 <b>' + node.value + '</b> 的深度是 <code>' + depth + ' + 1 = ' + nodeDepth +
+          '</code>；<code>max(' + oldMax + ', ' + nodeDepth + ') = <span class="op">' + maxDepth + '</span></code>' +
+          (maxDepth > oldMax ? '，刷新全局最大深度。' : '，全局最大深度不变。'));
+
+      stack[stack.length - 1].state = 'left';
+      snap('descend-left', id, id, 'left',
+        '下探左子树：' + nodeLabel(node.left), 'dfs(node.left, depth + 1)',
+        '从 <b>' + node.value + '</b> 向左调用 <code>dfs(' + nodeLabel(node.left) + ', ' + nodeDepth + ')</code>。');
+      dfs(node.left, nodeDepth, 'left', id);
+
+      stack[stack.length - 1].state = 'right';
+      snap('descend-right', id, id, 'right',
+        '下探右子树：' + nodeLabel(node.right), 'dfs(node.right, depth + 1)',
+        '左子树已返回；从 <b>' + node.value + '</b> 向右调用 <code>dfs(' + nodeLabel(node.right) + ', ' + nodeDepth + ')</code>。');
+      dfs(node.right, nodeDepth, 'right', id);
+
+      stack[stack.length - 1].state = 'return';
+      completed.push(id);
+      snap('return', id, parentId, via,
+        '节点 ' + node.value + ' 的调用返回', 'return  # 左右子树均已处理',
+        '节点 <b>' + node.value + '</b> 的左右子树都已处理，当前帧返回；全局 <code>maxDepth = <span class="op">' + maxDepth + '</span></code>。');
+      path.pop();
+      stack.pop();
+    }
+
+    dfs(nodes.length ? 0 : -1, 0, 'root', -1);
+    snap('done', null, null, null,
+      'DFS 完成，返回 ' + maxDepth, 'return maxDepth',
+      '所有调用都已返回，二叉树最大深度为 <span class="op">' + maxDepth + '</span>。');
+    return steps;
+  }
+
+  function validateSnapshots(nodes, steps) {
+    var errors = [], maxSeen = 0;
+    for (var i = 0; i < steps.length; i++) {
+      var step = steps[i];
+      if (!Array.isArray(step.stack) || !Array.isArray(step.path) || !Array.isArray(step.visited) || !Array.isArray(step.completed)) {
+        errors.push('第 ' + (i + 1) + ' 帧缺少数组快照');
+        continue;
+      }
+      if (step.maxDepth < maxSeen) errors.push('第 ' + (i + 1) + ' 帧 maxDepth 发生回退');
+      maxSeen = Math.max(maxSeen, step.maxDepth);
+      if (new Set(step.visited).size !== step.visited.length) errors.push('第 ' + (i + 1) + ' 帧重复访问节点');
+      if (new Set(step.completed).size !== step.completed.length) errors.push('第 ' + (i + 1) + ' 帧重复完成节点');
+      for (var j = 0; j < step.completed.length; j++) {
+        if (step.visited.indexOf(step.completed[j]) < 0) errors.push('第 ' + (i + 1) + ' 帧存在未访问却已完成节点');
+      }
+      var realStack = step.stack.filter(function (frame) { return frame.nodeId !== null; }).map(function (frame) { return frame.nodeId; });
+      if (realStack.length !== step.path.length || realStack.some(function (id, index) { return id !== step.path[index]; })) {
+        errors.push('第 ' + (i + 1) + ' 帧 path 与实际调用栈不一致');
+      }
+    }
+    for (var a = 0; a < steps.length; a++) {
+      for (var b = a + 1; b < steps.length; b++) {
+        if (steps[a].stack === steps[b].stack || steps[a].path === steps[b].path ||
+            steps[a].visited === steps[b].visited || steps[a].completed === steps[b].completed) {
+          errors.push('第 ' + (a + 1) + ' 与第 ' + (b + 1) + ' 帧共享可变数组引用');
+        }
+        if (steps[a].stack.length && steps[b].stack.length && steps[a].stack[0] === steps[b].stack[0]) {
+          errors.push('第 ' + (a + 1) + ' 与第 ' + (b + 1) + ' 帧共享调用帧对象');
+        }
+      }
+    }
+    var last = steps[steps.length - 1];
+    if (!last || last.phase !== 'done') errors.push('最后一帧必须是 done');
+    else {
+      if (last.stack.length || last.path.length) errors.push('结束时调用栈和路径必须为空');
+      if (last.visited.length !== nodes.length || last.completed.length !== nodes.length) errors.push('结束时并非所有节点都已访问并完成');
+    }
+    return { ok:errors.length === 0, errors:errors };
+  }
+
+  function run(input) {
+    var parsed = parseInput(input);
+    if (parsed.error) return { error:parsed.error };
+    var steps = buildSteps(parsed.nodes), validation = validateSnapshots(parsed.nodes, steps);
+    return {
+      error:null, tokens:parsed.tokens.slice(), tokenCount:parsed.tokenCount,
+      nodes:cloneNodes(parsed.nodes), steps:steps,
+      answer:steps[steps.length - 1].maxDepth, validation:validation
+    };
+  }
+
+  root.BinaryTreeMaxDepth104 = {
+    tokenize:tokenize, buildTree:buildTree, parseInput:parseInput,
+    layout:layout, buildSteps:buildSteps, validateSnapshots:validateSnapshots, run:run,
+    limits:{ minValue:MIN_VALUE, maxValue:MAX_VALUE, maxTokens:MAX_TOKENS }
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.BinaryTreeMaxDepth104;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('treeInput'), svg = $('treeSvg'), treeBox = $('treeBox');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nodes = [], steps = [], stepIndex = 0, timer = null, positions = {};
+  var edgeElements = {}, nodeElements = {}, rulerElements = [];
+  var SVG_NS = 'http://www.w3.org/2000/svg', RADIUS = 20;
+
+  function svgElement(name, attrs) {
+    var element = document.createElementNS(SVG_NS, name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    return element;
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function phaseKey(phase) {
+    if (phase === 'call' || phase === 'call-null') return 'call';
+    if (phase === 'update-max') return 'update';
+    if (phase === 'descend-left') return 'left';
+    if (phase === 'descend-right') return 'right';
+    if (phase === 'null-base') return 'null';
+    return 'return';
+  }
+  function stateText(state) {
+    return { call:'刚进入', update:'更新最大值', left:'等待左子树', right:'等待右子树', base:'命中基例', return:'准备返回' }[state] || state;
+  }
+  function buildTreeGraphic() {
+    svg.innerHTML = ''; edgeElements = {}; nodeElements = {}; rulerElements = [];
+    if (!nodes.length) {
+      svg.style.display = 'none'; $('emptyTree').style.display = 'flex'; positions = {};
+      return { heightLevels:0 };
+    }
+    svg.style.display = 'block'; $('emptyTree').style.display = 'none';
+    var size = App.layout(nodes, { xGap:76, yGap:84, padX:70, padY:42 });
+    positions = size.positions;
+    svg.setAttribute('width', size.width); svg.setAttribute('height', size.height);
+    svg.setAttribute('viewBox', '0 0 ' + size.width + ' ' + size.height);
+    for (var depth = 1; depth <= size.heightLevels; depth++) {
+      var y = 42 + (depth - 1) * 84;
+      var line = svgElement('line', { class:'ruler', x1:36, y1:y, x2:size.width - 20, y2:y });
+      var label = svgElement('text', { class:'ruler-label', x:7, y:y + 4 });
+      label.textContent = '深度 ' + depth;
+      svg.appendChild(line); svg.appendChild(label);
+      rulerElements.push({ line:line, label:label });
+    }
+    nodes.forEach(function (node) {
+      if (node.parent < 0) return;
+      var from = positions[node.parent], to = positions[node.id];
+      var line = svgElement('line', { class:'edge', x1:from.x, y1:from.y, x2:to.x, y2:to.y });
+      svg.appendChild(line); edgeElements[node.id] = line;
+      var label = svgElement('text', {
+        class:'edge-label', x:(from.x + to.x) / 2 + (node.side === 'left' ? -8 : 8),
+        y:(from.y + to.y) / 2 - 3, 'text-anchor':'middle'
+      });
+      label.textContent = node.side === 'left' ? 'L' : 'R'; svg.appendChild(label);
+    });
+    nodes.forEach(function (node) {
+      var point = positions[node.id], group = svgElement('g', { class:'node' });
+      group.appendChild(svgElement('circle', { cx:point.x, cy:point.y, r:RADIUS }));
+      var value = svgElement('text', { x:point.x, y:point.y + 5, 'text-anchor':'middle' });
+      value.textContent = node.value; group.appendChild(value);
+      var depthText = svgElement('text', { class:'node-depth', x:point.x, y:point.y + RADIUS + 13, 'text-anchor':'middle' });
+      depthText.textContent = 'depth ' + point.depth; group.appendChild(depthText);
+      svg.appendChild(group); nodeElements[node.id] = group;
+    });
+    return size;
+  }
+  function renderTree(step) {
+    var visited = {}, completed = {}, path = {};
+    step.visited.forEach(function (id) { visited[id] = true; });
+    step.completed.forEach(function (id) { completed[id] = true; });
+    step.path.forEach(function (id) { path[id] = true; });
+    nodes.forEach(function (node) {
+      var className = 'node';
+      if (visited[node.id]) className += ' visited';
+      if (path[node.id]) className += ' path';
+      if (completed[node.id]) className += ' done';
+      if (step.currentNode === node.id) className += ' current';
+      nodeElements[node.id].setAttribute('class', className);
+      var edge = edgeElements[node.id];
+      if (edge) {
+        var edgeClass = 'edge';
+        if (path[node.id]) edgeClass += ' path';
+        if (completed[node.id]) edgeClass += ' done';
+        if ((step.phase === 'descend-left' || step.phase === 'descend-right') &&
+            step.sourceNode === node.parent && step.edgeSide === node.side) edgeClass += ' active';
+        edge.setAttribute('class', edgeClass);
+      }
+    });
+    rulerElements.forEach(function (entry, index) {
+      var active = step.currentNode !== null && positions[step.currentNode] && positions[step.currentNode].depth === index + 1;
+      entry.line.setAttribute('class', 'ruler' + (active ? ' active' : ''));
+      entry.label.setAttribute('class', 'ruler-label' + (active ? ' active' : ''));
+    });
+    var nullFrame = step.stack.length ? step.stack[step.stack.length - 1] : null;
+    var showNull = nullFrame && nullFrame.nodeId === null;
+    $('nullCall').className = 'null-call' + (showNull ? ' show' : '');
+    if (showNull) {
+      var parentText = nullFrame.parentId >= 0 ? nodes[nullFrame.parentId].value + '.' + nullFrame.via : 'root';
+      $('nullCall').textContent = parentText + ' → null · depth=' + nullFrame.depth + ' · ' + stateText(nullFrame.state);
+    }
+  }
+  function renderStack(step) {
+    var container = $('stack'); container.innerHTML = '';
+    if (!step.stack.length) { container.innerHTML = '<div class="stack-empty">调用栈为空</div>'; return; }
+    step.stack.forEach(function (frame, index) {
+      var element = document.createElement('div'), isTop = index === step.stack.length - 1;
+      element.className = 'frame' + (isTop ? ' top' : '') + (frame.nodeId === null ? ' null' : '');
+      var depth = document.createElement('span'); depth.className = 'depth'; depth.textContent = 'd=' + frame.depth;
+      var detail = document.createElement('span');
+      detail.textContent = 'dfs(' + (frame.nodeId === null ? 'null' : frame.value) + ') · ' + stateText(frame.state);
+      element.appendChild(depth); element.appendChild(detail); container.appendChild(element);
+    });
+  }
+  function renderPath(step) {
+    var container = $('path'); container.innerHTML = '';
+    if (!step.path.length) { container.innerHTML = '<span class="none">[] · 当前没有实际节点调用</span>'; return; }
+    step.path.forEach(function (id, index) {
+      if (index) {
+        var arrow = document.createElement('span'); arrow.className = 'arrow'; arrow.textContent = '→'; container.appendChild(arrow);
+      }
+      var item = document.createElement('span'); item.className = 'item';
+      item.textContent = nodes[id].value + '(深度' + (index + 1) + ')'; container.appendChild(item);
+    });
+  }
+  function render() {
+    var step = steps[stepIndex];
+    renderTree(step); renderStack(step); renderPath(step);
+    Array.prototype.forEach.call($('phaseStrip').children, function (element) {
+      element.className = 'phase' + (element.dataset.phase === phaseKey(step.phase) ? ' active' : '');
+    });
+    $('action').innerHTML = '<span class="kind">' + step.phase.toUpperCase() + '</span><b>' + step.action + '</b>';
+    $('currentLine').textContent = step.codeLine;
+    $('status').innerHTML = step.message;
+    $('progress').textContent = '帧 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+    var maxStat = $('maxStat');
+    if (maxStat) maxStat.textContent = step.maxDepth;
+  }
+  function renderStats(result, size) {
+    $('stats').innerHTML =
+      '<div class="stat">token 数<b>' + result.tokenCount + ' / 31</b></div>' +
+      '<div class="stat">实际节点<b>' + result.nodes.length + '</b></div>' +
+      '<div class="stat">树高 h<b>' + size.heightLevels + '</b></div>' +
+      '<div class="stat max">当前 maxDepth<b id="maxStat">0</b></div>' +
+      '<div class="stat">最终答案<b>' + result.answer + '</b></div>' +
+      '<div class="stat">时间 / 栈<b>O(n) / O(h)</b></div>' +
+      '<div class="stat">快照校验<b>' + (result.validation.ok ? '通过' : '失败') + '</b></div>';
+  }
+  function load() {
+    stopPlay();
+    var result = App.run(input.value);
+    if (result.error) {
+      $('err').textContent = '输入有误：' + result.error + '。';
+      $('err').classList.add('show'); return;
+    }
+    $('err').classList.remove('show');
+    nodes = result.nodes; steps = result.steps; stepIndex = 0;
+    var size = buildTreeGraphic();
+    renderStats(result, size); render();
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function previous() { if (stepIndex > 0) { stepIndex--; render(); } }
+  prevBtn.onclick = function () { stopPlay(); previous(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = function () {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex === steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex === steps.length - 1) stopPlay(); else next();
+    }, 850);
+  };
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') { event.preventDefault(); load(); }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      input.value = chip.dataset.spec;
+      Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (item) { item.classList.remove('active'); });
+      chip.classList.add('active'); load();
+    };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); previous(); }
+  });
+
+  var codes = {
+    py:`<span class="cmt"># 自顶向下：与动画一致</span>
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -&gt; int:
+        max_depth = 0
+
+        def dfs(node: Optional[TreeNode], depth: int) -&gt; None:
+            nonlocal max_depth
+            if node is None:
+                return
+            max_depth = max(max_depth, depth + 1)
+            dfs(node.left, depth + 1)
+            dfs(node.right, depth + 1)
+
+        dfs(root, 0)
+        return max_depth
+
+<span class="cmt"># 自底向上：同样正确的简洁写法</span>
+class BottomUpSolution:
+    def maxDepth(self, root: Optional[TreeNode]) -&gt; int:
+        if root is None:
+            return 0
+        return 1 + max(self.maxDepth(root.left),
+                       self.maxDepth(root.right))`,
+    java:`<span class="cmt">// 自顶向下：与动画一致</span>
+class Solution {
+    private int maxDepth = 0;
+
+    public int maxDepth(TreeNode root) {
+        dfs(root, 0);
+        return maxDepth;
+    }
+
+    private void dfs(TreeNode node, int depth) {
+        if (node == null) {
+            return;
+        }
+        maxDepth = Math.max(maxDepth, depth + 1);
+        dfs(node.left, depth + 1);
+        dfs(node.right, depth + 1);
+    }
+}
+
+<span class="cmt">// 自底向上等价核心：
+// if (root == null) return 0;
+// return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));</span>`
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); $('codeBlock').innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  $('codeBlock').innerHTML = codes.py;
+  treeBox.setAttribute('tabindex', '0');
+  load();
+})();
+</script>
+</body>
+</html>
