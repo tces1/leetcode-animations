@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 102 二叉树的层序遍历逐帧动画：DFS 按 layer 归档与 BFS deque 节点层数二元组。">
+<meta name="tags" content="二叉树 · 层序遍历 · 广度优先搜索 · 深度优先搜索 · deque · O(n)">
+<title>102. 二叉树的层序遍历 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1200px; margin:0 auto; }
+  .navbar,.controls,.examples,.legend,.stats,.method-switch { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .navbar { margin-bottom:16px; gap:12px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:16px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .method-switch { margin-bottom:16px; }
+  .method-btn { flex:1; min-width:260px; padding:12px 16px; background:#f8fafc; color:#475569; border:1px solid #dbe2ea; }
+  .method-btn:hover { background:#eef2ff; }
+  .method-btn.active { background:#4f46e5; border-color:#4338ca; color:#fff; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  .method-btn small { display:block; margin-top:2px; font-weight:500; opacity:.82; }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:800; color:#6366f1; letter-spacing:.04em; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] {
+    width:100%; min-width:0; padding:9px 11px; font:13px "SF Mono",Menlo,monospace;
+    border:1px solid #d1d5db; border-radius:8px; outline:none; background:#fff;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; gap:8px; }
+  .examples .lab,.hint { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover,.chip.active { background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { margin-top:8px; line-height:1.65; }
+  .stats { gap:8px 10px; margin-bottom:14px; }
+  .controls-run { margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 13px "SF Mono",Menlo,monospace; color:#1d2129; max-width:300px; overflow-wrap:anywhere; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .phase-strip { display:grid; gap:7px; margin-bottom:14px; }
+  .phase { border:1px solid #e5e7eb; border-radius:9px; padding:8px 5px; font-size:10px; color:#64748b; background:#f8fafc; transition:.18s; text-align:center; }
+  .phase b { display:block; color:#334155; font-size:11px; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.11); color:#4338ca; }
+  .visual-grid { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(300px,.8fr); gap:14px; }
+  .tree-box,.side-box { border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); min-height:390px; }
+  .tree-box { padding:12px; overflow:auto; position:relative; }
+  .tree-box svg { display:block; margin:0 auto; overflow:visible; }
+  .empty-tree { min-height:340px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:#94a3b8; font-size:13px; }
+  .empty-tree b { font:800 20px "SF Mono",Menlo,monospace; color:#64748b; }
+  .null-call { position:absolute; top:12px; right:12px; max-width:245px; padding:7px 10px; border:1px dashed #f59e0b; border-radius:8px; background:#fffbeb; color:#92400e; font:700 11px "SF Mono",Menlo,monospace; display:none; }
+  .null-call.show { display:block; }
+  .level-line { stroke:#e2e8f0; stroke-width:1; stroke-dasharray:4 5; }
+  .level-label { fill:#94a3b8; font:700 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .level-line.active { stroke:#818cf8; stroke-width:2; }
+  .level-label.active { fill:#4f46e5; }
+  .edge { stroke:#cbd5e1; stroke-width:2.5; transition:.18s; }
+  .edge.active { stroke:#f59e0b; stroke-width:4; }
+  .edge.done { stroke:#86efac; }
+  .edge-label { fill:#94a3b8; font:800 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .node circle { fill:#fff; stroke:#cbd5e1; stroke-width:2.5; transition:.18s; }
+  .node text { fill:#334155; font:800 14px "SF Mono",Menlo,monospace; }
+  .node.queued circle { fill:#dbeafe; stroke:#3b82f6; }
+  .node.visited circle { fill:#fef3c7; stroke:#f59e0b; }
+  .node.done circle { fill:#dcfce7; stroke:#22c55e; }
+  .node.current circle { fill:#e0e7ff; stroke:#6366f1; stroke-width:4; filter:drop-shadow(0 2px 4px rgba(79,70,229,.22)); }
+  .node.current text { fill:#3730a3; }
+  .node-id { fill:#94a3b8!important; font-size:9px!important; font-weight:600!important; }
+  .side-box { padding:14px; display:flex; flex-direction:column; gap:13px; }
+  .action { border:1px solid #ddd6fe; background:#f5f3ff; border-radius:10px; padding:11px 12px; color:#5b21b6; min-height:68px; }
+  .action .kind { font-size:11px; font-weight:800; letter-spacing:.05em; }
+  .action b { display:block; color:#3730a3; font-size:13px; margin-top:3px; }
+  .aux { display:flex; flex-direction:column; gap:6px; min-height:78px; }
+  .frame,.queue-item { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; padding:7px 9px; border:1px solid #e5e7eb; border-radius:8px; background:#f8fafc; font:11px "SF Mono",Menlo,monospace; color:#475569; }
+  .stack { flex-direction:column-reverse; }
+  .frame.top,.queue-item.front { border-color:#818cf8; background:#eef2ff; color:#3730a3; }
+  .frame.null { border-style:dashed; border-color:#f59e0b; background:#fffbeb; color:#92400e; }
+  .badge { border-radius:999px; min-width:34px; height:20px; display:flex; align-items:center; justify-content:center; background:#e2e8f0; font-weight:800; }
+  .frame.top .badge,.queue-item.front .badge { background:#c7d2fe; }
+  .aux-empty { color:#94a3b8; font-size:12px; text-align:center; padding:22px 0; }
+  .queue-guide { display:flex; justify-content:space-between; color:#94a3b8; font-size:10px; margin-bottom:5px; }
+  .result { display:flex; flex-direction:column; gap:6px; min-height:42px; }
+  .result-row { display:flex; gap:5px; align-items:center; border:1px dashed #cbd5e1; border-radius:8px; padding:6px; background:#f8fafc; }
+  .result-row .layer { color:#64748b; width:52px; font:700 11px "SF Mono",Menlo,monospace; }
+  .result-item { padding:3px 7px; border-radius:6px; background:#fef3c7; border:1px solid #f59e0b; color:#92400e; font:800 11px "SF Mono",Menlo,monospace; }
+  .sequence { border:1px dashed #cbd5e1; border-radius:9px; padding:8px; background:#f8fafc; color:#475569; font:11px "SF Mono",Menlo,monospace; overflow-wrap:anywhere; }
+  .sequence b { color:#3730a3; }
+  .current-line { border-radius:8px; background:#0f172a; color:#fcd34d; padding:9px 11px; min-height:39px; font:12px "SF Mono",Menlo,monospace; }
+  .legend { margin-top:13px; font-size:12px; color:#6b7280; gap:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.1); }
+  .dot-current { background:#e0e7ff; border-color:#6366f1; }
+  .dot-queued { background:#dbeafe; border-color:#3b82f6; }
+  .dot-visited { background:#fef3c7; border-color:#f59e0b; }
+  .dot-done { background:#dcfce7; border-color:#22c55e; }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; } .status code { background:#1f2937; color:#93c5fd; }
+  .complexity { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .complexity > div { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; color:#4b5563; font-size:13px; }
+  .complexity b { display:block; color:#1d2129; margin-bottom:3px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:880px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea,.complexity,.visual-grid,.input-grid { grid-template-columns:1fr; }
+    .phase-strip { grid-template-columns:repeat(3,1fr)!important; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/binary-tree-level-order-traversal/" target="_blank" rel="noopener">LeetCode 102</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>102. 二叉树的层序遍历 · 两种 layer 写法</h1>
+  <div class="sub">同一棵树、同一份分层结果：DFS 实际按前序访问后按 <code>layer</code> 归档；BFS 用 <code>deque((node, layer))</code> 严格按层访问。</div>
+
+  <div class="method-switch" role="tablist" aria-label="选择遍历方法">
+    <button type="button" class="method-btn active" data-mode="dfs" role="tab" aria-selected="true">A. DFS + layer<small>递归前序访问，按层归档</small></button>
+    <button type="button" class="method-btn" data-mode="bfs" role="tab" aria-selected="false">B. BFS + deque((node, layer))<small>队列保存节点引用与层数</small></button>
+  </div>
+
+  <div class="card">
+    <div class="panel-title" id="ideaTitle"></div>
+    <div class="idea" id="idea"></div>
+    <div class="key-note" id="keyNote"></div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">二叉树（LeetCode 层序格式，0～31 个 token）</span><input id="treeInput" type="text" value="3 9 20 null null 15 7" spellcheck="false" autocomplete="off" placeholder="例如：3 9 20 null null 15 7"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-spec="3 9 20 null null 15 7">经典</span>
+      <span class="chip" data-spec="1 2 3 4 5 6 7">完全树</span>
+      <span class="chip" data-spec="4 3 null 2 null 1">左斜树</span>
+      <span class="chip" data-spec="1 null 2 null 3 null 4">右斜树</span>
+      <span class="chip" data-spec="-7">单节点</span>
+      <span class="chip" data-spec="">空树</span>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">
+      接受空白分隔（<code>1 null 2</code>）或逗号分隔（<code>[1,null,2]</code>），可带一对方括号；<code>null</code> 与 <code>#</code> 表示空位置，且必须小写。
+      空输入、<code>[]</code>、单独的 <code>null</code> 或 <code>#</code> 表示空树。支持负数、重复值和不完整树；节点值须为 −1,000,000～1,000,000 的整数。严格拒绝非法 token、空 token、混合分隔、未配对括号、根为空后仍有 token，以及没有可用父节点的孤儿 token。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls controls-run">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip"></div>
+    <div class="visual-grid">
+      <div class="tree-box" id="treeBox">
+        <svg id="treeSvg" role="img" aria-label="按层标记的二叉树可视化"></svg>
+        <div class="empty-tree" id="emptyTree"><b>root = null</b><span>空树的层序结果是 []</span></div>
+        <div class="null-call" id="nullCall"></div>
+      </div>
+      <div class="side-box">
+        <div>
+          <div class="panel-title">当前动作</div>
+          <div class="action" id="action"></div>
+        </div>
+        <div>
+          <div class="panel-title" id="auxTitle"></div>
+          <div id="queueGuide"></div>
+          <div class="aux" id="aux"></div>
+        </div>
+        <div>
+          <div class="panel-title">分层 result</div>
+          <div class="result" id="resultPanel"></div>
+        </div>
+        <div>
+          <div class="panel-title" id="visitedTitle"></div>
+          <div class="sequence" id="visited"></div>
+        </div>
+        <div class="current-line" id="currentLine"></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot dot-current"></span>当前节点</span>
+      <span><span class="dot dot-queued"></span>仍在 BFS 队列</span>
+      <span><span class="dot dot-visited"></span>已写入结果</span>
+      <span><span class="dot dot-done"></span>DFS 调用已返回</span>
+    </div>
+    <div class="panel-title status-title">状态栏</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">复杂度</div>
+    <div class="complexity" id="complexity"></div>
+  </div>
+
+  <div class="card">
+    <details class="code" open>
+      <summary id="codeSummary">查看 Python / Java 参考代码（与当前动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-level-order-logic>
+(function (root) {
+  'use strict';
+  var MIN_VALUE = -1000000, MAX_VALUE = 1000000, MAX_TOKENS = 31;
+
+  function tokenize(input) {
+    if (typeof input !== 'string') return { error:'输入必须是字符串' };
+    var text = input.trim();
+    if (!text) return { tokens:[], tokenCount:0, error:null };
+    if (text[0] === '[' || text[text.length - 1] === ']') {
+      if (text[0] !== '[' || text[text.length - 1] !== ']') return { error:'方括号必须成对并包住整个输入' };
+      text = text.slice(1, -1).trim();
+    }
+    if (text.indexOf('[') >= 0 || text.indexOf(']') >= 0) return { error:'方括号只能出现在输入最外层' };
+    if (!text) return { tokens:[], tokenCount:0, error:null };
+    var raw;
+    if (text.indexOf(',') >= 0) {
+      raw = text.split(',');
+      for (var i = 0; i < raw.length; i++) {
+        raw[i] = raw[i].trim();
+        if (!raw[i]) return { error:'逗号之间、开头或结尾不能出现空 token' };
+        if (/\s/.test(raw[i])) return { error:'不能混用逗号与空白分隔 token' };
+      }
+    } else {
+      raw = text.split(/\s+/);
+    }
+    if (raw.length > MAX_TOKENS) return { error:'最多允许 ' + MAX_TOKENS + ' 个 token，当前有 ' + raw.length + ' 个' };
+    var tokens = [];
+    for (var j = 0; j < raw.length; j++) {
+      var word = raw[j];
+      if (word === 'null' || word === '#') {
+        tokens.push(null);
+      } else {
+        if (!/^-?\d+$/.test(word)) return { error:'第 ' + (j + 1) + ' 个 token「' + word + '」不是小写 null、# 或整数' };
+        var value = Number(word);
+        if (!Number.isSafeInteger(value) || value < MIN_VALUE || value > MAX_VALUE) {
+          return { error:'第 ' + (j + 1) + ' 个节点值须在 -1,000,000～1,000,000' };
+        }
+        tokens.push(value);
+      }
+    }
+    if (tokens[0] === null && tokens.length > 1) return { error:'根节点为空时不能再提供其它 token' };
+    return { tokens:tokens, tokenCount:raw.length, error:null };
+  }
+
+  function buildTree(tokens) {
+    if (!Array.isArray(tokens)) return { error:'tokens 必须是数组' };
+    if (!tokens.length || tokens[0] === null) return { nodes:[], rootId:-1, error:null };
+    var nodes = [{ id:0, value:tokens[0], left:-1, right:-1, parent:-1, side:'root', tokenIndex:0 }];
+    var queue = [0], queueIndex = 0, tokenIndex = 1;
+    while (tokenIndex < tokens.length) {
+      if (queueIndex >= queue.length) {
+        return { error:'第 ' + (tokenIndex + 1) + ' 个 token 没有可用父节点，属于孤儿 token' };
+      }
+      var parentId = queue[queueIndex++], parent = nodes[parentId];
+      var leftToken = tokens[tokenIndex++];
+      if (leftToken !== null) {
+        var leftId = nodes.length;
+        nodes.push({ id:leftId, value:leftToken, left:-1, right:-1, parent:parentId, side:'left', tokenIndex:tokenIndex - 1 });
+        parent.left = leftId; queue.push(leftId);
+      }
+      if (tokenIndex >= tokens.length) break;
+      var rightToken = tokens[tokenIndex++];
+      if (rightToken !== null) {
+        var rightId = nodes.length;
+        nodes.push({ id:rightId, value:rightToken, left:-1, right:-1, parent:parentId, side:'right', tokenIndex:tokenIndex - 1 });
+        parent.right = rightId; queue.push(rightId);
+      }
+    }
+    return { nodes:nodes, rootId:0, error:null };
+  }
+
+  function cloneNodes(nodes) {
+    return nodes.map(function (node) {
+      return { id:node.id, value:node.value, left:node.left, right:node.right, parent:node.parent, side:node.side, tokenIndex:node.tokenIndex };
+    });
+  }
+  function cloneResult(result) { return result.map(function (level) { return level.slice(); }); }
+  function cloneStack(stack) {
+    return stack.map(function (frame) {
+      return { nodeId:frame.nodeId, value:frame.value, layer:frame.layer, state:frame.state, via:frame.via, parentId:frame.parentId };
+    });
+  }
+  function cloneQueue(queue) {
+    return queue.map(function (item) { return { nodeId:item.nodeId, value:item.value, layer:item.layer }; });
+  }
+
+  function parseInput(input) {
+    var parsed = tokenize(input);
+    if (parsed.error) return parsed;
+    var built = buildTree(parsed.tokens);
+    if (built.error) return { error:built.error };
+    return { tokens:parsed.tokens.slice(), tokenCount:parsed.tokenCount, nodes:cloneNodes(built.nodes), rootId:built.rootId, error:null };
+  }
+
+  function layout(nodes, options) {
+    options = options || {};
+    var xGap = options.xGap || 76, yGap = options.yGap || 84;
+    var padX = options.padX || 64, padY = options.padY || 42;
+    var positions = {}, column = 0, maxLayer = -1;
+    function walk(id, layer) {
+      if (id < 0) return;
+      walk(nodes[id].left, layer + 1);
+      positions[id] = { x:padX + column * xGap, y:padY + layer * yGap, layer:layer };
+      column++;
+      if (layer > maxLayer) maxLayer = layer;
+      walk(nodes[id].right, layer + 1);
+    }
+    if (nodes.length) walk(0, 0);
+    return {
+      positions:positions,
+      width:Math.max(280, padX * 2 + Math.max(0, column - 1) * xGap),
+      height:Math.max(340, padY * 2 + Math.max(0, maxLayer) * yGap + 32),
+      heightLevels:maxLayer + 1
+    };
+  }
+
+  function makeSnapshot(steps, state, phase, currentNode, sourceNode, edgeSide, action, codeLine, message) {
+    steps.push({
+      mode:state.mode, phase:phase, currentNode:currentNode, currentLayer:state.currentLayer,
+      sourceNode:sourceNode, edgeSide:edgeSide || null, action:action, codeLine:codeLine, message:message,
+      stack:cloneStack(state.stack), queue:cloneQueue(state.queue), result:cloneResult(state.result),
+      visited:state.visited.slice(), completed:state.completed.slice()
+    });
+  }
+
+  function buildDFSSteps(nodes) {
+    var steps = [];
+    var state = { mode:'dfs', stack:[], queue:[], result:[], visited:[], completed:[], currentLayer:null };
+    function snap(phase, currentNode, sourceNode, edgeSide, action, codeLine, message) {
+      makeSnapshot(steps, state, phase, currentNode, sourceNode, edgeSide, action, codeLine, message);
+    }
+    function label(id) { return id < 0 ? 'null' : String(nodes[id].value) + '（id ' + id + '）'; }
+    function dfs(id, layer, via, parentId) {
+      state.currentLayer = layer;
+      if (id < 0) {
+        state.stack.push({ nodeId:null, value:null, layer:layer, state:'call', via:via, parentId:parentId });
+        snap('call-null', null, parentId, via, '调用 dfs(null, ' + layer + ')', 'dfs(None, ' + layer + ')',
+          '子指针为 <b>null</b>，仍进入一个短暂递归帧；当前 <code>layer = ' + layer + '</code>。');
+        state.stack[state.stack.length - 1].state = 'null';
+        snap('null', null, parentId, via, '命中 null 基例', 'if node is None: return',
+          '<code>node is None</code>，立即返回，不创建层也不写入 <code>result</code>。');
+        state.stack.pop();
+        return;
+      }
+      var node = nodes[id];
+      state.stack.push({ nodeId:id, value:node.value, layer:layer, state:'call', via:via, parentId:parentId });
+      snap('call', id, parentId, via, '进入 dfs(' + node.value + ', ' + layer + ')', 'def dfs(node, layer):',
+        '前序 DFS 到达节点 <b>' + node.value + '</b>（id ' + id + '），携带 <code>layer = ' + layer + '</code>。');
+      if (layer === state.result.length) {
+        state.stack[state.stack.length - 1].state = 'create-layer';
+        state.result.push([]);
+        snap('create-layer', id, id, null, '首次到达第 ' + layer + ' 层', 'if layer == len(result): result.append([])',
+          '<code>' + layer + ' == len(result)</code>，首次遇到这一层，先追加空列表：<span class="op">' + JSON.stringify(state.result) + '</span>。');
+      }
+      state.stack[state.stack.length - 1].state = 'write';
+      state.result[layer].push(node.value);
+      state.visited.push(id);
+      snap('write', id, id, null, '把 ' + node.value + ' 写入 result[' + layer + ']', 'result[layer].append(node.val)',
+        '实际访问顺序追加节点 <b>' + node.value + '</b>，同时按 <code>layer = ' + layer + '</code> 写入对应子列表。');
+      state.stack[state.stack.length - 1].state = 'left';
+      snap('descend-left', id, id, 'left', '下探左孩子：' + label(node.left), 'dfs(node.left, layer + 1)',
+        '继续前序 DFS：从 <b>' + node.value + '</b> 下探左孩子，传入 <code>layer + 1 = ' + (layer + 1) + '</code>。');
+      dfs(node.left, layer + 1, 'left', id);
+      state.currentLayer = layer;
+      state.stack[state.stack.length - 1].state = 'right';
+      snap('descend-right', id, id, 'right', '下探右孩子：' + label(node.right), 'dfs(node.right, layer + 1)',
+        '左子树已经返回；现在下探右孩子，并继续携带层数 <code>' + (layer + 1) + '</code>。');
+      dfs(node.right, layer + 1, 'right', id);
+      state.currentLayer = layer;
+      state.stack[state.stack.length - 1].state = 'return';
+      state.completed.push(id);
+      snap('return', id, parentId, via, '节点 ' + node.value + ' 的调用返回', 'return  # 左右子树均已处理',
+        '节点 <b>' + node.value + '</b> 的左右子树都已处理，弹出调用帧；分层结果不会随回溯丢失。');
+      state.stack.pop();
+    }
+    dfs(nodes.length ? 0 : -1, 0, 'root', -1);
+    state.currentLayer = null;
+    snap('done', null, null, null, 'DFS 完成', 'return result',
+      'DFS 实际访问顺序为前序，但按 layer 重建出层序结果 <span class="op">' + JSON.stringify(state.result) + '</span>。');
+    return steps;
+  }
+
+  function buildBFSSteps(nodes) {
+    var steps = [];
+    var state = { mode:'bfs', stack:[], queue:[], result:[], visited:[], completed:[], currentLayer:null };
+    function snap(phase, currentNode, sourceNode, edgeSide, action, codeLine, message) {
+      makeSnapshot(steps, state, phase, currentNode, sourceNode, edgeSide, action, codeLine, message);
+    }
+    if (nodes.length) state.queue.push({ nodeId:0, value:nodes[0].value, layer:0 });
+    snap('initialize', nodes.length ? 0 : null, null, null,
+      nodes.length ? '初始化 deque([(root, 0)])' : '空树无需入队',
+      nodes.length ? 'queue = deque([(root, 0)])' : 'if root is None: return []',
+      nodes.length ? '把根节点引用及层数作为二元组入队：<code>(id 0 / ' + nodes[0].value + ', layer 0)</code>。' : '根节点为 <b>null</b>，队列保持为空，直接得到空结果。');
+    while (state.queue.length) {
+      var item = state.queue.shift(), node = nodes[item.nodeId];
+      state.currentLayer = item.layer;
+      state.visited.push(item.nodeId);
+      snap('popleft', item.nodeId, null, null, 'popleft → (' + node.value + ', ' + item.layer + ')',
+        'node, layer = queue.popleft()',
+        '从队首取出节点 <b>' + node.value + '</b>（id ' + item.nodeId + '）与 <code>layer = ' + item.layer + '</code>；队中其余项目仍保存尚待访问的节点引用。');
+      if (item.layer === state.result.length) {
+        state.result.push([]);
+        snap('create-layer', item.nodeId, item.nodeId, null, '首次取出第 ' + item.layer + ' 层节点',
+          'if layer == len(result): result.append([])',
+          '<code>' + item.layer + ' == len(result)</code>，为新层追加空列表。');
+      }
+      state.result[item.layer].push(node.value);
+      snap('write', item.nodeId, item.nodeId, null, '把 ' + node.value + ' 写入 result[' + item.layer + ']',
+        'result[layer].append(node.val)',
+        '严格按队首顺序访问并写入：<code>result[' + item.layer + '].append(' + node.value + ')</code>。');
+      if (node.left >= 0) {
+        var left = nodes[node.left];
+        state.queue.push({ nodeId:left.id, value:left.value, layer:item.layer + 1 });
+        snap('enqueue-left', item.nodeId, item.nodeId, 'left', 'enqueue 左孩子 (' + left.value + ', ' + (item.layer + 1) + ')',
+          'queue.append((node.left, layer + 1))',
+          '将左孩子引用 <b>id ' + left.id + ' / ' + left.value + '</b> 与层数 <code>' + (item.layer + 1) + '</code>追加到队尾。');
+      }
+      if (node.right >= 0) {
+        var right = nodes[node.right];
+        state.queue.push({ nodeId:right.id, value:right.value, layer:item.layer + 1 });
+        snap('enqueue-right', item.nodeId, item.nodeId, 'right', 'enqueue 右孩子 (' + right.value + ', ' + (item.layer + 1) + ')',
+          'queue.append((node.right, layer + 1))',
+          '将右孩子引用 <b>id ' + right.id + ' / ' + right.value + '</b> 与层数 <code>' + (item.layer + 1) + '</code>追加到队尾；同层剩余节点仍排在更前面。');
+      }
+      state.completed.push(item.nodeId);
+    }
+    state.currentLayer = null;
+    snap('done', null, null, null, 'BFS 完成', 'return result',
+      '队列为空；BFS 严格按层访问，得到 <span class="op">' + JSON.stringify(state.result) + '</span>。');
+    return steps;
+  }
+
+  function resultEqual(a, b) {
+    return a.length === b.length && a.every(function (level, i) {
+      return level.length === b[i].length && level.every(function (value, j) { return value === b[i][j]; });
+    });
+  }
+
+  function expectedLevelOrder(nodes) {
+    if (!nodes.length) return [];
+    var output = [], queue = [{ nodeId:0, layer:0 }], index = 0;
+    while (index < queue.length) {
+      var item = queue[index++], node = nodes[item.nodeId];
+      if (item.layer === output.length) output.push([]);
+      output[item.layer].push(node.value);
+      if (node.left >= 0) queue.push({ nodeId:node.left, layer:item.layer + 1 });
+      if (node.right >= 0) queue.push({ nodeId:node.right, layer:item.layer + 1 });
+    }
+    return output;
+  }
+
+  function validateSnapshots(nodes, steps, mode) {
+    var errors = [], required = mode === 'dfs' ?
+      ['call','call-null','null','write','descend-left','descend-right','return','done'] :
+      ['initialize','popleft','write','done'];
+    var seenPhases = {};
+    for (var i = 0; i < steps.length; i++) {
+      var step = steps[i]; seenPhases[step.phase] = true;
+      if (!Array.isArray(step.stack) || !Array.isArray(step.queue) || !Array.isArray(step.result) || !Array.isArray(step.visited)) {
+        errors.push('第 ' + (i + 1) + ' 帧缺少 stack/queue/result/visited 快照'); continue;
+      }
+      if (new Set(step.visited).size !== step.visited.length) errors.push('第 ' + (i + 1) + ' 帧重复访问节点');
+      if (step.result.some(function (level) { return !Array.isArray(level); })) errors.push('第 ' + (i + 1) + ' 帧 result 不是二维数组');
+      if (mode === 'bfs') {
+        for (var q = 0; q < step.queue.length; q++) {
+          var entry = step.queue[q], actual = nodes[entry.nodeId];
+          if (!actual || actual.value !== entry.value || !Number.isInteger(entry.layer) || entry.layer < 0) {
+            errors.push('第 ' + (i + 1) + ' 帧队列项目无效');
+          }
+          if (q && step.queue[q - 1].layer > entry.layer) errors.push('第 ' + (i + 1) + ' 帧队列层数顺序错误');
+        }
+      }
+      if (i > 0) {
+        var previous = steps[i - 1];
+        if (previous.stack === step.stack || previous.queue === step.queue || previous.result === step.result || previous.visited === step.visited) {
+          errors.push('相邻帧共享顶层可变快照引用');
+        }
+        if (previous.result.length && step.result.length && previous.result[0] === step.result[0]) errors.push('相邻帧共享 result 子数组');
+        if (previous.stack.length && step.stack.length && previous.stack[0] === step.stack[0]) errors.push('相邻帧共享 stack 帧对象');
+        if (previous.queue.length && step.queue.length && previous.queue[0] === step.queue[0]) errors.push('相邻帧共享 queue 项对象');
+      }
+    }
+    required.forEach(function (phase) {
+      if (!seenPhases[phase] && !(nodes.length === 0 && phase !== 'done' && phase !== 'initialize' && phase !== 'call-null' && phase !== 'null')) {
+        errors.push('缺少阶段 ' + phase);
+      }
+    });
+    if (nodes.length && !seenPhases['create-layer']) errors.push('非空树缺少 create-layer 阶段');
+    var last = steps[steps.length - 1], expected = expectedLevelOrder(nodes);
+    if (!last || last.phase !== 'done') errors.push('最后一帧必须是 done');
+    else {
+      if (last.stack.length || last.queue.length) errors.push('结束时辅助结构必须为空');
+      if (last.visited.length !== nodes.length) errors.push('结束时并非所有节点都已访问');
+      if (!resultEqual(last.result, expected)) errors.push('最终 result 不符合严格层序结果');
+    }
+    return { ok:errors.length === 0, errors:errors };
+  }
+
+  function run(input, mode) {
+    mode = mode || 'dfs';
+    if (mode !== 'dfs' && mode !== 'bfs') return { error:'mode 必须是 dfs 或 bfs' };
+    var parsed = parseInput(input);
+    if (parsed.error) return { error:parsed.error };
+    var steps = mode === 'dfs' ? buildDFSSteps(parsed.nodes) : buildBFSSteps(parsed.nodes);
+    var validation = validateSnapshots(parsed.nodes, steps, mode);
+    return {
+      error:null, mode:mode, tokens:parsed.tokens.slice(), tokenCount:parsed.tokenCount, rootId:parsed.rootId,
+      nodes:cloneNodes(parsed.nodes), steps:steps, result:cloneResult(steps[steps.length - 1].result), validation:validation
+    };
+  }
+
+  function runBoth(input) {
+    var dfs = run(input, 'dfs');
+    if (dfs.error) return { error:dfs.error };
+    var bfs = run(input, 'bfs');
+    return { error:bfs.error, dfs:dfs, bfs:bfs, sameResult:!bfs.error && resultEqual(dfs.result, bfs.result) };
+  }
+
+  root.BinaryTreeLevelOrder102 = {
+    tokenize:tokenize, buildTree:buildTree, parseInput:parseInput, cloneNodes:cloneNodes,
+    cloneResult:cloneResult, layout:layout, buildDFSSteps:buildDFSSteps, buildBFSSteps:buildBFSSteps,
+    expectedLevelOrder:expectedLevelOrder, resultEqual:resultEqual, validateSnapshots:validateSnapshots,
+    run:run, runBoth:runBoth, limits:{ minValue:MIN_VALUE, maxValue:MAX_VALUE, maxTokens:MAX_TOKENS }
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.BinaryTreeLevelOrder102;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('treeInput'), svg = $('treeSvg');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var mode = 'dfs', both = null, result = null, steps = [], stepIndex = 0, timer = null;
+  var positions = {}, nodeElements = {}, edgeElements = {}, levelElements = [];
+  var SVG_NS = 'http://www.w3.org/2000/svg', RADIUS = 20;
+
+  var methodContent = {
+    dfs:{
+      title:'A. DFS + layer：前序访问，按层归档',
+      ideas:[
+        ['① CALL','调用 <code>dfs(node, layer)</code>；根从 <code>layer = 0</code> 开始，null 由基例返回。'],
+        ['② CREATE / WRITE','首次遇到 <code>layer == len(result)</code> 时 <code>append([])</code>，再把值写入 <code>result[layer]</code>。'],
+        ['③ LEFT / RIGHT','按前序顺序递归左孩子、右孩子，二者都完成后当前调用返回。']
+      ],
+      note:'<b>实际访问顺序仍是 DFS 前序，不是按层访问。</b>例如经典树依次访问 3 → 9 → 20 → 15 → 7；<code>layer</code> 把这些值重新归档成 <code>[[3], [9,20], [15,7]]</code>。',
+      aux:'递归调用栈（栈顶在上）', visited:'实际 DFS 访问顺序',
+      complexity:[
+        ['时间 O(n)','每个实际节点访问一次，按 layer 写入恰好一次。'],
+        ['辅助空间 O(h)','递归调用栈深度等于树高 h；不计返回结果。'],
+        ['最坏 O(n)','斜树高度为 n；平衡树的递归栈为 O(log n)。']
+      ]
+    },
+    bfs:{
+      title:'B. BFS + deque((node, layer))：严格按层访问',
+      ideas:[
+        ['① INITIALIZE','根非空时初始化 <code>deque([(root, 0)])</code>；每项同时保存节点引用与层数。'],
+        ['② POP / WRITE','每次 <code>popleft()</code>，按携带的 layer 创建新层并写入 <code>result[layer]</code>。'],
+        ['③ ENQUEUE','依次把左右孩子与 <code>layer + 1</code> 入队；同层其余节点引用继续留在队首附近。']
+      ],
+      note:'<b>队列从队首到队尾维持严格层序。</b>这里特意保留 <code>(node, layer)</code> 二元组写法，而不是改成 <code>for range(len(queue))</code>；动画会明确展示每个节点身份、值与 layer。',
+      aux:'deque((节点身份/值, layer))', visited:'实际 BFS 访问顺序',
+      complexity:[
+        ['时间 O(n)','每个节点恰好入队、出队并写入结果一次。'],
+        ['辅助空间 O(w)','队列最多保存树中最宽一层附近的节点，w 是最大宽度。'],
+        ['严格按层','先出队同层剩余节点，再处理下一层节点；返回数组不计入辅助空间。']
+      ]
+    }
+  };
+
+  var codes = {
+    dfs:{
+      py:`<span class="cmt"># DFS 实际前序访问，再按 layer 重建层序结果</span>
+class Solution:
+    def levelOrder(self, root: Optional[TreeNode]) -&gt; List[List[int]]:
+        result = []
+
+        def dfs(node: Optional[TreeNode], layer: int) -&gt; None:
+            if node is None:
+                return
+            if layer == len(result):
+                result.append([])
+            result[layer].append(node.val)
+            dfs(node.left, layer + 1)
+            dfs(node.right, layer + 1)
+
+        dfs(root, 0)
+        return result`,
+      java:`<span class="cmt">// DFS 实际前序访问，再按 layer 重建层序结果</span>
+class Solution {
+    public List&lt;List&lt;Integer&gt;&gt; levelOrder(TreeNode root) {
+        List&lt;List&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+        dfs(root, 0, result);
+        return result;
+    }
+
+    private void dfs(TreeNode node, int layer,
+                     List&lt;List&lt;Integer&gt;&gt; result) {
+        if (node == null) {
+            return;
+        }
+        if (layer == result.size()) {
+            result.add(new ArrayList&lt;&gt;());
+        }
+        result.get(layer).add(node.val);
+        dfs(node.left, layer + 1, result);
+        dfs(node.right, layer + 1, result);
+    }
+}`
+    },
+    bfs:{
+      py:`<span class="cmt"># BFS：队列项明确保存 (node, layer)</span>
+class Solution:
+    def levelOrder(self, root: Optional[TreeNode]) -&gt; List[List[int]]:
+        result = []
+        if root is None:
+            return result
+
+        queue = deque([(root, 0)])
+        while queue:
+            node, layer = queue.popleft()
+            if layer == len(result):
+                result.append([])
+            result[layer].append(node.val)
+            if node.left:
+                queue.append((node.left, layer + 1))
+            if node.right:
+                queue.append((node.right, layer + 1))
+
+        return result`,
+      java:`<span class="cmt">// BFS：队列项明确保存 node + layer</span>
+class Solution {
+    private record NodeLayer(TreeNode node, int layer) {}
+
+    public List&lt;List&lt;Integer&gt;&gt; levelOrder(TreeNode root) {
+        List&lt;List&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();
+        if (root == null) {
+            return result;
+        }
+
+        Deque&lt;NodeLayer&gt; queue = new ArrayDeque&lt;&gt;();
+        queue.offer(new NodeLayer(root, 0));
+        while (!queue.isEmpty()) {
+            NodeLayer item = queue.poll();
+            TreeNode node = item.node();
+            int layer = item.layer();
+            if (layer == result.size()) {
+                result.add(new ArrayList&lt;&gt;());
+            }
+            result.get(layer).add(node.val);
+            if (node.left != null) {
+                queue.offer(new NodeLayer(node.left, layer + 1));
+            }
+            if (node.right != null) {
+                queue.offer(new NodeLayer(node.right, layer + 1));
+            }
+        }
+        return result;
+    }
+}`
+    }
+  };
+
+  var phaseDefinitions = {
+    dfs:[
+      ['call','CALL','进入调用'],['null','NULL','空指针基例'],['create','NEW LAYER','创建新层'],['write','WRITE','写入结果'],
+      ['left','LEFT','下探左边'],['right','RIGHT','下探右边'],['return','RETURN','递归返回']
+    ],
+    bfs:[
+      ['init','INIT','初始化队列'],['pop','POP LEFT','队首出队'],['create','NEW LAYER','创建新层'],
+      ['write','WRITE','写入结果'],['left','ENQUEUE L','左孩子入队'],['right','ENQUEUE R','右孩子入队']
+    ]
+  };
+
+  function svgElement(name, attrs) {
+    var element = document.createElementNS(SVG_NS, name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    return element;
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function formatResult(value) { return JSON.stringify(value); }
+  function phaseKey(phase) {
+    if (phase === 'call' || phase === 'call-null') return 'call';
+    if (phase === 'null') return 'null';
+    if (phase === 'initialize') return 'init';
+    if (phase === 'popleft') return 'pop';
+    if (phase === 'create-layer') return 'create';
+    if (phase === 'write') return 'write';
+    if (phase === 'descend-left' || phase === 'enqueue-left') return 'left';
+    if (phase === 'descend-right' || phase === 'enqueue-right') return 'right';
+    return 'return';
+  }
+  function stateText(state) {
+    return {
+      call:'刚进入', null:'命中基例', 'create-layer':'创建新层', write:'写入结果',
+      left:'等待左子树', right:'等待右子树', return:'准备返回'
+    }[state] || state;
+  }
+
+  function renderMethodContent() {
+    var content = methodContent[mode];
+    $('ideaTitle').textContent = content.title;
+    $('idea').innerHTML = content.ideas.map(function (item) {
+      return '<div class="idea-item"><div class="no">' + item[0] + '</div>' + item[1] + '</div>';
+    }).join('');
+    $('keyNote').innerHTML = content.note;
+    $('auxTitle').textContent = content.aux;
+    $('visitedTitle').textContent = content.visited;
+    $('complexity').innerHTML = content.complexity.map(function (item) {
+      return '<div><b>' + item[0] + '</b>' + item[1] + '</div>';
+    }).join('');
+    var definitions = phaseDefinitions[mode];
+    $('phaseStrip').style.gridTemplateColumns = 'repeat(' + definitions.length + ', minmax(0,1fr))';
+    $('phaseStrip').innerHTML = definitions.map(function (item) {
+      return '<div class="phase" data-phase="' + item[0] + '"><span>' + item[1] + '</span><b>' + item[2] + '</b></div>';
+    }).join('');
+    $('queueGuide').innerHTML = mode === 'bfs' ? '<div class="queue-guide"><span>← 队首 / popleft</span><span>队尾 / append →</span></div>' : '';
+    updateCode();
+  }
+
+  function buildTreeGraphic() {
+    svg.innerHTML = ''; nodeElements = {}; edgeElements = {}; levelElements = [];
+    var nodes = result.nodes;
+    if (!nodes.length) {
+      svg.style.display = 'none'; $('emptyTree').style.display = 'flex'; positions = {};
+      return { heightLevels:0 };
+    }
+    svg.style.display = 'block'; $('emptyTree').style.display = 'none';
+    var size = App.layout(nodes, { xGap:76, yGap:84, padX:64, padY:42 });
+    positions = size.positions;
+    svg.setAttribute('width', size.width); svg.setAttribute('height', size.height);
+    svg.setAttribute('viewBox', '0 0 ' + size.width + ' ' + size.height);
+    for (var layer = 0; layer < size.heightLevels; layer++) {
+      var y = 42 + layer * 84;
+      var line = svgElement('line', { class:'level-line', x1:38, y1:y, x2:size.width - 18, y2:y });
+      var label = svgElement('text', { class:'level-label', x:5, y:y + 4 });
+      label.textContent = 'layer ' + layer;
+      svg.appendChild(line); svg.appendChild(label); levelElements.push({ line:line, label:label });
+    }
+    nodes.forEach(function (node) {
+      if (node.parent < 0) return;
+      var from = positions[node.parent], to = positions[node.id];
+      var line = svgElement('line', { class:'edge', x1:from.x, y1:from.y, x2:to.x, y2:to.y });
+      svg.appendChild(line); edgeElements[node.id] = line;
+      var label = svgElement('text', {
+        class:'edge-label', x:(from.x + to.x) / 2 + (node.side === 'left' ? -8 : 8),
+        y:(from.y + to.y) / 2 - 3, 'text-anchor':'middle'
+      });
+      label.textContent = node.side === 'left' ? 'L' : 'R'; svg.appendChild(label);
+    });
+    nodes.forEach(function (node) {
+      var point = positions[node.id], group = svgElement('g', { class:'node' });
+      group.appendChild(svgElement('circle', { cx:point.x, cy:point.y, r:RADIUS }));
+      var value = svgElement('text', { x:point.x, y:point.y + 5, 'text-anchor':'middle' });
+      value.textContent = node.value; group.appendChild(value);
+      var idText = svgElement('text', { class:'node-id', x:point.x, y:point.y + 33, 'text-anchor':'middle' });
+      idText.textContent = 'id ' + node.id + ' · L' + point.layer; group.appendChild(idText);
+      svg.appendChild(group); nodeElements[node.id] = group;
+    });
+    return size;
+  }
+
+  function renderTree(step) {
+    var queued = {}, visited = {}, completed = {};
+    step.queue.forEach(function (item) { queued[item.nodeId] = true; });
+    step.visited.forEach(function (id) { visited[id] = true; });
+    step.completed.forEach(function (id) { completed[id] = true; });
+    result.nodes.forEach(function (node) {
+      var className = 'node';
+      if (queued[node.id]) className += ' queued';
+      if (visited[node.id]) className += ' visited';
+      if (mode === 'dfs' && completed[node.id]) className += ' done';
+      if (step.currentNode === node.id) className += ' current';
+      nodeElements[node.id].setAttribute('class', className);
+      var edge = edgeElements[node.id];
+      if (edge) {
+        var edgeClass = 'edge';
+        if (mode === 'dfs' && completed[node.id]) edgeClass += ' done';
+        if ((step.phase.indexOf('descend-') === 0 || step.phase.indexOf('enqueue-') === 0) &&
+            step.sourceNode === node.parent && step.edgeSide === node.side) edgeClass += ' active';
+        edge.setAttribute('class', edgeClass);
+      }
+    });
+    levelElements.forEach(function (entry, index) {
+      var active = step.currentLayer === index;
+      entry.line.setAttribute('class', 'level-line' + (active ? ' active' : ''));
+      entry.label.setAttribute('class', 'level-label' + (active ? ' active' : ''));
+    });
+    var nullFrame = step.stack.length ? step.stack[step.stack.length - 1] : null;
+    var showNull = nullFrame && nullFrame.nodeId === null;
+    $('nullCall').className = 'null-call' + (showNull ? ' show' : '');
+    if (showNull) {
+      var parentText = nullFrame.parentId >= 0 ? result.nodes[nullFrame.parentId].value + '.' + nullFrame.via : 'root';
+      $('nullCall').textContent = parentText + ' → null · layer=' + nullFrame.layer;
+    }
+  }
+
+  function renderAux(step) {
+    var container = $('aux'); container.innerHTML = '';
+    if (mode === 'dfs') {
+      container.className = 'aux stack';
+      if (!step.stack.length) { container.innerHTML = '<div class="aux-empty">调用栈为空</div>'; return; }
+      step.stack.forEach(function (frame, index) {
+        var element = document.createElement('div'), isTop = index === step.stack.length - 1;
+        element.className = 'frame' + (isTop ? ' top' : '') + (frame.nodeId === null ? ' null' : '');
+        var badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = 'L' + frame.layer;
+        var detail = document.createElement('span');
+        detail.textContent = 'dfs(' + (frame.nodeId === null ? 'null' : 'id ' + frame.nodeId + ' / ' + frame.value) + ') · ' + stateText(frame.state);
+        element.appendChild(badge); element.appendChild(detail); container.appendChild(element);
+      });
+    } else {
+      container.className = 'aux';
+      if (!step.queue.length) { container.innerHTML = '<div class="aux-empty">deque([]) · 队列为空</div>'; return; }
+      step.queue.forEach(function (item, index) {
+        var element = document.createElement('div');
+        element.className = 'queue-item' + (index === 0 ? ' front' : '');
+        var badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = 'L' + item.layer;
+        var detail = document.createElement('span');
+        detail.textContent = '(id ' + item.nodeId + ' / 值 ' + item.value + ', layer ' + item.layer + ')';
+        element.appendChild(badge); element.appendChild(detail); container.appendChild(element);
+      });
+    }
+  }
+
+  function renderResult(step) {
+    var container = $('resultPanel'); container.innerHTML = '';
+    if (!step.result.length) { container.innerHTML = '<div class="aux-empty">[] · 尚未创建任何层</div>'; return; }
+    step.result.forEach(function (level, layer) {
+      var row = document.createElement('div'); row.className = 'result-row';
+      var label = document.createElement('span'); label.className = 'layer'; label.textContent = 'result[' + layer + ']';
+      row.appendChild(label);
+      if (!level.length) {
+        var empty = document.createElement('span'); empty.className = 'aux-empty'; empty.textContent = '[]'; row.appendChild(empty);
+      } else {
+        level.forEach(function (value) {
+          var item = document.createElement('span'); item.className = 'result-item'; item.textContent = value; row.appendChild(item);
+        });
+      }
+      container.appendChild(row);
+    });
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderTree(step); renderAux(step); renderResult(step);
+    Array.prototype.forEach.call($('phaseStrip').children, function (element) {
+      element.className = 'phase' + (element.dataset.phase === phaseKey(step.phase) ? ' active' : '');
+    });
+    $('action').innerHTML = '<span class="kind">' + step.phase.toUpperCase() + '</span><b>' + step.action + '</b>';
+    $('currentLine').textContent = step.codeLine;
+    $('status').innerHTML = step.message;
+    $('visited').innerHTML = step.visited.length ?
+      '<b>' + step.visited.map(function (id) { return 'id ' + id + '/' + result.nodes[id].value; }).join(' → ') + '</b>' :
+      '[] · 尚未访问实际节点';
+    $('progress').textContent = '帧 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function renderStats(size) {
+    $('stats').innerHTML =
+      '<div class="stat">当前方法<b>' + (mode === 'dfs' ? 'DFS + layer' : 'BFS + tuple-layer') + '</b></div>' +
+      '<div class="stat">token 数<b>' + result.tokenCount + ' / 31</b></div>' +
+      '<div class="stat">实际节点<b>' + result.nodes.length + '</b></div>' +
+      '<div class="stat">树高 h<b>' + size.heightLevels + '</b></div>' +
+      '<div class="stat">两种结果<b>' + (both.sameResult ? '一致 ✓' : '不一致 ✗') + '</b></div>' +
+      '<div class="stat">最终 result<b>' + formatResult(result.result) + '</b></div>' +
+      '<div class="stat">快照校验<b>' + (result.validation.ok ? '通过' : '失败') + '</b></div>';
+  }
+
+  function load() {
+    stopPlay();
+    var nextBoth = App.runBoth(input.value);
+    if (nextBoth.error) {
+      $('err').textContent = '输入有误：' + nextBoth.error + '。';
+      $('err').classList.add('show'); return;
+    }
+    $('err').classList.remove('show');
+    both = nextBoth; result = both[mode]; steps = result.steps; stepIndex = 0;
+    var size = buildTreeGraphic(); renderStats(size); render();
+  }
+  function switchMode(nextMode) {
+    if (nextMode === mode) return;
+    stopPlay(); mode = nextMode;
+    Array.prototype.forEach.call(document.querySelectorAll('.method-btn'), function (button) {
+      var active = button.dataset.mode === mode;
+      button.classList.toggle('active', active); button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    renderMethodContent();
+    if (both) {
+      result = both[mode]; steps = result.steps; stepIndex = 0;
+      var size = buildTreeGraphic(); renderStats(size); render();
+    } else load();
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function previous() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function updateCode() {
+    var active = document.querySelector('.code-tab.active');
+    $('codeBlock').innerHTML = codes[mode][active ? active.dataset.lang : 'py'];
+  }
+
+  prevBtn.onclick = function () { stopPlay(); previous(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = function () {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex === steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex === steps.length - 1) stopPlay(); else next();
+    }, 850);
+  };
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') { event.preventDefault(); load(); }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      input.value = chip.dataset.spec;
+      Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (item) { item.classList.remove('active'); });
+      chip.classList.add('active'); load();
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.method-btn'), function (button) {
+    button.onclick = function () { switchMode(button.dataset.mode); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); updateCode();
+    };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); previous(); }
+  });
+  $('treeBox').setAttribute('tabindex', '0');
+  renderMethodContent();
+  load();
+})();
+</script>
+</body>
+</html>
