@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 199 二叉树的右视图逐帧动画：右优先 DFS 首次深度选择与 BFS 逐层取最右节点。">
+<meta name="tags" content="二叉树 · 右视图 · 深度优先搜索 · 广度优先搜索 · 递归 · 队列 · O(n)">
+<title>199. 二叉树的右视图 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1220px; margin:0 auto; }
+  .navbar,.method-switch,.controls,.examples,.legend,.stats { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .navbar { margin-bottom:16px; gap:12px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:16px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .method-switch { margin-bottom:16px; }
+  .method-btn { flex:1; min-width:270px; padding:12px 16px; background:#f8fafc; color:#475569; border:1px solid #dbe2ea; }
+  .method-btn:hover { background:#eef2ff; }
+  .method-btn.active { background:#4f46e5; border-color:#4338ca; color:#fff; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  .method-btn small { display:block; margin-top:2px; font-weight:500; opacity:.84; }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:800; color:#6366f1; letter-spacing:.04em; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] {
+    width:100%; min-width:0; padding:9px 11px; font:13px "SF Mono",Menlo,monospace;
+    border:1px solid #d1d5db; border-radius:8px; outline:none; background:#fff;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; gap:8px; }
+  .examples .lab,.hint { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover,.chip.active { background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { margin-top:8px; line-height:1.65; }
+  .stats { gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 13px "SF Mono",Menlo,monospace; color:#1d2129; max-width:300px; overflow-wrap:anywhere; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .phase-strip { display:grid; gap:7px; margin-bottom:14px; }
+  .phase { border:1px solid #e5e7eb; border-radius:9px; padding:8px 4px; font-size:10px; color:#64748b; background:#f8fafc; transition:.18s; text-align:center; }
+  .phase b { display:block; color:#334155; font-size:11px; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.11); color:#4338ca; }
+  .visual-grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(310px,.78fr); gap:14px; }
+  .tree-box,.side-box { border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); min-height:430px; }
+  .tree-box { padding:12px; overflow:auto; position:relative; }
+  .tree-box svg { display:block; margin:0 auto; overflow:visible; }
+  .empty-tree { min-height:380px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:#94a3b8; font-size:13px; }
+  .empty-tree b { font:800 20px "SF Mono",Menlo,monospace; color:#64748b; }
+  .null-call { position:absolute; top:12px; right:12px; max-width:245px; padding:7px 10px; border:1px dashed #f59e0b; border-radius:8px; background:#fffbeb; color:#92400e; font:700 11px "SF Mono",Menlo,monospace; display:none; z-index:3; }
+  .null-call.show { display:block; }
+  .level-line { stroke:#e2e8f0; stroke-width:1; stroke-dasharray:4 5; }
+  .level-line.active { stroke:#818cf8; stroke-width:2; }
+  .level-label { fill:#94a3b8; font:700 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .level-label.active { fill:#4f46e5; }
+  .view-ray { stroke:#f97316; stroke-width:2; stroke-dasharray:5 4; opacity:.8; }
+  .eye { fill:#f97316; font:800 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .edge { stroke:#cbd5e1; stroke-width:2.5; transition:.18s; }
+  .edge.active { stroke:#f59e0b; stroke-width:4; }
+  .edge.done { stroke:#86efac; }
+  .edge-label { fill:#94a3b8; font:800 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .node circle { fill:#fff; stroke:#cbd5e1; stroke-width:2.5; transition:.18s; }
+  .node text { fill:#334155; font:800 14px "SF Mono",Menlo,monospace; }
+  .node.queued circle { fill:#dbeafe; stroke:#3b82f6; }
+  .node.visited circle { fill:#fef3c7; stroke:#f59e0b; }
+  .node.selected circle { fill:#ffedd5; stroke:#f97316; stroke-width:4; }
+  .node.done circle { fill:#dcfce7; stroke:#22c55e; }
+  .node.current circle { fill:#e0e7ff; stroke:#6366f1; stroke-width:4; filter:drop-shadow(0 2px 4px rgba(79,70,229,.22)); }
+  .node.current text { fill:#3730a3; }
+  .node-id { fill:#94a3b8!important; font-size:9px!important; font-weight:600!important; }
+  .side-box { padding:14px; display:flex; flex-direction:column; gap:12px; }
+  .action { border:1px solid #ddd6fe; background:#f5f3ff; border-radius:10px; padding:11px 12px; color:#5b21b6; min-height:68px; }
+  .action .kind { font-size:11px; font-weight:800; letter-spacing:.05em; }
+  .action b { display:block; color:#3730a3; font-size:13px; margin-top:3px; }
+  .aux { display:flex; flex-direction:column; gap:6px; min-height:74px; max-height:185px; overflow:auto; }
+  .stack { flex-direction:column-reverse; }
+  .frame,.queue-item { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; padding:7px 9px; border:1px solid #e5e7eb; border-radius:8px; background:#f8fafc; font:11px "SF Mono",Menlo,monospace; color:#475569; }
+  .frame.top,.queue-item.front { border-color:#818cf8; background:#eef2ff; color:#3730a3; }
+  .frame.null { border-style:dashed; border-color:#f59e0b; background:#fffbeb; color:#92400e; }
+  .badge { border-radius:999px; min-width:34px; height:20px; display:flex; align-items:center; justify-content:center; background:#e2e8f0; font-weight:800; }
+  .frame.top .badge,.queue-item.front .badge { background:#c7d2fe; }
+  .aux-empty { color:#94a3b8; font-size:12px; text-align:center; padding:18px 0; }
+  .queue-guide { display:flex; justify-content:space-between; color:#94a3b8; font-size:10px; margin-bottom:5px; }
+  .output { min-height:42px; display:flex; flex-wrap:wrap; align-items:center; gap:6px; border:1px dashed #cbd5e1; border-radius:9px; padding:8px; background:#f8fafc; }
+  .output .item { min-width:30px; padding:4px 7px; border-radius:7px; background:#ffedd5; border:1px solid #f97316; color:#9a3412; text-align:center; font:800 12px "SF Mono",Menlo,monospace; }
+  .output .none { color:#94a3b8; font-size:12px; }
+  .sequence { border:1px dashed #cbd5e1; border-radius:9px; padding:8px; background:#f8fafc; color:#475569; font:11px "SF Mono",Menlo,monospace; overflow-wrap:anywhere; }
+  .sequence b { color:#3730a3; }
+  .current-line { border-radius:8px; background:#0f172a; color:#fcd34d; padding:9px 11px; min-height:39px; font:12px "SF Mono",Menlo,monospace; }
+  .legend { margin-top:13px; font-size:12px; color:#6b7280; gap:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.1); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; } .status code { background:#1f2937; color:#93c5fd; }
+  .complexity { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .complexity > div { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; color:#4b5563; font-size:13px; }
+  .complexity b { display:block; color:#1d2129; margin-bottom:3px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:900px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea,.complexity,.visual-grid,.input-grid { grid-template-columns:1fr; }
+    .phase-strip { grid-template-columns:repeat(3,1fr)!important; }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/binary-tree-right-side-view/" target="_blank" rel="noopener">LeetCode 199</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>199. 二叉树的右视图 · DFS / BFS 对照</h1>
+  <div class="sub">从树的右侧向左看，每一层只能看到一个节点。默认突出右子树优先 DFS：某个 <code>depth</code> 第一次到达的节点就是该层右视节点。</div>
+
+  <div class="method-switch" role="tablist" aria-label="选择解法">
+    <button type="button" class="method-btn active" data-mode="dfs" role="tab" aria-selected="true">A. 右优先 DFS（默认）<small>首次到达 depth 时加入 result</small></button>
+    <button type="button" class="method-btn" data-mode="bfs" role="tab" aria-selected="false">B. 逐层 BFS<small>完整扫描一层，取该层最后出队节点</small></button>
+  </div>
+
+  <div class="card">
+    <div class="panel-title" id="ideaTitle"></div>
+    <div class="idea" id="idea"></div>
+    <div class="key-note" id="keyNote"></div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">二叉树（LeetCode 层序格式，0～31 个 token）</span><input id="treeInput" type="text" value="1 2 3 null 5 null 4" spellcheck="false" autocomplete="off" placeholder="例如：[1,2,3,null,5,null,4]"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-spec="1 2 3 null 5 null 4">经典 [1,3,4]</span>
+      <span class="chip" data-spec="1 2 3 null 5">右子树浅 [1,3,5]</span>
+      <span class="chip" data-spec="4 3 null 2 null 1">左斜树</span>
+      <span class="chip" data-spec="1 null 2 null 3 null 4">右斜树</span>
+      <span class="chip" data-spec="1 2 3 4 5 6 7">完全树</span>
+      <span class="chip" data-spec="-7">单节点</span>
+      <span class="chip" data-spec="">空树</span>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">
+      接受空白分隔（<code>1 null 2</code>）或逗号分隔（<code>[1,null,2]</code>），可带一对方括号；<code>null</code> 与 <code>#</code> 表示空位置，且必须小写。
+      空输入、<code>[]</code>、单独的 <code>null</code> 或 <code>#</code> 表示空树。支持负数、重复值和不完整树；节点值须为 −1,000,000～1,000,000 的整数。严格拒绝非法或空 token、混合分隔、未配对括号、根为空后仍有 token，以及没有可用父节点的孤儿 token。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip"></div>
+    <div class="visual-grid">
+      <div class="tree-box" id="treeBox">
+        <svg id="treeSvg" role="img" aria-label="带右侧视线和深度标尺的二叉树"></svg>
+        <div class="empty-tree" id="emptyTree"><b>root = null</b><span>空树的右视图是 []</span></div>
+        <div class="null-call" id="nullCall"></div>
+      </div>
+      <div class="side-box">
+        <div>
+          <div class="panel-title">当前动作</div>
+          <div class="action" id="action"></div>
+        </div>
+        <div>
+          <div class="panel-title" id="auxTitle"></div>
+          <div id="queueGuide"></div>
+          <div class="aux" id="aux"></div>
+        </div>
+        <div>
+          <div class="panel-title">右视图 result</div>
+          <div class="output" id="output"></div>
+        </div>
+        <div>
+          <div class="panel-title" id="layerTitle"></div>
+          <div class="sequence" id="layerNodes"></div>
+        </div>
+        <div>
+          <div class="panel-title">实际访问顺序（所有节点）</div>
+          <div class="sequence" id="visited"></div>
+        </div>
+        <div class="current-line" id="currentLine"></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>当前节点</span>
+      <span><span class="dot" style="background:#ffedd5;border-color:#f97316"></span>已选右视节点 / 视线</span>
+      <span><span class="dot" style="background:#dbeafe;border-color:#3b82f6"></span>BFS 队列中</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>已访问</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>DFS 调用已返回</span>
+    </div>
+    <div class="panel-title status-title">状态栏</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">复杂度与边界</div>
+    <div class="complexity" id="complexity"></div>
+  </div>
+
+  <div class="card">
+    <details class="code" open>
+      <summary>查看 Python / Java 参考代码（与当前模式一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-right-view-logic>
+(function (root) {
+  'use strict';
+  var MIN_VALUE = -1000000, MAX_VALUE = 1000000, MAX_TOKENS = 31;
+
+  function tokenize(input) {
+    if (typeof input !== 'string') return { error:'输入必须是字符串' };
+    var text = input.trim();
+    if (!text) return { tokens:[], tokenCount:0, error:null };
+    if (text[0] === '[' || text[text.length - 1] === ']') {
+      if (text[0] !== '[' || text[text.length - 1] !== ']') return { error:'方括号必须成对并包住整个输入' };
+      text = text.slice(1, -1).trim();
+    }
+    if (text.indexOf('[') >= 0 || text.indexOf(']') >= 0) return { error:'方括号只能出现在输入最外层' };
+    if (!text) return { tokens:[], tokenCount:0, error:null };
+    var raw;
+    if (text.indexOf(',') >= 0) {
+      raw = text.split(',');
+      for (var i = 0; i < raw.length; i++) {
+        raw[i] = raw[i].trim();
+        if (!raw[i]) return { error:'逗号之间、开头或结尾不能出现空 token' };
+        if (/\s/.test(raw[i])) return { error:'不能混用逗号与空白分隔 token' };
+      }
+    } else {
+      raw = text.split(/\s+/);
+    }
+    if (raw.length > MAX_TOKENS) return { error:'最多允许 ' + MAX_TOKENS + ' 个 token，当前有 ' + raw.length + ' 个' };
+    var tokens = [];
+    for (var j = 0; j < raw.length; j++) {
+      var word = raw[j];
+      if (word === 'null' || word === '#') {
+        tokens.push(null);
+      } else {
+        if (!/^-?\d+$/.test(word)) return { error:'第 ' + (j + 1) + ' 个 token「' + word + '」不是小写 null、# 或整数' };
+        var value = Number(word);
+        if (!Number.isSafeInteger(value) || value < MIN_VALUE || value > MAX_VALUE) {
+          return { error:'第 ' + (j + 1) + ' 个节点值须在 -1,000,000～1,000,000' };
+        }
+        tokens.push(value);
+      }
+    }
+    if (tokens[0] === null && tokens.length > 1) return { error:'根节点为空时不能再提供其它 token' };
+    return { tokens:tokens, tokenCount:raw.length, error:null };
+  }
+
+  function buildTree(tokens) {
+    if (!Array.isArray(tokens)) return { error:'tokens 必须是数组' };
+    if (!tokens.length || tokens[0] === null) return { nodes:[], rootId:-1, error:null };
+    var nodes = [{ id:0, value:tokens[0], left:-1, right:-1, parent:-1, side:'root', tokenIndex:0 }];
+    var queue = [0], queueIndex = 0, tokenIndex = 1;
+    while (tokenIndex < tokens.length) {
+      if (queueIndex >= queue.length) return { error:'第 ' + (tokenIndex + 1) + ' 个 token 没有可用父节点，属于孤儿 token' };
+      var parentId = queue[queueIndex++], parent = nodes[parentId];
+      var leftToken = tokens[tokenIndex++];
+      if (leftToken !== null) {
+        var leftId = nodes.length;
+        nodes.push({ id:leftId, value:leftToken, left:-1, right:-1, parent:parentId, side:'left', tokenIndex:tokenIndex - 1 });
+        parent.left = leftId; queue.push(leftId);
+      }
+      if (tokenIndex >= tokens.length) break;
+      var rightToken = tokens[tokenIndex++];
+      if (rightToken !== null) {
+        var rightId = nodes.length;
+        nodes.push({ id:rightId, value:rightToken, left:-1, right:-1, parent:parentId, side:'right', tokenIndex:tokenIndex - 1 });
+        parent.right = rightId; queue.push(rightId);
+      }
+    }
+    return { nodes:nodes, rootId:0, error:null };
+  }
+
+  function cloneNodes(nodes) {
+    return nodes.map(function (node) {
+      return { id:node.id, value:node.value, left:node.left, right:node.right, parent:node.parent, side:node.side, tokenIndex:node.tokenIndex };
+    });
+  }
+  function cloneStack(stack) {
+    return stack.map(function (frame) {
+      return { nodeId:frame.nodeId, value:frame.value, depth:frame.depth, state:frame.state, via:frame.via, parentId:frame.parentId };
+    });
+  }
+  function cloneQueue(queue) {
+    return queue.map(function (item) { return { nodeId:item.nodeId, value:item.value, depth:item.depth }; });
+  }
+
+  function parseInput(input) {
+    var parsed = tokenize(input);
+    if (parsed.error) return parsed;
+    var built = buildTree(parsed.tokens);
+    if (built.error) return { error:built.error };
+    return { tokens:parsed.tokens.slice(), tokenCount:parsed.tokenCount, nodes:cloneNodes(built.nodes), rootId:built.rootId, error:null };
+  }
+
+  function layout(nodes, options) {
+    options = options || {};
+    var xGap = options.xGap || 76, yGap = options.yGap || 84;
+    var padX = options.padX || 62, padY = options.padY || 42, rightPad = options.rightPad || 92;
+    var positions = {}, column = 0, maxDepth = -1;
+    function walk(id, depth) {
+      if (id < 0) return;
+      walk(nodes[id].left, depth + 1);
+      positions[id] = { x:padX + column * xGap, y:padY + depth * yGap, depth:depth };
+      column++;
+      if (depth > maxDepth) maxDepth = depth;
+      walk(nodes[id].right, depth + 1);
+    }
+    if (nodes.length) walk(0, 0);
+    return {
+      positions:positions,
+      width:Math.max(300, padX + rightPad + Math.max(0, column - 1) * xGap),
+      height:Math.max(380, padY * 2 + Math.max(0, maxDepth) * yGap + 34),
+      heightLevels:maxDepth + 1
+    };
+  }
+
+  function snapshot(steps, state, phase, currentNode, sourceNode, edgeSide, action, codeLine, message) {
+    steps.push({
+      mode:state.mode, phase:phase, currentNode:currentNode, currentDepth:state.currentDepth,
+      sourceNode:sourceNode, edgeSide:edgeSide || null, action:action, codeLine:codeLine, message:message,
+      stack:cloneStack(state.stack), queue:cloneQueue(state.queue), result:state.result.slice(),
+      selected:state.selected.slice(), visited:state.visited.slice(), completed:state.completed.slice(),
+      layerNodes:state.layerNodes.slice(), layerSize:state.layerSize, layerIndex:state.layerIndex
+    });
+  }
+
+  function buildDFSSteps(nodes) {
+    var steps = [];
+    var state = { mode:'dfs', stack:[], queue:[], result:[], selected:[], visited:[], completed:[], layerNodes:[], layerSize:0, layerIndex:0, currentDepth:null };
+    function snap(phase, currentNode, sourceNode, edgeSide, action, codeLine, message) {
+      snapshot(steps, state, phase, currentNode, sourceNode, edgeSide, action, codeLine, message);
+    }
+    function label(id) { return id < 0 ? 'null' : nodes[id].value + '（id ' + id + '）'; }
+    function dfs(id, depth, via, parentId) {
+      state.currentDepth = depth;
+      if (id < 0) {
+        state.stack.push({ nodeId:null, value:null, depth:depth, state:'call', via:via, parentId:parentId });
+        snap('call-null', null, parentId, via, '调用 dfs(null, ' + depth + ')', 'dfs(None, ' + depth + ')',
+          '子指针为 <b>null</b>，建立短暂调用帧；随后由基例直接返回。');
+        state.stack[state.stack.length - 1].state = 'null';
+        snap('null', null, parentId, via, '命中 null 基例', 'if not node: return',
+          '<code>node</code> 为空，不访问节点，也不修改 <code>result</code>。');
+        state.stack.pop();
+        return;
+      }
+      var node = nodes[id];
+      state.stack.push({ nodeId:id, value:node.value, depth:depth, state:'call', via:via, parentId:parentId });
+      state.visited.push(id);
+      snap('call', id, parentId, via, '进入 dfs(' + node.value + ', ' + depth + ')', 'def dfs(node, depth):',
+        '右优先 DFS 到达节点 <b>' + node.value + '</b>（id ' + id + '），<code>depth = ' + depth + '</code>。');
+
+      state.stack[state.stack.length - 1].state = 'check';
+      snap('check-depth', id, id, null, '检查 depth == len(result)', 'if depth == len(result):',
+        '比较 <code>' + depth + ' == ' + state.result.length + '</code>：判断这是不是 DFS 第一次到达该层。');
+      if (depth === state.result.length) {
+        state.stack[state.stack.length - 1].state = 'select';
+        state.result.push(node.value); state.selected.push(id);
+        snap('select', id, id, null, '首次到达深度 ' + depth + '，选择 ' + node.value, 'result.append(node.val)',
+          '条件成立：右侧优先保证首个节点最靠右。追加后 <code>result = <span class="op">' + JSON.stringify(state.result) + '</span></code>。');
+      } else {
+        state.stack[state.stack.length - 1].state = 'skip';
+        snap('skip', id, id, null, '深度 ' + depth + ' 已有右视节点，跳过', '# depth 已被更右侧节点占据',
+          '该层已经选择 id ' + state.selected[depth] + ' / <b>' + state.result[depth] + '</b>；当前节点仍必须继续访问其子树。');
+      }
+
+      state.stack[state.stack.length - 1].state = 'right';
+      snap('descend-right', id, id, 'right', '先下探右孩子：' + label(node.right), 'dfs(node.right, depth + 1)',
+        '优先向右，令每个新 depth 的第一次到达尽量来自右侧。');
+      dfs(node.right, depth + 1, 'right', id);
+
+      state.currentDepth = depth;
+      state.stack[state.stack.length - 1].state = 'left';
+      snap('descend-left', id, id, 'left', '再下探左孩子：' + label(node.left), 'dfs(node.left, depth + 1)',
+        '右子树已返回，但仍要下探左子树；右子树可能较浅，更深层答案可能来自左子树。');
+      dfs(node.left, depth + 1, 'left', id);
+
+      state.currentDepth = depth;
+      state.stack[state.stack.length - 1].state = 'return';
+      state.completed.push(id);
+      snap('return', id, parentId, via, '节点 ' + node.value + ' 的调用返回', 'return  # 右、左子树均已处理',
+        '节点 <b>' + node.value + '</b> 的右、左子树都已处理，弹出当前帧。');
+      state.stack.pop();
+    }
+    dfs(nodes.length ? 0 : -1, 0, 'root', -1);
+    state.currentDepth = null;
+    snap('done', null, null, null, 'DFS 完成', 'return result',
+      '全部实际节点均已访问，返回右视图 <span class="op">' + JSON.stringify(state.result) + '</span>。');
+    return steps;
+  }
+
+  function buildBFSSteps(nodes) {
+    var steps = [];
+    var state = { mode:'bfs', stack:[], queue:[], result:[], selected:[], visited:[], completed:[], layerNodes:[], layerSize:0, layerIndex:0, currentDepth:null };
+    function snap(phase, currentNode, sourceNode, edgeSide, action, codeLine, message) {
+      snapshot(steps, state, phase, currentNode, sourceNode, edgeSide, action, codeLine, message);
+    }
+    if (nodes.length) state.queue.push({ nodeId:0, value:nodes[0].value, depth:0 });
+    snap('initialize', nodes.length ? 0 : null, null, null, nodes.length ? '初始化 queue = [root]' : '空树无需入队',
+      nodes.length ? 'queue = deque([root])' : 'if not root: return []',
+      nodes.length ? '根节点入队；BFS 将逐层完整扫描，每个实际节点都会出队一次。' : '根为 <b>null</b>，直接返回空列表。');
+    var depth = 0;
+    while (state.queue.length) {
+      state.currentDepth = depth; state.layerSize = state.queue.length; state.layerIndex = 0; state.layerNodes = [];
+      snap('start-layer', state.queue[0].nodeId, null, null, '开始第 ' + depth + ' 层，共 ' + state.layerSize + ' 个节点',
+        'level_size = len(queue)', '冻结本层大小 <code>level_size = ' + state.layerSize + '</code>；新入队孩子属于下一层。');
+      var rightmost = -1;
+      for (var i = 0; i < state.layerSize; i++) {
+        state.layerIndex = i;
+        var item = state.queue.shift(), node = nodes[item.nodeId];
+        state.visited.push(item.nodeId); state.layerNodes.push(item.nodeId); rightmost = item.nodeId;
+        snap('dequeue', item.nodeId, null, null, '出队 ' + node.value + '（本层 ' + (i + 1) + '/' + state.layerSize + '）',
+          'node = queue.popleft()', '访问节点 <b>' + node.value + '</b>；它暂时是本层最右候选。BFS 同样会访问每个节点。');
+        if (node.left >= 0) {
+          var left = nodes[node.left];
+          state.queue.push({ nodeId:left.id, value:left.value, depth:depth + 1 });
+          snap('enqueue-left', item.nodeId, item.nodeId, 'left', '左孩子 ' + left.value + ' 入队', 'if node.left: queue.append(node.left)',
+            '把左孩子 id ' + left.id + ' / <b>' + left.value + '</b> 加到队尾，留待下一层。');
+        }
+        if (node.right >= 0) {
+          var right = nodes[node.right];
+          state.queue.push({ nodeId:right.id, value:right.value, depth:depth + 1 });
+          snap('enqueue-right', item.nodeId, item.nodeId, 'right', '右孩子 ' + right.value + ' 入队', 'if node.right: queue.append(node.right)',
+            '把右孩子 id ' + right.id + ' / <b>' + right.value + '</b> 加到队尾；左右入队顺序与“取本层最后一个”一致。');
+        }
+      }
+      state.layerIndex = state.layerSize;
+      state.result.push(nodes[rightmost].value); state.selected.push(rightmost);
+      snap('select-rightmost', rightmost, rightmost, null, '层结束，选择最右节点 ' + nodes[rightmost].value,
+        'result.append(node.val)  # 本层最后一次出队', '第 ' + depth + ' 层完整扫描为 <b>' +
+        state.layerNodes.map(function (id) { return nodes[id].value; }).join(' → ') + '</b>；选择最后一个，<code>result = <span class="op">' + JSON.stringify(state.result) + '</span></code>。');
+      depth++;
+    }
+    state.currentDepth = null; state.layerNodes = []; state.layerSize = 0; state.layerIndex = 0;
+    snap('done', null, null, null, 'BFS 完成', 'return result',
+      '队列为空；所有节点恰好出队一次，右视图为 <span class="op">' + JSON.stringify(state.result) + '</span>。');
+    return steps;
+  }
+
+  function sameArray(a, b) {
+    return a.length === b.length && a.every(function (value, index) { return value === b[index]; });
+  }
+  function expectedRightView(nodes) {
+    if (!nodes.length) return { values:[], ids:[] };
+    var values = [], ids = [], queue = [0], index = 0;
+    while (index < queue.length) {
+      var end = queue.length, rightmost = -1;
+      while (index < end) {
+        var id = queue[index++], node = nodes[id]; rightmost = id;
+        if (node.left >= 0) queue.push(node.left);
+        if (node.right >= 0) queue.push(node.right);
+      }
+      ids.push(rightmost); values.push(nodes[rightmost].value);
+    }
+    return { values:values, ids:ids };
+  }
+
+  function validateSnapshots(nodes, steps, mode) {
+    var errors = [], seen = {};
+    var required = mode === 'dfs' ?
+      ['call','call-null','null','check-depth','select','descend-right','descend-left','return','done'] :
+      ['initialize','start-layer','dequeue','select-rightmost','done'];
+    for (var i = 0; i < steps.length; i++) {
+      var step = steps[i]; seen[step.phase] = true;
+      if (!Array.isArray(step.stack) || !Array.isArray(step.queue) || !Array.isArray(step.result) ||
+          !Array.isArray(step.selected) || !Array.isArray(step.visited) || !Array.isArray(step.layerNodes)) {
+        errors.push('第 ' + (i + 1) + ' 帧缺少 stack/queue/result/selected/visited/layerNodes 快照'); continue;
+      }
+      if (step.result.length !== step.selected.length) errors.push('第 ' + (i + 1) + ' 帧 result 与 selected 长度不一致');
+      if (new Set(step.visited).size !== step.visited.length) errors.push('第 ' + (i + 1) + ' 帧重复访问节点');
+      for (var s = 0; s < step.selected.length; s++) {
+        if (!nodes[step.selected[s]] || nodes[step.selected[s]].value !== step.result[s]) errors.push('第 ' + (i + 1) + ' 帧选择值与节点身份不一致');
+      }
+      for (var q = 0; q < step.queue.length; q++) {
+        var entry = step.queue[q];
+        if (!nodes[entry.nodeId] || nodes[entry.nodeId].value !== entry.value || !Number.isInteger(entry.depth)) errors.push('第 ' + (i + 1) + ' 帧队列项目无效');
+        if (q && step.queue[q - 1].depth > entry.depth) errors.push('第 ' + (i + 1) + ' 帧队列深度顺序错误');
+      }
+      if (i > 0) {
+        var previous = steps[i - 1];
+        if (previous.stack === step.stack || previous.queue === step.queue || previous.result === step.result ||
+            previous.selected === step.selected || previous.visited === step.visited || previous.layerNodes === step.layerNodes) {
+          errors.push('相邻帧共享顶层可变快照引用');
+        }
+        if (previous.stack.length && step.stack.length && previous.stack[0] === step.stack[0]) errors.push('相邻帧共享 stack 对象');
+        if (previous.queue.length && step.queue.length && previous.queue[0] === step.queue[0]) errors.push('相邻帧共享 queue 对象');
+      }
+    }
+    required.forEach(function (phase) {
+      var allowedMissing = !nodes.length && (mode === 'dfs' ?
+        ['call','check-depth','select','descend-right','descend-left','return'].indexOf(phase) >= 0 :
+        ['start-layer','dequeue','select-rightmost'].indexOf(phase) >= 0);
+      if (!seen[phase] && !allowedMissing) errors.push('缺少阶段 ' + phase);
+    });
+    if (mode === 'dfs' && nodes.length && !seen.skip && nodes.length > expectedRightView(nodes).values.length) errors.push('多节点同层时缺少 skip 阶段');
+    if (mode === 'bfs') {
+      var selectionSteps = steps.filter(function (step) { return step.phase === 'select-rightmost'; });
+      selectionSteps.forEach(function (step, depth) {
+        if (step.selected[depth] !== step.layerNodes[step.layerNodes.length - 1]) errors.push('第 ' + depth + ' 层没有选择扫描到的最后节点');
+      });
+    }
+    var last = steps[steps.length - 1], expected = expectedRightView(nodes);
+    if (!last || last.phase !== 'done') errors.push('最后一帧必须是 done');
+    else {
+      if (last.stack.length || last.queue.length) errors.push('结束时辅助结构必须为空');
+      if (last.visited.length !== nodes.length || new Set(last.visited).size !== nodes.length) errors.push('结束时并非所有节点都恰好访问一次');
+      if (!sameArray(last.result, expected.values) || !sameArray(last.selected, expected.ids)) errors.push('最终右视图或所选节点不正确');
+    }
+    return { ok:errors.length === 0, errors:errors };
+  }
+
+  function run(input, mode) {
+    mode = mode || 'dfs';
+    if (mode !== 'dfs' && mode !== 'bfs') return { error:'mode 必须是 dfs 或 bfs' };
+    var parsed = parseInput(input);
+    if (parsed.error) return { error:parsed.error };
+    var steps = mode === 'dfs' ? buildDFSSteps(parsed.nodes) : buildBFSSteps(parsed.nodes);
+    var validation = validateSnapshots(parsed.nodes, steps, mode);
+    var last = steps[steps.length - 1];
+    return {
+      error:null, mode:mode, tokens:parsed.tokens.slice(), tokenCount:parsed.tokenCount, rootId:parsed.rootId,
+      nodes:cloneNodes(parsed.nodes), steps:steps, result:last.result.slice(), selected:last.selected.slice(), validation:validation
+    };
+  }
+  function runBoth(input) {
+    var dfs = run(input, 'dfs');
+    if (dfs.error) return { error:dfs.error };
+    var bfs = run(input, 'bfs');
+    return { error:bfs.error, dfs:dfs, bfs:bfs, sameResult:!bfs.error && sameArray(dfs.result, bfs.result) && sameArray(dfs.selected, bfs.selected) };
+  }
+
+  root.BinaryTreeRightSideView199 = {
+    tokenize:tokenize, buildTree:buildTree, parseInput:parseInput, cloneNodes:cloneNodes,
+    layout:layout, buildDFSSteps:buildDFSSteps, buildBFSSteps:buildBFSSteps,
+    expectedRightView:expectedRightView, sameArray:sameArray, validateSnapshots:validateSnapshots,
+    run:run, runBoth:runBoth, limits:{ minValue:MIN_VALUE, maxValue:MAX_VALUE, maxTokens:MAX_TOKENS }
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.BinaryTreeRightSideView199;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('treeInput'), svg = $('treeSvg');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var mode = 'dfs', both = null, result = null, steps = [], stepIndex = 0, timer = null;
+  var positions = {}, nodeElements = {}, edgeElements = {}, levelElements = [], rayElements = {};
+  var SVG_NS = 'http://www.w3.org/2000/svg', RADIUS = 20;
+
+  var content = {
+    dfs:{
+      title:'A. 右优先 DFS：每层第一次到达即选择',
+      ideas:[
+        ['① CALL / CHECK','调用 <code>dfs(node, depth)</code>；非空节点检查 <code>depth == len(result)</code>。'],
+        ['② SELECT / SKIP','首次到达该 depth 就追加 <code>node.val</code>；否则本层已有更右节点，但仍继续递归。'],
+        ['③ RIGHT / LEFT','严格先右后左。右子树返回后仍下探左子树，最后弹出调用帧。']
+      ],
+      note:'<b>DFS 不能跳过左子树。</b>在 <code>[1,2,3,null,5]</code> 中，右子树只到 depth 1；depth 2 的右视节点 5 来自左子树，结果是 <code>[1,3,5]</code>。',
+      aux:'递归调用栈（栈顶在上）', layer:'每层已选右视节点',
+      complexity:[
+        ['时间 O(n)','每个实际节点恰好访问一次；即使某层已有答案，也必须继续搜索更深节点。'],
+        ['辅助空间 O(h)','递归调用栈深度为树高 h；结果数组 O(h)，不计入辅助空间时单独列出。'],
+        ['Python 递归限制','极深斜树可能触发 Python 默认递归深度限制；本题常见约束通常安全，工程中可改迭代。']
+      ]
+    },
+    bfs:{
+      title:'B. 逐层 BFS：完整扫描后取本层最后一个',
+      ideas:[
+        ['① START LEVEL','每轮先冻结 <code>level_size = len(queue)</code>，明确这一层要处理多少节点。'],
+        ['② POP / ENQUEUE','从左到右逐个出队，并按左、右顺序把非空孩子入队；每个节点都会被访问。'],
+        ['③ SELECT LAST','本层最后一次出队的节点最靠右；层结束时把它加入 <code>result</code>。']
+      ],
+      note:'<b>动画与代码统一采用“左、右入队，取每层最后一个”。</b>也可右侧优先并取首个，但不能把两种约定混在同一实现中。',
+      aux:'BFS 队列（队首在上）', layer:'当前层已出队节点',
+      complexity:[
+        ['时间 O(n)','每个实际节点恰好入队、出队一次；BFS 不是只访问最终可见节点。'],
+        ['辅助空间 O(w)','队列峰值与最大层宽 w 同阶；结果数组 O(h)，其中 h 是树高。'],
+        ['逐层边界','冻结 level_size 后，新入队孩子不会混入当前层；层末候选就是当前层最右节点。']
+      ]
+    }
+  };
+
+  var codes = {
+    dfs:{
+      py:`<span class="cmt"># 右优先 DFS：保留用户解法结构</span>
+class Solution:
+    def rightSideView(self, root: Optional[TreeNode]) -&gt; List[int]:
+        result = []
+
+        def dfs(node, depth):
+            if not node:
+                return
+            if depth == len(result):
+                result.append(node.val)
+            dfs(node.right, depth + 1)
+            dfs(node.left, depth + 1)
+
+        dfs(root, 0)
+        return result`,
+      java:`<span class="cmt">// 右优先 DFS：每个 depth 首次到达时选择</span>
+class Solution {
+    public List&lt;Integer&gt; rightSideView(TreeNode root) {
+        List&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+        dfs(root, 0, result);
+        return result;
+    }
+
+    private void dfs(TreeNode node, int depth,
+                     List&lt;Integer&gt; result) {
+        if (node == null) return;
+        if (depth == result.size()) {
+            result.add(node.val);
+        }
+        dfs(node.right, depth + 1, result);
+        dfs(node.left, depth + 1, result);
+    }
+}`
+    },
+    bfs:{
+      py:`<span class="cmt"># BFS：左、右入队，取每层最后一个</span>
+class Solution:
+    def rightSideView(self, root: Optional[TreeNode]) -&gt; List[int]:
+        if not root:
+            return []
+        result = []
+        queue = deque([root])
+
+        while queue:
+            level_size = len(queue)
+            for i in range(level_size):
+                node = queue.popleft()
+                if node.left:
+                    queue.append(node.left)
+                if node.right:
+                    queue.append(node.right)
+                if i == level_size - 1:
+                    result.append(node.val)
+        return result`,
+      java:`<span class="cmt">// BFS：左、右入队，取每层最后一个</span>
+class Solution {
+    public List&lt;Integer&gt; rightSideView(TreeNode root) {
+        List&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+        if (root == null) return result;
+        Deque&lt;TreeNode&gt; queue = new ArrayDeque&lt;&gt;();
+        queue.offer(root);
+
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size();
+            for (int i = 0; i &lt; levelSize; i++) {
+                TreeNode node = queue.poll();
+                if (node.left != null) queue.offer(node.left);
+                if (node.right != null) queue.offer(node.right);
+                if (i == levelSize - 1) result.add(node.val);
+            }
+        }
+        return result;
+    }
+}`
+    }
+  };
+
+  var phases = {
+    dfs:[
+      ['call','CALL','进入调用'],['null','NULL','空指针基例'],['check','CHECK','首次深度？'],['select','SELECT','加入或跳过'],
+      ['right','RIGHT','先下探右边'],['left','LEFT','再下探左边'],['return','RETURN','递归返回']
+    ],
+    bfs:[
+      ['init','INIT','初始化队列'],['layer','LEVEL','开始一层'],['pop','POP','节点出队'],
+      ['left','ENQUEUE L','左孩子入队'],['right','ENQUEUE R','右孩子入队'],['select','SELECT LAST','选择最右']
+    ]
+  };
+
+  function svgElement(name, attrs) {
+    var element = document.createElementNS(SVG_NS, name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    return element;
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function phaseKey(phase) {
+    if (phase === 'call' || phase === 'call-null') return 'call';
+    if (phase === 'null') return 'null';
+    if (phase === 'check-depth') return 'check';
+    if (phase === 'select' || phase === 'skip' || phase === 'select-rightmost') return 'select';
+    if (phase === 'descend-right' || phase === 'enqueue-right') return 'right';
+    if (phase === 'descend-left' || phase === 'enqueue-left') return 'left';
+    if (phase === 'initialize') return 'init';
+    if (phase === 'start-layer') return 'layer';
+    if (phase === 'dequeue') return 'pop';
+    return 'return';
+  }
+  function stateText(state) {
+    return { call:'刚进入', null:'命中基例', check:'检查深度', select:'已选择', skip:'本层跳过', right:'等待右树', left:'等待左树', return:'准备返回' }[state] || state;
+  }
+
+  function renderMethod() {
+    var item = content[mode];
+    $('ideaTitle').textContent = item.title;
+    $('idea').innerHTML = item.ideas.map(function (idea) {
+      return '<div class="idea-item"><div class="no">' + idea[0] + '</div>' + idea[1] + '</div>';
+    }).join('');
+    $('keyNote').innerHTML = item.note;
+    $('auxTitle').textContent = item.aux; $('layerTitle').textContent = item.layer;
+    $('complexity').innerHTML = item.complexity.map(function (box) { return '<div><b>' + box[0] + '</b>' + box[1] + '</div>'; }).join('');
+    $('queueGuide').innerHTML = mode === 'bfs' ? '<div class="queue-guide"><span>← 队首 / popleft</span><span>队尾 / append →</span></div>' : '';
+    var defs = phases[mode];
+    $('phaseStrip').style.gridTemplateColumns = 'repeat(' + defs.length + ', minmax(0,1fr))';
+    $('phaseStrip').innerHTML = defs.map(function (def) {
+      return '<div class="phase" data-phase="' + def[0] + '"><span>' + def[1] + '</span><b>' + def[2] + '</b></div>';
+    }).join('');
+    updateCode();
+  }
+
+  function buildTreeGraphic() {
+    svg.innerHTML = ''; nodeElements = {}; edgeElements = {}; levelElements = []; rayElements = {};
+    if (!result.nodes.length) {
+      svg.style.display = 'none'; $('emptyTree').style.display = 'flex'; positions = {};
+      return { heightLevels:0 };
+    }
+    svg.style.display = 'block'; $('emptyTree').style.display = 'none';
+    var size = App.layout(result.nodes, { xGap:76, yGap:84, padX:62, padY:42, rightPad:105 });
+    positions = size.positions;
+    svg.setAttribute('width', size.width); svg.setAttribute('height', size.height);
+    svg.setAttribute('viewBox', '0 0 ' + size.width + ' ' + size.height);
+    for (var depth = 0; depth < size.heightLevels; depth++) {
+      var y = 42 + depth * 84;
+      var line = svgElement('line', { class:'level-line', x1:36, y1:y, x2:size.width - 24, y2:y });
+      var label = svgElement('text', { class:'level-label', x:4, y:y + 4 });
+      label.textContent = 'depth ' + depth;
+      svg.appendChild(line); svg.appendChild(label); levelElements.push({ line:line, label:label });
+    }
+    result.nodes.forEach(function (node) {
+      if (node.parent < 0) return;
+      var from = positions[node.parent], to = positions[node.id];
+      var line = svgElement('line', { class:'edge', x1:from.x, y1:from.y, x2:to.x, y2:to.y });
+      svg.appendChild(line); edgeElements[node.id] = line;
+      var label = svgElement('text', { class:'edge-label', x:(from.x + to.x) / 2 + (node.side === 'left' ? -8 : 8), y:(from.y + to.y) / 2 - 3, 'text-anchor':'middle' });
+      label.textContent = node.side === 'left' ? 'L' : 'R'; svg.appendChild(label);
+    });
+    result.nodes.forEach(function (node) {
+      var point = positions[node.id];
+      var ray = svgElement('line', { class:'view-ray', x1:point.x + RADIUS, y1:point.y, x2:size.width - 34, y2:point.y });
+      ray.style.display = 'none'; svg.appendChild(ray); rayElements[node.id] = ray;
+    });
+    var eye = svgElement('text', { class:'eye', x:size.width - 30, y:24, 'text-anchor':'middle' });
+    eye.textContent = '右侧视线 👁'; svg.appendChild(eye);
+    result.nodes.forEach(function (node) {
+      var point = positions[node.id], group = svgElement('g', { class:'node' });
+      group.appendChild(svgElement('circle', { cx:point.x, cy:point.y, r:RADIUS }));
+      var value = svgElement('text', { x:point.x, y:point.y + 5, 'text-anchor':'middle' });
+      value.textContent = node.value; group.appendChild(value);
+      var idText = svgElement('text', { class:'node-id', x:point.x, y:point.y + 33, 'text-anchor':'middle' });
+      idText.textContent = 'id ' + node.id + ' · d=' + point.depth; group.appendChild(idText);
+      svg.appendChild(group); nodeElements[node.id] = group;
+    });
+    return size;
+  }
+
+  function renderTree(step) {
+    var queued = {}, visited = {}, completed = {}, selected = {};
+    step.queue.forEach(function (item) { queued[item.nodeId] = true; });
+    step.visited.forEach(function (id) { visited[id] = true; });
+    step.completed.forEach(function (id) { completed[id] = true; });
+    step.selected.forEach(function (id) { selected[id] = true; });
+    result.nodes.forEach(function (node) {
+      var className = 'node';
+      if (queued[node.id]) className += ' queued';
+      if (visited[node.id]) className += ' visited';
+      if (mode === 'dfs' && completed[node.id]) className += ' done';
+      if (selected[node.id]) className += ' selected';
+      if (step.currentNode === node.id) className += ' current';
+      nodeElements[node.id].setAttribute('class', className);
+      rayElements[node.id].style.display = selected[node.id] ? 'block' : 'none';
+      if (edgeElements[node.id]) {
+        var edgeClass = 'edge';
+        if (mode === 'dfs' && completed[node.id]) edgeClass += ' done';
+        if ((step.phase.indexOf('descend-') === 0 || step.phase.indexOf('enqueue-') === 0) &&
+            step.sourceNode === node.parent && step.edgeSide === node.side) edgeClass += ' active';
+        edgeElements[node.id].setAttribute('class', edgeClass);
+      }
+    });
+    levelElements.forEach(function (entry, depth) {
+      var active = step.currentDepth === depth;
+      entry.line.setAttribute('class', 'level-line' + (active ? ' active' : ''));
+      entry.label.setAttribute('class', 'level-label' + (active ? ' active' : ''));
+    });
+    var nullFrame = step.stack.length ? step.stack[step.stack.length - 1] : null;
+    var showNull = nullFrame && nullFrame.nodeId === null;
+    $('nullCall').className = 'null-call' + (showNull ? ' show' : '');
+    if (showNull) {
+      var parentText = nullFrame.parentId >= 0 ? result.nodes[nullFrame.parentId].value + '.' + nullFrame.via : 'root';
+      $('nullCall').textContent = parentText + ' → null · depth=' + nullFrame.depth;
+    }
+  }
+
+  function renderAux(step) {
+    var aux = $('aux'); aux.innerHTML = '';
+    if (mode === 'dfs') {
+      aux.className = 'aux stack';
+      if (!step.stack.length) { aux.innerHTML = '<div class="aux-empty">调用栈为空</div>'; return; }
+      step.stack.forEach(function (frame, index) {
+        var row = document.createElement('div'), top = index === step.stack.length - 1;
+        row.className = 'frame' + (top ? ' top' : '') + (frame.nodeId === null ? ' null' : '');
+        var badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = 'd=' + frame.depth;
+        var detail = document.createElement('span');
+        detail.textContent = 'dfs(' + (frame.nodeId === null ? 'null' : 'id ' + frame.nodeId + ' / ' + frame.value) + ') · ' + stateText(frame.state);
+        row.appendChild(badge); row.appendChild(detail); aux.appendChild(row);
+      });
+    } else {
+      aux.className = 'aux';
+      if (!step.queue.length) { aux.innerHTML = '<div class="aux-empty">deque([]) · 队列为空</div>'; return; }
+      step.queue.forEach(function (item, index) {
+        var row = document.createElement('div'); row.className = 'queue-item' + (index === 0 ? ' front' : '');
+        var badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = 'd=' + item.depth;
+        var detail = document.createElement('span'); detail.textContent = 'id ' + item.nodeId + ' / 值 ' + item.value;
+        row.appendChild(badge); row.appendChild(detail); aux.appendChild(row);
+      });
+    }
+  }
+
+  function renderOutput(step) {
+    var output = $('output'); output.innerHTML = '';
+    if (!step.result.length) { output.innerHTML = '<span class="none">[] · 尚未选择右视节点</span>'; return; }
+    step.result.forEach(function (value, depth) {
+      var item = document.createElement('span'); item.className = 'item'; item.textContent = 'd' + depth + ': ' + value; output.appendChild(item);
+    });
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderTree(step); renderAux(step); renderOutput(step);
+    Array.prototype.forEach.call($('phaseStrip').children, function (element) {
+      element.className = 'phase' + (element.dataset.phase === phaseKey(step.phase) ? ' active' : '');
+    });
+    $('action').innerHTML = '<span class="kind">' + step.phase.toUpperCase() + '</span><b>' + step.action + '</b>';
+    $('currentLine').textContent = step.codeLine; $('status').innerHTML = step.message;
+    if (mode === 'dfs') {
+      $('layerNodes').innerHTML = step.result.length ? step.result.map(function (value, depth) {
+        return 'depth ' + depth + ' → <b>id ' + step.selected[depth] + ' / ' + value + '</b>';
+      }).join('<br>') : '[] · 尚未首次到达任何 depth';
+    } else {
+      $('layerNodes').innerHTML = step.layerNodes.length ?
+        'depth ' + step.currentDepth + '：<b>' + step.layerNodes.map(function (id) { return 'id ' + id + '/' + result.nodes[id].value; }).join(' → ') + '</b>' :
+        '[] · 当前没有正在扫描的层';
+    }
+    $('visited').innerHTML = step.visited.length ?
+      '<b>' + step.visited.map(function (id) { return 'id ' + id + '/' + result.nodes[id].value; }).join(' → ') + '</b>' :
+      '[] · 尚未访问实际节点';
+    $('progress').textContent = '帧 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function renderStats(size) {
+    $('stats').innerHTML =
+      '<div class="stat">当前方法<b>' + (mode === 'dfs' ? '右优先 DFS' : '逐层 BFS') + '</b></div>' +
+      '<div class="stat">token / 节点<b>' + result.tokenCount + ' / 31 · ' + result.nodes.length + '</b></div>' +
+      '<div class="stat">树高 h<b>' + size.heightLevels + '</b></div>' +
+      '<div class="stat">最终 result<b>' + JSON.stringify(result.result) + '</b></div>' +
+      '<div class="stat">两种结果<b>' + (both.sameResult ? '一致 ✓' : '不一致 ✗') + '</b></div>' +
+      '<div class="stat">时间 / 辅助空间<b>O(n) / ' + (mode === 'dfs' ? 'O(h)' : 'O(w)') + '</b></div>' +
+      '<div class="stat">快照校验<b>' + (result.validation.ok ? '通过 ✓' : '失败 ✗') + '</b></div>';
+  }
+
+  function load() {
+    stopPlay();
+    var nextBoth = App.runBoth(input.value);
+    if (nextBoth.error) {
+      $('err').textContent = '输入有误：' + nextBoth.error + '。'; $('err').classList.add('show'); return;
+    }
+    $('err').classList.remove('show'); both = nextBoth; result = both[mode]; steps = result.steps; stepIndex = 0;
+    var size = buildTreeGraphic(); renderStats(size); render();
+  }
+  function switchMode(nextMode) {
+    if (nextMode === mode) return;
+    stopPlay(); mode = nextMode;
+    Array.prototype.forEach.call(document.querySelectorAll('.method-btn'), function (button) {
+      var active = button.dataset.mode === mode;
+      button.classList.toggle('active', active); button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    renderMethod();
+    if (both) {
+      result = both[mode]; steps = result.steps; stepIndex = 0;
+      var size = buildTreeGraphic(); renderStats(size); render();
+    } else load();
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function previous() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function updateCode() {
+    var tab = document.querySelector('.code-tab.active');
+    $('codeBlock').innerHTML = codes[mode][tab ? tab.dataset.lang : 'py'];
+  }
+
+  prevBtn.onclick = function () { stopPlay(); previous(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = function () {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex === steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () { if (stepIndex === steps.length - 1) stopPlay(); else next(); }, 850);
+  };
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); load(); } });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      input.value = chip.dataset.spec;
+      Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (item) { item.classList.remove('active'); });
+      chip.classList.add('active'); load();
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.method-btn'), function (button) {
+    button.onclick = function () { switchMode(button.dataset.mode); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); updateCode();
+    };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === input) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); previous(); }
+  });
+  $('treeBox').setAttribute('tabindex', '0');
+  renderMethod(); load();
+})();
+</script>
+</body>
+</html>
