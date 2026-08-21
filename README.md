@@ -116,12 +116,14 @@ leetcode-animations/
 | 152 | [乘积最大子数组](https://tces1.github.io/leetcode-animations/problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
 | 160 | [相交链表](https://tces1.github.io/leetcode-animations/problems/160-intersection-of-two-linked-lists.html) | 简单 | 链表 · 双指针 · 路程对齐 · O(1) 空间 |
 | 189 | [轮转数组](https://tces1.github.io/leetcode-animations/problems/189-rotate-array.html) | 中等 | 数组 · 数学 · 双指针 · 三次反转 · O(1) 空间 |
+| 199 | [二叉树的右视图](https://tces1.github.io/leetcode-animations/problems/199-binary-tree-right-side-view.html) | 中等 | 二叉树 · 右视图 · 深度优先搜索 · 广度优先搜索 · 递归 · 队列 · O(n) |
 | 200 | [岛屿数量](https://tces1.github.io/leetcode-animations/problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
 | 206 | [反转链表](https://tces1.github.io/leetcode-animations/problems/206-reverse-linked-list.html) | 简单 | 链表 · 迭代 · 递归 · 双指针 · 调用栈 · 原地修改 |
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
 | 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
 | 226 | [翻转二叉树](https://tces1.github.io/leetcode-animations/problems/226-invert-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 翻转二叉树 · 调用栈 · O(n) |
+| 230 | [二叉搜索树中第 K 小的元素](https://tces1.github.io/leetcode-animations/problems/230-kth-smallest-element-in-a-bst.html) | 中等 | 二叉搜索树 · 中序遍历 · 栈 · 递归 · 提前停止 · O(h+k) |
 | 234 | [回文链表](https://tces1.github.io/leetcode-animations/problems/234-palindrome-linked-list.html) | 简单 | 链表 · 快慢指针 · 原地反转 · 回文 · O(1) 空间 |
 | 238 | [除了自身以外数组的乘积](https://tces1.github.io/leetcode-animations/problems/238-product-of-array-except-self.html) | 中等 | 数组 · 前缀积 · 后缀积 · 不使用除法 · O(1) 额外空间 |
 | 239 | [滑动窗口最大值](https://tces1.github.io/leetcode-animations/problems/239-sliding-window-maximum.html) | 困难 | 数组 · 滑动窗口 · 单调队列 · 双端队列 |
