@@ -3,97 +3,140 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="tags" content="动态规划 · 完全背包 · 填表">
+<meta name="tags" content="动态规划 · 完全背包 · 记忆化搜索 · 递归树">
 <title>322. 零钱兑换 — 动画演示</title>
 <style>
-  :root { color-scheme: light; }
-  * { box-sizing: border-box; }
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
   body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f6f7f9;
-    color: #1d2129;
-    padding: 24px;
-    line-height: 1.5;
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
   }
-  .wrap { max-width: 920px; margin: 0 auto; }
-  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  code, pre { font-family:"SF Mono",Menlo,Consolas,monospace; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
   .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
-  h1 { font-size: 20px; margin: 0 0 4px; }
-  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
   .link-lc { font-size:12px; color:#6b7280; }
   .link-lc a { color:#6366f1; }
-
+  h1 { font-size:21px; margin:0 0 5px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:16px; }
   .card {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
-    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px;
+    margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
   }
-  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .method-switch { display:grid; grid-template-columns:repeat(2,minmax(220px,1fr)); gap:10px; }
+  .mode-btn {
+    text-align:left; background:#f8fafc; color:#374151; border:1px solid #e5e7eb; padding:12px 14px;
+  }
+  .mode-btn:hover { background:#f1f5f9; }
+  .mode-btn.active { background:#eef2ff; color:#3730a3; border-color:#818cf8; box-shadow:0 0 0 2px rgba(99,102,241,.12); }
+  .mode-btn span { display:block; color:#6b7280; font-size:12px; font-weight:400; margin-top:2px; }
+  .mode-btn.active span { color:#6366f1; }
+  .idea-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .idea-item { background:#f8fafc; border:1px solid #eef0f4; border-radius:9px; padding:11px; font-size:13px; }
+  .idea-item b { display:block; color:#4f46e5; margin-bottom:3px; }
+  .note { margin-top:10px; color:#4b5563; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
   input[type=text] {
-    flex: 1; min-width: 200px;
-    padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
-    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+    flex:1; min-width:240px; padding:9px 12px; font-size:15px; font-family:"SF Mono",Menlo,monospace;
+    border:1px solid #d1d5db; border-radius:8px; outline:none;
   }
-  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
   button {
-    padding: 9px 16px; font-size: 14px; font-weight: 600;
-    border: none; border-radius: 8px; cursor: pointer;
-    background: #6366f1; color: #fff; transition: background .15s;
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
   }
-  button:hover { background: #4f46e5; }
-  button.ghost { background: #eef0f4; color: #374151; }
-  button.ghost:hover { background: #e2e5eb; }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
   .chip {
-    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
-    padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb;
-    border-radius: 999px; cursor: pointer; color: #374151;
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 9px; background:#f1f2f4;
+    border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
   }
-  .chip:hover { background: #e6e8ec; }
-  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
-
-  /* dp table */
-  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
-  .cell { width: 46px; display:flex; flex-direction:column; align-items:center; gap:3px; }
-  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
-  .box {
-    width: 100%; height: 44px; display:flex; align-items:center; justify-content:center;
-    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:600;
-    border-radius:8px; background:#f1f2f4; color:#4b5563; border:2px solid transparent;
-    transition: all .2s;
-  }
-  .box.done   { background:#eef2ff; color:#4f46e5; }
-  .box.active { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
-  .box.src    { background:#fef9c3; color:#854d0e; border-color:#fde047; }
-  .box.unreach{ background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }
-  .box.empty  { color:#c7cbd1; }
-
-  /* coins strip */
-  .sq-row { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip:hover { background:#e6e8ec; }
+  .hint { font-size:12px; color:#8b93a1; margin-top:8px; }
+  .error { display:none; color:#b91c1c; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:8px 10px; margin-top:9px; font-size:13px; }
+  .normalization { display:none; color:#92400e; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:8px 10px; margin-top:9px; font-size:13px; }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .sq-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
   .sq {
-    font-family:"SF Mono",Menlo,monospace; font-size:13px; padding:6px 11px;
-    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:8px; color:#4b5563;
-    transition: all .15s;
+    font-family:"SF Mono",Menlo,monospace; font-size:13px; padding:6px 11px; background:#f1f2f4;
+    border:1px solid #e5e7eb; border-radius:8px; color:#4b5563; transition:all .15s;
   }
   .sq.on { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-2px); box-shadow:0 4px 10px rgba(99,102,241,.3); }
-  .sq.skip { opacity:.4; }
-
-  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
-
-  .status {
-    background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
+  .sq.skip { opacity:.38; }
+  .phase-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+  .phase { border:1px solid #e5e7eb; border-radius:8px; padding:8px 9px; color:#9ca3af; font-size:11px; }
+  .phase b { display:block; color:#6b7280; font-size:12px; }
+  .phase.done { background:#f0fdf4; border-color:#bbf7d0; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; color:#4f46e5; }
+  .phase.active b { color:#3730a3; }
+  .dashboard { display:grid; grid-template-columns:repeat(6,minmax(110px,1fr)); gap:8px; margin-bottom:16px; }
+  .metric { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 10px; color:#6b7280; font-size:11px; min-width:0; }
+  .metric b { display:block; color:#1f2937; font-family:"SF Mono",Menlo,monospace; font-size:13px; overflow-wrap:anywhere; }
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell { width:46px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .dp-box {
+    width:100%; height:44px; display:flex; align-items:center; justify-content:center; font-family:"SF Mono",Menlo,monospace;
+    font-size:16px; font-weight:600; border-radius:8px; background:#f1f2f4; color:#4b5563;
+    border:2px solid transparent; transition:all .2s;
   }
-  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; }
+  .dp-box.done { background:#eef2ff; color:#4f46e5; }
+  .dp-box.active { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .dp-box.src { background:#fef9c3; color:#854d0e; border-color:#fde047; }
+  .dp-box.unreach { background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }
+  .dp-box.empty { color:#c7cbd1; }
+  .tree-wrap { width:100%; overflow:auto; border:1px solid #eef0f4; border-radius:10px; background:#fbfbfc; max-height:680px; }
+  svg { display:block; }
+  .edge { stroke:#d1d5db; stroke-width:2; }
+  .edge.active { stroke:#6366f1; stroke-width:3; }
+  .edge-lab { font:600 11px "SF Mono",Menlo,monospace; fill:#9ca3af; }
+  .edge-lab.active { fill:#4f46e5; }
+  .node circle { fill:#f1f2f4; stroke:#d1d5db; stroke-width:2; transition:all .15s; }
+  .node .n-amt { font:700 14px "SF Mono",Menlo,monospace; fill:#4b5563; }
+  .node .n-val { font:700 12px "SF Mono",Menlo,monospace; fill:#6b7280; }
+  .node.done circle { fill:#eef2ff; stroke:#c7d2fe; }
+  .node.done .n-amt { fill:#4f46e5; }
+  .node.success circle { fill:#dcfce7; stroke:#86efac; }
+  .node.success .n-amt { fill:#166534; }
+  .node.cache circle { fill:#ffedd5; stroke:#fdba74; }
+  .node.cache .n-amt { fill:#9a3412; }
+  .node.dead circle { fill:#fee2e2; stroke:#fca5a5; }
+  .node.dead .n-amt { fill:#b91c1c; }
+  .node.active circle { fill:#6366f1; stroke:#4338ca; stroke-width:3; }
+  .node.active .n-amt { fill:#fff; }
+  .node.active .n-val { fill:#4338ca; }
+  .memo-under { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .stack-list,.cache-list { display:flex; flex-wrap:wrap; gap:6px; min-height:29px; }
+  .pill { padding:4px 8px; border-radius:999px; background:#eef0f4; color:#4b5563; font:12px "SF Mono",Menlo,monospace; }
+  .pill.active { background:#6366f1; color:#fff; }
+  .pill.cached { background:#ffedd5; color:#9a3412; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px; }
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px; border:1px solid rgba(0,0,0,.08); }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fca5a5; }
+  .status .op { color:#86efac; font-weight:700; }
+  .status .hit { color:#fdba74; font-weight:700; }
   .status .no { color:#fca5a5; font-weight:700; }
   .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
-  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px;}
-  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
-
-  details.code { margin-top: 4px; }
+  .complexity { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px; }
+  .complexity .metric { background:#fff; }
   details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
-  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  .code-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .code-title { font-size:12px; color:#6b7280; font-weight:700; margin-bottom:5px; }
+  pre { margin:0; background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:12px; line-height:1.55; }
   pre .cmt { color:#7dd3fc; }
+  [hidden] { display:none !important; }
+  @media (max-width:760px) {
+    body { padding:14px; }
+    .method-switch,.idea-grid,.code-grid,.memo-under { grid-template-columns:1fr; }
+    .dashboard { grid-template-columns:repeat(2,1fr); }
+    .complexity { grid-template-columns:repeat(2,1fr); }
+    .phase-strip { grid-template-columns:repeat(2,1fr); }
+  }
 </style>
 </head>
 <body>
@@ -102,37 +145,62 @@
     <span class="difftag">中等</span>
     <span class="link-lc">原题：<a href="https://leetcode.cn/problems/coin-change/" target="_blank" rel="noopener">LeetCode 322</a></span>
   </div>
-
-  <h1>322. 零钱兑换 · 动态规划填表动画</h1>
-  <div class="sub"><code>dp[i]</code> = 凑出金额 <code>i</code> 所需最少的硬币数。填 <code>dp[i]</code> 时，枚举「最后一枚硬币 <code>c</code>」（需 <code>c ≤ i</code>），答案就是 <code>min(dp[i − c]) + 1</code>。凑不出则记为 <code>∞</code>，最终 <code>∞</code> 返回 <code>−1</code>。</div>
+  <h1 id="pageHeading">322. 零钱兑换 · 动态规划填表</h1>
+  <div class="sub" id="pageSub"></div>
 
   <div class="card">
-    <div class="controls">
-      <input type="text" id="input" value="1,2,5 | 11" spellcheck="false" placeholder="硬币列表 | 目标金额，例如 1,2,5 | 11">
-      <button id="loadBtn">载入</button>
+    <div class="panel-title">选择方法</div>
+    <div class="method-switch">
+      <button class="mode-btn active" data-mode="dp" aria-pressed="true">方法 A：动态规划填表<span>自底向上计算 dp[0…amount]</span></button>
+      <button class="mode-btn" data-mode="memo" aria-pressed="false">方法 B：记忆化递归树<span>自顶向下 dfs(rem) + 缓存</span></button>
     </div>
-    <div class="examples">
-      <span class="chip">1,2,5 | 11</span>
-      <span class="chip">2 | 3</span>
-      <span class="chip">1 | 0</span>
-      <span class="chip">2,5,10,1 | 27</span>
-      <span class="chip">3,7 | 17</span>
-      <span class="chip">186,419,83,408 | 63</span>
-    </div>
-    <div class="legend">
-      <span><span class="dot" style="background:#6366f1"></span>当前正在算 dp[i]</span>
-      <span><span class="dot" style="background:#fef9c3;border:1px solid #fde047"></span>来源 dp[i − c]</span>
-      <span><span class="dot" style="background:#eef2ff;border:1px solid #c7d2fe"></span>已确定</span>
-      <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>凑不出(∞)</span>
-    </div>
-    <div class="hint">提示：格式为「硬币，逗号分隔 | 金额」。金额较大时格子会自动换行；为便于观看，金额会被限制在 120 以内。</div>
   </div>
 
   <div class="card">
-    <div class="panel-title">coins（可用硬币面值）</div>
-    <div class="sq-row" id="sqRow"></div>
-    <div class="panel-title" style="margin-top:16px;">dp 表（上标 = 金额 i，格内 = dp[i]）</div>
-    <div class="arr-row" id="dpRow"></div>
+    <div class="panel-title" id="ideaTitle"></div>
+    <div class="idea-grid" id="ideaGrid"></div>
+    <div class="note" id="methodNote"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="coinInput" value="1,2,5 | 11" spellcheck="false" aria-label="硬币与目标金额" placeholder="硬币列表 | 目标金额，例如 1,2,5 | 11">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <button class="chip" type="button">1,2,5 | 11</button>
+      <button class="chip" type="button">1,3,4 | 6</button>
+      <button class="chip" type="button">2 | 3</button>
+      <button class="chip" type="button">1 | 0</button>
+      <button class="chip" type="button">2,5,10,1 | 27</button>
+      <button class="chip" type="button">3,7 | 17</button>
+      <button class="chip" type="button">186,419,83,408 | 63</button>
+    </div>
+    <div class="hint">严格格式：正整数硬币（逗号或空格分隔）<code>|</code> 0～120 的整数金额；最多 6 种硬币、面值不超过 10000。重复面值会去重，随后升序排列。</div>
+    <div class="error" id="inputError" role="alert"></div>
+    <div class="normalization" id="normalizationNote"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">coins（两个方法共享的已去重、升序硬币）</div>
+    <div class="sq-row" id="coinRow"></div>
+    <div class="phase-strip" id="phaseStrip"></div>
+    <div class="dashboard" id="dashboard"></div>
+
+    <section id="dpPanel">
+      <div class="panel-title">dp 表（上标 = 金额 i，格内 = dp[i]）</div>
+      <div class="arr-row" id="dpRow"></div>
+    </section>
+
+    <section id="memoPanel" hidden>
+      <div class="panel-title">记忆化递归树（节点上 = rem，下 = dfs(rem)；边 = 减去的硬币）</div>
+      <div class="tree-wrap" id="treeWrap"><svg id="memoSvg" xmlns="http://www.w3.org/2000/svg" aria-label="记忆化递归树"></svg></div>
+      <div class="memo-under">
+        <div><div class="panel-title">调用栈（右侧为当前帧）</div><div class="stack-list" id="stackList"></div></div>
+        <div><div class="panel-title">memo 缓存</div><div class="cache-list" id="cacheList"></div></div>
+      </div>
+    </section>
   </div>
 
   <div class="card">
@@ -145,237 +213,625 @@
     </div>
     <div class="panel-title">当前状态</div>
     <div class="status" id="status">点击「下一步」开始。</div>
+    <div class="complexity" id="complexity"></div>
   </div>
 
   <div class="card">
     <details class="code">
-      <summary>查看参考代码（Java / Python）</summary>
-      <pre><code>// Java · 自底向上填表 · 时间 O(amount × coins) 空间 O(amount)
-class Solution {
+      <summary id="codeSummary">查看方法 A 参考代码（Java / Python）</summary>
+      <div class="code-grid" id="dpCode">
+        <div><div class="code-title">Java · 动态规划填表</div><pre><code>class Solution {
     public int coinChange(int[] coins, int amount) {
         int[] dp = new int[amount + 1];
-        Arrays.fill(dp, amount + 1);         <span class="cmt">// amount+1 当作 ∞(硬币数不可能超过 amount)</span>
-        dp[0] = 0;                           <span class="cmt">// 凑出 0 需要 0 枚</span>
-        for (int i = 1; i &lt;= amount; i++)
-            for (int c : coins)              <span class="cmt">// 枚举最后一枚硬币 c</span>
-                if (c &lt;= i)
+        Arrays.fill(dp, amount + 1); <span class="cmt">// 充当 ∞</span>
+        dp[0] = 0;
+        for (int i = 1; i &lt;= amount; i++) {
+            for (int c : coins) {
+                if (c &lt;= i) {
                     dp[i] = Math.min(dp[i], dp[i - c] + 1);
+                }
+            }
+        }
         return dp[amount] &gt; amount ? -1 : dp[amount];
     }
-}</code></pre>
-      <pre><code><span class="cmt"># Python · 记忆化搜索 · @cache 必须放在方法内(coins 因用例而异)</span>
-class Solution:
+}</code></pre></div>
+        <div><div class="code-title">Python · 动态规划填表</div><pre><code>class Solution:
     def coinChange(self, coins: List[int], amount: int) -&gt; int:
-        @cache
-        def dfs(i):
-            if i == 0:
-                return 0
-            step = inf
-            for c in coins:
-                if i - c &gt;= 0:               # 提前剪枝,不递归到负数
-                    step = min(step, dfs(i - c) + 1)
-            return step
-        res = dfs(amount)
-        return -1 if res == inf else res</code></pre>
-      <pre><code><span class="cmt"># Python · 自底向上填表(与本页动画一致,无递归、不会爆栈)</span>
-class Solution:
-    def coinChange(self, coins: List[int], amount: int) -&gt; int:
-        dp = [0] + [inf] * amount           # dp[i] = 凑出 i 的最少硬币数
+        dp = [0] + [inf] * amount
         for i in range(1, amount + 1):
             for c in coins:
-                if c &lt;= i:                   # 最后一枚用 c
+                if c &lt;= i:
                     dp[i] = min(dp[i], dp[i - c] + 1)
-        return dp[amount] if dp[amount] != inf else -1</code></pre>
+        return -1 if dp[amount] == inf else dp[amount]</code></pre></div>
+      </div>
+      <div class="code-grid" id="memoCode" hidden>
+        <div><div class="code-title">Java · 记忆化搜索</div><pre><code>class Solution {
+    private int[] memo;
+    public int coinChange(int[] coins, int amount) {
+        memo = new int[amount + 1];
+        Arrays.fill(memo, -2);       <span class="cmt">// -2 = 尚未计算</span>
+        memo[0] = 0;
+        return dfs(coins, amount);
+    }
+    private int dfs(int[] coins, int rem) {
+        if (memo[rem] != -2) return memo[rem];
+        int best = Integer.MAX_VALUE;
+        for (int c : coins) {
+            if (c &lt;= rem) {
+                int sub = dfs(coins, rem - c);
+                if (sub != -1) best = Math.min(best, sub + 1);
+            }
+        }
+        return memo[rem] =
+            best == Integer.MAX_VALUE ? -1 : best;
+    }
+}</code></pre></div>
+        <div><div class="code-title">Python · 记忆化搜索</div><pre><code>class Solution:
+    def coinChange(self, coins: List[int], amount: int) -&gt; int:
+        @cache  <span class="cmt"># 放在方法内，避免跨用例共享</span>
+        def dfs(rem):
+            if rem == 0:
+                return 0
+            best = inf
+            for c in coins:
+                if c &lt;= rem:
+                    best = min(best, dfs(rem - c) + 1)
+            return best
+
+        answer = dfs(amount)
+        return -1 if answer == inf else answer</code></pre></div>
+      </div>
     </details>
   </div>
 </div>
 
 <script>
-(function () {
-  var input = document.getElementById('input');
-  var sqRow = document.getElementById('sqRow');
-  var dpRow = document.getElementById('dpRow');
-  var statusEl = document.getElementById('status');
-  var progressEl = document.getElementById('progress');
+(function (root) {
+  'use strict';
   var INF = Infinity;
-  var MAX_AMOUNT = 120;
+  var LIMITS = { maxAmount:120, maxCoins:6, maxCoin:10000 };
 
-  var coins = [];
-  var amount = 0;
-  var steps = [];
-  var stepIdx = 0;
-  var playTimer = null;
+  function fmt(value) { return value === INF ? '∞' : String(value); }
+  function own(object, key) { return Object.prototype.hasOwnProperty.call(object, key); }
 
-  function parseInput(s) {
-    s = s || '';
-    var parts = s.split('|');
-    var coinStr = parts[0] || '';
-    var amtStr = parts.length > 1 ? parts[1] : '';
-    var cs = coinStr.split(/[,\s]+/)
-              .map(function (x) { return x.trim(); })
-              .filter(function (x) { return x.length; })
-              .map(Number)
-              .filter(function (x) { return !isNaN(x) && x > 0; });
-    // 去重 + 升序,便于观看
-    cs = cs.filter(function (v, i, a) { return a.indexOf(v) === i; })
-           .sort(function (a, b) { return a - b; });
-    var m = amtStr.match(/-?\d+/);
-    var amt = m ? parseInt(m[0], 10) : NaN;
-    return { coins: cs, amount: amt };
+  function parseInput(raw) {
+    var text = String(raw === undefined || raw === null ? '' : raw).trim();
+    var parts = text.split('|');
+    if (parts.length !== 2) return { ok:false, error:'必须且只能包含一个“|”，左边是硬币，右边是金额' };
+    var coinText = parts[0].trim(), amountText = parts[1].trim();
+    if (!coinText) return { ok:false, error:'硬币列表不能为空' };
+    if (!amountText) return { ok:false, error:'目标金额不能为空' };
+    if (/^,|,$|,\s*,/.test(coinText)) return { ok:false, error:'硬币列表中存在空项' };
+    var tokens = coinText.split(/[,\s]+/);
+    var rawCoins = [];
+    for (var i = 0; i < tokens.length; i++) {
+      if (!/^\d+$/.test(tokens[i])) return { ok:false, error:'硬币“' + tokens[i] + '”不是正整数' };
+      var coin = Number(tokens[i]);
+      if (!Number.isSafeInteger(coin) || coin <= 0) return { ok:false, error:'硬币必须是安全范围内的正整数' };
+      if (coin > LIMITS.maxCoin) return { ok:false, error:'硬币面值不能超过 ' + LIMITS.maxCoin };
+      rawCoins.push(coin);
+    }
+    if (!/^\d+$/.test(amountText)) return { ok:false, error:'目标金额必须是 0～' + LIMITS.maxAmount + ' 的整数' };
+    var amount = Number(amountText);
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > LIMITS.maxAmount) {
+      return { ok:false, error:'目标金额必须在 0～' + LIMITS.maxAmount + ' 之间，不会静默截断' };
+    }
+    var coins = rawCoins.filter(function (value, index, all) { return all.indexOf(value) === index; })
+      .sort(function (a, b) { return a - b; });
+    if (coins.length > LIMITS.maxCoins) return { ok:false, error:'动画最多支持 ' + LIMITS.maxCoins + ' 种不同硬币' };
+    var normalized = coins.join(',') + ' | ' + amount;
+    return {
+      ok:true, error:null, coins:coins, amount:amount, normalized:normalized,
+      changed:normalized !== text.replace(/\s*\|\s*/, ' | '),
+      hadDuplicates:coins.length !== rawCoins.length
+    };
   }
 
-  function fmt(v) { return v === INF ? '∞' : v; }
+  function computeValues(coins, amount) {
+    var values = new Array(amount + 1).fill(INF);
+    values[0] = 0;
+    for (var i = 1; i <= amount; i++) {
+      for (var k = 0; k < coins.length; k++) {
+        var coin = coins[k];
+        if (coin <= i && values[i - coin] !== INF) values[i] = Math.min(values[i], values[i - coin] + 1);
+      }
+    }
+    return values;
+  }
 
-  function buildSteps(coins, amount) {
-    var snaps = [];
-    var dp = new Array(amount + 1).fill(INF);
-    var from = new Array(amount + 1).fill(-1);   // 记录最优的最后一枚硬币
+  function solveDP(coins, amount) {
+    var result = computeValues(coins, amount)[amount];
+    return result === INF ? -1 : result;
+  }
+
+  function solveMemo(coins, amount) {
+    var memo = { 0:0 };
+    function dfs(rem) {
+      if (own(memo, rem)) return memo[rem];
+      var best = INF;
+      for (var i = 0; i < coins.length; i++) {
+        if (coins[i] <= rem) {
+          var sub = dfs(rem - coins[i]);
+          if (sub !== INF) best = Math.min(best, sub + 1);
+        }
+      }
+      memo[rem] = best;
+      return best;
+    }
+    var result = dfs(amount);
+    return result === INF ? -1 : result;
+  }
+
+  function buildDPSteps(coins, amount) {
+    var steps = [], dp = new Array(amount + 1).fill(INF), from = new Array(amount + 1).fill(-1);
     dp[0] = 0;
-
-    function snap(o) {
-      snaps.push({
-        i: (o.i === undefined ? -1 : o.i),
-        dp: dp.slice(),
-        src: (o.src === undefined ? -1 : o.src),
-        coin: (o.coin === undefined ? 0 : o.coin),
-        done: (o.done === undefined ? false : o.done),
-        msg: o.msg, phase: o.phase
+    function snap(data) {
+      data = data || {};
+      steps.push({
+        mode:'dp', phase:data.phase || 'init', i:data.i === undefined ? -1 : data.i,
+        src:data.src === undefined ? -1 : data.src, coin:data.coin === undefined ? null : data.coin,
+        candidate:data.candidate === undefined ? null : data.candidate, updated:!!data.updated,
+        done:!!data.done, result:data.result === undefined ? null : data.result,
+        dp:dp.slice(), from:from.slice(), message:data.message
       });
     }
-
-    snap({ msg: '初始化：dp[0] = <b>0</b>（凑出金额 0 需要 0 枚），其余 dp 全设为 <b>∞</b>（暂时凑不出）。硬币面值为 [' + coins.join(', ') + ']。', phase: 'start' });
-
+    snap({ phase:'init', message:'初始化：<code>dp[0] = 0</code>，其余位置为 <b>∞</b>。之后按金额从小到大填表。' });
     for (var i = 1; i <= amount; i++) {
-      snap({ i: i, msg: '开始计算 dp[<b>' + i + '</b>]：枚举「最后一枚硬币 c」，在所有 c ≤ ' + i + ' 的方案里取最少。', phase: 'visit' });
+      snap({ phase:'visit', i:i, message:'开始计算 <b>dp[' + i + ']</b>：枚举每一种“最后一枚硬币” <code>c</code>。' });
       for (var k = 0; k < coins.length; k++) {
-        var c = coins[k];
-        if (c > i) {
-          snap({ i: i, coin: c,
-            msg: '硬币 <b>' + c + '</b> &gt; 当前金额 ' + i + '，放不下，<span class="no">跳过</span>。',
-            phase: 'skip' });
+        var coin = coins[k];
+        if (coin > i) {
+          snap({ phase:'skip', i:i, coin:coin, message:'硬币 <b>' + coin + '</b> 大于当前金额 ' + i + '，<span class="no">跳过</span>。' });
           continue;
         }
-        var src = i - c;
-        var cand = dp[src] === INF ? INF : dp[src] + 1;
-        var better = cand < dp[i];
-        if (better) { dp[i] = cand; from[i] = c; }
-        snap({ i: i, src: src, coin: c,
-          msg: '试最后一枚 = <b>' + c + '</b>：dp[' + src + '] + 1 = ' + fmt(dp[src]) + ' + 1 = ' + fmt(cand) + '。' +
-               (better ? ' <span class="op">更优 → 更新</span> dp[' + i + '] = ' + fmt(cand) + '。'
-                       : ' 不比当前 dp[' + i + '] = ' + fmt(dp[i]) + ' 更好，保留。'),
-          phase: 'try' });
+        var src = i - coin, candidate = dp[src] === INF ? INF : dp[src] + 1;
+        var updated = candidate < dp[i];
+        if (updated) { dp[i] = candidate; from[i] = coin; }
+        snap({
+          phase:'try', i:i, src:src, coin:coin, candidate:candidate, updated:updated,
+          message:'尝试最后使用 <b>' + coin + '</b>：<code>dp[' + src + '] + 1 = ' + fmt(candidate) + '</code>。' +
+            (updated ? ' <span class="op">更优，更新 dp[' + i + ']。</span>' : ' 不优于当前值，保留。')
+        });
       }
-      snap({ i: i,
-        msg: 'dp[' + i + '] 已确定为 <b>' + fmt(dp[i]) + '</b>' + (dp[i] === INF ? '（这些硬币凑不出金额 ' + i + '）' : '') + '。',
-        phase: 'set' });
+      snap({
+        phase:'set', i:i,
+        message:'金额 ' + i + ' 已枚举完，<b>dp[' + i + '] = ' + fmt(dp[i]) + '</b>' +
+          (dp[i] === INF ? '，当前硬币无法凑出。' : '。')
+      });
     }
-
-    // 回溯一种最优方案
-    var msg;
-    if (amount === 0) {
-      msg = '完成 ✅ 目标金额为 0，无需任何硬币，dp[0] = <b>0</b>。';
-    } else if (dp[amount] === INF) {
-      msg = '完成 ❌ 用这些硬币<span class="no">无法</span>凑出金额 <b>' + amount + '</b>，dp[' + amount + '] = ∞ → 返回 <b>−1</b>。';
-    } else {
-      var path = [], k2 = amount;
-      while (k2 > 0) { path.push(from[k2]); k2 -= from[k2]; }
-      msg = '完成 ✅ 凑出金额 <b>' + amount + '</b> 最少需要 <b>' + dp[amount] + '</b> 枚硬币，例如：' + amount + ' = ' + path.join(' + ') + '。';
+    var answer = dp[amount] === INF ? -1 : dp[amount], message;
+    if (amount === 0) message = '完成 ✅ 金额为 0，不需要硬币，返回 <b>0</b>。';
+    else if (answer === -1) message = '完成 ❌ <b>dp[' + amount + '] = ∞</b>，无法凑出目标金额，返回 <b>−1</b>。';
+    else {
+      var path = [], rem = amount;
+      while (rem > 0) { path.push(from[rem]); rem -= from[rem]; }
+      message = '完成 ✅ 最少需要 <b>' + answer + '</b> 枚硬币；一种最优方案：' + amount + ' = ' + path.join(' + ') + '。';
     }
-    snap({ done: true, msg: msg, phase: 'end' });
-    return snaps;
+    snap({ phase:'end', done:true, result:answer, message:message });
+    return steps;
   }
 
-  function load(s) {
-    var r = parseInput(s);
-    if (!r.coins.length || isNaN(r.amount) || r.amount < 0) return;
-    var amt = r.amount > MAX_AMOUNT ? MAX_AMOUNT : r.amount;
-    coins = r.coins;
-    amount = amt;
-    input.value = coins.join(',') + ' | ' + amount;
-    steps = buildSteps(coins, amount);
-    stepIdx = 0;
-    renderStatic();
-    render();
+  function buildMemoModel(coins, amount) {
+    var nodes = [], edges = [], values = computeValues(coins, amount), expanded = {};
+    function build(rem) {
+      var node = { id:nodes.length, rem:rem, kind:'expand', value:values[rem], children:[] };
+      nodes.push(node);
+      if (rem === 0) { node.kind = 'success'; return node; }
+      if (expanded[rem]) { node.kind = 'cache'; return node; }
+      expanded[rem] = true;
+      for (var i = 0; i < coins.length; i++) {
+        var coin = coins[i];
+        if (coin > rem) continue;
+        var child = build(rem - coin);
+        node.children.push({ coin:coin, id:child.id });
+        edges.push({ from:node.id, to:child.id, coin:coin });
+      }
+      return node;
+    }
+    var rootNode = build(amount);
+    return { nodes:nodes, edges:edges, rootId:rootNode.id, values:values.slice(), coins:coins.slice(), amount:amount };
   }
 
-  function makeCell(idx, val) {
-    var cell = document.createElement('div');
-    cell.className = 'cell';
-    var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = idx;
-    var box = document.createElement('div'); box.className = 'box';
-    box.textContent = val;
-    box.dataset.idx = idx;
-    cell.appendChild(lab); cell.appendChild(box);
+  function buildMemoSteps(model) {
+    var steps = [], nodes = model.nodes, coins = model.coins;
+    var states = new Array(nodes.length).fill('idle'), values = new Array(nodes.length).fill(null);
+    var stack = [], memo = {};
+    function memoEntries() {
+      return Object.keys(memo).map(Number).sort(function (a, b) { return a - b; })
+        .map(function (rem) { return { rem:rem, value:memo[rem] }; });
+    }
+    function snap(data) {
+      data = data || {};
+      steps.push({
+        mode:'memo', phase:data.phase || 'call', activeId:data.activeId === undefined ? -1 : data.activeId,
+        edge:data.edge ? { from:data.edge.from, to:data.edge.to } : null,
+        coin:data.coin === undefined ? null : data.coin,
+        childRem:data.childRem === undefined ? null : data.childRem,
+        best:data.best === undefined ? null : data.best,
+        done:!!data.done, result:data.result === undefined ? null : data.result,
+        states:states.slice(), values:values.slice(), stack:stack.slice(),
+        memo:memoEntries(), message:data.message
+      });
+    }
+    function run(node) {
+      stack.push(node.rem);
+      snap({ phase:'call', activeId:node.id, message:'进入 <b>dfs(' + node.rem + ')</b>，调用栈新增一个递归帧。' });
+      if (node.kind === 'success') {
+        values[node.id] = 0; states[node.id] = 'success'; memo[0] = 0;
+        snap({ phase:'base', activeId:node.id, best:0, message:'命中基例 <code>dfs(0) = 0</code> ✅ 已凑齐，向上一层返回 0。' });
+        stack.pop();
+        return 0;
+      }
+      if (node.kind === 'cache') {
+        var cached = own(memo, node.rem) ? memo[node.rem] : node.value;
+        values[node.id] = cached; states[node.id] = 'cache';
+        snap({
+          phase:'cache', activeId:node.id, best:cached,
+          message:'<b>dfs(' + node.rem + ')</b> 已在缓存中 = ' + fmt(cached) +
+            '，<span class="hit">↺ 命中缓存，直接返回，不再展开。</span>'
+        });
+        stack.pop();
+        return cached;
+      }
+      var best = INF;
+      for (var i = 0; i < coins.length; i++) {
+        var coin = coins[i];
+        if (coin > node.rem) {
+          snap({
+            phase:'skip', activeId:node.id, coin:coin, best:best,
+            message:'硬币 <b>' + coin + '</b> 大于剩余金额 ' + node.rem + '，<span class="no">跳过</span>。'
+          });
+          continue;
+        }
+        var childRef = null;
+        for (var j = 0; j < node.children.length; j++) if (node.children[j].coin === coin) { childRef = node.children[j]; break; }
+        snap({
+          phase:'branch', activeId:node.id, coin:coin, childRem:node.rem - coin, best:best,
+          edge:{ from:node.id, to:childRef.id },
+          message:'选择最后一枚 <b>' + coin + '</b>，沿边下探 <code>dfs(' + (node.rem - coin) + ')</code>。'
+        });
+        var sub = run(nodes[childRef.id]), candidate = sub === INF ? INF : sub + 1;
+        if (candidate < best) best = candidate;
+        values[node.id] = best;
+        snap({
+          phase:'backtrack', activeId:node.id, coin:coin, childRem:node.rem - coin, best:best,
+          edge:{ from:node.id, to:childRef.id },
+          message:'子调用返回 ' + fmt(sub) + '；加上硬币 ' + coin + ' 得 ' + fmt(candidate) +
+            '，回溯更新 <b>best = ' + fmt(best) + '</b>。'
+        });
+      }
+      values[node.id] = best; states[node.id] = best === INF ? 'dead' : 'done'; memo[node.rem] = best;
+      snap({
+        phase:'return', activeId:node.id, best:best,
+        message:'<b>dfs(' + node.rem + ')</b> 的分支全部完成，将 ' + fmt(best) + ' 写入缓存并返回。'
+      });
+      stack.pop();
+      return best;
+    }
+    snap({ phase:'init', message:'初始化空缓存，从根节点 <b>dfs(' + model.amount + ')</b> 开始自顶向下搜索。' });
+    var raw = run(nodes[model.rootId]), answer = raw === INF ? -1 : raw;
+    var endMessage = model.amount === 0
+      ? '完成 ✅ <code>dfs(0) = 0</code>，无需硬币。'
+      : answer === -1
+        ? '完成 ❌ <code>dfs(' + model.amount + ') = ∞</code>，返回 <b>−1</b>。'
+        : '完成 ✅ <code>dfs(' + model.amount + ') = ' + answer + '</code>，最少需要 <b>' + answer + '</b> 枚硬币；橙色节点展示被缓存省下的重复子问题。';
+    snap({ phase:'end', done:true, result:answer, message:endMessage });
+    return steps;
+  }
+
+  function build(mode, coins, amount) {
+    if (mode === 'memo') {
+      var model = buildMemoModel(coins, amount);
+      return { mode:mode, model:model, steps:buildMemoSteps(model), result:solveMemo(coins, amount) };
+    }
+    return { mode:'dp', model:null, steps:buildDPSteps(coins, amount), result:solveDP(coins, amount) };
+  }
+
+  function validateSnapshots(steps) {
+    var errors = [];
+    if (!steps.length) return { ok:false, errors:['缺少动画快照'] };
+    for (var i = 0; i < steps.length; i++) {
+      var snapshot = steps[i], arrays = snapshot.mode === 'dp' ? ['dp','from'] : ['states','values','stack','memo'];
+      for (var j = 0; j < arrays.length; j++) if (!Array.isArray(snapshot[arrays[j]])) errors.push('第 ' + (i + 1) + ' 帧缺少 ' + arrays[j]);
+      if (i && snapshot.mode === 'dp' && snapshot.dp === steps[i - 1].dp) errors.push('相邻 DP 帧共享数组');
+      if (i && snapshot.mode === 'memo' && (snapshot.states === steps[i - 1].states || snapshot.stack === steps[i - 1].stack)) errors.push('相邻 Memo 帧共享数组');
+    }
+    var last = steps[steps.length - 1];
+    if (!last.done || last.phase !== 'end') errors.push('最后一帧不是结束快照');
+    return { ok:errors.length === 0, errors:errors };
+  }
+
+  function run(input) {
+    var parsed = parseInput(input);
+    if (!parsed.ok) return { error:parsed.error };
+    var dp = build('dp', parsed.coins, parsed.amount), memo = build('memo', parsed.coins, parsed.amount);
+    return {
+      error:null, coins:parsed.coins.slice(), amount:parsed.amount,
+      dp:dp, memo:memo, consistent:dp.result === memo.result,
+      validation:{ dp:validateSnapshots(dp.steps), memo:validateSnapshots(memo.steps) }
+    };
+  }
+
+  root.CoinChange322 = {
+    parseInput:parseInput, solveDP:solveDP, solveMemo:solveMemo,
+    buildDPSteps:buildDPSteps, buildMemoModel:buildMemoModel, buildMemoSteps:buildMemoSteps,
+    build:build, validateSnapshots:validateSnapshots, run:run, limits:LIMITS
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.CoinChange322, INF = Infinity;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('coinInput'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var mode = 'dp', coins = [], amount = 0, steps = [], stepIndex = 0, timer = null, memoModel = null;
+  var nodeEls = {}, edgeEls = {}, R = 22, X_GAP = 66, Y_GAP = 92, PAD_X = 34, PAD_Y = 34;
+
+  function fmt(value) { return value === INF ? '∞' : String(value); }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; }
+    playBtn.textContent = '▶ 自动播放';
+  }
+  function showError(message) {
+    $('inputError').textContent = '输入有误：' + message + '。';
+    $('inputError').style.display = 'block';
+  }
+  function clearMessages() {
+    $('inputError').style.display = 'none';
+    $('normalizationNote').style.display = 'none';
+  }
+
+  function renderMethodText() {
+    var dp = mode === 'dp';
+    $('pageHeading').textContent = '322. 零钱兑换 · ' + (dp ? '动态规划填表' : '记忆化递归树');
+    $('pageSub').innerHTML = dp
+      ? '<code>dp[i]</code> 表示凑出金额 <code>i</code> 的最少硬币数；从 <code>dp[0]=0</code> 出发，逐格计算 <code>dp[i]=min(dp[i-c])+1</code>。'
+      : '<code>dfs(rem)</code> 表示凑出剩余金额 <code>rem</code> 的最少硬币数；递归分叉、缓存重复状态，并在回溯时取 <code>min(子结果)+1</code>。';
+    $('ideaTitle').textContent = dp ? '方法 A · 自底向上填表' : '方法 B · 自顶向下记忆化';
+    $('ideaGrid').innerHTML = dp
+      ? '<div class="idea-item"><b>① 定义与初始化</b><code>dp[0]=0</code>，其余为 ∞，表示尚不可达。</div>' +
+        '<div class="idea-item"><b>② 枚举最后一枚</b>对每个金额 i，逐个尝试所有 <code>c ≤ i</code>。</div>' +
+        '<div class="idea-item"><b>③ 更新与回溯方案</b><code>dp[i]=min(dp[i-c]+1)</code>，同时记录最优硬币。</div>'
+      : '<div class="idea-item"><b>① dfs(rem) 分叉</b>每种 <code>c ≤ rem</code> 都产生子调用 <code>dfs(rem-c)</code>。</div>' +
+        '<div class="idea-item"><b>② 缓存命中</b>相同 rem 第二次出现时直接返回，橙色节点不再展开。</div>' +
+        '<div class="idea-item"><b>③ 回溯取最小</b>子调用返回后加 1，全部分支取 min 并写入 memo。</div>';
+    $('methodNote').innerHTML = dp
+      ? '<b>状态顺序：</b>每个来源 <code>dp[i-c]</code> 都已经计算完成，因此可直接转移。'
+      : '<b>状态数量：</b>有效 <code>rem</code> 只有 0～amount；每个状态最多枚举所有 coins，记忆化将重复子树折叠为缓存读取。';
+    $('legend').innerHTML = dp
+      ? '<span><span class="dot" style="background:#6366f1"></span>当前 dp[i]</span><span><span class="dot" style="background:#fef9c3;border-color:#fde047"></span>来源 dp[i-c]</span><span><span class="dot" style="background:#eef2ff"></span>已确定</span><span><span class="dot" style="background:#fee2e2"></span>不可达 ∞</span>'
+      : '<span><span class="dot" style="background:#6366f1;border-radius:50%"></span>当前节点</span><span><span class="dot" style="background:#dcfce7;border-radius:50%"></span>dfs(0)</span><span><span class="dot" style="background:#ffedd5;border-radius:50%"></span>缓存命中 ↺</span><span><span class="dot" style="background:#eef2ff;border-radius:50%"></span>已算出</span><span><span class="dot" style="background:#fee2e2;border-radius:50%"></span>死路 ∞</span>';
+    $('complexity').innerHTML =
+      '<div class="metric">方法<b>' + (dp ? 'DP 填表' : 'Memo DFS') + '</b></div>' +
+      '<div class="metric">时间复杂度<b>O(amount × coins)</b></div>' +
+      '<div class="metric">空间复杂度<b>O(amount)</b></div>' +
+      '<div class="metric">' + (dp ? '存储' : '额外空间') + '<b>' + (dp ? 'dp + from' : '缓存 + 递归栈') + '</b></div>';
+    $('codeSummary').textContent = '查看' + (dp ? '方法 A' : '方法 B') + '参考代码（Java / Python）';
+    $('dpCode').hidden = !dp; $('memoCode').hidden = dp;
+    $('dpPanel').hidden = !dp; $('memoPanel').hidden = dp;
+    Array.prototype.forEach.call(document.querySelectorAll('.mode-btn'), function (button) {
+      var active = button.dataset.mode === mode;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    renderPhaseStrip();
+  }
+
+  function renderPhaseStrip() {
+    var phases = mode === 'dp'
+      ? [['init','阶段 1','初始化'],['visit','阶段 2','选择金额'],['try','阶段 3','枚举并更新'],['end','阶段 4','得到答案']]
+      : [['call','阶段 1','进入调用'],['branch','阶段 2','递归分叉'],['cache','阶段 3','缓存 / 回溯'],['end','阶段 4','返回答案']];
+    $('phaseStrip').innerHTML = phases.map(function (item) {
+      return '<div class="phase" data-phase="' + item[0] + '"><span>' + item[1] + '</span><b>' + item[2] + '</b></div>';
+    }).join('');
+  }
+
+  function phaseRank(phase) {
+    if (mode === 'dp') {
+      if (phase === 'init') return 0;
+      if (phase === 'visit') return 1;
+      if (phase === 'try' || phase === 'skip' || phase === 'set') return 2;
+      return 3;
+    }
+    if (phase === 'init' || phase === 'call' || phase === 'base') return 0;
+    if (phase === 'branch' || phase === 'skip') return 1;
+    if (phase === 'cache' || phase === 'backtrack' || phase === 'return') return 2;
+    return 3;
+  }
+
+  function highlightPhases(step) {
+    var rank = phaseRank(step.phase);
+    Array.prototype.forEach.call($('phaseStrip').children, function (element, index) {
+      element.className = 'phase' + (index < rank ? ' done' : '') + (index === rank ? ' active' : '');
+    });
+  }
+
+  function renderCoins(step) {
+    $('coinRow').innerHTML = '';
+    coins.forEach(function (coin) {
+      var element = document.createElement('div');
+      element.className = 'sq';
+      if (step.coin === coin) element.classList.add(step.phase === 'skip' ? 'skip' : 'on');
+      element.textContent = '¥' + coin;
+      $('coinRow').appendChild(element);
+    });
+  }
+
+  function makeCell(index) {
+    var cell = document.createElement('div'), label = document.createElement('div'), box = document.createElement('div');
+    cell.className = 'cell'; label.className = 'idx'; label.textContent = index;
+    box.className = 'dp-box'; box.dataset.index = index;
+    cell.appendChild(label); cell.appendChild(box);
     return cell;
   }
 
-  function renderStatic() {
-    dpRow.innerHTML = '';
-    for (var i = 0; i <= amount; i++) dpRow.appendChild(makeCell(i, ''));
-    sqRow.innerHTML = '';
-    for (var k = 0; k < coins.length; k++) {
-      var el = document.createElement('div');
-      el.className = 'sq';
-      el.dataset.coin = coins[k];
-      el.textContent = '¥' + coins[k];
-      sqRow.appendChild(el);
+  function renderDPStatic() {
+    $('dpRow').innerHTML = '';
+    for (var i = 0; i <= amount; i++) $('dpRow').appendChild(makeCell(i));
+  }
+
+  function renderDP(step) {
+    Array.prototype.forEach.call($('dpRow').children, function (cell) {
+      var box = cell.querySelector('.dp-box'), index = Number(box.dataset.index);
+      box.className = 'dp-box'; box.textContent = fmt(step.dp[index]);
+      if (step.done) box.classList.add(step.dp[index] === INF ? 'unreach' : 'done');
+      else if (index === step.i) box.classList.add('active');
+      else if (index === step.src) box.classList.add('src');
+      else if (index < step.i || (step.i < 0 && index === 0)) box.classList.add(step.dp[index] === INF ? 'unreach' : 'done');
+      else box.classList.add('empty');
+    });
+    $('dashboard').innerHTML =
+      '<div class="metric">当前金额 i<b>' + (step.i < 0 ? '—' : step.i) + '</b></div>' +
+      '<div class="metric">硬币 c<b>' + (step.coin === null ? '—' : step.coin) + '</b></div>' +
+      '<div class="metric">来源 i-c<b>' + (step.src < 0 ? '—' : step.src) + '</b></div>' +
+      '<div class="metric">候选值<b>' + (step.candidate === null ? '—' : fmt(step.candidate)) + '</b></div>' +
+      '<div class="metric">dp[i]<b>' + (step.i < 0 ? '—' : fmt(step.dp[step.i])) + '</b></div>' +
+      '<div class="metric">最终答案<b>' + (step.result === null ? '—' : step.result) + '</b></div>';
+  }
+
+  function svgElement(name, attrs) {
+    var element = document.createElementNS('http://www.w3.org/2000/svg', name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    return element;
+  }
+
+  function layoutMemo() {
+    var nodes = memoModel.nodes, leaf = 0, maxDepth = 0;
+    function place(node, depth) {
+      node.depth = depth; maxDepth = Math.max(maxDepth, depth);
+      if (!node.children.length) node._leaf = leaf++;
+      else {
+        node.children.forEach(function (child) { place(nodes[child.id], depth + 1); });
+        node._leaf = (nodes[node.children[0].id]._leaf + nodes[node.children[node.children.length - 1].id]._leaf) / 2;
+      }
     }
+    place(nodes[memoModel.rootId], 0);
+    nodes.forEach(function (node) {
+      node.x = PAD_X + node._leaf * X_GAP + R; node.y = PAD_Y + node.depth * Y_GAP + R;
+    });
+    return {
+      width:PAD_X * 2 + Math.max(1, leaf) * X_GAP + R * 2,
+      height:PAD_Y * 2 + (maxDepth + 1) * Y_GAP
+    };
+  }
+
+  function renderMemoStatic() {
+    var svg = $('memoSvg'), size = layoutMemo();
+    svg.innerHTML = ''; svg.setAttribute('viewBox', '0 0 ' + size.width + ' ' + size.height);
+    svg.setAttribute('width', size.width); svg.setAttribute('height', size.height);
+    nodeEls = {}; edgeEls = {};
+    memoModel.edges.forEach(function (edge) {
+      var parent = memoModel.nodes[edge.from], child = memoModel.nodes[edge.to];
+      var line = svgElement('line', { x1:parent.x, y1:parent.y, x2:child.x, y2:child.y, class:'edge' });
+      var label = svgElement('text', { x:(parent.x + child.x) / 2 + 6, y:(parent.y + child.y) / 2, class:'edge-lab' });
+      label.textContent = '−' + edge.coin; svg.appendChild(line); svg.appendChild(label);
+      edgeEls[edge.from + '-' + edge.to] = { line:line, label:label };
+    });
+    memoModel.nodes.forEach(function (node) {
+      var group = svgElement('g', { class:'node' });
+      var circle = svgElement('circle', { cx:node.x, cy:node.y, r:R });
+      var amountText = svgElement('text', { x:node.x, y:node.y + 1, 'text-anchor':'middle', 'dominant-baseline':'middle', class:'n-amt' });
+      var valueText = svgElement('text', { x:node.x, y:node.y + R + 14, 'text-anchor':'middle', class:'n-val' });
+      amountText.textContent = node.rem; group.appendChild(circle); group.appendChild(amountText); group.appendChild(valueText); svg.appendChild(group);
+      nodeEls[node.id] = { group:group, value:valueText };
+    });
+  }
+
+  function renderMemo(step) {
+    memoModel.nodes.forEach(function (node) {
+      var refs = nodeEls[node.id], state = step.states[node.id] || 'idle';
+      refs.group.setAttribute('class', 'node ' + (node.id === step.activeId ? 'active' : state));
+      var value = step.values[node.id];
+      refs.value.textContent = value === null || value === undefined ? '' : (state === 'cache' ? '↺ ' : '') + fmt(value);
+    });
+    Object.keys(edgeEls).forEach(function (key) {
+      edgeEls[key].line.setAttribute('class', 'edge'); edgeEls[key].label.setAttribute('class', 'edge-lab');
+    });
+    if (step.edge) {
+      var activeEdge = edgeEls[step.edge.from + '-' + step.edge.to];
+      if (activeEdge) { activeEdge.line.setAttribute('class', 'edge active'); activeEdge.label.setAttribute('class', 'edge-lab active'); }
+    }
+    $('stackList').innerHTML = step.stack.length ? step.stack.map(function (rem, index) {
+      return '<span class="pill' + (index === step.stack.length - 1 ? ' active' : '') + '">dfs(' + rem + ')</span>';
+    }).join('') : '<span class="hint">调用栈为空</span>';
+    $('cacheList').innerHTML = step.memo.length ? step.memo.map(function (entry) {
+      return '<span class="pill cached">' + entry.rem + ' → ' + fmt(entry.value) + '</span>';
+    }).join('') : '<span class="hint">缓存为空</span>';
+    var activeRem = step.activeId < 0 ? null : memoModel.nodes[step.activeId].rem;
+    $('dashboard').innerHTML =
+      '<div class="metric">当前调用<b>' + (activeRem === null ? '—' : 'dfs(' + activeRem + ')') + '</b></div>' +
+      '<div class="metric">尝试硬币<b>' + (step.coin === null ? '—' : step.coin) + '</b></div>' +
+      '<div class="metric">子问题<b>' + (step.childRem === null ? '—' : 'dfs(' + step.childRem + ')') + '</b></div>' +
+      '<div class="metric">当前 best<b>' + (step.best === null ? '—' : fmt(step.best)) + '</b></div>' +
+      '<div class="metric">栈 / 缓存<b>' + step.stack.length + ' / ' + step.memo.length + '</b></div>' +
+      '<div class="metric">最终答案<b>' + (step.result === null ? '—' : step.result) + '</b></div>';
   }
 
   function render() {
-    var st = steps[stepIdx];
-
-    Array.prototype.forEach.call(dpRow.children, function (cell) {
-      var box = cell.querySelector('.box');
-      var idx = +box.dataset.idx;
-      box.textContent = fmt(st.dp[idx]);
-      box.className = 'box';
-      if (st.done) {
-        if (st.dp[idx] === INF) box.classList.add('unreach');
-        else box.classList.add('done');
-      } else if (idx === st.i) {
-        box.classList.add('active');
-      } else if (idx === st.src) {
-        box.classList.add('src');
-      } else if (idx < st.i) {
-        if (st.dp[idx] === INF) box.classList.add('unreach');
-        else box.classList.add('done');
-      } else {
-        box.classList.add('empty');
-      }
-    });
-
-    Array.prototype.forEach.call(sqRow.children, function (el) {
-      el.className = 'sq';
-      if (+el.dataset.coin === st.coin) {
-        el.classList.add(st.phase === 'skip' ? 'skip' : 'on');
-      }
-    });
-
-    statusEl.innerHTML = st.msg;
-    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
-    document.getElementById('prevBtn').disabled = (stepIdx === 0);
-    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+    var step = steps[stepIndex];
+    renderCoins(step); highlightPhases(step);
+    if (mode === 'dp') renderDP(step); else renderMemo(step);
+    $('status').innerHTML = step.message;
+    $('progress').textContent = (mode === 'dp' ? 'DP 填表' : 'Memo 递归树') + ' · 步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
   }
 
-  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
-  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
-  function reset(){ stopPlay(); stepIdx = 0; render(); }
-  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
-  function togglePlay(){
-    if (playTimer){ stopPlay(); return; }
-    document.getElementById('playBtn').textContent = '⏸ 暂停';
-    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 700);
+  function rebuild(parsed) {
+    stopPlay(); coins = parsed.coins.slice(); amount = parsed.amount; input.value = parsed.normalized;
+    var dpResult = App.solveDP(coins, amount), memoResult = App.solveMemo(coins, amount);
+    if (dpResult !== memoResult) { showError('内部一致性校验失败：DP=' + dpResult + '，Memo=' + memoResult); return false; }
+    var built = App.build(mode, coins, amount);
+    steps = built.steps; memoModel = built.model; stepIndex = 0;
+    var validation = App.validateSnapshots(steps);
+    if (!validation.ok) { showError('快照校验失败：' + validation.errors.join('；')); return false; }
+    renderMethodText();
+    if (mode === 'dp') renderDPStatic(); else renderMemoStatic();
+    render();
+    return true;
   }
 
-  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
-  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
-  document.getElementById('resetBtn').onclick = reset;
-  document.getElementById('playBtn').onclick = togglePlay;
-  document.getElementById('loadBtn').onclick = function(){ load(input.value); };
-  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(input.value); });
-  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
-    ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
+  function load(raw) {
+    clearMessages();
+    var parsed = App.parseInput(raw);
+    if (!parsed.ok) { stopPlay(); showError(parsed.error); return false; }
+    if (parsed.changed || parsed.hadDuplicates) {
+      $('normalizationNote').textContent = '已按规则去重并升序规范化为：' + parsed.normalized;
+      $('normalizationNote').style.display = 'block';
+    }
+    return rebuild(parsed);
+  }
+
+  function switchMode(nextMode) {
+    if (nextMode === mode) return;
+    clearMessages();
+    var parsed = App.parseInput(input.value);
+    if (!parsed.ok) { showError(parsed.error + '；修正后才能切换方法'); return; }
+    stopPlay(); mode = nextMode; rebuild(parsed);
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function reset() { stopPlay(); stepIndex = 0; render(); }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, mode === 'dp' ? 700 : 650);
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay; $('resetBtn').onclick = reset;
+  $('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.textContent; load(chip.textContent); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.mode-btn'), function (button) {
+    button.onclick = function () { switchMode(button.dataset.mode); };
   });
 
   load(input.value);
