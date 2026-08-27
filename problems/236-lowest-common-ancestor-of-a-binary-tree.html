@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 236 二叉树的最近公共祖先逐帧动画：标准分治、后序回传、左右返回信号、目标节点短路与合并规则。">
+<meta name="tags" content="二叉树 · 最近公共祖先 · 深度优先搜索 · 分治 · 后序遍历 · 递归 · O(n)">
+<title>236. 二叉树的最近公共祖先 — 动画演示</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;padding:24px;background:#f6f7f9;color:#1d2129;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}.wrap{max-width:1280px;margin:auto}.navbar,.controls,.examples,.legend,.stats{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.navbar{margin-bottom:16px}.difftag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;background:#fef3c7;color:#92400e}.link{font-size:12px;color:#6b7280}.link a{color:#6366f1;text-decoration:none}h1{font-size:20px;margin:0 0 4px}.sub{color:#6b7280;font-size:13px;margin-bottom:18px}code{background:#eef0f4;padding:1px 5px;border-radius:5px;font:12px "SF Mono",Menlo,monospace}.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px #00000008}.panel-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:10px}.signals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.signal-card,.complexity>div{border:1px solid #e5e7eb;border-radius:10px;padding:11px 13px;font-size:13px;color:#4b5563;background:#f8fafc}.signal-card b{display:block;margin-bottom:3px;color:#1e293b}.none-card{border-color:#cbd5e1}.target-card{border-color:#c4b5fd;background:#f5f3ff}.lca-card{border-color:#fca5a5;background:#fef2f2}.truth{margin-top:12px;border:1px solid #fed7aa;background:#fff7ed;border-radius:10px;padding:12px 14px;color:#9a3412;font-size:13px}.truth-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}.truth-grid span{display:block;background:#fff;border:1px solid #fed7aa;border-radius:7px;padding:6px 8px;font:11px "SF Mono",Menlo,monospace;color:#7c2d12}.ancestor-note{margin-top:10px;padding:10px 13px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:10px;color:#1e40af;font-size:13px}.input-grid{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px auto;gap:10px;align-items:end}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.lab{font-size:12px;color:#6b7280;font-weight:700}input{width:100%;min-width:0;padding:9px 11px;font:13px "SF Mono",Menlo,monospace;border:1px solid #d1d5db;border-radius:8px;outline:0}input:focus{border-color:#6366f1;box-shadow:0 0 0 3px #6366f126}button{padding:9px 16px;font-size:14px;font-weight:600;border:0;border-radius:8px;cursor:pointer;background:#6366f1;color:#fff}button:hover{background:#4f46e5}button.ghost{background:#eef0f4;color:#374151}button:disabled{opacity:.45;cursor:not-allowed}.examples{margin-top:10px;gap:8px}.chip{font:11px "SF Mono",Menlo,monospace;padding:5px 9px;background:#f1f2f4;border:1px solid #e5e7eb;border-radius:99px;cursor:pointer}.chip:hover,.chip.active{background:#e0e7ff;border-color:#a5b4fc;color:#3730a3}.hint{font-size:12px;color:#9ca3af;margin-top:8px;line-height:1.65}.err{display:none;color:#dc2626;font-size:13px;margin-top:10px}.err.show{display:block}.stats{margin-bottom:14px}.stat{background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:8px 12px;font-size:12px;color:#6b7280}.stat b{display:block;font:800 13px "SF Mono",Menlo,monospace;color:#1d2129}.stat.answer b{color:#dc2626}.progress{margin-left:auto;font-size:12px;color:#9ca3af}.phases{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:14px}.phase{border:1px solid #e5e7eb;border-radius:9px;padding:8px 4px;font-size:9px;color:#64748b;background:#f8fafc;text-align:center}.phase b{display:block;color:#334155;font-size:10px}.phase.active{background:#eef2ff;border-color:#818cf8;box-shadow:0 0 0 3px #6366f11c}.merge-board{display:grid;grid-template-columns:1fr 1fr 1.25fr 1fr;gap:8px;margin-bottom:14px}.merge-cell{border:1px solid #e2e8f0;border-radius:9px;padding:9px 11px;background:#fff;color:#64748b;font-size:11px}.merge-cell b{display:block;margin-top:3px;color:#1e293b;font:800 13px "SF Mono",Menlo,monospace}.merge-cell.left{border-color:#93c5fd;background:#eff6ff}.merge-cell.right{border-color:#86efac;background:#f0fdf4}.merge-cell.rule{border-color:#fdba74;background:#fff7ed}.merge-cell.result{border-color:#fca5a5;background:#fef2f2}.visual{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(360px,.85fr);gap:14px}.tree-box,.side{border:1px solid #eef0f4;border-radius:12px;background:linear-gradient(#fafbff,#fff);min-height:500px}.tree-box{padding:12px;overflow:auto;position:relative}.tree-box svg{display:block;margin:auto;overflow:visible}.null-call{position:absolute;top:12px;right:12px;max-width:290px;padding:8px 10px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc;color:#475569;font:700 11px "SF Mono",Menlo,monospace;display:none;z-index:3}.null-call.show{display:block}.edge{stroke:#cbd5e1;stroke-width:2.5;transition:.18s}.edge.path{stroke:#a78bfa;stroke-width:3.5}.edge.left-signal{stroke:#3b82f6;stroke-width:5}.edge.right-signal{stroke:#22c55e;stroke-width:5}.edge.none-signal{stroke:#94a3b8;stroke-width:4;stroke-dasharray:5 4}.edge-label{fill:#94a3b8;font:800 10px sans-serif}.bubble{fill:#fff;stroke-width:2}.bubble.left{stroke:#3b82f6}.bubble.right{stroke:#22c55e}.bubble.none{stroke:#94a3b8}.bubble-text{font:800 9px "SF Mono",Menlo,monospace;fill:#334155}.node circle{fill:#fff;stroke:#cbd5e1;stroke-width:2.5}.node text.value{fill:#334155;font:800 14px "SF Mono",Menlo,monospace}.node.visited circle{fill:#f8fafc}.node.p circle{fill:#ede9fe;stroke:#7c3aed;stroke-width:4}.node.q circle{fill:#fce7f3;stroke:#db2777;stroke-width:4}.node.current circle{stroke:#f59e0b;stroke-width:5;filter:drop-shadow(0 3px 7px #f59e0b55)}.node.left-result circle{stroke:#3b82f6;stroke-width:5}.node.right-result circle{stroke:#22c55e;stroke-width:5}.node.lca circle{fill:#fee2e2;stroke:#dc2626;stroke-width:5}.node.final circle{fill:#fef3c7;stroke:#dc2626;stroke-width:6}.node-label{fill:#64748b;font:800 9px sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3}.side{padding:14px;display:flex;flex-direction:column;gap:12px}.action{border:1px solid #ddd6fe;background:#f5f3ff;border-radius:10px;padding:10px 12px;color:#5b21b6;min-height:65px}.action .kind{font-size:10px;font-weight:800;letter-spacing:.07em}.action b{display:block;color:#3730a3;font-size:13px}.stack{display:flex;flex-direction:column;gap:5px;min-height:75px;max-height:180px;overflow:auto}.frame{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:center;padding:6px 8px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;font:10px "SF Mono",Menlo,monospace;color:#475569}.frame.top{border-color:#818cf8;background:#eef2ff}.frame.null{border-style:dashed}.badge{border-radius:99px;min-width:25px;height:20px;display:flex;align-items:center;justify-content:center;background:#e2e8f0;font-weight:800}.return-list{display:flex;flex-direction:column;gap:5px;max-height:145px;overflow:auto}.return-item{padding:6px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#f8fafc;font:10px "SF Mono",Menlo,monospace;color:#475569}.return-item strong{color:#dc2626}.empty{color:#94a3b8;text-align:center;padding:12px;font-size:11px}.line{border-radius:8px;background:#0f172a;color:#fcd34d;padding:8px 10px;min-height:35px;font:11px "SF Mono",Menlo,monospace}.legend{margin-top:13px;font-size:12px;color:#6b7280;gap:14px}.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1px solid #0001}.status{background:#111827;color:#e5e7eb;border-radius:10px;padding:14px 16px;font-size:14px;min-height:50px;line-height:1.65}.status b{color:#fcd34d}.status .op{color:#86efac}.status .warn{color:#fca5a5}.status code{background:#1f2937;color:#93c5fd}.status-title{margin-top:16px}.complexity{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.complexity b{display:block;color:#1d2129}details summary{cursor:pointer;font-weight:600;font-size:14px;color:#4f46e5}.tabs{display:flex;gap:8px;margin:12px 0 10px}.tab{font-size:13px;padding:5px 12px;border-radius:99px;cursor:pointer;background:#f1f2f4;border:1px solid #e5e7eb}.tab.active{background:#6366f1;color:#fff}pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;overflow:auto;font-size:13px;line-height:1.55;margin:0}pre .cmt{color:#7dd3fc}@media(max-width:960px){body{padding:16px 12px}.signals,.complexity,.visual,.input-grid{grid-template-columns:1fr}.truth-grid,.merge-board{grid-template-columns:1fr 1fr}.phases{grid-template-columns:repeat(3,1fr)}.progress{width:100%;margin-left:0}}@media(max-width:560px){.truth-grid,.merge-board{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar"><span class="difftag">中等</span><span class="link">原题：<a href="https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/" target="_blank" rel="noopener">LeetCode 236</a></span><span class="link">· <a href="../index.html">返回动画列表</a></span></div>
+  <h1>236. 二叉树的最近公共祖先 · 分治后序回传</h1>
+  <div class="sub">每个递归调用只向父节点报告一个“信号”；父节点等待左右信号后执行合并。</div>
+
+  <div class="card">
+    <div class="panel-title">递归返回值不是始终表示 LCA：它是三种多态信号</div>
+    <div class="signals">
+      <div class="signal-card none-card"><b>None</b>当前子树没有找到 <code>p</code> 或 <code>q</code>。</div>
+      <div class="signal-card target-card"><b>p 或 q</b>当前子树只报告找到了一个目标；它不一定已经是公共祖先。</div>
+      <div class="signal-card lca-card"><b>其他节点</b>当前子树已经合并出 LCA；祖先会通过 <code>left or right</code> 将它原样上传。</div>
+    </div>
+    <div class="truth"><b><code>if left and right: return root</code> 是分治合并条件，不是边界条件。</b><div class="truth-grid"><span>None + None → None</span><span>X + None → X</span><span>None + X → X</span><span>X + Y → 当前 root</span></div></div>
+    <div class="ancestor-note"><b>当 p 是 q 的祖先：</b>递归命中 p 就立即返回 p，不再搜索 p 的子树。因为题目保证 q 确实存在，最外层最终返回 p，p 即 LCA；这正是标准算法的目标短路。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">非空二叉树（LeetCode 层序，最多 31 个 token）</span><input id="treeInput" value="[3,5,1,6,2,0,8,null,null,7,4]" spellcheck="false" autocomplete="off"></label>
+      <label class="field"><span class="lab">p 值</span><input id="pInput" value="5" inputmode="numeric" spellcheck="false"></label>
+      <label class="field"><span class="lab">q 值</span><input id="qInput" value="1" inputmode="numeric" spellcheck="false"></label>
+      <button id="loadBtn">演示</button>
+    </div>
+    <div class="examples"><span class="lab">示例：</span>
+      <span class="chip" data-tree="[3,5,1,6,2,0,8,null,null,7,4]" data-p="5" data-q="1">经典分居 → 3</span>
+      <span class="chip" data-tree="[3,5,1,6,2,0,8,null,null,7,4]" data-p="5" data-q="4">同侧祖先 → 5</span>
+      <span class="chip" data-tree="[10,5,15,3,7,12,18,1,4,6,8]" data-p="1" data-q="8">更深同侧 → 5</span>
+      <span class="chip" data-tree="[3,5,1,6,2,0,8,null,null,7,4]" data-p="3" data-q="4">根为目标 → 3</span>
+      <span class="chip" data-tree="[3,5,1,6,2,0,8,null,null,7,4]" data-p="6" data-q="4">两叶子 → 5</span>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">树值必须唯一且为 32 位有符号整数；<code>p</code>、<code>q</code> 必须都存在并且不同。接受逗号或空白分隔，可带一对方括号；<code>null</code> / <code>#</code> 必须小写。严格拒绝空树、空/非法 token、混合分隔、孤儿 token、重复值和不存在的目标。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px"><button id="prevBtn" class="ghost">◀ 上一步</button><button id="nextBtn">下一步 ▶</button><button id="playBtn" class="ghost">▶ 自动播放</button><button id="resetBtn" class="ghost">↺ 重置</button><span class="progress" id="progress"></span></div>
+    <div class="phases" id="phaseStrip">
+      <div class="phase" data-phase="call"><span>CALL</span><b>进入调用</b></div>
+      <div class="phase" data-phase="base"><span>BASE</span><b>null / 目标</b></div>
+      <div class="phase" data-phase="left"><span>LEFT</span><b>左结果回传</b></div>
+      <div class="phase" data-phase="right"><span>RIGHT</span><b>右结果回传</b></div>
+      <div class="phase" data-phase="merge"><span>MERGE</span><b>合并并返回</b></div>
+      <div class="phase" data-phase="done"><span>DONE</span><b>最外层答案</b></div>
+    </div>
+    <div class="merge-board">
+      <div class="merge-cell left">left result<b id="leftResult">—</b></div>
+      <div class="merge-cell right">right result<b id="rightResult">—</b></div>
+      <div class="merge-cell rule">当前合并规则<b id="mergeRule">等待子问题</b></div>
+      <div class="merge-cell result">return result<b id="returnResult">—</b></div>
+    </div>
+    <div class="visual">
+      <div class="tree-box" id="treeBox"><svg id="treeSvg" role="img" aria-label="最近公共祖先返回信号沿树边向上冒泡的递归动画"></svg><div class="null-call" id="nullCall"></div></div>
+      <div class="side">
+        <div><div class="panel-title">当前动作</div><div class="action" id="action"></div></div>
+        <div><div class="panel-title">递归调用栈（栈顶在下）</div><div class="stack" id="stack"></div></div>
+        <div><div class="panel-title">已完成节点的 left / right / return</div><div class="return-list" id="returnList"></div></div>
+        <div class="line" id="currentLine"></div>
+      </div>
+    </div>
+    <div class="legend"><span><span class="dot" style="background:#ede9fe;border-color:#7c3aed"></span>p</span><span><span class="dot" style="background:#fce7f3;border-color:#db2777"></span>q</span><span><span class="dot" style="background:#fff;border:3px solid #f59e0b"></span>当前节点</span><span><span class="dot" style="background:#dbeafe;border-color:#3b82f6"></span>left 信号</span><span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>right 信号</span><span><span class="dot" style="background:#fef3c7;border-color:#dc2626"></span>最终 LCA</span></div>
+    <div class="panel-title status-title">状态栏</div><div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card"><div class="panel-title">复杂度与剪枝</div><div class="complexity"><div><b>时间 O(n)</b>最坏访问每个节点一次；若较高位置命中 p 或 q，会立即返回并跳过其整棵子树，实际访问可少于 n。</div><div><b>递归栈 O(h)</b>h 为树高；平衡树 O(log n)，斜树最坏 O(n)。动画快照仅用于演示，不计入算法空间。</div><div><b>最外层语义</b>中间的 p/q 信号可能只表示“找到一个目标”；仅因题目保证 p、q 都存在，最外层返回值才一定是真正 LCA。</div></div></div>
+  <div class="card"><details open><summary>查看 Python / Java 参考代码（节点按身份比较，与动画一致）</summary><div class="tabs"><span class="tab active" data-lang="py">Python</span><span class="tab" data-lang="java">Java</span></div><pre id="codeBlock"></pre></details></div>
+</div>
+
+<script data-lca-logic>
+(function(root){
+'use strict';
+var MIN=-2147483648,MAX=2147483647,LIMIT=31;
+function tokenize(input){
+  if(typeof input!=='string')return{error:'树输入必须是字符串'};
+  var text=input.trim();
+  if(!text)return{error:'树不能为空'};
+  if(text[0]==='['||text[text.length-1]===']'){
+    if(text[0]!=='['||text[text.length-1]!==']')return{error:'方括号必须成对并包住整个树输入'};
+    text=text.slice(1,-1).trim();
+  }
+  if(text.indexOf('[')>=0||text.indexOf(']')>=0)return{error:'方括号只能出现在最外层'};
+  if(!text)return{error:'[] 不是有效的非空树'};
+  var raw;
+  if(text.indexOf(',')>=0){
+    raw=text.split(',');
+    for(var i=0;i<raw.length;i++){raw[i]=raw[i].trim();if(!raw[i])return{error:'不能出现空 token'};if(/\s/.test(raw[i]))return{error:'不能混用逗号与空白分隔'};}
+  }else raw=text.split(/\s+/);
+  if(raw.length>LIMIT)return{error:'最多允许 '+LIMIT+' 个 token，当前有 '+raw.length+' 个'};
+  var tokens=[];
+  for(var j=0;j<raw.length;j++){
+    var word=raw[j];
+    if(word==='null'||word==='#')tokens.push(null);
+    else{
+      if(!/^-?\d+$/.test(word))return{error:'第 '+(j+1)+' 个 token「'+word+'」不是小写 null、# 或整数'};
+      var value=Number(word);
+      if(!Number.isSafeInteger(value)||value<MIN||value>MAX)return{error:'第 '+(j+1)+' 个节点值须为 32 位有符号整数'};
+      tokens.push(value);
+    }
+  }
+  if(tokens[0]===null)return{error:tokens.length>1?'根为空时不能再提供其它 token':'根节点不能为 null'};
+  return{tokens:tokens,tokenCount:raw.length,error:null};
+}
+function buildTree(tokens){
+  if(!Array.isArray(tokens)||!tokens.length||tokens[0]===null)return{error:'树必须包含非空根节点'};
+  var nodes=[{id:0,value:tokens[0],left:-1,right:-1,parent:-1,side:'root',tokenIndex:0}],queue=[0],qi=0,t=1,seen={};
+  seen[tokens[0]]=true;
+  while(t<tokens.length){
+    if(qi>=queue.length)return{error:'第 '+(t+1)+' 个 token 没有可用父节点，属于孤儿 token'};
+    var pid=queue[qi++],p=nodes[pid],v=tokens[t++];
+    if(v!==null){
+      if(seen[v])return{error:'节点值必须唯一，重复值：'+v};seen[v]=true;
+      var lid=nodes.length;nodes.push({id:lid,value:v,left:-1,right:-1,parent:pid,side:'left',tokenIndex:t-1});p.left=lid;queue.push(lid);
+    }
+    if(t>=tokens.length)break;
+    v=tokens[t++];
+    if(v!==null){
+      if(seen[v])return{error:'节点值必须唯一，重复值：'+v};seen[v]=true;
+      var rid=nodes.length;nodes.push({id:rid,value:v,left:-1,right:-1,parent:pid,side:'right',tokenIndex:t-1});p.right=rid;queue.push(rid);
+    }
+  }
+  return{nodes:nodes,rootId:0,error:null};
+}
+function cloneNodes(nodes){return nodes.map(function(n){return{id:n.id,value:n.value,left:n.left,right:n.right,parent:n.parent,side:n.side,tokenIndex:n.tokenIndex};});}
+function parseTarget(input,name){
+  var text=typeof input==='number'?String(input):(typeof input==='string'?input.trim():'');
+  if(!/^-?\d+$/.test(text))return{error:name+' 必须是十进制整数'};
+  var value=Number(text);
+  if(!Number.isSafeInteger(value)||value<MIN||value>MAX)return{error:name+' 须为 32 位有符号整数'};
+  return{value:value,error:null};
+}
+function parseInput(treeInput,pInput,qInput){
+  var parsed=tokenize(treeInput);if(parsed.error)return parsed;
+  var built=buildTree(parsed.tokens);if(built.error)return built;
+  var pp=parseTarget(pInput,'p'),qq=parseTarget(qInput,'q');if(pp.error)return pp;if(qq.error)return qq;
+  if(pp.value===qq.value)return{error:'p 与 q 必须是两个不同节点'};
+  var pId=-1,qId=-1;
+  built.nodes.forEach(function(n){if(n.value===pp.value)pId=n.id;if(n.value===qq.value)qId=n.id;});
+  if(pId<0||qId<0)return{error:(pId<0?'p='+pp.value:'q='+qq.value)+' 不存在于树中'};
+  return{error:null,tokens:parsed.tokens.slice(),tokenCount:parsed.tokenCount,nodes:cloneNodes(built.nodes),rootId:0,pId:pId,qId:qId,pValue:pp.value,qValue:qq.value};
+}
+function layout(nodes,o){
+  o=o||{};var xg=o.xGap||82,yg=o.yGap||96,px=o.padX||60,py=o.padY||48,pos={},col=0,md=0;
+  function walk(id,d){if(id<0)return;walk(nodes[id].left,d+1);pos[id]={x:px+col*xg,y:py+d*yg,depth:d};col++;md=Math.max(md,d);walk(nodes[id].right,d+1);}
+  walk(0,0);return{positions:pos,width:Math.max(330,px*2+Math.max(0,col-1)*xg),height:Math.max(450,py*2+md*yg+52),heightLevels:md+1};
+}
+function cloneStack(a){return a.map(function(f){return{nodeId:f.nodeId,value:f.value,state:f.state,via:f.via,parentId:f.parentId,leftResult:f.leftResult,rightResult:f.rightResult};});}
+function cloneReturns(a){return a.map(function(x){return{nodeId:x.nodeId,left:x.left,right:x.right,result:x.result,rule:x.rule,base:x.base};});}
+function cloneSignals(a){return a.map(function(x){return{from:x.from,to:x.to,side:x.side,result:x.result,kind:x.kind};});}
+function collectSubtree(nodes,id,out){if(id<0)return;out.push(id);collectSubtree(nodes,nodes[id].left,out);collectSubtree(nodes,nodes[id].right,out);}
+function resultKind(id,pId,qId){return id===null?'none':(id===pId?'p':(id===qId?'q':'lca'));}
+function resultText(nodes,id){return id===null?'None':String(nodes[id].value);}
+function buildSteps(nodes,pId,qId){
+  var steps=[],state={stack:[],returns:[],signals:[],visited:[],skipped:[]};
+  function snap(phase,current,source,side,action,line,message,extra){
+    extra=extra||{};steps.push({phase:phase,currentNode:current,sourceNode:source,edgeSide:side||null,action:action,codeLine:line,message:message,leftResult:extra.leftResult===undefined?null:extra.leftResult,rightResult:extra.rightResult===undefined?null:extra.rightResult,returnResult:extra.returnResult===undefined?null:extra.returnResult,hasLeft:!!extra.hasLeft,hasRight:!!extra.hasRight,rule:extra.rule||'等待子问题',final:!!extra.final,stack:cloneStack(state.stack),returns:cloneReturns(state.returns),signals:cloneSignals(state.signals),visited:state.visited.slice(),skipped:state.skipped.slice()});
+  }
+  function addSignal(from,to,side,result){
+    state.signals=state.signals.filter(function(s){return !(s.to===to&&s.side===side);});
+    state.signals.push({from:from,to:to,side:side,result:result,kind:resultKind(result,pId,qId)});
+  }
+  function label(id){return id<0?'null':String(nodes[id].value);}
+  function dfs(id,via,parentId){
+    if(id<0){
+      state.stack.push({nodeId:null,value:null,state:'call',via:via,parentId:parentId,leftResult:null,rightResult:null});
+      snap('call-null',null,parentId,via,'调用 dfs(null)','dfs(None, p, q)','空指针也进入统一递归基例。');
+      state.stack[state.stack.length-1].state='base-null';
+      snap('base-null',null,parentId,via,'null → None','if not root: return None','<code>root</code> 为空，返回 <b>None</b>：这个子树没有目标。',{returnResult:null,rule:'null 基例'});
+      state.stack.pop();addSignal(null,parentId,via,null);return null;
+    }
+    var node=nodes[id],frame={nodeId:id,value:node.value,state:'call',via:via,parentId:parentId,leftResult:null,rightResult:null};
+    state.stack.push(frame);state.visited.push(id);
+    snap('call',id,parentId,via,'进入 dfs('+node.value+')','def lowestCommonAncestor(root, p, q):','进入节点 <b>'+node.value+'</b>；先检查统一基例，再决定是否递归孩子。');
+    if(id===pId||id===qId){
+      frame.state='base-target';var hidden=[];collectSubtree(nodes,node.left,hidden);collectSubtree(nodes,node.right,hidden);hidden.forEach(function(x){if(state.skipped.indexOf(x)<0)state.skipped.push(x);});
+      state.returns.push({nodeId:id,left:null,right:null,result:id,rule:'当前就是 '+(id===pId?'p':'q')+'，直接返回',base:true});
+      snap('base-target',id,parentId,via,'命中 '+(id===pId?'p':'q')+'，立即返回 '+node.value,'if root is p or root is q: return root','当前节点按<b>身份</b>命中 '+(id===pId?'p':'q')+'，直接报告 <span class="op">'+node.value+'</span>；不会继续搜索它的 '+hidden.length+' 个后代。',{returnResult:id,rule:'当前就是 '+(id===pId?'p':'q')+' → 直接报告'});
+      state.stack.pop();addSignal(id,parentId,via,id);return id;
+    }
+    frame.state='left';
+    snap('descend-left',id,id,'left','递归左子树 '+label(node.left),'left = lowestCommonAncestor(root.left, p, q)','当前节点不是目标；先求左子问题。');
+    var left=dfs(node.left,'left',id);frame.leftResult=left;frame.state='after-left';
+    snap('after-left',id,node.left,'left','left result = '+resultText(nodes,left),'left = lowestCommonAncestor(root.left, p, q)','左子树返回 <b>'+resultText(nodes,left)+'</b>。这只是左侧信号；标准算法仍需计算右侧。',{leftResult:left,hasLeft:true,rule:'左结果已知，等待右结果'});
+    frame.state='right';
+    snap('descend-right',id,id,'right','递归右子树 '+label(node.right),'right = lowestCommonAncestor(root.right, p, q)','保存 left，再求右子问题。');
+    var right=dfs(node.right,'right',id);frame.rightResult=right;frame.state='after-right';
+    snap('after-right',id,node.right,'right','right result = '+resultText(nodes,right),'right = lowestCommonAncestor(root.right, p, q)','右子树返回 <b>'+resultText(nodes,right)+'</b>；现在左右信号都已就绪。',{leftResult:left,rightResult:right,hasLeft:true,hasRight:true,rule:'左右结果就绪，准备合并'});
+    var result,rule;
+    if(left!==null&&right!==null){result=id;rule='left 与 right 都非空 → 当前 root 是 LCA';}
+    else if(left!==null){result=left;rule='仅 left 非空 → 原样上传 left';}
+    else if(right!==null){result=right;rule='仅 right 非空 → 原样上传 right';}
+    else{result=null;rule='left 与 right 都空 → None';}
+    frame.state='merge';state.returns.push({nodeId:id,left:left,right:right,result:result,rule:rule,base:false});
+    snap('merge-return',id,parentId,via,'合并并返回 '+resultText(nodes,result),left!==null&&right!==null?'if left and right: return root':'return left or right','<b>'+rule+'</b>；向父节点冒泡 <span class="op">'+resultText(nodes,result)+'</span>。',{leftResult:left,rightResult:right,returnResult:result,hasLeft:true,hasRight:true,rule:rule});
+    state.stack.pop();addSignal(id,parentId,via,result);return result;
+  }
+  var answer=dfs(0,'root',-1);
+  snap('done',answer,null,null,'最外层返回 '+resultText(nodes,answer),'return lowestCommonAncestor(root, p, q)','题目保证 p、q 都存在，因此最外层返回值 <span class="op">'+resultText(nodes,answer)+'</span> 才可确定解释为最近公共祖先。',{returnResult:answer,rule:'最外层答案',final:true});
+  return steps;
+}
+function expectedLCA(nodes,pId,qId){
+  var ancestors={},x=pId;while(x>=0){ancestors[x]=true;x=nodes[x].parent;}x=qId;while(!ancestors[x])x=nodes[x].parent;return x;
+}
+function sameArray(a,b){return a.length===b.length&&a.every(function(x,i){return x===b[i];});}
+function validateSnapshots(nodes,steps,pId,qId){
+  var errors=[],seen={},returnByNode={},targetSteps=0;
+  for(var i=0;i<steps.length;i++){
+    var s=steps[i];seen[s.phase]=true;
+    if(!Array.isArray(s.stack)||!Array.isArray(s.returns)||!Array.isArray(s.signals)||!Array.isArray(s.visited)||!Array.isArray(s.skipped)){errors.push('第 '+(i+1)+' 帧缺少 stack/returns/signals/visited/skipped 快照');continue;}
+    if(new Set(s.visited).size!==s.visited.length)errors.push('第 '+(i+1)+' 帧重复访问节点');
+    s.returns.forEach(function(r){
+      if(r.base){if(r.nodeId!==pId&&r.nodeId!==qId||r.result!==r.nodeId)errors.push('目标基例返回错误');}
+      else{
+        var expected=r.left!==null&&r.right!==null?r.nodeId:(r.left!==null?r.left:r.right);
+        if(r.result!==expected)errors.push('节点 '+r.nodeId+' 的 left/right 合并错误');
+      }
+      returnByNode[r.nodeId]=r.result;
+    });
+    s.signals.forEach(function(sig){
+      if(['left','right','root'].indexOf(sig.side)<0||['none','p','q','lca'].indexOf(sig.kind)<0)errors.push('第 '+(i+1)+' 帧存在非法返回信号');
+    });
+    if(s.phase==='base-target'){
+      targetSteps++;var id=s.currentNode;
+      for(var k=0;k<s.skipped.length;k++)if(s.visited.indexOf(s.skipped[k])>=0)errors.push('目标节点 '+id+' 的后代被错误访问');
+    }
+    if(i){
+      var p=steps[i-1];
+      if(p.stack===s.stack||p.returns===s.returns||p.signals===s.signals||p.visited===s.visited||p.skipped===s.skipped)errors.push('相邻帧共享顶层快照引用');
+      if(p.stack.length&&s.stack.length&&p.stack[0]===s.stack[0])errors.push('stack 帧对象未深拷贝');
+      if(p.returns.length&&s.returns.length&&p.returns[0]===s.returns[0])errors.push('returns 对象未深拷贝');
+      if(p.signals.length&&s.signals.length&&p.signals[0]===s.signals[0])errors.push('signals 对象未深拷贝');
+    }
+  }
+  var required=nodes[0].id===pId||nodes[0].id===qId
+    ?['call','base-target','done']
+    :['call','base-target','after-left','after-right','merge-return','done'];
+  required.forEach(function(x){if(!seen[x])errors.push('缺少阶段 '+x);});
+  var last=steps[steps.length-1],answer=expectedLCA(nodes,pId,qId);
+  if(!last||last.phase!=='done'||!last.final)errors.push('最后一帧必须是 done');
+  else{
+    if(last.returnResult!==answer)errors.push('最终 LCA 错误');
+    if(last.stack.length)errors.push('结束时调用栈必须为空');
+    if(last.visited.indexOf(pId)<0&&last.visited.indexOf(qId)<0)errors.push('两个目标均未访问');
+  }
+  if(!targetSteps)errors.push('没有命中任何目标基例');
+  return{ok:errors.length===0,errors:errors};
+}
+function run(treeInput,pInput,qInput){
+  var p=parseInput(treeInput,pInput,qInput);if(p.error)return p;
+  var steps=buildSteps(p.nodes,p.pId,p.qId),validation=validateSnapshots(p.nodes,steps,p.pId,p.qId),last=steps[steps.length-1];
+  return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,nodes:cloneNodes(p.nodes),rootId:0,pId:p.pId,qId:p.qId,pValue:p.pValue,qValue:p.qValue,steps:steps,answer:last.returnResult,visited:last.visited.slice(),skipped:last.skipped.slice(),validation:validation};
+}
+root.LowestCommonAncestor236={tokenize:tokenize,buildTree:buildTree,cloneNodes:cloneNodes,parseTarget:parseTarget,parseInput:parseInput,layout:layout,buildSteps:buildSteps,expectedLCA:expectedLCA,validateSnapshots:validateSnapshots,run:run,sameArray:sameArray,limits:{minValue:MIN,maxValue:MAX,maxTokens:LIMIT}};
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+
+<script>
+(function(){
+'use strict';
+var App=window.LowestCommonAncestor236,$=function(id){return document.getElementById(id);},treeInput=$('treeInput'),pInput=$('pInput'),qInput=$('qInput'),svg=$('treeSvg'),prev=$('prevBtn'),nextBtn=$('nextBtn'),play=$('playBtn');
+var result,steps=[],index=0,timer=null,pos={},nodeEls={},edgeEls={},bubbleEls={},NS='http://www.w3.org/2000/svg',R=21;
+function el(name,attrs){var x=document.createElementNS(NS,name);Object.keys(attrs||{}).forEach(function(k){x.setAttribute(k,attrs[k]);});return x;}
+function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ 自动播放';}}
+function fmt(id){return id===null||id===undefined?'None':result.nodes[id].value+' (id '+id+')';}
+function phaseKey(p){if(p==='call'||p==='call-null')return'call';if(p.indexOf('base-')===0)return'base';if(p==='descend-left'||p==='after-left')return'left';if(p==='descend-right'||p==='after-right')return'right';if(p==='done')return'done';return'merge';}
+function stateText(s){return{call:'刚进入','base-null':'null 基例','base-target':'目标基例',left:'等待左侧','after-left':'左侧已回传',right:'等待右侧','after-right':'右侧已回传',merge:'合并返回'}[s]||s;}
+function graphic(){
+  svg.innerHTML='';nodeEls={};edgeEls={};bubbleEls={};var size=App.layout(result.nodes,{xGap:82,yGap:96,padX:60,padY:48});pos=size.positions;svg.setAttribute('width',size.width);svg.setAttribute('height',size.height);svg.setAttribute('viewBox','0 0 '+size.width+' '+size.height);
+  var defs=el('defs');
+  [['leftArrow','#3b82f6'],['rightArrow','#22c55e'],['noneArrow','#94a3b8']].forEach(function(d){var m=el('marker',{id:d[0],viewBox:'0 0 10 6',refX:'9',refY:'3',markerWidth:'9',markerHeight:'7',orient:'auto'});m.appendChild(el('path',{d:'M0 0 L10 3 L0 6 Z',fill:d[1]}));defs.appendChild(m);});svg.appendChild(defs);
+  result.nodes.forEach(function(n){if(n.parent<0)return;var a=pos[n.id],b=pos[n.parent],line=el('line',{class:'edge',x1:a.x,y1:a.y-R,x2:b.x,y2:b.y+R});svg.appendChild(line);edgeEls[n.id]=line;var t=el('text',{class:'edge-label',x:(a.x+b.x)/2+(n.side==='left'?-10:10),y:(a.y+b.y)/2-4,'text-anchor':'middle'});t.textContent=n.side==='left'?'L':'R';svg.appendChild(t);});
+  result.nodes.forEach(function(n){var p=pos[n.id],g=el('g',{class:'node'});g.appendChild(el('circle',{cx:p.x,cy:p.y,r:R}));var v=el('text',{class:'value',x:p.x,y:p.y+5,'text-anchor':'middle'});v.textContent=n.value;g.appendChild(v);var tag=el('text',{class:'node-label',x:p.x,y:p.y+35,'text-anchor':'middle'});tag.textContent=n.id===result.pId?'p':(n.id===result.qId?'q':'');g.appendChild(tag);svg.appendChild(g);nodeEls[n.id]=g;});
+  return size;
+}
+function renderTree(s){
+  var path={},visited={},leftId=s.hasLeft?s.leftResult:null,rightId=s.hasRight?s.rightResult:null;
+  s.stack.forEach(function(f){if(f.nodeId!==null)path[f.nodeId]=true;});s.visited.forEach(function(id){visited[id]=true;});
+  result.nodes.forEach(function(n){
+    var c='node';if(visited[n.id])c+=' visited';if(n.id===result.pId)c+=' p';if(n.id===result.qId)c+=' q';if(n.id===leftId)c+=' left-result';if(n.id===rightId)c+=' right-result';if(s.currentNode===n.id)c+=' current';if(s.phase==='merge-return'&&s.returnResult===n.id&&n.id!==result.pId&&n.id!==result.qId)c+=' lca';if(s.final&&s.returnResult===n.id)c+=' final';nodeEls[n.id].setAttribute('class',c);
+    if(edgeEls[n.id])edgeEls[n.id].setAttribute('class','edge'+(path[n.id]?' path':''));
+  });
+  Object.keys(bubbleEls).forEach(function(k){var old=bubbleEls[k];if(old&&old.parentNode)old.parentNode.removeChild(old);});bubbleEls={};
+  var active=s.signals.length?s.signals[s.signals.length-1]:null;
+  if(active&&active.to>=0&&active.side!=='root'){
+    var child=active.from===null?-1:active.from,parent=active.to,node=result.nodes[parent],childId=active.side==='left'?node.left:node.right;
+    if(childId>=0){
+      var a=pos[childId],b=pos[parent],edge=edgeEls[childId],kind=active.result===null?'none':active.side,cls=active.result===null?'none-signal':active.side+'-signal';
+      edge.setAttribute('class','edge '+cls);edge.setAttribute('marker-end','url(#'+(active.result===null?'noneArrow':active.side+'Arrow')+')');
+      var g=el('g',{}),cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;g.appendChild(el('rect',{class:'bubble '+kind,x:cx-25,y:cy-12,width:50,height:20,rx:9}));var text=el('text',{class:'bubble-text',x:cx,y:cy+2,'text-anchor':'middle'});text.textContent=active.result===null?'None':String(result.nodes[active.result].value);g.appendChild(text);svg.appendChild(g);bubbleEls.active=g;
+    }
+  }
+  result.nodes.forEach(function(n){if(edgeEls[n.id]&&(!active||n.id!==(active.to>=0?(active.side==='left'?result.nodes[active.to].left:result.nodes[active.to].right):-1)))edgeEls[n.id].removeAttribute('marker-end');});
+  var top=s.stack.length?s.stack[s.stack.length-1]:null,show=top&&top.nodeId===null;$('nullCall').className='null-call'+(show?' show':'');if(show)$('nullCall').textContent=(top.parentId>=0?result.nodes[top.parentId].value+'.'+top.via:'root')+' → null → None';
+}
+function renderStack(s){var box=$('stack');box.innerHTML='';if(!s.stack.length){box.innerHTML='<div class="empty">调用栈为空</div>';return;}s.stack.forEach(function(f,i){var row=document.createElement('div');row.className='frame'+(i===s.stack.length-1?' top':'')+(f.nodeId===null?' null':'');row.innerHTML='<span class="badge">'+(i+1)+'</span><span>dfs('+(f.nodeId===null?'null':'id '+f.nodeId+'/'+f.value)+') · '+stateText(f.state)+'</span>';box.appendChild(row);});}
+function renderReturns(s){var box=$('returnList');box.innerHTML='';if(!s.returns.length){box.innerHTML='<div class="empty">尚无节点完成返回</div>';return;}s.returns.slice().reverse().forEach(function(r){var row=document.createElement('div');row.className='return-item';row.innerHTML=r.base?'id '+r.nodeId+' / '+result.nodes[r.nodeId].value+'：目标基例 → <strong>'+fmt(r.result)+'</strong>':'id '+r.nodeId+' / '+result.nodes[r.nodeId].value+'：L='+fmt(r.left)+'，R='+fmt(r.right)+' → <strong>'+fmt(r.result)+'</strong>';box.appendChild(row);});}
+function render(){
+  var s=steps[index];renderTree(s);renderStack(s);renderReturns(s);
+  Array.prototype.forEach.call($('phaseStrip').children,function(x){x.className='phase'+(x.dataset.phase===phaseKey(s.phase)?' active':'');});
+  $('action').innerHTML='<span class="kind">'+s.phase.toUpperCase()+'</span><b>'+s.action+'</b>';$('currentLine').textContent=s.codeLine;$('status').innerHTML=s.message;
+  $('leftResult').textContent=s.hasLeft?fmt(s.leftResult):'—';$('rightResult').textContent=s.hasRight?fmt(s.rightResult):'—';$('mergeRule').textContent=s.rule;$('returnResult').textContent=s.returnResult===null&&phaseKey(s.phase)!=='base'&&phaseKey(s.phase)!=='merge'&&phaseKey(s.phase)!=='done'?'—':fmt(s.returnResult);
+  $('progress').textContent='帧 '+(index+1)+' / '+steps.length;prev.disabled=index===0;nextBtn.disabled=index===steps.length-1;var live=$('visitedStat');if(live)live.textContent=s.visited.length+' / '+result.nodes.length;
+}
+function load(){
+  stop();var r=App.run(treeInput.value,pInput.value,qInput.value);if(r.error){$('err').textContent='输入有误：'+r.error+'。';$('err').classList.add('show');return;}$('err').classList.remove('show');result=r;steps=r.steps;index=0;var size=graphic();$('stats').innerHTML='<div class="stat">token / 节点<b>'+r.tokenCount+' / 31 · '+r.nodes.length+'</b></div><div class="stat">p / q<b>'+r.pValue+' / '+r.qValue+'</b></div><div class="stat">树高 h<b>'+size.heightLevels+'</b></div><div class="stat">实际访问<b id="visitedStat">0 / '+r.nodes.length+'</b></div><div class="stat answer">最终 LCA<b>'+r.nodes[r.answer].value+'</b></div><div class="stat">时间 / 栈<b>O(n) / O(h)</b></div><div class="stat">快照校验<b>'+(r.validation.ok?'通过 ✓':'失败 ✗')+'</b></div>';render();
+}
+function forward(){if(index<steps.length-1){index++;render();}}function backward(){if(index>0){index--;render();}}
+prev.onclick=function(){stop();backward();};nextBtn.onclick=function(){stop();forward();};play.onclick=function(){if(timer){stop();return;}if(index===steps.length-1){index=0;render();}play.textContent='⏸ 暂停';timer=setInterval(function(){if(index===steps.length-1)stop();else forward();},780);};$('resetBtn').onclick=function(){stop();index=0;render();};$('loadBtn').onclick=load;
+[treeInput,pInput,qInput].forEach(function(x){x.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();load();}});});
+Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){c.onclick=function(){treeInput.value=c.dataset.tree;pInput.value=c.dataset.p;qInput.value=c.dataset.q;Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(x){x.classList.remove('active');});c.classList.add('active');load();};});
+document.addEventListener('keydown',function(e){if([treeInput,pInput,qInput].indexOf(document.activeElement)>=0)return;if(e.key==='ArrowRight'){stop();forward();}if(e.key==='ArrowLeft'){stop();backward();}});
+var codes={
+py:`<span class="cmt"># 返回的是节点对象；比较 p / q 也使用对象身份</span>
+class Solution:
+    def lowestCommonAncestor(self, root: 'TreeNode',
+                             p: 'TreeNode',
+                             q: 'TreeNode') -&gt; 'TreeNode':
+        if root is None or root is p or root is q:
+            return root
+
+        left = self.lowestCommonAncestor(root.left, p, q)
+        right = self.lowestCommonAncestor(root.right, p, q)
+
+        if left is not None and right is not None:
+            return root
+        return left or right`,
+java:`<span class="cmt">// == 比较 TreeNode 引用身份；合并公式与动画一致</span>
+class Solution {
+    public TreeNode lowestCommonAncestor(
+            TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || root == p || root == q) {
+            return root;
+        }
+
+        TreeNode left =
+            lowestCommonAncestor(root.left, p, q);
+        TreeNode right =
+            lowestCommonAncestor(root.right, p, q);
+
+        if (left != null &amp;&amp; right != null) {
+            return root;
+        }
+        return left != null ? left : right;
+    }
+}`};
+Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){t.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('active');});t.classList.add('active');$('codeBlock').innerHTML=codes[t.dataset.lang];};});$('codeBlock').innerHTML=codes.py;$('treeBox').setAttribute('tabindex','0');load();
+})();
+</script>
+</body>
+</html>
