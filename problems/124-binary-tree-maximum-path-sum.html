@@ -3,534 +3,274 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="tags" content="二叉树 · 后序遍历 · 树形DP · 递归返回值">
+<meta name="description" content="LeetCode 124 二叉树中的最大路径和逐帧动画：后序 DFS、负贡献截断、单边返回、through、全局最佳路径与调用栈。">
+<meta name="tags" content="二叉树 · 深度优先搜索 · 后序遍历 · 递归 · 最大路径和 · O(n)">
 <title>124. 二叉树中的最大路径和 — 动画演示</title>
 <style>
-  :root { color-scheme: light; }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
-  }
-  .wrap { max-width: 960px; margin: 0 auto; }
-  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
-  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
-  h1 { font-size: 20px; margin: 0 0 4px; }
-  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
-  .sub b { color:#1d2129; } .sub code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
-  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
-
-  .card {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
-    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
-  }
-  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  button {
-    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
-    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
-  }
-  button:hover { background: #4f46e5; }
-  button.ghost { background: #eef0f4; color: #374151; }
-  button.ghost:hover { background: #e2e5eb; }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  .examples { display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
-  .examples .lab { font-size:12px; color:#9ca3af; }
-  .chip {
-    font-size: 13px; padding: 6px 12px;
-    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
-  }
-  .chip:hover { background: #e6e8ec; }
-  .chip.active { background:#6366f1; border-color:#4338ca; color:#fff; }
-  .chip .sp { font-family:"SF Mono",Menlo,monospace; font-size:11px; opacity:.7; margin-left:6px; }
-  .hint { font-size:12px; color:#9ca3af; margin-top:10px; }
-
-  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
-
-  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; }
-  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
-  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
-  .s5 b { color:#1d2129; } .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
-  .note { margin-top:12px; font-size:13px; color:#7c2d12; background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:11px 14px; }
-  .note b { color:#7c2d12; } .note code { background:#fef3c7; padding:1px 5px; border-radius:5px; font-size:12px; }
-
-  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
-  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
-  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
-
-  .tree-wrap { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px; text-align:center; }
-  .tree-wrap svg { display:block; margin:0 auto; overflow:visible; }
-
-  .eg { fill:none; stroke:#d7dbe2; stroke-width:2.5; transition:stroke .18s, stroke-width .18s; }
-  .eg.drop  { stroke:#e5e7eb; stroke-dasharray:5 5; }
-  .eg.chain { stroke:#a5b4fc; stroke-width:3; }
-  .eg.best  { stroke:#22c55e; stroke-width:5; }
-  .eg.cand  { stroke:#f59e0b; stroke-width:5; }
-
-  .nd circle { fill:#fff; stroke:#d7dbe2; stroke-width:2.5; transition:fill .18s, stroke .18s; }
-  .nd text.nv { font-family:"SF Mono",Menlo,monospace; font-size:15px; font-weight:700; fill:#334155; }
-  .nd.stack circle { stroke:#c7d2fe; }
-  .nd.done  circle { fill:#f0fdf4; stroke:#bbf7d0; }
-  .nd.best  circle { fill:#dcfce7; stroke:#22c55e; stroke-width:3.5; }
-  .nd.cand  circle { fill:#fef3c7; stroke:#f59e0b; stroke-width:3.5; }
-  .nd.cur   circle { fill:#e0e7ff; stroke:#6366f1; stroke-width:3.5; }
-  .nd.cur   text.nv { fill:#3730a3; }
-  .gv { font-family:"SF Mono",Menlo,monospace; font-size:11px; font-weight:700; fill:#6366f1; }
-  .tv { font-family:"SF Mono",Menlo,monospace; font-size:11px; font-weight:700; fill:#b45309; }
-
-  .vars { display:flex; flex-wrap:wrap; gap:10px 14px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
-  .vars .box { padding:4px 10px; border-radius:7px; background:#f8fafc; border:1px solid #eef0f4; }
-  .vl { color:#4f46e5; font-weight:700; } .vc { color:#b45309; font-weight:700; } .vg { color:#16a34a; font-weight:700; }
-
-  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
-  .status b { color:#fcd34d; } .status .op { color:#86efac; font-weight:700; }
-  .status code { background:#1f2937; padding:1px 5px; border-radius:5px; font-size:12px; color:#93c5fd; }
-  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
-  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:16px; }
-  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
-  .bar { display:inline-block; width:16px; height:4px; border-radius:2px; margin-right:5px; vertical-align:2px; }
-
-  details.code { margin-top: 4px; }
-  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
-  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
-  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
-  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
-  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
-  pre .cmt { color:#7dd3fc; }
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;padding:24px;background:#f6f7f9;color:#1d2129;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}.wrap{max-width:1320px;margin:auto}.navbar,.controls,.examples,.legend,.stats,.path{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.navbar{margin-bottom:16px}.difftag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;background:#fee2e2;color:#991b1b}.link{font-size:12px;color:#6b7280}.link a{color:#6366f1;text-decoration:none}h1{font-size:20px;margin:0 0 4px}.sub{color:#6b7280;font-size:13px;margin-bottom:18px}code{background:#eef0f4;padding:1px 5px;border-radius:5px;font:12px "SF Mono",Menlo,monospace}.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px #00000008}.panel-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:10px}.idea{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.idea>div,.complexity>div{border:1px solid #e5e7eb;border-radius:10px;padding:11px 13px;font-size:13px;color:#4b5563;background:#f8fafc}.no{font-size:11px;font-weight:800;color:#6366f1}.note{margin-top:12px;padding:11px 14px;border-radius:10px;font-size:13px}.formula{background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3}.correct{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}.input-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}.field{display:flex;flex-direction:column;gap:5px}.lab{font-size:12px;color:#6b7280;font-weight:700}input{width:100%;padding:9px 11px;font:13px "SF Mono",Menlo,monospace;border:1px solid #d1d5db;border-radius:8px;outline:0}input:focus{border-color:#6366f1;box-shadow:0 0 0 3px #6366f126}button{padding:9px 16px;font-size:14px;font-weight:600;border:0;border-radius:8px;cursor:pointer;background:#6366f1;color:#fff}button:hover{background:#4f46e5}button.ghost{background:#eef0f4;color:#374151}button:disabled{opacity:.45;cursor:not-allowed}.examples{margin-top:10px;gap:8px}.chip{font:12px "SF Mono",Menlo,monospace;padding:5px 10px;background:#f1f2f4;border:1px solid #e5e7eb;border-radius:99px;cursor:pointer}.chip:hover,.chip.active{background:#e0e7ff;border-color:#a5b4fc;color:#3730a3}.hint{font-size:12px;color:#9ca3af;margin-top:8px;line-height:1.65}.err{display:none;color:#dc2626;font-size:13px;margin-top:10px}.err.show{display:block}.stats{margin-bottom:14px}.stat{background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:8px 12px;font-size:12px;color:#6b7280}.stat b{display:block;font:800 13px "SF Mono",Menlo,monospace;color:#1d2129}.stat.answer b{color:#16a34a}.progress{margin-left:auto;font-size:12px;color:#9ca3af}.phases{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin-bottom:14px}.phase{border:1px solid #e5e7eb;border-radius:9px;padding:7px 3px;font-size:9px;color:#64748b;background:#f8fafc;text-align:center}.phase b{display:block;color:#334155;font-size:10px}.phase.active{background:#eef2ff;border-color:#818cf8;box-shadow:0 0 0 3px #6366f11c}.visual{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(410px,.95fr);gap:14px}.tree-box,.side{border:1px solid #eef0f4;border-radius:12px;background:linear-gradient(#fafbff,#fff);min-height:520px}.tree-box{padding:12px;overflow:auto;position:relative}.tree-box svg{display:block;margin:auto;overflow:visible}.null-call{position:absolute;top:12px;right:12px;max-width:290px;padding:7px 10px;border:1px dashed #f59e0b;border-radius:8px;background:#fffbeb;color:#92400e;font:700 11px "SF Mono",Menlo,monospace;display:none;z-index:3}.null-call.show{display:block}.edge{stroke:#cbd5e1;stroke-width:2.5}.edge.done{stroke:#bbf7d0}.edge.best{stroke:#22c55e;stroke-width:5}.edge.tmp{stroke:#6366f1;stroke-width:6}.edge.crossing{stroke:#f97316;stroke-width:6}.edge.active{stroke:#f59e0b;stroke-width:5;stroke-dasharray:6 4}.edge-label{fill:#94a3b8;font:800 10px sans-serif}.node circle{fill:#fff;stroke:#cbd5e1;stroke-width:2.5}.node text.value{fill:#334155;font:800 14px "SF Mono",Menlo,monospace}.node.done circle{fill:#f0fdf4;stroke:#86efac}.node.best circle{fill:#dcfce7;stroke:#22c55e;stroke-width:5}.node.tmp circle{fill:#e0e7ff;stroke:#6366f1;stroke-width:5}.node.crossing circle{fill:#ffedd5;stroke:#f97316;stroke-width:5}.node.current circle{filter:drop-shadow(0 2px 5px #1e293b55)}.gain-label{fill:#64748b;font:700 9px "SF Mono",Menlo,monospace}.gain-label.known{fill:#15803d}.side{padding:14px;display:flex;flex-direction:column;gap:11px}.action{border:1px solid #ddd6fe;background:#f5f3ff;border-radius:10px;padding:10px 12px;color:#5b21b6;min-height:62px}.action .kind{font-size:10px;font-weight:800}.action b{display:block;color:#3730a3;font-size:13px}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.metric{border:1px solid #c7d2fe;background:#eef2ff;border-radius:9px;padding:7px;color:#4338ca;font-size:9px}.metric b{display:block;font:800 14px "SF Mono",Menlo,monospace}.metric.answer{border-color:#bbf7d0;background:#f0fdf4;color:#166534}.stack{display:flex;flex-direction:column-reverse;gap:5px;min-height:66px;max-height:145px;overflow:auto}.frame{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:center;padding:6px 8px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;font:10px "SF Mono",Menlo,monospace;color:#475569}.frame.top{border-color:#818cf8;background:#eef2ff}.frame.null{border-style:dashed;border-color:#f59e0b;background:#fffbeb}.badge{border-radius:99px;min-width:24px;height:20px;display:flex;align-items:center;justify-content:center;background:#e2e8f0;font-weight:800}.paths{display:grid;gap:6px}.path{min-height:34px;gap:5px;border:1px dashed #cbd5e1;border-radius:8px;padding:6px;background:#f8fafc}.path-name{width:80px;color:#64748b;font-size:10px;font-weight:800}.path-item{padding:3px 6px;border-radius:6px;text-align:center;font:800 10px "SF Mono",Menlo,monospace}.path.tmp .path-item{background:#e0e7ff;border:1px solid #6366f1;color:#3730a3}.path.crossing .path-item{background:#ffedd5;border:1px solid #f97316;color:#9a3412}.path.best .path-item{background:#dcfce7;border:1px solid #22c55e;color:#166534}.none,.arrow{color:#94a3b8;font-size:11px}.empty{text-align:center;padding:16px;color:#94a3b8;font-size:11px}.line{border-radius:8px;background:#0f172a;color:#fcd34d;padding:8px 10px;min-height:35px;font:11px "SF Mono",Menlo,monospace}.legend{margin-top:13px;font-size:12px;color:#6b7280;gap:14px}.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1px solid #0001}.status{background:#111827;color:#e5e7eb;border-radius:10px;padding:14px 16px;font-size:14px;min-height:50px}.status b{color:#fcd34d}.status .op{color:#86efac}.status code{background:#1f2937;color:#93c5fd}.status-title{margin-top:16px}.complexity{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.complexity b{display:block;color:#1d2129}details summary{cursor:pointer;font-weight:600;font-size:14px;color:#4f46e5}.tabs{display:flex;gap:8px;margin:12px 0 10px}.tab{font-size:13px;padding:5px 12px;border-radius:99px;cursor:pointer;background:#f1f2f4;border:1px solid #e5e7eb}.tab.active{background:#6366f1;color:#fff}pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;overflow:auto;font-size:13px;line-height:1.55;margin:0}pre .cmt{color:#7dd3fc}@media(max-width:1020px){body{padding:16px 12px}.idea,.complexity,.visual,.input-grid{grid-template-columns:1fr}.phases{grid-template-columns:repeat(3,1fr)}.progress{width:100%;margin-left:0}}@media(max-width:540px){.metrics{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="navbar">
-    <span class="difftag">困难</span>
-    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/binary-tree-maximum-path-sum/" target="_blank" rel="noopener">LeetCode 124</a></span>
-  </div>
-
-  <h1>124. 二叉树中的最大路径和 · 算法动画</h1>
-  <div class="sub">路径是树上任意一条<b>首尾相连的节点序列</b>，不必经过根。关键观察：任何一条路径，都<b>恰好在最高的那个节点处拐一次弯</b>（或者不拐弯）。于是枚举「拐点」就能不重不漏地枚举所有路径 —— 一趟<b>后序遍历</b>即可，<code>O(n)</code> 时间。</div>
+  <div class="navbar"><span class="difftag">困难</span><span class="link">原题：<a href="https://leetcode.cn/problems/binary-tree-maximum-path-sum/" target="_blank" rel="noopener">LeetCode 124</a></span><span class="link">· <a href="../index.html">返回动画列表</a></span></div>
+  <h1>124. 二叉树中的最大路径和 · 后序 DFS</h1>
+  <div class="sub">每个节点同时维护“能继续交给父节点的单边贡献”和“整棵树中已经见过的任意合法路径”。</div>
 
   <div class="card">
-    <div class="panel-title">思路要点</div>
+    <div class="panel-title">标准后序 DFS：截断子树负贡献</div>
     <div class="idea">
-      <div class="s5"><div class="no">① 路径只拐一次弯</div>把路径上深度最浅的节点叫<b>拐点</b>。以它为界，路径 = <b>左边一条下垂链</b> + 拐点 + <b>右边一条下垂链</b>。每条路径的拐点唯一，所以<b>枚举每个节点当拐点</b>就枚举完了所有路径。</div>
-      <div class="s5"><div class="no">② 递归只返回单侧链</div><code>gain(node)</code> 返回的是「从 node 出发<b>一路向下</b>能拿到的最大和」。必须单侧 —— 因为父节点还要接着往上走，路径在这里<b>不能分叉</b>。所以是 <code>val + max(l, r)</code>。</div>
-      <div class="s5"><div class="no">③ 负链直接丢弃</div>子树贡献为负就不如不要，用 <code>max(gain(child), 0)</code> 截断。图中这条边会变成<b>灰色虚线</b>，表示这条链没被采纳。</div>
-      <div class="s5"><div class="no">④ 答案在拐点处更新</div>在每个节点用 <code>val + l + r</code>（<b>双侧</b>）去刷新全局 <code>ans</code>。这一步是<b>副作用</b>，和返回值各管各的 —— 这就是本题最容易写错的地方。</div>
+      <div><div class="no">① CLAMP CHILD GAINS</div><code>leftGain = max(dfs(left), 0)</code>，右侧同理。子树返回负数时明确舍弃为 0，不让它拖低当前路径。</div>
+      <div><div class="no">② THROUGH CURRENT</div><code>through = node.val + leftGain + rightGain</code>。当前节点作为最高拐点，可连接左右两条正贡献链。</div>
+      <div><div class="no">③ UPDATE &amp; RETURN</div><code>resp = max(resp, through)</code>；再返回 <code>node.val + max(leftGain, rightGain)</code>，给父节点时只能选择一边。</div>
     </div>
-    <div class="note">⚠️ <b>返回值 ≠ 答案。</b><code>val + l + r</code> 只能写进全局变量，<b>不能</b>当作 <code>gain</code> 的返回值往上传；否则父节点接上来就得到一条分叉的「非路径」。动画里请注意对比每个节点的 <span style="color:#6366f1;font-weight:700">↓ 返回值</span> 和 <span style="color:#b45309;font-weight:700">⤳ 拐弯值</span>。</div>
   </div>
 
   <div class="card">
-    <div class="panel-title">选一棵树</div>
-    <div class="examples" id="examples"></div>
-    <div class="hint" id="tip"></div>
+    <div class="input-grid"><label class="field"><span class="lab">非空二叉树（LeetCode 层序格式，1～31 个 token）</span><input id="treeInput" value="[-10,9,20,null,null,15,7]" spellcheck="false" autocomplete="off"></label><button id="loadBtn">演示</button></div>
+    <div class="examples"><span class="lab">示例：</span><span class="chip" data-spec="[-10,9,20,null,null,15,7]">经典 → 42</span><span class="chip" data-spec="[1,2,3]">1 2 3 → 6</span><span class="chip" data-spec="[-3,-2,-5]">全负 → -2</span><span class="chip" data-spec="[5,4,-8]">一正一负 → 9</span><span class="chip" data-spec="-7">单节点 → -7</span><span class="chip" data-spec="[1,null,2,null,3,null,4]">斜树 → 10</span></div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">接受空白或逗号分隔，可带一对方括号；<code>null</code> / <code>#</code> 必须小写。支持负数、全负、重复值和不完整树；节点值须为 32 位有符号整数。严格拒绝空树、非法/空 token、混合分隔、未配对括号、空根和孤儿 token。</div>
   </div>
 
   <div class="card">
     <div class="stats" id="stats"></div>
-    <div class="controls" style="margin-bottom:14px;">
-      <button id="prevBtn" class="ghost">◀ 上一步</button>
-      <button id="nextBtn">下一步 ▶</button>
-      <button id="playBtn" class="ghost">▶ 自动播放</button>
-      <button id="resetBtn" class="ghost">↺ 重置</button>
-      <span class="progress" id="progress"></span>
+    <div class="controls" style="margin-bottom:14px"><button id="prevBtn" class="ghost">◀ 上一步</button><button id="nextBtn">下一步 ▶</button><button id="playBtn" class="ghost">▶ 自动播放</button><button id="resetBtn" class="ghost">↺ 重置</button><span class="progress" id="progress"></span></div>
+    <div class="phases" id="phaseStrip">
+      <div class="phase" data-phase="call">CALL / NULL<b>进入与基例</b></div><div class="phase" data-phase="left">LEFT<b>递归左边</b></div><div class="phase" data-phase="left-return">LEFT GAIN<b>原值截断为 ≥ 0</b></div><div class="phase" data-phase="right">RIGHT<b>递归右边</b></div><div class="phase" data-phase="right-return">RIGHT GAIN<b>原值截断为 ≥ 0</b></div><div class="phase" data-phase="through">THROUGH<b>左右贯通</b></div><div class="phase" data-phase="resp">RESP<b>只比较 through</b></div><div class="phase" data-phase="return-gain">RETURN GAIN<b>只选择一边</b></div><div class="phase" data-phase="return">RETURN<b>返回父节点</b></div>
     </div>
-
-    <div class="tree-wrap"><svg id="svg"></svg></div>
-
-    <div class="vars" id="vars"></div>
-    <div class="legend" id="legend"></div>
-
-    <div class="panel-title" style="margin-top:16px;">当前状态</div>
-    <div class="status" id="status">选一棵树开始。</div>
-  </div>
-
-  <div class="card">
-    <details class="code">
-      <summary>查看参考代码（与本页动画一致）</summary>
-      <div class="code-tabs" id="codeTabs">
-        <span class="code-tab active" data-lang="py">Python</span>
-        <span class="code-tab" data-lang="java">Java</span>
+    <div class="visual">
+      <div class="tree-box" id="treeBox"><svg id="treeSvg" role="img" aria-label="二叉树最大路径和的单边贡献、贯通路径和全局最佳路径动画"></svg><div class="null-call" id="nullCall"></div></div>
+      <div class="side">
+        <div><div class="panel-title">当前动作</div><div class="action" id="action"></div></div>
+        <div class="metrics"><div class="metric">left raw<b id="leftRawValue">—</b></div><div class="metric">leftGain<b id="leftValue">—</b></div><div class="metric">right raw<b id="rightRawValue">—</b></div><div class="metric">rightGain<b id="rightValue">—</b></div><div class="metric">returnGain<b id="returnValue">—</b></div><div class="metric">through<b id="throughValue">—</b></div><div class="metric answer">resp<b id="respValue">−∞</b></div></div>
+        <div><div class="panel-title">递归调用栈（栈顶在上）</div><div class="stack" id="stack"></div></div>
+        <div><div class="panel-title">真实路径（重复值按 id 区分）</div><div class="paths"><div class="path tmp" id="returnPath"></div><div class="path crossing" id="throughPath"></div><div class="path best" id="bestPath"></div></div></div>
+        <div class="line" id="currentLine"></div>
       </div>
-      <pre id="codeBlock"></pre>
-    </details>
+    </div>
+    <div class="legend"><span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>returnGain 单边</span><span><span class="dot" style="background:#ffedd5;border-color:#f97316"></span>through 当前贯通</span><span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>全局最佳</span><span><span class="dot" style="background:#f0fdf4;border-color:#86efac"></span>已完成返回值</span></div>
+    <div class="panel-title status-title">状态栏</div><div class="status" id="status">点击「演示」开始。</div>
   </div>
+
+  <div class="card"><div class="panel-title">复杂度与全负边界</div><div class="complexity"><div><b>时间 O(n)</b>每个节点访问一次，常数时间计算截断后的左右贡献、through、returnGain 与 resp。</div><div><b>递归栈 O(h)</b>h 为树高；平衡树 O(log n)，斜树最坏 O(n)。</div><div><b>resp 必须从 −∞ 开始</b>不能初始化为 0；全负树的左右贡献都会舍弃为 0，答案仍是最大单节点，如 <code>[-3,-2,-5] → -2</code>。</div></div></div>
+  <div class="card"><details open><summary>查看 Python / Java 参考代码（主代码与动画一致）</summary><div class="tabs"><span class="tab active" data-lang="py">Python</span><span class="tab" data-lang="java">Java</span></div><pre id="codeBlock"></pre></details></div>
 </div>
-<script>
-/* ==== 纯逻辑核心：建树 / 布局 / 生成动画帧 ==== */
-(function (root) {
-  'use strict';
 
-  /* 层序字符串（null 表示空位）→ 扁平节点数组，下标 0 为根 */
-  function buildTree(spec) {
-    var toks = String(spec).split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s.length; });
-    var nodes = [];
-    if (!toks.length || toks[0] === 'null') return nodes;
-    nodes.push({ id: 0, val: parseInt(toks[0], 10), left: -1, right: -1, parent: -1 });
-    var queue = [0], qi = 0, t = 1;
-    while (qi < queue.length && t < toks.length) {
-      var pid = queue[qi++];
-      for (var side = 0; side < 2; side++) {
-        if (t >= toks.length) break;
-        var tok = toks[t++];
-        if (tok === 'null') continue;
-        var nid = nodes.length;
-        nodes.push({ id: nid, val: parseInt(tok, 10), left: -1, right: -1, parent: pid });
-        if (side === 0) nodes[pid].left = nid; else nodes[pid].right = nid;
-        queue.push(nid);
-      }
-    }
-    return nodes;
+<script data-maximum-path-sum-logic>
+(function(root){
+'use strict';
+var MIN=-2147483648,MAX=2147483647,LIMIT=31;
+function tokenize(input){
+  if(typeof input!=='string')return{error:'树输入必须是字符串'};
+  var text=input.trim();
+  if(!text)return{error:'树不能为空；本题要求至少一个节点'};
+  if(text[0]==='['||text[text.length-1]===']'){
+    if(text[0]!=='['||text[text.length-1]!==']')return{error:'方括号必须成对并包住整个输入'};
+    text=text.slice(1,-1).trim();
   }
-
-  /* 中序遍历序号 → x，深度 → y */
-  function layout(nodes, opt) {
-    var xgap = opt.xgap, ygap = opt.ygap, padx = opt.padx, pady = opt.pady;
-    var col = 0, maxDepth = 0;
-    function walk(id, depth) {
-      if (id < 0) return;
-      var nd = nodes[id];
-      walk(nd.left, depth + 1);
-      nd.x = padx + col * xgap; col++;
-      nd.y = pady + depth * ygap;
-      nd.depth = depth;
-      if (depth > maxDepth) maxDepth = depth;
-      walk(nd.right, depth + 1);
+  if(text.indexOf('[')>=0||text.indexOf(']')>=0)return{error:'方括号只能出现在最外层'};
+  if(!text)return{error:'[] 不是本题有效输入'};
+  var raw;
+  if(text.indexOf(',')>=0){
+    raw=text.split(',');
+    for(var i=0;i<raw.length;i++){raw[i]=raw[i].trim();if(!raw[i])return{error:'不能出现空 token'};if(/\s/.test(raw[i]))return{error:'不能混用逗号与空白分隔'};}
+  }else raw=text.split(/\s+/);
+  if(raw.length>LIMIT)return{error:'最多允许 '+LIMIT+' 个 token，当前有 '+raw.length+' 个'};
+  var tokens=[];
+  for(var j=0;j<raw.length;j++){
+    var word=raw[j];
+    if(word==='null'||word==='#')tokens.push(null);
+    else{
+      if(!/^-?\d+$/.test(word))return{error:'第 '+(j+1)+' 个 token「'+word+'」不是小写 null、# 或整数'};
+      var value=Number(word);
+      if(!Number.isSafeInteger(value)||value<MIN||value>MAX)return{error:'第 '+(j+1)+' 个节点值须为 32 位有符号整数'};
+      tokens.push(value);
     }
-    if (nodes.length) walk(0, 0);
-    return {
-      w: padx * 2 + Math.max(0, col - 1) * xgap,
-      h: pady * 2 + maxDepth * ygap + 22,
-      depth: maxDepth + 1
-    };
   }
-
-  function copy(o) { var r = {}; for (var k in o) if (o.hasOwnProperty(k)) r[k] = o[k]; return r; }
-
-  /* 后序 DFS，每个节点产生 5 帧：进入 / 取左链 / 取右链 / 在此拐弯 / 返回单侧链 */
-  function buildSteps(nodes) {
-    var steps = [];
-    var gain = {}, turn = {}, pick = {}, dropped = {}, done = {}, chain = {};
-    var ans = -Infinity, ansPath = [];
-
-    function snap(o) {
-      steps.push({
-        node: o.node, kind: o.kind,
-        l: (o.l === undefined ? null : o.l),
-        r: (o.r === undefined ? null : o.r),
-        cand: (o.cand === undefined ? null : o.cand),
-        gain: copy(gain), turn: copy(turn), pick: copy(pick),
-        dropped: copy(dropped), done: copy(done),
-        candPath: o.candPath ? o.candPath.slice() : null,
-        stack: o.stack.slice(),
-        ans: ans, ansPath: ansPath.slice(),
-        msg: o.msg
-      });
-    }
-
-    function side(nodes, cid, raw, name) {
-      if (cid < 0) return name + '子树为空，贡献 <b>0</b>';
-      if (raw <= 0) return name + '子树返回 <b>' + raw + '</b> ≤ 0，<b>整条链丢掉</b>，按 <b>0</b> 算';
-      return name + '子树返回 <b>' + raw + '</b>，可用';
-    }
-
-    var stack = [];
-    function dfs(id) {
-      if (id < 0) return 0;
-      var nd = nodes[id];
-      stack.push(id);
-      snap({ node: id, kind: 'enter', stack: stack,
-        msg: '进入节点 <b>' + nd.val + '</b>。后序遍历：先把<b>左右子树</b>各自能向上贡献多少算出来，再处理自己。' });
-
-      var lRaw = dfs(nd.left);
-      var l = Math.max(lRaw, 0);
-      if (nd.left >= 0 && lRaw <= 0) dropped[nd.left] = 1;
-      snap({ node: id, kind: 'left', l: l, stack: stack,
-        msg: '节点 <b>' + nd.val + '</b> 的左链：' + side(nodes, nd.left, lRaw, '左') + ' → <code>l = ' + l + '</code>' });
-
-      var rRaw = dfs(nd.right);
-      var r = Math.max(rRaw, 0);
-      if (nd.right >= 0 && rRaw <= 0) dropped[nd.right] = 1;
-      snap({ node: id, kind: 'right', l: l, r: r, stack: stack,
-        msg: '节点 <b>' + nd.val + '</b> 的右链：' + side(nodes, nd.right, rRaw, '右') + ' → <code>r = ' + r + '</code>' });
-
-      /* 以自己为拐点的双侧路径 */
-      var cand = l + r + nd.val;
-      var candPath = [];
-      if (l > 0) candPath = chain[nd.left].slice().reverse();
-      candPath.push(id);
-      if (r > 0) candPath = candPath.concat(chain[nd.right]);
-      var before = ans, updated = cand > ans;
-      if (updated) { ans = cand; ansPath = candPath.slice(); }
-      turn[id] = cand;
-      snap({ node: id, kind: 'turn', l: l, r: r, cand: cand, candPath: candPath, stack: stack,
-        msg: '以 <b>' + nd.val + '</b> 为拐点的路径和 = <code>l + r + val = ' + l + ' + ' + r + ' + ' + nd.val + ' = ' + cand + '</code>。' +
-             (updated
-               ? '<span class="op">刷新答案 ans = ' + cand + '</span>' + (before === -Infinity ? '（第一次）' : '（原来是 ' + before + '）')
-               : '没超过当前 <b>ans = ' + before + '</b>，不更新。') });
-
-      /* 向上只能带一条边 */
-      var g = Math.max(l, r) + nd.val;
-      gain[id] = g;
-      if (l >= r && l > 0) { chain[id] = [id].concat(chain[nd.left]); pick[id] = nd.left; }
-      else if (r > l && r > 0) { chain[id] = [id].concat(chain[nd.right]); pick[id] = nd.right; }
-      else { chain[id] = [id]; pick[id] = -1; }
-      done[id] = 1;
-      snap({ node: id, kind: 'return', l: l, r: r, cand: cand, stack: stack,
-        msg: '向上返回 <code>max(l, r) + val = max(' + l + ', ' + r + ') + ' + nd.val + ' = ' + g + '</code>。' +
-             '<b>只带单侧</b>：父节点还要往上接，路径不能在这里分叉 —— 所以返回值和上一步的拐弯值 <b>' + cand + '</b> 不是一回事。' });
-      stack.pop();
-      return g;
-    }
-
-    dfs(0);
-    steps.push({
-      node: -1, kind: 'done', l: null, r: null, cand: null,
-      gain: copy(gain), turn: copy(turn), pick: copy(pick),
-      dropped: copy(dropped), done: copy(done),
-      candPath: null, stack: [], ans: ans, ansPath: ansPath.slice(),
-      msg: '遍历结束。全树最大路径和 <span class="op">ans = ' + ans + '</span>，对应绿色高亮的这条路径。'
-    });
-    return steps;
+  if(tokens[0]===null)return{error:tokens.length>1?'根为空时不能再提供其它 token':'根节点不能为 null'};
+  return{tokens:tokens,tokenCount:raw.length,error:null};
+}
+function buildTree(tokens){
+  if(!Array.isArray(tokens)||!tokens.length||tokens[0]===null)return{error:'树必须包含非空根节点'};
+  var nodes=[{id:0,value:tokens[0],left:-1,right:-1,parent:-1,side:'root',tokenIndex:0}],queue=[0],qi=0,t=1;
+  while(t<tokens.length){
+    if(qi>=queue.length)return{error:'第 '+(t+1)+' 个 token 没有可用父节点，属于孤儿 token'};
+    var pid=queue[qi++],p=nodes[pid],v=tokens[t++];
+    if(v!==null){var lid=nodes.length;nodes.push({id:lid,value:v,left:-1,right:-1,parent:pid,side:'left',tokenIndex:t-1});p.left=lid;queue.push(lid);}
+    if(t>=tokens.length)break;
+    v=tokens[t++];
+    if(v!==null){var rid=nodes.length;nodes.push({id:rid,value:v,left:-1,right:-1,parent:pid,side:'right',tokenIndex:t-1});p.right=rid;queue.push(rid);}
   }
-
-  root.MPS124 = { buildTree: buildTree, layout: layout, buildSteps: buildSteps };
-})(typeof window !== 'undefined' ? window : globalThis);
+  return{nodes:nodes,rootId:0,error:null};
+}
+function cloneNodes(nodes){return nodes.map(function(n){return{id:n.id,value:n.value,left:n.left,right:n.right,parent:n.parent,side:n.side,tokenIndex:n.tokenIndex};});}
+function parseInput(input){var p=tokenize(input);if(p.error)return p;var b=buildTree(p.tokens);if(b.error)return b;return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,nodes:cloneNodes(b.nodes),rootId:0};}
+function layout(nodes,o){
+  o=o||{};var xg=o.xGap||90,yg=o.yGap||100,px=o.padX||65,py=o.padY||48,pos={},col=0,md=0;
+  function walk(id,d){if(id<0)return;walk(nodes[id].left,d+1);pos[id]={x:px+col*xg,y:py+d*yg,depth:d};col++;md=Math.max(md,d);walk(nodes[id].right,d+1);}
+  walk(0,0);return{positions:pos,width:Math.max(330,px*2+Math.max(0,col-1)*xg),height:Math.max(470,py*2+md*yg+52),heightLevels:md+1};
+}
+function cloneStack(a){return a.map(function(f){return{nodeId:f.nodeId,value:f.value,state:f.state,via:f.via,parentId:f.parentId,leftRaw:f.leftRaw,leftGain:f.leftGain,rightRaw:f.rightRaw,rightGain:f.rightGain,returnGain:f.returnGain,through:f.through};});}
+function cloneGains(m){return Array.from(m.values()).sort(function(a,b){return a.nodeId-b.nodeId;}).map(function(g){return{nodeId:g.nodeId,gain:g.gain,path:g.path.slice(),leftRaw:g.leftRaw,leftGain:g.leftGain,rightRaw:g.rightRaw,rightGain:g.rightGain,through:g.through,throughPath:g.throughPath.slice()};});}
+function clonePaths(p){return{returnGain:p.returnGain.slice(),through:p.through.slice(),active:p.active.slice()};}
+function pathSum(nodes,path){return path.reduce(function(sum,id){return sum+nodes[id].value;},0);}
+function isContinuousPath(nodes,path){
+  if(!path.length||new Set(path).size!==path.length)return false;
+  for(var i=1;i<path.length;i++){var a=nodes[path[i-1]],b=nodes[path[i]];if(!a||!b||(a.parent!==b.id&&b.parent!==a.id))return false;}
+  return true;
+}
+function buildSteps(nodes){
+  var steps=[],s={stack:[],gains:new Map(),completed:[],paths:{returnGain:[],through:[],active:[]},bestPath:[],resp:-Infinity,leftRaw:null,leftGain:null,rightRaw:null,rightGain:null,returnGain:null,through:null,focus:'best'};
+  function snap(phase,current,source,side,action,line,message){
+    steps.push({phase:phase,currentNode:current,sourceNode:source,edgeSide:side||null,action:action,codeLine:line,message:message,focus:s.focus,leftRaw:s.leftRaw,leftGain:s.leftGain,rightRaw:s.rightRaw,rightGain:s.rightGain,returnGain:s.returnGain,through:s.through,resp:s.resp,stack:cloneStack(s.stack),gains:cloneGains(s.gains),completed:s.completed.slice(),paths:clonePaths(s.paths),bestPath:s.bestPath.slice()});
+  }
+  function label(id){return id<0?'null':nodes[id].value+'（id '+id+'）';}
+  function clampMessage(side,raw,gain){
+    if(raw<0)return side+'子树原始返回值 <code>'+raw+'</code> 为负贡献，<b>舍弃为 0</b>。';
+    if(raw===0)return side+'子树原始返回值为 <code>0</code>，不向当前路径添加节点。';
+    return side+'子树原始返回值 <code>'+raw+'</code> 为正，保留为 <span class="op">'+gain+'</span>。';
+  }
+  function dfs(id,via,parentId){
+    s.leftRaw=s.leftGain=s.rightRaw=s.rightGain=s.returnGain=s.through=null;s.paths={returnGain:[],through:[],active:[]};s.focus='best';
+    if(id<0){
+      s.stack.push({nodeId:null,value:null,state:'call',via:via,parentId:parentId,leftRaw:null,leftGain:null,rightRaw:null,rightGain:null,returnGain:null,through:null});
+      snap('call-null',null,parentId,via,'调用 dfs(null)','dfs(None)','建立短暂的 <b>null</b> 帧。');
+      s.stack[s.stack.length-1].state='null';
+      snap('null-return',null,parentId,via,'null 基例返回 0','if not node: return 0','空指针返回 <span class="op">0</span>，不更新 resp。');
+      s.stack.pop();return{gain:0,path:[]};
+    }
+    var n=nodes[id],f={nodeId:id,value:n.value,state:'call',via:via,parentId:parentId,leftRaw:null,leftGain:null,rightRaw:null,rightGain:null,returnGain:null,through:null};s.stack.push(f);
+    snap('call',id,parentId,via,'进入 dfs('+label(id)+')','def dfs(node):','建立节点 <b>'+n.value+'</b> 的递归帧，等待左右贡献。');
+    f.state='left';snap('recurse-left',id,id,'left','递归左子树：'+label(n.left),'leftGain = max(dfs(node.left), 0)','先取得左子树的原始返回值，再把负贡献截断为 0。');
+    var L=dfs(n.left,'left',id);
+    s.leftRaw=L.gain;s.leftGain=Math.max(L.gain,0);s.rightRaw=s.rightGain=s.returnGain=s.through=null;s.paths={returnGain:[],through:[],active:s.leftGain>0?L.path.slice():[]};s.focus='active';f.leftRaw=s.leftRaw;f.leftGain=s.leftGain;f.state='left-return';
+    snap('left-return',id,n.left,'left','leftGain = max('+s.leftRaw+', 0) = '+s.leftGain,'leftGain = max(dfs(node.left), 0)',clampMessage('左',s.leftRaw,s.leftGain));
+    s.paths={returnGain:[],through:[],active:[]};s.focus='best';f.state='right';
+    snap('recurse-right',id,id,'right','递归右子树：'+label(n.right),'rightGain = max(dfs(node.right), 0)','保存 leftGain 后，再取得并截断右子树贡献。');
+    var R=dfs(n.right,'right',id);
+    s.leftRaw=L.gain;s.leftGain=Math.max(L.gain,0);s.rightRaw=R.gain;s.rightGain=Math.max(R.gain,0);s.returnGain=s.through=null;s.paths={returnGain:[],through:[],active:s.rightGain>0?R.path.slice():[]};s.focus='active';f.rightRaw=s.rightRaw;f.rightGain=s.rightGain;f.state='right-return';
+    snap('right-return',id,n.right,'right','rightGain = max('+s.rightRaw+', 0) = '+s.rightGain,'rightGain = max(dfs(node.right), 0)',clampMessage('右',s.rightRaw,s.rightGain));
+    s.through=n.value+s.leftGain+s.rightGain;s.paths.through=(s.leftGain>0?L.path.slice().reverse():[]).concat([id],s.rightGain>0?R.path:[]);s.paths.active=s.paths.through.slice();s.focus='through';f.through=s.through;f.state='through';
+    snap('compute-through',id,id,null,'through = '+n.value+' + '+s.leftGain+' + '+s.rightGain+' = '+s.through,'through = node.val + leftGain + rightGain','橙色 through 只连接左右正贡献链；被截断的负分支不会出现在真实路径中。');
+    if(s.through>s.resp){s.resp=s.through;s.bestPath=s.paths.through.slice();}
+    s.paths.active=s.bestPath.slice();s.focus='best';f.state='resp';
+    snap('update-resp',id,id,null,'resp = max(resp, '+s.through+') = '+s.resp,'resp = max(resp, through)','全局答案只比较旧 <code>resp</code> 与当前 <code>through</code>；绿色路径节点和为 <span class="op">'+s.resp+'</span>。');
+    var chosen=s.leftGain>=s.rightGain&&s.leftGain>0?L:(s.rightGain>0?R:{gain:0,path:[]});
+    s.returnGain=n.value+Math.max(s.leftGain,s.rightGain);s.paths.returnGain=[id].concat(chosen.path);s.paths.active=s.paths.returnGain.slice();s.focus='returnGain';f.returnGain=s.returnGain;f.state='return-gain';
+    s.gains.set(id,{nodeId:id,gain:s.returnGain,path:s.paths.returnGain.slice(),leftRaw:s.leftRaw,leftGain:s.leftGain,rightRaw:s.rightRaw,rightGain:s.rightGain,through:s.through,throughPath:s.paths.through.slice()});
+    snap('compute-return-gain',id,id,null,'returnGain = '+n.value+' + max('+s.leftGain+', '+s.rightGain+') = '+s.returnGain,'returnGain = node.val + max(leftGain, rightGain)','蓝色 returnGain 只能选择贡献更大的一侧，保证还能接到父节点。');
+    s.completed.push(id);f.state='return';
+    snap('return',id,parentId,via,'return '+s.returnGain,'return returnGain','记录本节点返回值并交给父节点；through 可分叉，因此绝不能整体向上返回。');
+    s.stack.pop();return{gain:s.returnGain,path:s.paths.returnGain.slice()};
+  }
+  dfs(0,'root',-1);
+  s.leftRaw=s.leftGain=s.rightRaw=s.rightGain=s.returnGain=s.through=null;s.paths={returnGain:[],through:[],active:s.bestPath.slice()};s.focus='best';
+  snap('done',null,null,null,'DFS 完成，答案为 '+s.resp,'return resp','所有调用结束；绿色连续路径的节点和恰好为 <span class="op">'+s.resp+'</span>。');
+  return steps;
+}
+function expectedValues(nodes){var out={};function dfs(id){if(id<0)return{gain:0,path:[]};var l=dfs(nodes[id].left),r=dfs(nodes[id].right),lg=Math.max(l.gain,0),rg=Math.max(r.gain,0),chosen=lg>=rg&&lg>0?l:(rg>0?r:{gain:0,path:[]}),gain=nodes[id].value+Math.max(lg,rg),through=nodes[id].value+lg+rg,throughPath=(lg>0?l.path.slice().reverse():[]).concat([id],rg>0?r.path:[]),path=[id].concat(chosen.path);out[id]={gain:gain,path:path,leftRaw:l.gain,leftGain:lg,rightRaw:r.gain,rightGain:rg,through:through,throughPath:throughPath};return{gain:gain,path:path};}dfs(0);return out;}
+function bruteForce(nodes){
+  var best=-Infinity;
+  for(var st=0;st<nodes.length;st++){var q=[{id:st,from:-1,sum:nodes[st].value}];for(var i=0;i<q.length;i++){var x=q[i];best=Math.max(best,x.sum);var n=nodes[x.id],a=[n.parent,n.left,n.right];for(var k=0;k<3;k++)if(a[k]>=0&&a[k]!==x.from)q.push({id:a[k],from:x.id,sum:x.sum+nodes[a[k]].value});}}
+  return best;
+}
+function validateSnapshots(nodes,steps){
+  var errors=[],seen={},expected=expectedValues(nodes);
+  for(var i=0;i<steps.length;i++){
+    var s=steps[i];seen[s.phase]=true;
+    if(!Array.isArray(s.stack)||!Array.isArray(s.gains)||!s.paths||!Array.isArray(s.paths.returnGain)||!Array.isArray(s.paths.through)||!Array.isArray(s.paths.active)||!Array.isArray(s.bestPath)||!Array.isArray(s.completed)){errors.push('第 '+(i+1)+' 帧快照不完整');continue;}
+    s.gains.forEach(function(g){var e=expected[g.nodeId];if(!e||g.gain!==e.gain||g.leftRaw!==e.leftRaw||g.leftGain!==e.leftGain||g.rightRaw!==e.rightRaw||g.rightGain!==e.rightGain||g.through!==e.through)errors.push('节点 '+g.nodeId+' 标准公式数值错误');if(!isContinuousPath(nodes,g.path)||pathSum(nodes,g.path)!==g.gain||g.path[0]!==g.nodeId)errors.push('节点 '+g.nodeId+' returnGain 路径错误');if(!isContinuousPath(nodes,g.throughPath)||pathSum(nodes,g.throughPath)!==g.through)errors.push('节点 '+g.nodeId+' through 路径错误');if(g.leftGain<0||g.rightGain<0)errors.push('节点 '+g.nodeId+' 子树贡献未截断');});
+    if(s.resp!==-Infinity&&(!isContinuousPath(nodes,s.bestPath)||pathSum(nodes,s.bestPath)!==s.resp))errors.push('第 '+(i+1)+' 帧 bestPath 非法');
+    ['returnGain','through','active'].forEach(function(name){if(s.paths[name].length&&!isContinuousPath(nodes,s.paths[name]))errors.push('第 '+(i+1)+' 帧 '+name+' 不连续');});
+    if(s.phase==='compute-through'&&(pathSum(nodes,s.paths.through)!==s.through||s.paths.through.indexOf(s.currentNode)<0))errors.push('第 '+(i+1)+' 帧 through 数值或路径错误');
+    if(s.phase==='compute-return-gain'&&(pathSum(nodes,s.paths.returnGain)!==s.returnGain||s.paths.returnGain[0]!==s.currentNode))errors.push('第 '+(i+1)+' 帧 returnGain 数值或路径错误');
+    if(i){var p=steps[i-1];if(p.stack===s.stack||p.gains===s.gains||p.paths===s.paths||p.paths.returnGain===s.paths.returnGain||p.paths.through===s.paths.through||p.paths.active===s.paths.active||p.bestPath===s.bestPath||p.completed===s.completed)errors.push('相邻帧共享快照引用');if(p.stack.length&&s.stack.length&&p.stack[0]===s.stack[0])errors.push('stack 对象未深拷贝');if(p.gains.length&&s.gains.length&&(p.gains[0]===s.gains[0]||p.gains[0].path===s.gains[0].path||p.gains[0].throughPath===s.gains[0].throughPath))errors.push('gain 未深拷贝');}
+  }
+  ['call','call-null','null-return','recurse-left','left-return','recurse-right','right-return','compute-through','update-resp','compute-return-gain','return','done'].forEach(function(p){if(!seen[p])errors.push('缺少阶段 '+p);});
+  var last=steps[steps.length-1];
+  if(!last||last.phase!=='done')errors.push('最后一帧必须为 done');
+  else{if(last.resp!==bruteForce(nodes))errors.push('答案与暴力校验不一致');if(last.stack.length)errors.push('结束时栈非空');if(last.gains.length!==nodes.length||last.completed.length!==nodes.length)errors.push('每节点标准公式数据不完整');}
+  return{ok:errors.length===0,errors:errors};
+}
+function run(input){
+  var p=parseInput(input);if(p.error)return p;var steps=buildSteps(p.nodes),v=validateSnapshots(p.nodes,steps),last=steps[steps.length-1];
+  return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,rootId:0,nodes:cloneNodes(p.nodes),steps:steps,answer:last.resp,bestPath:last.bestPath.slice(),gains:last.gains.map(function(g){return{nodeId:g.nodeId,gain:g.gain,path:g.path.slice(),leftRaw:g.leftRaw,leftGain:g.leftGain,rightRaw:g.rightRaw,rightGain:g.rightGain,through:g.through,throughPath:g.throughPath.slice()};}),validation:v};
+}
+root.BinaryTreeMaximumPathSum124={tokenize:tokenize,buildTree:buildTree,cloneNodes:cloneNodes,parseInput:parseInput,layout:layout,pathSum:pathSum,isContinuousPath:isContinuousPath,buildSteps:buildSteps,expectedValues:expectedValues,bruteForce:bruteForce,validateSnapshots:validateSnapshots,run:run,limits:{minValue:MIN,maxValue:MAX,maxTokens:LIMIT}};
+})(typeof window!=='undefined'?window:globalThis);
 </script>
+
 <script>
-/* ==== UI 控制器 ==== */
-(function () {
-  'use strict';
-  var M = window.MPS124;
-  var $ = function (id) { return document.getElementById(id); };
-  var svg = $('svg'), statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
-  var varsEl = $('vars'), legendEl = $('legend'), tipEl = $('tip'), exEl = $('examples');
-  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+(function(){
+'use strict';
+var App=window.BinaryTreeMaximumPathSum124,$=function(id){return document.getElementById(id);},input=$('treeInput'),svg=$('treeSvg'),prev=$('prevBtn'),nextBtn=$('nextBtn'),play=$('playBtn');
+var result,steps=[],index=0,timer=null,pos={},nodeEls={},edgeEls={},gainEls={},NS='http://www.w3.org/2000/svg',R=21;
+function el(name,attrs){var x=document.createElementNS(NS,name);Object.keys(attrs||{}).forEach(function(k){x.setAttribute(k,attrs[k]);});return x;}
+function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ 自动播放';}}
+function phase(p){if(p==='call'||p==='call-null'||p==='null-return')return'call';if(p==='recurse-left')return'left';if(p==='left-return')return'left-return';if(p==='recurse-right')return'right';if(p==='right-return')return'right-return';if(p==='compute-through')return'through';if(p==='update-resp')return'resp';if(p==='compute-return-gain')return'return-gain';return'return';}
+function state(x){return{call:'刚进入',null:'null → 0',left:'等待左树','left-return':'左值已截断',right:'等待右树','right-return':'右值已截断',through:'计算 through',resp:'更新 resp','return-gain':'计算单边返回',return:'返回父节点'}[x]||x;}
+function fmt(x){return x===null?'—':x===-Infinity?'−∞':String(x);}
+function setOf(a){var o={};a.forEach(function(x){o[x]=true;});return o;}
+function pathEdges(path){var o={};for(var i=1;i<path.length;i++){var a=path[i-1],b=path[i];o[result.nodes[a].parent===b?a:b]=true;}return o;}
+function gain(step,id){for(var i=0;i<step.gains.length;i++)if(step.gains[i].nodeId===id)return step.gains[i];return null;}
+function graphic(){
+  svg.innerHTML='';nodeEls={};edgeEls={};gainEls={};var size=App.layout(result.nodes,{xGap:90,yGap:100,padX:65,padY:48});pos=size.positions;svg.setAttribute('width',size.width);svg.setAttribute('height',size.height);svg.setAttribute('viewBox','0 0 '+size.width+' '+size.height);
+  result.nodes.forEach(function(n){if(n.parent<0)return;var a=pos[n.parent],b=pos[n.id],line=el('line',{class:'edge',x1:a.x,y1:a.y,x2:b.x,y2:b.y});svg.appendChild(line);edgeEls[n.id]=line;var t=el('text',{class:'edge-label',x:(a.x+b.x)/2+(n.side==='left'?-8:8),y:(a.y+b.y)/2-3,'text-anchor':'middle'});t.textContent=n.side==='left'?'L':'R';svg.appendChild(t);});
+  result.nodes.forEach(function(n){var p=pos[n.id],g=el('g',{class:'node'});g.appendChild(el('circle',{cx:p.x,cy:p.y,r:R}));var v=el('text',{class:'value',x:p.x,y:p.y+5,'text-anchor':'middle'});v.textContent=n.value;g.appendChild(v);var x=el('text',{class:'gain-label',x:p.x,y:p.y+36,'text-anchor':'middle'});x.textContent='gain: —';g.appendChild(x);gainEls[n.id]=x;svg.appendChild(g);nodeEls[n.id]=g;});return size;
+}
+function tree(step){
+  var done=setOf(step.completed),best=setOf(step.bestPath),be=pathEdges(step.bestPath),fp=step.focus==='returnGain'?step.paths.returnGain:step.focus==='through'?step.paths.through:step.paths.active,focus=setOf(fp),fe=pathEdges(fp);
+  result.nodes.forEach(function(n){var c='node';if(done[n.id])c+=' done';if(best[n.id])c+=' best';if(focus[n.id]&&step.focus==='returnGain')c+=' tmp';if(focus[n.id]&&step.focus==='through')c+=' crossing';if(step.currentNode===n.id)c+=' current';nodeEls[n.id].setAttribute('class',c);var g=gain(step,n.id);gainEls[n.id].textContent=g?'gain: '+g.gain:'gain: —';gainEls[n.id].setAttribute('class','gain-label'+(g?' known':''));if(edgeEls[n.id]){var e='edge';if(done[n.id])e+=' done';if(be[n.id])e+=' best';if(fe[n.id]&&step.focus==='returnGain')e+=' tmp';if(fe[n.id]&&step.focus==='through')e+=' crossing';if((step.phase==='recurse-left'||step.phase==='recurse-right')&&step.sourceNode===n.parent&&step.edgeSide===n.side)e+=' active';edgeEls[n.id].setAttribute('class',e);}});
+  var top=step.stack.length?step.stack[step.stack.length-1]:null,show=top&&top.nodeId===null;$('nullCall').className='null-call'+(show?' show':'');if(show)$('nullCall').textContent=(top.parentId>=0?result.nodes[top.parentId].value+'.'+top.via:'root')+' → null · return 0';
+}
+function stack(step){var box=$('stack');box.innerHTML='';if(!step.stack.length){box.innerHTML='<div class="empty">调用栈为空</div>';return;}step.stack.forEach(function(f,i){var row=document.createElement('div');row.className='frame'+(i===step.stack.length-1?' top':'')+(f.nodeId===null?' null':'');row.innerHTML='<span class="badge">'+(i+1)+'</span><span>dfs('+(f.nodeId===null?'null':'id '+f.nodeId+'/'+f.value)+') · '+state(f.state)+(f.nodeId===null?'':' · L='+fmt(f.leftRaw)+'→'+fmt(f.leftGain)+' R='+fmt(f.rightRaw)+'→'+fmt(f.rightGain))+'</span>';box.appendChild(row);});}
+function path(id,name,a){var box=$(id);box.innerHTML='<span class="path-name">'+name+'</span>';if(!a.length){box.innerHTML+='<span class="none">尚未形成</span>';return;}a.forEach(function(n,i){if(i)box.innerHTML+='<span class="arrow">—</span>';box.innerHTML+='<span class="path-item">id'+n+'/'+result.nodes[n].value+'</span>';});}
+function render(){
+  var s=steps[index];tree(s);stack(s);path('returnPath','returnGain',s.paths.returnGain);path('throughPath','through',s.paths.through);path('bestPath','全局最佳',s.bestPath);
+  Array.prototype.forEach.call($('phaseStrip').children,function(x){x.className='phase'+(x.dataset.phase===phase(s.phase)?' active':'');});
+  $('action').innerHTML='<span class="kind">'+s.phase.toUpperCase()+'</span><b>'+s.action+'</b>';$('leftRawValue').textContent=fmt(s.leftRaw);$('leftValue').textContent=fmt(s.leftGain);$('rightRawValue').textContent=fmt(s.rightRaw);$('rightValue').textContent=fmt(s.rightGain);$('returnValue').textContent=fmt(s.returnGain);$('throughValue').textContent=fmt(s.through);$('respValue').textContent=fmt(s.resp);$('currentLine').textContent=s.codeLine;$('status').innerHTML=s.message;$('progress').textContent='帧 '+(index+1)+' / '+steps.length;prev.disabled=index===0;nextBtn.disabled=index===steps.length-1;var live=$('liveResp');if(live)live.textContent=fmt(s.resp);
+}
+function load(){
+  stop();var r=App.run(input.value);if(r.error){$('err').textContent='输入有误：'+r.error+'。';$('err').classList.add('show');return;}$('err').classList.remove('show');result=r;steps=r.steps;index=0;var size=graphic();$('stats').innerHTML='<div class="stat">token / 节点<b>'+r.tokenCount+' / 31 · '+r.nodes.length+'</b></div><div class="stat">树高 h<b>'+size.heightLevels+'</b></div><div class="stat">当前 resp<b id="liveResp">−∞</b></div><div class="stat answer">最终答案<b>'+r.answer+'</b></div><div class="stat">最佳路径和<b>'+App.pathSum(r.nodes,r.bestPath)+'</b></div><div class="stat">时间 / 栈<b>O(n) / O(h)</b></div><div class="stat">快照校验<b>'+(r.validation.ok?'通过 ✓':'失败 ✗')+'</b></div>';render();
+}
+function forward(){if(index<steps.length-1){index++;render();}}function backward(){if(index>0){index--;render();}}
+prev.onclick=function(){stop();backward();};nextBtn.onclick=function(){stop();forward();};play.onclick=function(){if(timer){stop();return;}if(index===steps.length-1){index=0;render();}play.textContent='⏸ 暂停';timer=setInterval(function(){if(index===steps.length-1)stop();else forward();},820);};$('resetBtn').onclick=function(){stop();index=0;render();};$('loadBtn').onclick=load;input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();load();}});
+Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){c.onclick=function(){input.value=c.dataset.spec;Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(x){x.classList.remove('active');});c.classList.add('active');load();};});
+document.addEventListener('keydown',function(e){if(document.activeElement===input)return;if(e.key==='ArrowRight'){stop();forward();}if(e.key==='ArrowLeft'){stop();backward();}});
+var codes={
+  py:`<span class="cmt"># 标准写法：先截断子树负贡献，再更新贯通路径</span>
+from math import inf
 
-  var PRESETS = [
-    { label: '经典用例', spec: '-10,9,20,null,null,15,7', tip: '答案 42 —— 最优路径 15 → 20 → 7 完全不经过根节点，正好说明「路径不必过根」。' },
-    { label: '全正数', spec: '1,2,3', tip: '答案 6 —— 全是正数时左右链都要，根就是拐点。' },
-    { label: '负链被丢弃', spec: '2,-1,-2', tip: '答案 2 —— 左右子树贡献都是负的，被 max(x, 0) 截断，最优路径只剩根自己。' },
-    { label: '全是负数', spec: '-3,-2,-1', tip: '答案 -1 —— 全负时答案是最大的那个单点，这也是 ans 必须初始化为 -∞ 的原因。' },
-    { label: '单节点', spec: '-3', tip: '答案 -3 —— 最小的边界情况。' },
-    { label: '较大的树', spec: '5,4,8,11,null,13,4,7,2,null,null,null,1', tip: '答案 48 —— 深一点的树，观察每个节点的返回值是怎么一层层往上汇总的。' }
-  ];
-
-  var R = 21;
-  var nodes = [], steps = [], stepIdx = 0, playTimer = null;
-  var nodeEls = [], edgeEls = {}, gainEls = [], turnEls = [], curPreset = 0;
-
-  var SVGNS = 'http://www.w3.org/2000/svg';
-  function sv(tag, attrs) {
-    var e = document.createElementNS(SVGNS, tag);
-    for (var k in attrs) if (attrs.hasOwnProperty(k)) e.setAttribute(k, attrs[k]);
-    return e;
-  }
-
-  function buildChips() {
-    exEl.innerHTML = '<span class="lab">预置示例：</span>';
-    PRESETS.forEach(function (p, i) {
-      var c = document.createElement('span');
-      c.className = 'chip' + (i === curPreset ? ' active' : '');
-      c.innerHTML = p.label + '<span class="sp">[' + p.spec + ']</span>';
-      c.onclick = function () { curPreset = i; load(); };
-      exEl.appendChild(c);
-    });
-  }
-
-  function buildSvg() {
-    var size = M.layout(nodes, { xgap: 74, ygap: 96, padx: 46, pady: 40 });
-    svg.setAttribute('width', size.w);
-    svg.setAttribute('height', size.h);
-    svg.setAttribute('viewBox', '0 0 ' + size.w + ' ' + size.h);
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-
-    edgeEls = {};
-    /* 每个非根节点恰有一条「指向父亲」的边，用子节点 id 作为 key */
-    nodes.forEach(function (nd) {
-      if (nd.parent < 0) return;
-      var p = nodes[nd.parent];
-      var e = sv('line', { class: 'eg', x1: p.x, y1: p.y, x2: nd.x, y2: nd.y });
-      svg.appendChild(e);
-      edgeEls[nd.id] = e;
-    });
-
-    nodeEls = []; gainEls = []; turnEls = [];
-    nodes.forEach(function (nd) {
-      var g = sv('g', { class: 'nd' });
-      g.appendChild(sv('circle', { cx: nd.x, cy: nd.y, r: R }));
-      var tv = sv('text', { class: 'nv', x: nd.x, y: nd.y + 5, 'text-anchor': 'middle' });
-      tv.textContent = nd.val;
-      g.appendChild(tv);
-      svg.appendChild(g);
-      nodeEls.push(g);
-
-      var gt = sv('text', { class: 'gv', x: nd.x, y: nd.y + R + 15, 'text-anchor': 'middle' });
-      svg.appendChild(gt); gainEls.push(gt);
-      var tt = sv('text', { class: 'tv', x: nd.x + R + 5, y: nd.y - R + 2, 'text-anchor': 'start' });
-      svg.appendChild(tt); turnEls.push(tt);
-    });
-  }
-
-  /* 把节点路径映射成边集合（相邻两点中作为儿子的那个即边的 key） */
-  function inPathEdges(path) {
-    var set = {};
-    if (!path) return set;
-    for (var i = 0; i + 1 < path.length; i++) {
-      var a = path[i], b = path[i + 1];
-      set[nodes[a].parent === b ? a : b] = 1;
+class Solution:
+    def maxPathSum(self, root: Optional[TreeNode]) -&gt; int:
+        resp = -inf
+        def dfs(node):
+            nonlocal resp
+            if not node: return 0
+            left = max(dfs(node.left), 0)
+            right = max(dfs(node.right), 0)
+            through = node.val + left + right
+            resp = max(resp, through)
+            return node.val + max(left, right)
+        dfs(root)
+        return resp`,
+java:`<span class="cmt">// long 保存中间路径和；公式与主动画一致</span>
+class Solution {
+    private long resp = Integer.MIN_VALUE;
+    public int maxPathSum(TreeNode root) {
+        dfs(root);
+        return (int) resp; // 题目保证答案在 int 范围内
     }
-    return set;
-  }
-
-  function fmt(v) { return v === -Infinity ? '−∞' : String(v); }
-
-  function render() {
-    var st = steps[stepIdx];
-    var showCand = st.kind === 'turn';
-    var hiPath = showCand ? st.candPath : st.ansPath;
-    var hiEdges = inPathEdges(hiPath);
-    var hiNodes = {};
-    (hiPath || []).forEach(function (x) { hiNodes[x] = 1; });
-    var onStack = {};
-    st.stack.forEach(function (x) { onStack[x] = 1; });
-
-    nodes.forEach(function (nd, i) {
-      var cls = 'nd';
-      if (st.done[nd.id]) cls += ' done';
-      if (onStack[nd.id]) cls += ' stack';
-      if (hiNodes[nd.id]) cls += showCand ? ' cand' : ' best';
-      if (nd.id === st.node) cls += ' cur';
-      nodeEls[i].setAttribute('class', cls);
-
-      gainEls[i].textContent = st.gain.hasOwnProperty(nd.id) ? '↓ ' + st.gain[nd.id] : '';
-      turnEls[i].textContent = st.turn.hasOwnProperty(nd.id) ? '⤳ ' + st.turn[nd.id] : '';
-
-      var e = edgeEls[nd.id];
-      if (!e) return;
-      var ec = 'eg';
-      if (st.dropped[nd.id]) ec += ' drop';
-      if (st.pick[nd.parent] === nd.id) ec += ' chain';
-      if (hiEdges[nd.id]) ec += showCand ? ' cand' : ' best';
-      e.setAttribute('class', ec);
-    });
-
-    varsEl.innerHTML =
-      '<span class="box"><span class="vl">l</span> = <b>' + (st.l === null ? '—' : st.l) + '</b></span>' +
-      '<span class="box"><span class="vl">r</span> = <b>' + (st.r === null ? '—' : st.r) + '</b></span>' +
-      '<span class="box"><span class="vc">拐弯 l+r+val</span> = <b>' + (st.cand === null ? '—' : st.cand) + '</b></span>' +
-      '<span class="box"><span class="vl">↓ 返回 max(l,r)+val</span> = <b>' + (st.node >= 0 && st.gain.hasOwnProperty(st.node) ? st.gain[st.node] : '—') + '</b></span>' +
-      '<span class="box"><span class="vg">ans</span> = <b>' + fmt(st.ans) + '</b></span>';
-
-    statusEl.innerHTML = st.msg;
-    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
-    prevBtn.disabled = stepIdx === 0;
-    nextBtn.disabled = stepIdx === steps.length - 1;
-  }
-
-  function renderLegend() {
-    legendEl.innerHTML =
-      '<span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>当前节点</span>' +
-      '<span><span class="dot" style="background:#f0fdf4;border-color:#bbf7d0"></span>已算出返回值</span>' +
-      '<span><span class="bar" style="background:#f59e0b"></span>本步拐弯的候选路径</span>' +
-      '<span><span class="bar" style="background:#22c55e"></span>当前最优路径</span>' +
-      '<span><span class="bar" style="background:#a5b4fc"></span>被采纳的单侧链</span>' +
-      '<span><span class="bar" style="background:#e5e7eb"></span>虚线 = 负链被丢弃</span>' +
-      '<span><span style="color:#6366f1;font-weight:700">↓</span> 返回值 · <span style="color:#b45309;font-weight:700">⤳</span> 拐弯值</span>';
-  }
-
-  function renderStats(size) {
-    var last = steps[steps.length - 1];
-    statsEl.innerHTML =
-      '<div class="stat">节点数<b>' + nodes.length + '</b></div>' +
-      '<div class="stat">树高<b>' + size.depth + '</b></div>' +
-      '<div class="stat">总步数<b>' + steps.length + '</b></div>' +
-      '<div class="stat">最大路径和<b>' + fmt(last.ans) + '</b></div>' +
-      '<div class="stat">时间<b>O(n)</b></div>' +
-      '<div class="stat">空间<b>O(h)</b></div>';
-  }
-
-  function load() {
-    stopPlay();
-    buildChips();
-    var p = PRESETS[curPreset];
-    tipEl.textContent = p.tip;
-    nodes = M.buildTree(p.spec);
-    steps = M.buildSteps(nodes);
-    stepIdx = 0;
-    buildSvg();
-    renderStats(M.layout(nodes, { xgap: 74, ygap: 96, padx: 46, pady: 40 }));
-    renderLegend();
-    render();
-  }
-
-  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
-  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
-  function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; } }
-  function togglePlay() {
-    if (playTimer) { stopPlay(); return; }
-    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
-    playBtn.textContent = '⏸ 暂停';
-    playTimer = setInterval(function () { if (stepIdx >= steps.length - 1) { stopPlay(); return; } next(); }, 1100);
-  }
-
-  nextBtn.onclick = function () { stopPlay(); next(); };
-  prevBtn.onclick = function () { stopPlay(); prev(); };
-  playBtn.onclick = togglePlay;
-  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'ArrowRight') { stopPlay(); next(); }
-    else if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
-  });
-
-  var codes = {
-    py:
-'<span class="cmt"># Python · 单趟后序遍历 · 时间 O(n) 空间 O(h)</span>\n' +
-'class Solution:\n' +
-'    def maxPathSum(self, root: Optional[TreeNode]) -&gt; int:\n' +
-'        ans = -inf\n' +
-'\n' +
-'        def gain(node: Optional[TreeNode]) -&gt; int:\n' +
-'            <span class="cmt"># 返回：从 node 一路向下的最大单侧链和</span>\n' +
-'            nonlocal ans\n' +
-'            if node is None:\n' +
-'                return 0\n' +
-'            l = max(gain(node.left), 0)        <span class="cmt"># 负链丢弃</span>\n' +
-'            r = max(gain(node.right), 0)\n' +
-'            ans = max(ans, node.val + l + r)   <span class="cmt"># 副作用：在此拐弯</span>\n' +
-'            return node.val + max(l, r)        <span class="cmt"># 返回值：只带单侧</span>\n' +
-'\n' +
-'        gain(root)\n' +
-'        return ans',
-    java:
-'<span class="cmt">// Java · 单趟后序遍历 · 时间 O(n) 空间 O(h)</span>\n' +
-'class Solution {\n' +
-'    private int ans = Integer.MIN_VALUE;\n' +
-'\n' +
-'    public int maxPathSum(TreeNode root) {\n' +
-'        gain(root);\n' +
-'        return ans;\n' +
-'    }\n' +
-'\n' +
-'    private int gain(TreeNode node) {\n' +
-'        if (node == null) return 0;\n' +
-'        int l = Math.max(gain(node.left), 0);      // 负链丢弃\n' +
-'        int r = Math.max(gain(node.right), 0);\n' +
-'        ans = Math.max(ans, node.val + l + r);     // 副作用：在此拐弯\n' +
-'        return node.val + Math.max(l, r);          // 返回值：只带单侧\n' +
-'    }\n' +
-'}'
-  };
-  var codeBlock = $('codeBlock');
-  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
-    t.onclick = function () {
-      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
-      t.classList.add('active'); codeBlock.innerHTML = codes[t.dataset.lang];
-    };
-  });
-  codeBlock.innerHTML = codes['py'];
-
-  load();
+    private long dfs(TreeNode node) {
+        if (node == null) return 0L;
+        long left = Math.max(dfs(node.left), 0L);
+        long right = Math.max(dfs(node.right), 0L);
+        long through = (long) node.val + left + right;
+        resp = Math.max(resp, through);
+        return (long) node.val + Math.max(left, right);
+    }
+}`};
+Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){t.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('active');});t.classList.add('active');$('codeBlock').innerHTML=codes[t.dataset.lang];};});$('codeBlock').innerHTML=codes.py;$('treeBox').setAttribute('tabindex','0');load();
 })();
 </script>
 </body>
