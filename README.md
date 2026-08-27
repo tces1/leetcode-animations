@@ -101,8 +101,12 @@ leetcode-animations/
 | 84 | [柱状图中最大的矩形](https://tces1.github.io/leetcode-animations/problems/84-largest-rectangle-in-histogram.html) | 困难 | 单调栈 · 数组 |
 | 94 | [二叉树的中序遍历](https://tces1.github.io/leetcode-animations/problems/94-binary-tree-inorder-traversal.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 中序遍历 · 调用栈 · O(n) |
 | 98 | [验证二叉搜索树](https://tces1.github.io/leetcode-animations/problems/98-validate-binary-search-tree.html) | 中等 | 二叉搜索树 · 深度优先搜索 · 递归 · 上下界 · 严格不等式 · 短路 · O(n) |
+| 101 | [对称二叉树](https://tces1.github.io/leetcode-animations/problems/101-symmetric-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 镜像 · 短路 · O(n) |
 | 102 | [二叉树的层序遍历](https://tces1.github.io/leetcode-animations/problems/102-binary-tree-level-order-traversal.html) | 中等 | 二叉树 · 层序遍历 · 广度优先搜索 · 深度优先搜索 · deque · O(n) |
 | 104 | [二叉树的最大深度](https://tces1.github.io/leetcode-animations/problems/104-maximum-depth-of-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 最大深度 · 调用栈 · O(n) |
+| 105 | [从前序与中序遍历序列构造二叉树](https://tces1.github.io/leetcode-animations/problems/105-construct-binary-tree-from-preorder-and-inorder-traversal.html) | 中等 | 二叉树 · 前序遍历 · 中序遍历 · 哈希表 · 递归 · 区间边界 · O(n) |
+| 108 | [将有序数组转换为二叉搜索树](https://tces1.github.io/leetcode-animations/problems/108-convert-sorted-array-to-binary-search-tree.html) | 简单 | 二叉搜索树 · 分治 · 递归 · 下标区间 · 高度平衡 · O(n) |
+| 114 | [二叉树展开为链表](https://tces1.github.io/leetcode-animations/problems/114-flatten-binary-tree-to-linked-list.html) | 中等 | 二叉树 · 原地修改 · 迭代 · 前序遍历 · 指针重连 · O(1) 空间 |
 | 118 | [杨辉三角](https://tces1.github.io/leetcode-animations/problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
 | 121 | [买卖股票的最佳时机](https://tces1.github.io/leetcode-animations/problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
 | 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 深度优先搜索 · 后序遍历 · 递归 · 最大路径和 · O(n) |
@@ -138,6 +142,7 @@ leetcode-animations/
 | 394 | [字符串解码](https://tces1.github.io/leetcode-animations/problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
 | 437 | [路径总和 III](https://tces1.github.io/leetcode-animations/problems/437-path-sum-iii.html) | 中等 | 二叉树 · 深度优先搜索 · 前缀和 · 哈希表 · 回溯 · 递归 · O(n) |
 | 438 | [找到字符串中所有字母异位词](https://tces1.github.io/leetcode-animations/problems/438-find-all-anagrams-in-a-string.html) | 中等 | 字符串 · 滑动窗口 · 计数 · 定长窗口 |
+| 543 | [二叉树的直径](https://tces1.github.io/leetcode-animations/problems/543-diameter-of-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 后序遍历 · 递归 · 直径 · O(n) |
 | 560 | [和为 K 的子数组](https://tces1.github.io/leetcode-animations/problems/560-subarray-sum-equals-k.html) | 中等 | 数组 · 前缀和 · 哈希表 · 计数 |
 | 718 | [最长重复子数组](https://tces1.github.io/leetcode-animations/problems/718-maximum-length-of-repeated-subarray.html) | 中等 | 动态规划 · 二维 DP · 数组 |
 | 739 | [每日温度](https://tces1.github.io/leetcode-animations/problems/739-daily-temperatures.html) | 中等 | 单调栈 · 数组 |
