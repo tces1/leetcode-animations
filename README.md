@@ -105,7 +105,7 @@ leetcode-animations/
 | 104 | [二叉树的最大深度](https://tces1.github.io/leetcode-animations/problems/104-maximum-depth-of-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 最大深度 · 调用栈 · O(n) |
 | 118 | [杨辉三角](https://tces1.github.io/leetcode-animations/problems/118-pascals-triangle.html) | 简单 | 递推 · 动态规划 · 数组 |
 | 121 | [买卖股票的最佳时机](https://tces1.github.io/leetcode-animations/problems/121-best-time-to-buy-and-sell-stock.html) | 简单 | 一次遍历 · 贪心 · 数组 |
-| 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 后序遍历 · 树形DP · 递归返回值 |
+| 124 | [二叉树中的最大路径和](https://tces1.github.io/leetcode-animations/problems/124-binary-tree-maximum-path-sum.html) | 困难 | 二叉树 · 深度优先搜索 · 后序遍历 · 递归 · 最大路径和 · O(n) |
 | 128 | [最长连续序列](https://tces1.github.io/leetcode-animations/problems/128-longest-consecutive-sequence.html) | 中等 | 数组 · 哈希集合 · 连续序列 · O(n) |
 | 131 | [分割回文串](https://tces1.github.io/leetcode-animations/problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
 | 138 | [随机链表的复制](https://tces1.github.io/leetcode-animations/problems/138-copy-list-with-random-pointer.html) | 中等 | 链表 · 随机指针 · 原地穿插 · 节点身份 · O(1) 空间 |
