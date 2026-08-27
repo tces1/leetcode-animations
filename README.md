@@ -125,6 +125,7 @@ leetcode-animations/
 | 226 | [翻转二叉树](https://tces1.github.io/leetcode-animations/problems/226-invert-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 翻转二叉树 · 调用栈 · O(n) |
 | 230 | [二叉搜索树中第 K 小的元素](https://tces1.github.io/leetcode-animations/problems/230-kth-smallest-element-in-a-bst.html) | 中等 | 二叉搜索树 · 中序遍历 · 栈 · 递归 · 提前停止 · O(h+k) |
 | 234 | [回文链表](https://tces1.github.io/leetcode-animations/problems/234-palindrome-linked-list.html) | 简单 | 链表 · 快慢指针 · 原地反转 · 回文 · O(1) 空间 |
+| 236 | [二叉树的最近公共祖先](https://tces1.github.io/leetcode-animations/problems/236-lowest-common-ancestor-of-a-binary-tree.html) | 中等 | 二叉树 · 最近公共祖先 · 深度优先搜索 · 分治 · 后序遍历 · 递归 · O(n) |
 | 238 | [除了自身以外数组的乘积](https://tces1.github.io/leetcode-animations/problems/238-product-of-array-except-self.html) | 中等 | 数组 · 前缀积 · 后缀积 · 不使用除法 · O(1) 额外空间 |
 | 239 | [滑动窗口最大值](https://tces1.github.io/leetcode-animations/problems/239-sliding-window-maximum.html) | 困难 | 数组 · 滑动窗口 · 单调队列 · 双端队列 |
 | 240 | [搜索二维矩阵 II](https://tces1.github.io/leetcode-animations/problems/240-search-a-2d-matrix-ii.html) | 中等 | 矩阵 · 阶梯搜索 · 回溯 DFS · O(m+n) |
