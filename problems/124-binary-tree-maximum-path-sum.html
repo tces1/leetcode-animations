@@ -8,6 +8,8 @@
 <title>124. 二叉树中的最大路径和 — 动画演示</title>
 <style>
 :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;padding:24px;background:#f6f7f9;color:#1d2129;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}.wrap{max-width:1320px;margin:auto}.navbar,.controls,.examples,.legend,.stats,.path{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.navbar{margin-bottom:16px}.difftag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;background:#fee2e2;color:#991b1b}.link{font-size:12px;color:#6b7280}.link a{color:#6366f1;text-decoration:none}h1{font-size:20px;margin:0 0 4px}.sub{color:#6b7280;font-size:13px;margin-bottom:18px}code{background:#eef0f4;padding:1px 5px;border-radius:5px;font:12px "SF Mono",Menlo,monospace}.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px #00000008}.panel-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:10px}.idea{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.idea>div,.complexity>div{border:1px solid #e5e7eb;border-radius:10px;padding:11px 13px;font-size:13px;color:#4b5563;background:#f8fafc}.no{font-size:11px;font-weight:800;color:#6366f1}.note{margin-top:12px;padding:11px 14px;border-radius:10px;font-size:13px}.formula{background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3}.correct{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}.input-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}.field{display:flex;flex-direction:column;gap:5px}.lab{font-size:12px;color:#6b7280;font-weight:700}input{width:100%;padding:9px 11px;font:13px "SF Mono",Menlo,monospace;border:1px solid #d1d5db;border-radius:8px;outline:0}input:focus{border-color:#6366f1;box-shadow:0 0 0 3px #6366f126}button{padding:9px 16px;font-size:14px;font-weight:600;border:0;border-radius:8px;cursor:pointer;background:#6366f1;color:#fff}button:hover{background:#4f46e5}button.ghost{background:#eef0f4;color:#374151}button:disabled{opacity:.45;cursor:not-allowed}.examples{margin-top:10px;gap:8px}.chip{font:12px "SF Mono",Menlo,monospace;padding:5px 10px;background:#f1f2f4;border:1px solid #e5e7eb;border-radius:99px;cursor:pointer}.chip:hover,.chip.active{background:#e0e7ff;border-color:#a5b4fc;color:#3730a3}.hint{font-size:12px;color:#9ca3af;margin-top:8px;line-height:1.65}.err{display:none;color:#dc2626;font-size:13px;margin-top:10px}.err.show{display:block}.stats{margin-bottom:14px}.stat{background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:8px 12px;font-size:12px;color:#6b7280}.stat b{display:block;font:800 13px "SF Mono",Menlo,monospace;color:#1d2129}.stat.answer b{color:#16a34a}.progress{margin-left:auto;font-size:12px;color:#9ca3af}.phases{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin-bottom:14px}.phase{border:1px solid #e5e7eb;border-radius:9px;padding:7px 3px;font-size:9px;color:#64748b;background:#f8fafc;text-align:center}.phase b{display:block;color:#334155;font-size:10px}.phase.active{background:#eef2ff;border-color:#818cf8;box-shadow:0 0 0 3px #6366f11c}.visual{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(410px,.95fr);gap:14px}.tree-box,.side{border:1px solid #eef0f4;border-radius:12px;background:linear-gradient(#fafbff,#fff);min-height:520px}.tree-box{padding:12px;overflow:auto;position:relative}.tree-box svg{display:block;margin:auto;overflow:visible}.null-call{position:absolute;top:12px;right:12px;max-width:290px;padding:7px 10px;border:1px dashed #f59e0b;border-radius:8px;background:#fffbeb;color:#92400e;font:700 11px "SF Mono",Menlo,monospace;display:none;z-index:3}.null-call.show{display:block}.edge{stroke:#cbd5e1;stroke-width:2.5}.edge.done{stroke:#bbf7d0}.edge.best{stroke:#22c55e;stroke-width:5}.edge.tmp{stroke:#6366f1;stroke-width:6}.edge.crossing{stroke:#f97316;stroke-width:6}.edge.active{stroke:#f59e0b;stroke-width:5;stroke-dasharray:6 4}.edge-label{fill:#94a3b8;font:800 10px sans-serif}.node circle{fill:#fff;stroke:#cbd5e1;stroke-width:2.5}.node text.value{fill:#334155;font:800 14px "SF Mono",Menlo,monospace}.node.done circle{fill:#f0fdf4;stroke:#86efac}.node.best circle{fill:#dcfce7;stroke:#22c55e;stroke-width:5}.node.tmp circle{fill:#e0e7ff;stroke:#6366f1;stroke-width:5}.node.crossing circle{fill:#ffedd5;stroke:#f97316;stroke-width:5}.node.current circle{filter:drop-shadow(0 2px 5px #1e293b55)}.gain-label{fill:#64748b;font:700 9px "SF Mono",Menlo,monospace}.gain-label.known{fill:#15803d}.side{padding:14px;display:flex;flex-direction:column;gap:11px}.action{border:1px solid #ddd6fe;background:#f5f3ff;border-radius:10px;padding:10px 12px;color:#5b21b6;min-height:62px}.action .kind{font-size:10px;font-weight:800}.action b{display:block;color:#3730a3;font-size:13px}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.metric{border:1px solid #c7d2fe;background:#eef2ff;border-radius:9px;padding:7px;color:#4338ca;font-size:9px}.metric b{display:block;font:800 14px "SF Mono",Menlo,monospace}.metric.answer{border-color:#bbf7d0;background:#f0fdf4;color:#166534}.stack{display:flex;flex-direction:column-reverse;gap:5px;min-height:66px;max-height:145px;overflow:auto}.frame{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:center;padding:6px 8px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;font:10px "SF Mono",Menlo,monospace;color:#475569}.frame.top{border-color:#818cf8;background:#eef2ff}.frame.null{border-style:dashed;border-color:#f59e0b;background:#fffbeb}.badge{border-radius:99px;min-width:24px;height:20px;display:flex;align-items:center;justify-content:center;background:#e2e8f0;font-weight:800}.paths{display:grid;gap:6px}.path{min-height:34px;gap:5px;border:1px dashed #cbd5e1;border-radius:8px;padding:6px;background:#f8fafc}.path-name{width:80px;color:#64748b;font-size:10px;font-weight:800}.path-item{padding:3px 6px;border-radius:6px;text-align:center;font:800 10px "SF Mono",Menlo,monospace}.path.tmp .path-item{background:#e0e7ff;border:1px solid #6366f1;color:#3730a3}.path.crossing .path-item{background:#ffedd5;border:1px solid #f97316;color:#9a3412}.path.best .path-item{background:#dcfce7;border:1px solid #22c55e;color:#166534}.none,.arrow{color:#94a3b8;font-size:11px}.empty{text-align:center;padding:16px;color:#94a3b8;font-size:11px}.line{border-radius:8px;background:#0f172a;color:#fcd34d;padding:8px 10px;min-height:35px;font:11px "SF Mono",Menlo,monospace}.legend{margin-top:13px;font-size:12px;color:#6b7280;gap:14px}.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1px solid #0001}.status{background:#111827;color:#e5e7eb;border-radius:10px;padding:14px 16px;font-size:14px;min-height:50px}.status b{color:#fcd34d}.status .op{color:#86efac}.status code{background:#1f2937;color:#93c5fd}.status-title{margin-top:16px}.complexity{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.complexity b{display:block;color:#1d2129}details summary{cursor:pointer;font-weight:600;font-size:14px;color:#4f46e5}.tabs{display:flex;gap:8px;margin:12px 0 10px}.tab{font-size:13px;padding:5px 12px;border-radius:99px;cursor:pointer;background:#f1f2f4;border:1px solid #e5e7eb}.tab.active{background:#6366f1;color:#fff}pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;overflow:auto;font-size:13px;line-height:1.55;margin:0}pre .cmt{color:#7dd3fc}@media(max-width:1020px){body{padding:16px 12px}.idea,.complexity,.visual,.input-grid{grid-template-columns:1fr}.phases{grid-template-columns:repeat(3,1fr)}.progress{width:100%;margin-left:0}}@media(max-width:540px){.metrics{grid-template-columns:repeat(3,1fr)}}
+.phases{grid-template-columns:repeat(3,1fr)}.phase{padding:10px 8px;font-size:10px}.phase b{font-size:11px}.postorder-wrap{margin-bottom:14px;padding:11px 12px;border:1px solid #e0e7ff;border-radius:10px;background:#f8faff}.postorder-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:11px;color:#64748b}.postorder-head b{color:#3730a3}.postorder-strip{display:flex;align-items:center;gap:5px;overflow-x:auto;padding:4px 2px 7px}.order-node{position:relative;flex:0 0 auto;min-width:54px;padding:6px 8px;border:1px solid #dbe2ea;border-radius:8px;background:#fff;text-align:center;font:800 11px "SF Mono",Menlo,monospace;color:#64748b}.order-node.done{background:#f0fdf4;border-color:#86efac;color:#15803d}.order-node.current{background:#eef2ff;border-color:#6366f1;color:#3730a3;box-shadow:0 0 0 3px #6366f11f}.order-node.current:after{content:"▲";position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);color:#6366f1;font-size:9px}.order-arrow{color:#94a3b8;font-size:11px}.node.current circle{stroke:#7c3aed;stroke-width:5;filter:drop-shadow(0 3px 7px #7c3aed55)}.edge{transition:stroke .2s,stroke-width .2s}.edge.contribution{stroke:#0ea5e9;stroke-width:4}.edge.discarded{stroke:#94a3b8;stroke-width:3;stroke-dasharray:5 4}.edge-label{opacity:0}.edge-label.visible{opacity:1;fill:#0369a1;font:800 10px "SF Mono",Menlo,monospace;paint-order:stroke;stroke:#fff;stroke-width:4;stroke-linejoin:round}.edge-label.discarded{fill:#94a3b8;text-decoration:line-through}.gain-label{paint-order:stroke;stroke:#fff;stroke-width:3}.stack{flex-direction:column;max-height:180px}.frame.current-context{border-color:#8b5cf6;background:#f5f3ff}.context-note{font-size:10px;color:#94a3b8;line-height:1.55}.action .kind{letter-spacing:.08em}.status{line-height:1.65}.null-call{display:none!important}@media(max-width:1020px){.phases{grid-template-columns:repeat(3,1fr)}}@media(max-width:540px){.postorder-head{display:block}.order-node{min-width:48px}}
+.formula-board{margin-bottom:14px;padding:14px;border:1px solid #c7d2fe;border-radius:12px;background:linear-gradient(135deg,#f8faff,#fff)}.formula-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.formula-head b{color:#3730a3}.refresh-badge{flex:0 0 auto;padding:5px 10px;border-radius:99px;font-size:11px;font-weight:900}.refresh-badge.refreshed{background:#dcfce7;color:#15803d;border:1px solid #86efac}.refresh-badge.unchanged{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1}.formula-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.formula-cell{padding:9px 11px;border:1px solid #e2e8f0;border-radius:9px;background:#fff;color:#475569;font:11px "SF Mono",Menlo,monospace}.formula-cell b{display:block;margin-top:3px;color:#1e293b;font-size:13px}.formula-cell.candidate{border-color:#fdba74;background:#fff7ed}.formula-cell.candidate b{color:#c2410c}.formula-cell.compare{border-color:#86efac;background:#f0fdf4}.formula-cell.compare b{color:#15803d}.formula-cell.return{border-color:#a5b4fc;background:#eef2ff}.formula-cell.return b{color:#4338ca}.path.old-best .path-item{background:#f1f5f9;border:1px dashed #94a3b8;color:#475569}.path.old-best{border-color:#94a3b8}.path-name{width:92px}.replace-note{font-size:10px;font-weight:800;color:#16a34a}.replace-note.keep{color:#64748b}@media(max-width:680px){.formula-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -35,20 +37,27 @@
   <div class="card">
     <div class="stats" id="stats"></div>
     <div class="controls" style="margin-bottom:14px"><button id="prevBtn" class="ghost">◀ 上一步</button><button id="nextBtn">下一步 ▶</button><button id="playBtn" class="ghost">▶ 自动播放</button><button id="resetBtn" class="ghost">↺ 重置</button><span class="progress" id="progress"></span></div>
-    <div class="phases" id="phaseStrip">
-      <div class="phase" data-phase="call">CALL / NULL<b>进入与基例</b></div><div class="phase" data-phase="left">LEFT<b>递归左边</b></div><div class="phase" data-phase="left-return">LEFT GAIN<b>原值截断为 ≥ 0</b></div><div class="phase" data-phase="right">RIGHT<b>递归右边</b></div><div class="phase" data-phase="right-return">RIGHT GAIN<b>原值截断为 ≥ 0</b></div><div class="phase" data-phase="through">THROUGH<b>左右贯通</b></div><div class="phase" data-phase="resp">RESP<b>只比较 through</b></div><div class="phase" data-phase="return-gain">RETURN GAIN<b>只选择一边</b></div><div class="phase" data-phase="return">RETURN<b>返回父节点</b></div>
+    <div class="formula-board" id="formulaBoard">
+      <div class="formula-head"><b id="currentNodeLabel">当前节点完整计算</b><span class="refresh-badge" id="refreshBadge">等待计算</span></div>
+      <div class="formula-grid">
+        <div class="formula-cell">左孩子返回 → 截断<b><span id="leftRawValue">—</span> → max(·, 0) = <span id="leftValue">—</span></b></div>
+        <div class="formula-cell">右孩子返回 → 截断<b><span id="rightRawValue">—</span> → max(·, 0) = <span id="rightValue">—</span></b></div>
+        <div class="formula-cell candidate">candidate / through<b id="candidateFormula">—</b></div>
+        <div class="formula-cell compare">全局最大值比较<b><span id="oldRespValue">−∞</span> → <span id="respValue">−∞</span></b></div>
+        <div class="formula-cell return">向父节点返回单边路径<b id="returnFormula">—</b></div>
+        <div class="formula-cell">本节点结论<b id="comparisonFormula">—</b></div>
+      </div>
     </div>
+    <div class="postorder-wrap"><div class="postorder-head"><b>后序计算顺序 · 一节点一步</b><span>每一步都完整计算 candidate、resp 与 return gain</span></div><div class="postorder-strip" id="postorderStrip"></div></div>
     <div class="visual">
-      <div class="tree-box" id="treeBox"><svg id="treeSvg" role="img" aria-label="二叉树最大路径和的单边贡献、贯通路径和全局最佳路径动画"></svg><div class="null-call" id="nullCall"></div></div>
+      <div class="tree-box" id="treeBox"><svg id="treeSvg" role="img" aria-label="二叉树最大路径和从叶子到根的后序计算动画"></svg></div>
       <div class="side">
-        <div><div class="panel-title">当前动作</div><div class="action" id="action"></div></div>
-        <div class="metrics"><div class="metric">left raw<b id="leftRawValue">—</b></div><div class="metric">leftGain<b id="leftValue">—</b></div><div class="metric">right raw<b id="rightRawValue">—</b></div><div class="metric">rightGain<b id="rightValue">—</b></div><div class="metric">returnGain<b id="returnValue">—</b></div><div class="metric">through<b id="throughValue">—</b></div><div class="metric answer">resp<b id="respValue">−∞</b></div></div>
-        <div><div class="panel-title">递归调用栈（栈顶在上）</div><div class="stack" id="stack"></div></div>
-        <div><div class="panel-title">真实路径（重复值按 id 区分）</div><div class="paths"><div class="path tmp" id="returnPath"></div><div class="path crossing" id="throughPath"></div><div class="path best" id="bestPath"></div></div></div>
+        <div><div class="panel-title">本步的四条真实路径（重复值按 id 区分）</div><div class="paths"><div class="path crossing" id="throughPath"></div><div class="path old-best" id="oldBestPath"></div><div class="path best" id="bestPath"></div><div class="path tmp" id="returnPath"></div></div></div>
+        <div><div class="panel-title">递归关系（静态：根 → 当前节点）</div><div class="stack" id="stack"></div><div class="context-note">播放只保留真实后序计算节点；每一帧已同时完成 candidate、全局比较和单边返回。</div></div>
         <div class="line" id="currentLine"></div>
       </div>
     </div>
-    <div class="legend"><span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>returnGain 单边</span><span><span class="dot" style="background:#ffedd5;border-color:#f97316"></span>through 当前贯通</span><span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>全局最佳</span><span><span class="dot" style="background:#f0fdf4;border-color:#86efac"></span>已完成返回值</span></div>
+    <div class="legend"><span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>returnGain 单边</span><span><span class="dot" style="background:#ffedd5;border-color:#f97316"></span>candidate / through</span><span><span class="dot" style="background:#f1f5f9;border-color:#94a3b8"></span>比较前旧 best</span><span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>比较后新 best</span><span><span class="dot" style="background:#f0fdf4;border-color:#86efac"></span>已记录 return gain</span></div>
     <div class="panel-title status-title">状态栏</div><div class="status" id="status">点击「演示」开始。</div>
   </div>
 
@@ -110,9 +119,9 @@ function layout(nodes,o){
   function walk(id,d){if(id<0)return;walk(nodes[id].left,d+1);pos[id]={x:px+col*xg,y:py+d*yg,depth:d};col++;md=Math.max(md,d);walk(nodes[id].right,d+1);}
   walk(0,0);return{positions:pos,width:Math.max(330,px*2+Math.max(0,col-1)*xg),height:Math.max(470,py*2+md*yg+52),heightLevels:md+1};
 }
-function cloneStack(a){return a.map(function(f){return{nodeId:f.nodeId,value:f.value,state:f.state,via:f.via,parentId:f.parentId,leftRaw:f.leftRaw,leftGain:f.leftGain,rightRaw:f.rightRaw,rightGain:f.rightGain,returnGain:f.returnGain,through:f.through};});}
+function cloneStack(a){return a.map(function(f){return{nodeId:f.nodeId,value:f.value,state:f.state,via:f.via,parentId:f.parentId};});}
 function cloneGains(m){return Array.from(m.values()).sort(function(a,b){return a.nodeId-b.nodeId;}).map(function(g){return{nodeId:g.nodeId,gain:g.gain,path:g.path.slice(),leftRaw:g.leftRaw,leftGain:g.leftGain,rightRaw:g.rightRaw,rightGain:g.rightGain,through:g.through,throughPath:g.throughPath.slice()};});}
-function clonePaths(p){return{returnGain:p.returnGain.slice(),through:p.through.slice(),active:p.active.slice()};}
+function clonePaths(p){return{returnGain:p.returnGain.slice(),through:p.through.slice(),oldBest:p.oldBest.slice(),newBest:p.newBest.slice(),active:p.active.slice()};}
 function pathSum(nodes,path){return path.reduce(function(sum,id){return sum+nodes[id].value;},0);}
 function isContinuousPath(nodes,path){
   if(!path.length||new Set(path).size!==path.length)return false;
@@ -120,52 +129,30 @@ function isContinuousPath(nodes,path){
   return true;
 }
 function buildSteps(nodes){
-  var steps=[],s={stack:[],gains:new Map(),completed:[],paths:{returnGain:[],through:[],active:[]},bestPath:[],resp:-Infinity,leftRaw:null,leftGain:null,rightRaw:null,rightGain:null,returnGain:null,through:null,focus:'best'};
-  function snap(phase,current,source,side,action,line,message){
-    steps.push({phase:phase,currentNode:current,sourceNode:source,edgeSide:side||null,action:action,codeLine:line,message:message,focus:s.focus,leftRaw:s.leftRaw,leftGain:s.leftGain,rightRaw:s.rightRaw,rightGain:s.rightGain,returnGain:s.returnGain,through:s.through,resp:s.resp,stack:cloneStack(s.stack),gains:cloneGains(s.gains),completed:s.completed.slice(),paths:clonePaths(s.paths),bestPath:s.bestPath.slice()});
+  var steps=[],postorder=[],s={stack:[],gains:new Map(),order:[],bestPath:[],resp:-Infinity};
+  function collect(id){if(id<0)return;collect(nodes[id].left);collect(nodes[id].right);postorder.push(id);}
+  collect(0);
+  function context(id){
+    var ids=[],x=id;
+    while(x>=0){ids.push(x);x=nodes[x].parent;}
+    ids.reverse();
+    return ids.map(function(nodeId,i){var n=nodes[nodeId];return{nodeId:nodeId,value:n.value,state:i===ids.length-1?'current':(s.gains.has(nodeId)?'done':'waiting'),via:n.side,parentId:n.parent};});
   }
-  function label(id){return id<0?'null':nodes[id].value+'（id '+id+'）';}
-  function clampMessage(side,raw,gain){
-    if(raw<0)return side+'子树原始返回值 <code>'+raw+'</code> 为负贡献，<b>舍弃为 0</b>。';
-    if(raw===0)return side+'子树原始返回值为 <code>0</code>，不向当前路径添加节点。';
-    return side+'子树原始返回值 <code>'+raw+'</code> 为正，保留为 <span class="op">'+gain+'</span>。';
-  }
-  function dfs(id,via,parentId){
-    s.leftRaw=s.leftGain=s.rightRaw=s.rightGain=s.returnGain=s.through=null;s.paths={returnGain:[],through:[],active:[]};s.focus='best';
-    if(id<0){
-      s.stack.push({nodeId:null,value:null,state:'call',via:via,parentId:parentId,leftRaw:null,leftGain:null,rightRaw:null,rightGain:null,returnGain:null,through:null});
-      snap('call-null',null,parentId,via,'调用 dfs(null)','dfs(None)','建立短暂的 <b>null</b> 帧。');
-      s.stack[s.stack.length-1].state='null';
-      snap('null-return',null,parentId,via,'null 基例返回 0','if not node: return 0','空指针返回 <span class="op">0</span>，不更新 resp。');
-      s.stack.pop();return{gain:0,path:[]};
-    }
-    var n=nodes[id],f={nodeId:id,value:n.value,state:'call',via:via,parentId:parentId,leftRaw:null,leftGain:null,rightRaw:null,rightGain:null,returnGain:null,through:null};s.stack.push(f);
-    snap('call',id,parentId,via,'进入 dfs('+label(id)+')','def dfs(node):','建立节点 <b>'+n.value+'</b> 的递归帧，等待左右贡献。');
-    f.state='left';snap('recurse-left',id,id,'left','递归左子树：'+label(n.left),'leftGain = max(dfs(node.left), 0)','先取得左子树的原始返回值，再把负贡献截断为 0。');
-    var L=dfs(n.left,'left',id);
-    s.leftRaw=L.gain;s.leftGain=Math.max(L.gain,0);s.rightRaw=s.rightGain=s.returnGain=s.through=null;s.paths={returnGain:[],through:[],active:s.leftGain>0?L.path.slice():[]};s.focus='active';f.leftRaw=s.leftRaw;f.leftGain=s.leftGain;f.state='left-return';
-    snap('left-return',id,n.left,'left','leftGain = max('+s.leftRaw+', 0) = '+s.leftGain,'leftGain = max(dfs(node.left), 0)',clampMessage('左',s.leftRaw,s.leftGain));
-    s.paths={returnGain:[],through:[],active:[]};s.focus='best';f.state='right';
-    snap('recurse-right',id,id,'right','递归右子树：'+label(n.right),'rightGain = max(dfs(node.right), 0)','保存 leftGain 后，再取得并截断右子树贡献。');
-    var R=dfs(n.right,'right',id);
-    s.leftRaw=L.gain;s.leftGain=Math.max(L.gain,0);s.rightRaw=R.gain;s.rightGain=Math.max(R.gain,0);s.returnGain=s.through=null;s.paths={returnGain:[],through:[],active:s.rightGain>0?R.path.slice():[]};s.focus='active';f.rightRaw=s.rightRaw;f.rightGain=s.rightGain;f.state='right-return';
-    snap('right-return',id,n.right,'right','rightGain = max('+s.rightRaw+', 0) = '+s.rightGain,'rightGain = max(dfs(node.right), 0)',clampMessage('右',s.rightRaw,s.rightGain));
-    s.through=n.value+s.leftGain+s.rightGain;s.paths.through=(s.leftGain>0?L.path.slice().reverse():[]).concat([id],s.rightGain>0?R.path:[]);s.paths.active=s.paths.through.slice();s.focus='through';f.through=s.through;f.state='through';
-    snap('compute-through',id,id,null,'through = '+n.value+' + '+s.leftGain+' + '+s.rightGain+' = '+s.through,'through = node.val + leftGain + rightGain','橙色 through 只连接左右正贡献链；被截断的负分支不会出现在真实路径中。');
-    if(s.through>s.resp){s.resp=s.through;s.bestPath=s.paths.through.slice();}
-    s.paths.active=s.bestPath.slice();s.focus='best';f.state='resp';
-    snap('update-resp',id,id,null,'resp = max(resp, '+s.through+') = '+s.resp,'resp = max(resp, through)','全局答案只比较旧 <code>resp</code> 与当前 <code>through</code>；绿色路径节点和为 <span class="op">'+s.resp+'</span>。');
-    var chosen=s.leftGain>=s.rightGain&&s.leftGain>0?L:(s.rightGain>0?R:{gain:0,path:[]});
-    s.returnGain=n.value+Math.max(s.leftGain,s.rightGain);s.paths.returnGain=[id].concat(chosen.path);s.paths.active=s.paths.returnGain.slice();s.focus='returnGain';f.returnGain=s.returnGain;f.state='return-gain';
-    s.gains.set(id,{nodeId:id,gain:s.returnGain,path:s.paths.returnGain.slice(),leftRaw:s.leftRaw,leftGain:s.leftGain,rightRaw:s.rightRaw,rightGain:s.rightGain,through:s.through,throughPath:s.paths.through.slice()});
-    snap('compute-return-gain',id,id,null,'returnGain = '+n.value+' + max('+s.leftGain+', '+s.rightGain+') = '+s.returnGain,'returnGain = node.val + max(leftGain, rightGain)','蓝色 returnGain 只能选择贡献更大的一侧，保证还能接到父节点。');
-    s.completed.push(id);f.state='return';
-    snap('return',id,parentId,via,'return '+s.returnGain,'return returnGain','记录本节点返回值并交给父节点；through 可分叉，因此绝不能整体向上返回。');
-    s.stack.pop();return{gain:s.returnGain,path:s.paths.returnGain.slice()};
-  }
-  dfs(0,'root',-1);
-  s.leftRaw=s.leftGain=s.rightRaw=s.rightGain=s.returnGain=s.through=null;s.paths={returnGain:[],through:[],active:s.bestPath.slice()};s.focus='best';
-  snap('done',null,null,null,'DFS 完成，答案为 '+s.resp,'return resp','所有调用结束；绿色连续路径的节点和恰好为 <span class="op">'+s.resp+'</span>。');
+  postorder.forEach(function(id,stepIndex){
+    var n=nodes[id],L=n.left<0?{gain:0,path:[]}:s.gains.get(n.left),R=n.right<0?{gain:0,path:[]}:s.gains.get(n.right);
+    var leftRaw=L.gain,leftGain=Math.max(leftRaw,0),rightRaw=R.gain,rightGain=Math.max(rightRaw,0);
+    var candidate=n.value+leftGain+rightGain,chosen=leftGain>=rightGain&&leftGain>0?L:(rightGain>0?R:{gain:0,path:[]});
+    var returnGain=n.value+Math.max(leftGain,rightGain),throughPath=(leftGain>0?L.path.slice().reverse():[]).concat([id],rightGain>0?R.path:[]),returnPath=[id].concat(chosen.path);
+    var oldResp=s.resp,oldBestPath=s.bestPath.slice(),refreshed=candidate>oldResp,newResp=Math.max(oldResp,candidate);
+    if(refreshed)s.bestPath=throughPath.slice();
+    s.resp=newResp;s.gains.set(id,{nodeId:id,gain:returnGain,path:returnPath.slice(),leftRaw:leftRaw,leftGain:leftGain,rightRaw:rightRaw,rightGain:rightGain,through:candidate,throughPath:throughPath.slice()});s.order.push(id);s.stack=context(id);
+    var leaf=n.left<0&&n.right<0,oldText=oldResp===-Infinity?'−∞':String(oldResp),compare=oldResp===-Infinity||candidate>oldResp?'>':(candidate<oldResp?'<':'=');
+    var resultText=refreshed?'<span class="op">刷新为 '+newResp+'</span>':'<b>不刷新</b>';
+    var returnText=n.parent<0?'returnGain = <code>'+returnGain+'</code>（根节点不再上传）':'向父节点返回 <code>'+returnGain+'</code>';
+    var message='处理'+(leaf?'叶子':'节点')+' <b>'+n.value+'</b>：candidate = <code>'+candidate+'</code> '+compare+' resp = <code>'+oldText+'</code>，'+resultText+'，'+returnText+'。';
+    var paths={returnGain:returnPath.slice(),through:throughPath.slice(),oldBest:oldBestPath.slice(),newBest:s.bestPath.slice(),active:throughPath.slice()};
+    steps.push({phase:'node',stepIndex:stepIndex,currentNode:id,done:stepIndex===postorder.length-1,action:'完整处理节点 '+n.value,codeLine:'left/right clamp → candidate → resp=max(oldResp,candidate) → returnGain',message:message,focus:'through',leftRaw:leftRaw,leftGain:leftGain,rightRaw:rightRaw,rightGain:rightGain,candidate:candidate,through:candidate,oldResp:oldResp,newResp:newResp,resp:newResp,refreshed:refreshed,returnGain:returnGain,stack:cloneStack(s.stack),gains:cloneGains(s.gains),order:s.order.slice(),postorder:postorder.slice(),paths:clonePaths(paths),oldBestPath:oldBestPath.slice(),bestPath:s.bestPath.slice()});
+  });
   return steps;
 }
 function expectedValues(nodes){var out={};function dfs(id){if(id<0)return{gain:0,path:[]};var l=dfs(nodes[id].left),r=dfs(nodes[id].right),lg=Math.max(l.gain,0),rg=Math.max(r.gain,0),chosen=lg>=rg&&lg>0?l:(rg>0?r:{gain:0,path:[]}),gain=nodes[id].value+Math.max(lg,rg),through=nodes[id].value+lg+rg,throughPath=(lg>0?l.path.slice().reverse():[]).concat([id],rg>0?r.path:[]),path=[id].concat(chosen.path);out[id]={gain:gain,path:path,leftRaw:l.gain,leftGain:lg,rightRaw:r.gain,rightGain:rg,through:through,throughPath:throughPath};return{gain:gain,path:path};}dfs(0);return out;}
@@ -175,26 +162,40 @@ function bruteForce(nodes){
   return best;
 }
 function validateSnapshots(nodes,steps){
-  var errors=[],seen={},expected=expectedValues(nodes);
+  var errors=[],expected=expectedValues(nodes),postorder=[],rollingResp=-Infinity,rollingBest=[];
+  (function collect(id){if(id<0)return;collect(nodes[id].left);collect(nodes[id].right);postorder.push(id);})(0);
+  if(steps.length!==nodes.length)errors.push('主步骤数量必须严格等于节点数');
   for(var i=0;i<steps.length;i++){
-    var s=steps[i];seen[s.phase]=true;
-    if(!Array.isArray(s.stack)||!Array.isArray(s.gains)||!s.paths||!Array.isArray(s.paths.returnGain)||!Array.isArray(s.paths.through)||!Array.isArray(s.paths.active)||!Array.isArray(s.bestPath)||!Array.isArray(s.completed)){errors.push('第 '+(i+1)+' 帧快照不完整');continue;}
+    var s=steps[i],id=postorder[i],n=nodes[id],e=expected[id];
+    if(!Array.isArray(s.stack)||!Array.isArray(s.gains)||!Array.isArray(s.order)||!Array.isArray(s.postorder)||!s.paths||!Array.isArray(s.paths.returnGain)||!Array.isArray(s.paths.through)||!Array.isArray(s.paths.oldBest)||!Array.isArray(s.paths.newBest)||!Array.isArray(s.paths.active)||!Array.isArray(s.oldBestPath)||!Array.isArray(s.bestPath)){errors.push('第 '+(i+1)+' 帧快照不完整');continue;}
+    if(s.postorder.join(',')!==postorder.join(','))errors.push('第 '+(i+1)+' 帧后序序列错误');
+    if(s.currentNode!==id||s.stepIndex!==i||s.phase!=='node')errors.push('第 '+(i+1)+' 帧未对应唯一后序节点');
+    if(s.order.join(',')!==postorder.slice(0,i+1).join(','))errors.push('第 '+(i+1)+' 帧完成顺序不是后序前缀');
+    if(n.left>=0&&postorder.indexOf(n.left)>=i||n.right>=0&&postorder.indexOf(n.right)>=i)errors.push('第 '+(i+1)+' 帧孩子未先于父节点');
     s.gains.forEach(function(g){var e=expected[g.nodeId];if(!e||g.gain!==e.gain||g.leftRaw!==e.leftRaw||g.leftGain!==e.leftGain||g.rightRaw!==e.rightRaw||g.rightGain!==e.rightGain||g.through!==e.through)errors.push('节点 '+g.nodeId+' 标准公式数值错误');if(!isContinuousPath(nodes,g.path)||pathSum(nodes,g.path)!==g.gain||g.path[0]!==g.nodeId)errors.push('节点 '+g.nodeId+' returnGain 路径错误');if(!isContinuousPath(nodes,g.throughPath)||pathSum(nodes,g.throughPath)!==g.through)errors.push('节点 '+g.nodeId+' through 路径错误');if(g.leftGain<0||g.rightGain<0)errors.push('节点 '+g.nodeId+' 子树贡献未截断');});
-    if(s.resp!==-Infinity&&(!isContinuousPath(nodes,s.bestPath)||pathSum(nodes,s.bestPath)!==s.resp))errors.push('第 '+(i+1)+' 帧 bestPath 非法');
+    if(s.gains.length!==i+1)errors.push('第 '+(i+1)+' 帧 gains 数量错误');
+    var shouldRefresh=e.through>rollingResp,expectedResp=Math.max(rollingResp,e.through);
+    if(s.leftRaw!==e.leftRaw||s.leftGain!==e.leftGain||s.rightRaw!==e.rightRaw||s.rightGain!==e.rightGain||s.candidate!==e.through||s.through!==e.through||s.returnGain!==e.gain)errors.push('第 '+(i+1)+' 帧标准公式结果错误');
+    if(s.oldResp!==rollingResp||s.newResp!==expectedResp||s.resp!==expectedResp||s.refreshed!==shouldRefresh)errors.push('第 '+(i+1)+' 帧 old/new resp 或刷新标志错误');
+    if(s.oldBestPath.join(',')!==rollingBest.join(',')||s.paths.oldBest.join(',')!==rollingBest.join(','))errors.push('第 '+(i+1)+' 帧旧 bestPath 错误');
+    if(rollingResp!==-Infinity&&(!isContinuousPath(nodes,s.oldBestPath)||pathSum(nodes,s.oldBestPath)!==rollingResp))errors.push('第 '+(i+1)+' 帧旧 bestPath 非法');
+    if(!isContinuousPath(nodes,s.bestPath)||pathSum(nodes,s.bestPath)!==expectedResp||s.paths.newBest.join(',')!==s.bestPath.join(','))errors.push('第 '+(i+1)+' 帧新 bestPath 非法');
+    if(shouldRefresh&&s.bestPath.join(',')!==e.throughPath.join(',')||!shouldRefresh&&s.bestPath.join(',')!==rollingBest.join(','))errors.push('第 '+(i+1)+' 帧 bestPath 替换逻辑错误');
     ['returnGain','through','active'].forEach(function(name){if(s.paths[name].length&&!isContinuousPath(nodes,s.paths[name]))errors.push('第 '+(i+1)+' 帧 '+name+' 不连续');});
-    if(s.phase==='compute-through'&&(pathSum(nodes,s.paths.through)!==s.through||s.paths.through.indexOf(s.currentNode)<0))errors.push('第 '+(i+1)+' 帧 through 数值或路径错误');
-    if(s.phase==='compute-return-gain'&&(pathSum(nodes,s.paths.returnGain)!==s.returnGain||s.paths.returnGain[0]!==s.currentNode))errors.push('第 '+(i+1)+' 帧 returnGain 数值或路径错误');
-    if(i){var p=steps[i-1];if(p.stack===s.stack||p.gains===s.gains||p.paths===s.paths||p.paths.returnGain===s.paths.returnGain||p.paths.through===s.paths.through||p.paths.active===s.paths.active||p.bestPath===s.bestPath||p.completed===s.completed)errors.push('相邻帧共享快照引用');if(p.stack.length&&s.stack.length&&p.stack[0]===s.stack[0])errors.push('stack 对象未深拷贝');if(p.gains.length&&s.gains.length&&(p.gains[0]===s.gains[0]||p.gains[0].path===s.gains[0].path||p.gains[0].throughPath===s.gains[0].throughPath))errors.push('gain 未深拷贝');}
+    if(pathSum(nodes,s.paths.through)!==s.candidate||s.paths.through.indexOf(id)<0)errors.push('第 '+(i+1)+' 帧 candidate 路径错误');
+    if(pathSum(nodes,s.paths.returnGain)!==s.returnGain||s.paths.returnGain[0]!==id)errors.push('第 '+(i+1)+' 帧 returnGain 路径错误');
+    if(s.done!==(i===steps.length-1))errors.push('第 '+(i+1)+' 帧 done 标志错误');
+    if(i){var p=steps[i-1];if(p.stack===s.stack||p.gains===s.gains||p.order===s.order||p.postorder===s.postorder||p.paths===s.paths||p.paths.returnGain===s.paths.returnGain||p.paths.through===s.paths.through||p.paths.oldBest===s.paths.oldBest||p.paths.newBest===s.paths.newBest||p.paths.active===s.paths.active||p.oldBestPath===s.oldBestPath||p.bestPath===s.bestPath)errors.push('相邻帧共享快照引用');if(p.stack.length&&s.stack.length&&p.stack[0]===s.stack[0])errors.push('stack 对象未深拷贝');if(p.gains.length&&s.gains.length&&(p.gains[0]===s.gains[0]||p.gains[0].path===s.gains[0].path||p.gains[0].throughPath===s.gains[0].throughPath))errors.push('gain 未深拷贝');}
+    rollingResp=expectedResp;rollingBest=s.bestPath.slice();
   }
-  ['call','call-null','null-return','recurse-left','left-return','recurse-right','right-return','compute-through','update-resp','compute-return-gain','return','done'].forEach(function(p){if(!seen[p])errors.push('缺少阶段 '+p);});
   var last=steps[steps.length-1];
-  if(!last||last.phase!=='done')errors.push('最后一帧必须为 done');
-  else{if(last.resp!==bruteForce(nodes))errors.push('答案与暴力校验不一致');if(last.stack.length)errors.push('结束时栈非空');if(last.gains.length!==nodes.length||last.completed.length!==nodes.length)errors.push('每节点标准公式数据不完整');}
+  if(!last||!last.done||last.currentNode!==0)errors.push('最后根节点帧必须同时标记 done');
+  else if(last.resp!==bruteForce(nodes))errors.push('答案与暴力校验不一致');
   return{ok:errors.length===0,errors:errors};
 }
 function run(input){
   var p=parseInput(input);if(p.error)return p;var steps=buildSteps(p.nodes),v=validateSnapshots(p.nodes,steps),last=steps[steps.length-1];
-  return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,rootId:0,nodes:cloneNodes(p.nodes),steps:steps,answer:last.resp,bestPath:last.bestPath.slice(),gains:last.gains.map(function(g){return{nodeId:g.nodeId,gain:g.gain,path:g.path.slice(),leftRaw:g.leftRaw,leftGain:g.leftGain,rightRaw:g.rightRaw,rightGain:g.rightGain,through:g.through,throughPath:g.throughPath.slice()};}),validation:v};
+  return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,rootId:0,nodes:cloneNodes(p.nodes),steps:steps,answer:last.resp,bestPath:last.bestPath.slice(),order:last.order.slice(),gains:last.gains.map(function(g){return{nodeId:g.nodeId,gain:g.gain,path:g.path.slice(),leftRaw:g.leftRaw,leftGain:g.leftGain,rightRaw:g.rightRaw,rightGain:g.rightGain,through:g.through,throughPath:g.throughPath.slice()};}),validation:v};
 }
 root.BinaryTreeMaximumPathSum124={tokenize:tokenize,buildTree:buildTree,cloneNodes:cloneNodes,parseInput:parseInput,layout:layout,pathSum:pathSum,isContinuousPath:isContinuousPath,buildSteps:buildSteps,expectedValues:expectedValues,bruteForce:bruteForce,validateSnapshots:validateSnapshots,run:run,limits:{minValue:MIN,maxValue:MAX,maxTokens:LIMIT}};
 })(typeof window!=='undefined'?window:globalThis);
@@ -204,31 +205,52 @@ root.BinaryTreeMaximumPathSum124={tokenize:tokenize,buildTree:buildTree,cloneNod
 (function(){
 'use strict';
 var App=window.BinaryTreeMaximumPathSum124,$=function(id){return document.getElementById(id);},input=$('treeInput'),svg=$('treeSvg'),prev=$('prevBtn'),nextBtn=$('nextBtn'),play=$('playBtn');
-var result,steps=[],index=0,timer=null,pos={},nodeEls={},edgeEls={},gainEls={},NS='http://www.w3.org/2000/svg',R=21;
+var result,steps=[],index=0,timer=null,pos={},nodeEls={},edgeEls={},edgeLabelEls={},gainEls={},NS='http://www.w3.org/2000/svg',R=21;
 function el(name,attrs){var x=document.createElementNS(NS,name);Object.keys(attrs||{}).forEach(function(k){x.setAttribute(k,attrs[k]);});return x;}
 function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ 自动播放';}}
-function phase(p){if(p==='call'||p==='call-null'||p==='null-return')return'call';if(p==='recurse-left')return'left';if(p==='left-return')return'left-return';if(p==='recurse-right')return'right';if(p==='right-return')return'right-return';if(p==='compute-through')return'through';if(p==='update-resp')return'resp';if(p==='compute-return-gain')return'return-gain';return'return';}
-function state(x){return{call:'刚进入',null:'null → 0',left:'等待左树','left-return':'左值已截断',right:'等待右树','right-return':'右值已截断',through:'计算 through',resp:'更新 resp','return-gain':'计算单边返回',return:'返回父节点'}[x]||x;}
+function state(x){return{current:'当前计算',waiting:'等待下层回传',done:'已经完成'}[x]||x;}
 function fmt(x){return x===null?'—':x===-Infinity?'−∞':String(x);}
 function setOf(a){var o={};a.forEach(function(x){o[x]=true;});return o;}
 function pathEdges(path){var o={};for(var i=1;i<path.length;i++){var a=path[i-1],b=path[i];o[result.nodes[a].parent===b?a:b]=true;}return o;}
 function gain(step,id){for(var i=0;i<step.gains.length;i++)if(step.gains[i].nodeId===id)return step.gains[i];return null;}
 function graphic(){
-  svg.innerHTML='';nodeEls={};edgeEls={};gainEls={};var size=App.layout(result.nodes,{xGap:90,yGap:100,padX:65,padY:48});pos=size.positions;svg.setAttribute('width',size.width);svg.setAttribute('height',size.height);svg.setAttribute('viewBox','0 0 '+size.width+' '+size.height);
-  result.nodes.forEach(function(n){if(n.parent<0)return;var a=pos[n.parent],b=pos[n.id],line=el('line',{class:'edge',x1:a.x,y1:a.y,x2:b.x,y2:b.y});svg.appendChild(line);edgeEls[n.id]=line;var t=el('text',{class:'edge-label',x:(a.x+b.x)/2+(n.side==='left'?-8:8),y:(a.y+b.y)/2-3,'text-anchor':'middle'});t.textContent=n.side==='left'?'L':'R';svg.appendChild(t);});
+  svg.innerHTML='';nodeEls={};edgeEls={};edgeLabelEls={};gainEls={};var size=App.layout(result.nodes,{xGap:90,yGap:100,padX:65,padY:48});pos=size.positions;svg.setAttribute('width',size.width);svg.setAttribute('height',size.height);svg.setAttribute('viewBox','0 0 '+size.width+' '+size.height);
+  var defs=el('defs'),kept=el('marker',{id:'gainArrow',viewBox:'0 0 10 6',refX:'9',refY:'3',markerWidth:'9',markerHeight:'7',orient:'auto'}),discarded=el('marker',{id:'discardArrow',viewBox:'0 0 10 6',refX:'9',refY:'3',markerWidth:'9',markerHeight:'7',orient:'auto'});kept.appendChild(el('path',{d:'M0 0 L10 3 L0 6 Z',fill:'#0ea5e9'}));discarded.appendChild(el('path',{d:'M0 0 L10 3 L0 6 Z',fill:'#94a3b8'}));defs.appendChild(kept);defs.appendChild(discarded);svg.appendChild(defs);
+  result.nodes.forEach(function(n){if(n.parent<0)return;var a=pos[n.parent],b=pos[n.id],dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy),ux=dx/d,uy=dy/d,line=el('line',{class:'edge',x1:b.x+ux*R,y1:b.y+uy*R,x2:a.x-ux*R,y2:a.y-uy*R});svg.appendChild(line);edgeEls[n.id]=line;var t=el('text',{class:'edge-label',x:(a.x+b.x)/2+(n.side==='left'?-13:13),y:(a.y+b.y)/2-4,'text-anchor':'middle'});svg.appendChild(t);edgeLabelEls[n.id]=t;});
   result.nodes.forEach(function(n){var p=pos[n.id],g=el('g',{class:'node'});g.appendChild(el('circle',{cx:p.x,cy:p.y,r:R}));var v=el('text',{class:'value',x:p.x,y:p.y+5,'text-anchor':'middle'});v.textContent=n.value;g.appendChild(v);var x=el('text',{class:'gain-label',x:p.x,y:p.y+36,'text-anchor':'middle'});x.textContent='gain: —';g.appendChild(x);gainEls[n.id]=x;svg.appendChild(g);nodeEls[n.id]=g;});return size;
 }
 function tree(step){
-  var done=setOf(step.completed),best=setOf(step.bestPath),be=pathEdges(step.bestPath),fp=step.focus==='returnGain'?step.paths.returnGain:step.focus==='through'?step.paths.through:step.paths.active,focus=setOf(fp),fe=pathEdges(fp);
-  result.nodes.forEach(function(n){var c='node';if(done[n.id])c+=' done';if(best[n.id])c+=' best';if(focus[n.id]&&step.focus==='returnGain')c+=' tmp';if(focus[n.id]&&step.focus==='through')c+=' crossing';if(step.currentNode===n.id)c+=' current';nodeEls[n.id].setAttribute('class',c);var g=gain(step,n.id);gainEls[n.id].textContent=g?'gain: '+g.gain:'gain: —';gainEls[n.id].setAttribute('class','gain-label'+(g?' known':''));if(edgeEls[n.id]){var e='edge';if(done[n.id])e+=' done';if(be[n.id])e+=' best';if(fe[n.id]&&step.focus==='returnGain')e+=' tmp';if(fe[n.id]&&step.focus==='through')e+=' crossing';if((step.phase==='recurse-left'||step.phase==='recurse-right')&&step.sourceNode===n.parent&&step.edgeSide===n.side)e+=' active';edgeEls[n.id].setAttribute('class',e);}});
-  var top=step.stack.length?step.stack[step.stack.length-1]:null,show=top&&top.nodeId===null;$('nullCall').className='null-call'+(show?' show':'');if(show)$('nullCall').textContent=(top.parentId>=0?result.nodes[top.parentId].value+'.'+top.via:'root')+' → null · return 0';
+  var done=setOf(step.order),best=setOf(step.bestPath),be=pathEdges(step.bestPath),fp=step.focus==='returnGain'?step.paths.returnGain:step.focus==='through'?step.paths.through:step.paths.active,focus=setOf(fp),fe=pathEdges(fp);
+  result.nodes.forEach(function(n){
+    var c='node';if(done[n.id])c+=' done';if(best[n.id])c+=' best';if(focus[n.id]&&step.focus==='returnGain')c+=' tmp';if(focus[n.id]&&step.focus==='through')c+=' crossing';if(step.currentNode===n.id)c+=' current';nodeEls[n.id].setAttribute('class',c);
+    var g=gain(step,n.id);gainEls[n.id].textContent=g?'gain: '+g.gain:'gain: —';gainEls[n.id].setAttribute('class','gain-label'+(g?' known':''));
+    if(edgeEls[n.id]){
+      var e='edge';if(done[n.id])e+=' done';if(be[n.id])e+=' best';if(fe[n.id]&&step.focus==='returnGain')e+=' tmp';if(fe[n.id]&&step.focus==='through')e+=' crossing';
+      var incoming=step.currentNode===n.parent,raw=n.side==='left'?step.leftRaw:step.rightRaw,clamped=n.side==='left'?step.leftGain:step.rightGain;
+      edgeEls[n.id].removeAttribute('marker-end');edgeLabelEls[n.id].setAttribute('class','edge-label');edgeLabelEls[n.id].textContent='';
+      if(incoming&&raw!==null){
+        var dropped=raw<0;if(dropped)e+=' discarded';
+        edgeEls[n.id].setAttribute('marker-end',dropped?'url(#discardArrow)':'url(#gainArrow)');
+        edgeLabelEls[n.id].textContent=(n.side==='left'?'L ':'R ')+raw+' → '+clamped;edgeLabelEls[n.id].setAttribute('class','edge-label visible'+(dropped?' discarded':''));
+      }
+      edgeEls[n.id].setAttribute('class',e);
+    }
+  });
 }
-function stack(step){var box=$('stack');box.innerHTML='';if(!step.stack.length){box.innerHTML='<div class="empty">调用栈为空</div>';return;}step.stack.forEach(function(f,i){var row=document.createElement('div');row.className='frame'+(i===step.stack.length-1?' top':'')+(f.nodeId===null?' null':'');row.innerHTML='<span class="badge">'+(i+1)+'</span><span>dfs('+(f.nodeId===null?'null':'id '+f.nodeId+'/'+f.value)+') · '+state(f.state)+(f.nodeId===null?'':' · L='+fmt(f.leftRaw)+'→'+fmt(f.leftGain)+' R='+fmt(f.rightRaw)+'→'+fmt(f.rightGain))+'</span>';box.appendChild(row);});}
-function path(id,name,a){var box=$(id);box.innerHTML='<span class="path-name">'+name+'</span>';if(!a.length){box.innerHTML+='<span class="none">尚未形成</span>';return;}a.forEach(function(n,i){if(i)box.innerHTML+='<span class="arrow">—</span>';box.innerHTML+='<span class="path-item">id'+n+'/'+result.nodes[n].value+'</span>';});}
+function stack(step){var box=$('stack');box.innerHTML='';if(!step.stack.length){box.innerHTML='<div class="empty">递归已经回到调用者</div>';return;}step.stack.forEach(function(f,i){var row=document.createElement('div');row.className='frame'+(f.state==='current'?' current-context':'');row.innerHTML='<span class="badge">'+(i+1)+'</span><span>dfs(id '+f.nodeId+'/'+f.value+') · '+state(f.state)+'</span>';box.appendChild(row);});}
+function path(id,name,a,emptyText){var box=$(id);box.innerHTML='<span class="path-name">'+name+'</span>';if(!a.length){box.innerHTML+='<span class="none">'+(emptyText||'尚未形成')+'</span>';return;}a.forEach(function(n,i){if(i)box.innerHTML+='<span class="arrow">—</span>';box.innerHTML+='<span class="path-item">id'+n+'/'+result.nodes[n].value+'</span>';});}
+function orderStrip(step){var box=$('postorderStrip');box.innerHTML='';step.postorder.forEach(function(id,i){if(i){var arrow=document.createElement('span');arrow.className='order-arrow';arrow.textContent='→';box.appendChild(arrow);}var x=document.createElement('span');x.className='order-node'+(step.order.indexOf(id)>=0?' done':'')+(step.currentNode===id?' current':'');x.textContent=result.nodes[id].value+' · id'+id;box.appendChild(x);});var active=box.querySelector('.order-node.current');if(active)box.scrollTo({left:Math.max(0,active.offsetLeft-box.clientWidth/2+active.offsetWidth/2),behavior:'smooth'});}
 function render(){
-  var s=steps[index];tree(s);stack(s);path('returnPath','returnGain',s.paths.returnGain);path('throughPath','through',s.paths.through);path('bestPath','全局最佳',s.bestPath);
-  Array.prototype.forEach.call($('phaseStrip').children,function(x){x.className='phase'+(x.dataset.phase===phase(s.phase)?' active':'');});
-  $('action').innerHTML='<span class="kind">'+s.phase.toUpperCase()+'</span><b>'+s.action+'</b>';$('leftRawValue').textContent=fmt(s.leftRaw);$('leftValue').textContent=fmt(s.leftGain);$('rightRawValue').textContent=fmt(s.rightRaw);$('rightValue').textContent=fmt(s.rightGain);$('returnValue').textContent=fmt(s.returnGain);$('throughValue').textContent=fmt(s.through);$('respValue').textContent=fmt(s.resp);$('currentLine').textContent=s.codeLine;$('status').innerHTML=s.message;$('progress').textContent='帧 '+(index+1)+' / '+steps.length;prev.disabled=index===0;nextBtn.disabled=index===steps.length-1;var live=$('liveResp');if(live)live.textContent=fmt(s.resp);
+  var s=steps[index],n=result.nodes[s.currentNode],operator=s.oldResp===-Infinity||s.candidate>s.oldResp?'>':(s.candidate<s.oldResp?'<':'=');
+  tree(s);stack(s);orderStrip(s);path('throughPath','candidate',s.paths.through);path('oldBestPath','旧 best',s.oldBestPath,'尚无（resp = −∞）');path('bestPath',s.refreshed?'新 best（替换）':'新 best（保持）',s.bestPath);path('returnPath','returnGain',s.paths.returnGain);
+  $('currentNodeLabel').textContent='节点 '+n.value+' · 第 '+(index+1)+' / '+steps.length+' 个后序节点'+(s.done?' · 根节点完成':'');
+  $('refreshBadge').className='refresh-badge '+(s.refreshed?'refreshed':'unchanged');$('refreshBadge').textContent=s.refreshed?'刷新全局最大值':'未刷新全局最大值';
+  $('leftRawValue').textContent=fmt(s.leftRaw);$('leftValue').textContent=fmt(s.leftGain);$('rightRawValue').textContent=fmt(s.rightRaw);$('rightValue').textContent=fmt(s.rightGain);
+  $('candidateFormula').textContent='candidate = '+n.value+' + '+s.leftGain+' + '+s.rightGain+' = '+s.candidate;
+  $('oldRespValue').textContent=fmt(s.oldResp);$('respValue').textContent=fmt(s.newResp);
+  $('returnFormula').textContent='returnGain = '+n.value+' + max('+s.leftGain+', '+s.rightGain+') = '+s.returnGain;
+  $('comparisonFormula').textContent=s.candidate+' '+operator+' '+fmt(s.oldResp)+' → '+(s.refreshed?'刷新为 '+s.newResp:'保持 '+s.newResp);
+  $('currentLine').textContent=s.codeLine;$('status').innerHTML=s.message;$('progress').textContent='节点 '+(index+1)+' / '+steps.length+(s.done?' · 后序完成':'');prev.disabled=index===0;nextBtn.disabled=index===steps.length-1;var live=$('liveResp');if(live)live.textContent=fmt(s.newResp);
 }
 function load(){
   stop();var r=App.run(input.value);if(r.error){$('err').textContent='输入有误：'+r.error+'。';$('err').classList.add('show');return;}$('err').classList.remove('show');result=r;steps=r.steps;index=0;var size=graphic();$('stats').innerHTML='<div class="stat">token / 节点<b>'+r.tokenCount+' / 31 · '+r.nodes.length+'</b></div><div class="stat">树高 h<b>'+size.heightLevels+'</b></div><div class="stat">当前 resp<b id="liveResp">−∞</b></div><div class="stat answer">最终答案<b>'+r.answer+'</b></div><div class="stat">最佳路径和<b>'+App.pathSum(r.nodes,r.bestPath)+'</b></div><div class="stat">时间 / 栈<b>O(n) / O(h)</b></div><div class="stat">快照校验<b>'+(r.validation.ok?'通过 ✓':'失败 ✗')+'</b></div>';render();
