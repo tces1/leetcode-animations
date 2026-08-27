@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 101 对称二叉树逐帧动画：直接镜像递归 compare(left,right)、结构与值判断、外侧/内侧子问题、短路与回溯。">
+<meta name="tags" content="二叉树 · 深度优先搜索 · 递归 · 镜像 · 短路 · O(n)">
+<title>101. 对称二叉树 — 动画演示</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;padding:24px;background:#f6f7f9;color:#1d2129;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}.wrap{max-width:1240px;margin:auto}.navbar,.controls,.examples,.legend,.stats,.pair-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.navbar{margin-bottom:16px}.difftag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;background:#dcfce7;color:#166534}.link{font-size:12px;color:#6b7280}.link a{color:#6366f1;text-decoration:none}.link a:hover{text-decoration:underline}h1{font-size:20px;margin:0 0 4px}.sub{color:#6b7280;font-size:13px;margin-bottom:18px}code{background:#eef0f4;padding:1px 5px;border-radius:5px;font:12px "SF Mono",Menlo,monospace}.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px #00000008}.panel-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:10px}.idea{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.idea>div,.complexity>div{border:1px solid #e5e7eb;border-radius:10px;padding:11px 13px;font-size:13px;color:#4b5563;background:#f8fafc}.no{font-size:11px;font-weight:800;color:#6366f1}.note{margin-top:12px;padding:11px 14px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px}.input-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.lab{font-size:12px;color:#6b7280;font-weight:700}input{width:100%;padding:9px 11px;font:13px "SF Mono",Menlo,monospace;border:1px solid #d1d5db;border-radius:8px;outline:0}input:focus{border-color:#6366f1;box-shadow:0 0 0 3px #6366f126}button{padding:9px 16px;font-size:14px;font-weight:600;border:0;border-radius:8px;cursor:pointer;background:#6366f1;color:#fff}button:hover{background:#4f46e5}button.ghost{background:#eef0f4;color:#374151}button:disabled{opacity:.45;cursor:not-allowed}.examples{margin-top:10px;gap:8px}.chip{font:12px "SF Mono",Menlo,monospace;padding:5px 10px;background:#f1f2f4;border:1px solid #e5e7eb;border-radius:99px;cursor:pointer}.chip:hover,.chip.active{background:#e0e7ff;border-color:#a5b4fc;color:#3730a3}.hint{font-size:12px;color:#9ca3af;margin-top:8px;line-height:1.65}.err{display:none;color:#dc2626;font-size:13px;margin-top:10px}.err.show{display:block}.stats{margin-bottom:14px}.stat{background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:8px 12px;font-size:12px;color:#6b7280}.stat b{display:block;font:800 13px "SF Mono",Menlo,monospace;color:#1d2129}.stat.answer b.true{color:#16a34a}.stat.answer b.false{color:#dc2626}.progress{margin-left:auto;font-size:12px;color:#9ca3af}.phases{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}.phase{border:1px solid #e5e7eb;border-radius:9px;padding:7px 4px;font-size:9px;color:#64748b;background:#f8fafc;text-align:center}.phase b{display:block;color:#334155;font-size:10px}.phase.active{background:#eef2ff;border-color:#818cf8;box-shadow:0 0 0 3px #6366f11c}.visual{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(370px,.9fr);gap:14px}.tree-box,.side{border:1px solid #eef0f4;border-radius:12px;background:linear-gradient(#fafbff,#fff);min-height:470px}.tree-box{padding:12px;overflow:auto;position:relative}.tree-box svg{display:block;margin:auto;overflow:visible}.empty-tree{min-height:420px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#94a3b8}.empty-tree b{font:800 20px "SF Mono",Menlo,monospace}.mirror-axis{stroke:#c4b5fd;stroke-width:2;stroke-dasharray:6 5}.axis-label{fill:#7c3aed;font:800 10px sans-serif}.edge{stroke:#cbd5e1;stroke-width:2.5}.edge.pair{stroke:#8b5cf6;stroke-width:4}.edge.done{stroke:#86efac}.node circle{fill:#fff;stroke:#cbd5e1;stroke-width:2.5}.node text.value{fill:#334155;font:800 14px "SF Mono",Menlo,monospace}.node.pair-left circle{fill:#dbeafe;stroke:#2563eb;stroke-width:5}.node.pair-right circle{fill:#fce7f3;stroke:#db2777;stroke-width:5}.node.failed circle{fill:#fee2e2;stroke:#ef4444;stroke-width:5}.node.done circle{fill:#dcfce7;stroke:#22c55e}.node-id{fill:#94a3b8!important;font:700 9px "SF Mono",Menlo,monospace!important}.null-pair{position:absolute;top:12px;right:12px;padding:7px 10px;border:1px dashed #f59e0b;border-radius:8px;background:#fffbeb;color:#92400e;font:700 11px "SF Mono",Menlo,monospace;display:none}.null-pair.show{display:block}.side{padding:14px;display:flex;flex-direction:column;gap:12px}.action{border:1px solid #ddd6fe;background:#f5f3ff;border-radius:10px;padding:10px 12px;color:#5b21b6;min-height:62px}.action .kind{font-size:10px;font-weight:800;letter-spacing:.06em}.action b{display:block;color:#3730a3;font-size:13px}.pair-board{display:grid;grid-template-columns:1fr auto 1fr;gap:7px;align-items:center}.pair-box{padding:9px;border-radius:9px;text-align:center;font:800 12px "SF Mono",Menlo,monospace}.pair-box.left{background:#dbeafe;border:1px solid #60a5fa;color:#1d4ed8}.pair-box.right{background:#fce7f3;border:1px solid #f472b6;color:#be185d}.pair-op{font-weight:900;color:#64748b}.stack{display:flex;flex-direction:column-reverse;gap:5px;min-height:90px;max-height:190px;overflow:auto}.frame{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:center;padding:6px 8px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;font:10px "SF Mono",Menlo,monospace;color:#475569}.frame.top{border-color:#818cf8;background:#eef2ff}.badge{border-radius:99px;min-width:24px;height:20px;display:flex;align-items:center;justify-content:center;background:#e2e8f0;font-weight:800}.results{display:flex;flex-wrap:wrap;gap:5px;min-height:38px;border:1px dashed #cbd5e1;border-radius:8px;padding:7px}.result-item{padding:3px 7px;border-radius:7px;background:#dcfce7;border:1px solid #86efac;color:#166534;font:800 10px "SF Mono",Menlo,monospace}.result-item.false{background:#fee2e2;border-color:#fca5a5;color:#991b1b}.empty{padding:18px;text-align:center;color:#94a3b8;font-size:11px}.line{border-radius:8px;background:#0f172a;color:#fcd34d;padding:9px 11px;min-height:38px;font:11px "SF Mono",Menlo,monospace}.legend{margin-top:13px;font-size:12px;color:#6b7280;gap:14px}.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1px solid #0001}.status{background:#111827;color:#e5e7eb;border-radius:10px;padding:14px 16px;font-size:14px;min-height:50px}.status b{color:#fcd34d}.status .ok{color:#86efac}.status .bad{color:#fca5a5}.status code{background:#1f2937;color:#93c5fd}.status-title{margin-top:16px}.complexity{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.complexity b{display:block;color:#1d2129}details summary{cursor:pointer;font-weight:600;font-size:14px;color:#4f46e5}.tabs{display:flex;gap:8px;margin:12px 0 10px}.tab{font-size:13px;padding:5px 12px;border-radius:99px;cursor:pointer;background:#f1f2f4;border:1px solid #e5e7eb}.tab.active{background:#6366f1;color:#fff}pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;overflow:auto;font-size:13px;line-height:1.55;margin:0}pre .cmt{color:#7dd3fc}@media(max-width:980px){body{padding:16px 12px}.idea,.complexity,.visual,.input-grid{grid-template-columns:1fr}.phases{grid-template-columns:repeat(3,1fr)}.progress{width:100%;margin-left:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar"><span class="difftag">简单</span><span class="link">原题：<a href="https://leetcode.cn/problems/symmetric-tree/" target="_blank" rel="noopener">LeetCode 101</a></span><span class="link">· <a href="../index.html">返回动画列表</a></span></div>
+  <h1>101. 对称二叉树 · 直接镜像递归</h1>
+  <div class="sub">不翻转、不复制、不修改原树；直接让两个指针同步走向镜像位置，判断结构和值是否完全对应。</div>
+
+  <div class="card">
+    <div class="panel-title">compare(left, right) 的四条规则</div>
+    <div class="idea">
+      <div><div class="no">① BOTH NULL</div>两个指针都为空，当前镜像子问题返回 <code>True</code>。</div>
+      <div><div class="no">② ONE NULL / VALUE</div>只有一个为空，或两个值不同，立即返回 <code>False</code>。</div>
+      <div><div class="no">③ OUTSIDE</div>先比较外侧：<code>compare(left.left, right.right)</code>。</div>
+      <div><div class="no">④ INSIDE</div>外侧为 True 才比较内侧：<code>compare(left.right, right.left)</code>。</div>
+    </div>
+    <div class="note"><b>镜像不是“左右子树值集合相同”。</b>结构位置也必须镜像；Python 的 <code>and</code> 从左到右短路，外侧失败后不会进入内侧子问题。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid"><label class="field"><span class="lab">二叉树（LeetCode 层序格式，0～31 个 token）</span><input id="treeInput" value="[1,2,2,3,4,4,3]" spellcheck="false" autocomplete="off"></label><button id="loadBtn">演示</button></div>
+    <div class="examples"><span class="lab">示例：</span><span class="chip" data-spec="[1,2,2,3,4,4,3]">对称</span><span class="chip" data-spec="[1,2,2,null,3,null,3]">结构不对称</span><span class="chip" data-spec="[1,2,2,3,4,3,4]">值不对称</span><span class="chip" data-spec="[7,5,5,5,null,null,5]">重复值对称</span><span class="chip" data-spec="-1">单节点</span><span class="chip" data-spec="">空树</span></div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">接受空白分隔或逗号分隔，可带一对方括号；<code>null</code> / <code>#</code> 必须小写。空输入、<code>[]</code>、单独的 <code>null</code> 或 <code>#</code> 表示空树。支持负数、重复值和不完整树；严格拒绝空 token、混合分隔、未配对括号、空根后的额外 token 与孤儿 token。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px"><button id="prevBtn" class="ghost">◀ 上一步</button><button id="nextBtn">下一步 ▶</button><button id="playBtn" class="ghost">▶ 自动播放</button><button id="resetBtn" class="ghost">↺ 重置</button><span class="progress" id="progress"></span></div>
+    <div class="phases" id="phaseStrip"><div class="phase" data-phase="call"><span>CALL</span><b>成对进入</b></div><div class="phase" data-phase="structure"><span>STRUCTURE</span><b>结构判断</b></div><div class="phase" data-phase="value"><span>VALUE</span><b>值判断</b></div><div class="phase" data-phase="outside"><span>OUTSIDE</span><b>外侧子问题</b></div><div class="phase" data-phase="inside"><span>INSIDE</span><b>内侧子问题</b></div><div class="phase" data-phase="short"><span>SHORT</span><b>短路</b></div><div class="phase" data-phase="return"><span>RETURN</span><b>回溯结果</b></div></div>
+    <div class="visual">
+      <div class="tree-box" id="treeBox"><svg id="treeSvg" role="img" aria-label="成对高亮镜像节点的对称二叉树递归动画"></svg><div class="empty-tree" id="emptyTree"><b>root = null</b><span>空树与自身镜像相同，因此返回 True</span></div><div class="null-pair" id="nullPair"></div></div>
+      <div class="side">
+        <div><div class="panel-title">当前动作</div><div class="action" id="action"></div></div>
+        <div><div class="panel-title">当前镜像节点对</div><div class="pair-board"><div class="pair-box left" id="leftPair"></div><div class="pair-op">↔</div><div class="pair-box right" id="rightPair"></div></div></div>
+        <div><div class="panel-title">递归调用栈（栈顶在上）</div><div class="stack" id="stack"></div></div>
+        <div><div class="panel-title">已经回溯的子问题</div><div class="results" id="results"></div></div>
+        <div class="line" id="currentLine"></div>
+      </div>
+    </div>
+    <div class="legend"><span><span class="dot" style="background:#dbeafe;border-color:#2563eb"></span>左指针</span><span><span class="dot" style="background:#fce7f3;border-color:#db2777"></span>右指针</span><span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>当前失败节点对</span><span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>已成功回溯</span></div>
+    <div class="panel-title status-title">状态栏</div><div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card"><div class="panel-title">复杂度与边界</div><div class="complexity"><div><b>时间 O(n)</b>最坏情况下每个节点恰好参与一次镜像比较；失败时会因短路提前结束。</div><div><b>递归栈 O(h)</b>h 是树高；平衡树为 O(log n)，斜树最坏为 O(n)。</div><div><b>单节点与空树均为 True</b>单节点比较的是两个 null 子树；空树直接命中“都空”基例。</div></div></div>
+  <div class="card"><details open><summary>查看 Python / Java 参考代码（与动画一致）</summary><div class="tabs"><span class="tab active" data-lang="py">Python</span><span class="tab" data-lang="java">Java</span></div><pre id="codeBlock"></pre></details></div>
+</div>
+
+<script data-symmetric-tree-logic>
+(function(root){
+'use strict';
+var MIN=-1000000,MAX=1000000,LIMIT=31;
+function tokenize(input){
+  if(typeof input!=='string')return{error:'树输入必须是字符串'};
+  var text=input.trim();if(!text)return{tokens:[],tokenCount:0,error:null};
+  if(text[0]==='['||text[text.length-1]===']'){if(text[0]!=='['||text[text.length-1]!==']')return{error:'方括号必须成对并包住整个输入'};text=text.slice(1,-1).trim();}
+  if(text.indexOf('[')>=0||text.indexOf(']')>=0)return{error:'方括号只能出现在最外层'};
+  if(!text)return{tokens:[],tokenCount:0,error:null};
+  var raw;if(text.indexOf(',')>=0){raw=text.split(',');for(var i=0;i<raw.length;i++){raw[i]=raw[i].trim();if(!raw[i])return{error:'不能出现空 token'};if(/\s/.test(raw[i]))return{error:'不能混用逗号与空白分隔'};}}else raw=text.split(/\s+/);
+  if(raw.length>LIMIT)return{error:'最多允许 '+LIMIT+' 个 token，当前有 '+raw.length+' 个'};
+  var tokens=[];for(var j=0;j<raw.length;j++){var word=raw[j];if(word==='null'||word==='#')tokens.push(null);else{if(!/^-?\d+$/.test(word))return{error:'第 '+(j+1)+' 个 token「'+word+'」不是小写 null、# 或整数'};var value=Number(word);if(!Number.isSafeInteger(value)||value<MIN||value>MAX)return{error:'第 '+(j+1)+' 个节点值须在 -1,000,000～1,000,000'};tokens.push(value);}}
+  if(tokens[0]===null&&tokens.length>1)return{error:'根节点为空时不能再提供其它 token'};return{tokens:tokens,tokenCount:raw.length,error:null};
+}
+function buildTree(tokens){
+  if(!Array.isArray(tokens))return{error:'tokens 必须是数组'};if(!tokens.length||tokens[0]===null)return{nodes:[],rootId:-1,error:null};
+  var nodes=[{id:0,value:tokens[0],left:-1,right:-1,parent:-1,side:'root',tokenIndex:0}],q=[0],qi=0,t=1;
+  while(t<tokens.length){if(qi>=q.length)return{error:'第 '+(t+1)+' 个 token 没有可用父节点，属于孤儿 token'};var pid=q[qi++],p=nodes[pid],v=tokens[t++];if(v!==null){var lid=nodes.length;nodes.push({id:lid,value:v,left:-1,right:-1,parent:pid,side:'left',tokenIndex:t-1});p.left=lid;q.push(lid);}if(t>=tokens.length)break;v=tokens[t++];if(v!==null){var rid=nodes.length;nodes.push({id:rid,value:v,left:-1,right:-1,parent:pid,side:'right',tokenIndex:t-1});p.right=rid;q.push(rid);}}
+  return{nodes:nodes,rootId:0,error:null};
+}
+function cloneNodes(nodes){return nodes.map(function(n){return{id:n.id,value:n.value,left:n.left,right:n.right,parent:n.parent,side:n.side,tokenIndex:n.tokenIndex};});}
+function parseInput(input){var p=tokenize(input);if(p.error)return p;var b=buildTree(p.tokens);if(b.error)return b;return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,nodes:cloneNodes(b.nodes),rootId:b.rootId};}
+function layout(nodes,o){o=o||{};var xg=o.xGap||82,yg=o.yGap||92,px=o.padX||58,py=o.padY||46,pos={},col=0,md=0;function walk(id,d){if(id<0)return;walk(nodes[id].left,d+1);pos[id]={x:px+col*xg,y:py+d*yg,depth:d};col++;md=Math.max(md,d);walk(nodes[id].right,d+1);}if(nodes.length)walk(0,0);return{positions:pos,width:Math.max(310,px*2+Math.max(0,col-1)*xg),height:Math.max(420,py*2+md*yg+44),heightLevels:nodes.length?md+1:0};}
+function cloneStack(stack){return stack.map(function(f){return{leftId:f.leftId,rightId:f.rightId,state:f.state,kind:f.kind,depth:f.depth};});}
+function cloneReturns(a){return a.map(function(x){return{leftId:x.leftId,rightId:x.rightId,result:x.result,reason:x.reason};});}
+function buildSteps(nodes,rootId){
+  var steps=[],stack=[],returns=[],successful=[],failed=[];
+  function label(id){return id<0?'null':nodes[id].value+' / id'+id;}
+  function snap(phase,leftId,rightId,action,line,message,result){steps.push({phase:phase,leftId:leftId,rightId:rightId,action:action,codeLine:line,message:message,result:result===undefined?null:result,stack:cloneStack(stack),returns:cloneReturns(returns),successful:successful.slice(),failed:failed.slice()});}
+  function finish(leftId,rightId,result,reason){returns.push({leftId:leftId,rightId:rightId,result:result,reason:reason});if(result){if(leftId>=0)successful.push(leftId);if(rightId>=0)successful.push(rightId);}else{if(leftId>=0)failed.push(leftId);if(rightId>=0)failed.push(rightId);}}
+  function compare(leftId,rightId,kind){
+    var frame={leftId:leftId,rightId:rightId,state:'call',kind:kind,depth:stack.length};stack.push(frame);
+    snap('call',leftId,rightId,'进入 compare('+label(leftId)+', '+label(rightId)+')','def compare(left, right):','同步拿到一对镜像位置：左指针是 <b>'+label(leftId)+'</b>，右指针是 <b>'+label(rightId)+'</b>。');
+    frame.state='structure';
+    if(leftId<0&&rightId<0){snap('both-null',leftId,rightId,'两个指针都为空 → True','if not left and not right: return True','两个镜像位置都是 <b>null</b>，结构完全对应，当前子问题返回 <span class="ok">True</span>。',true);finish(leftId,rightId,true,'都空');stack.pop();return true;}
+    if(leftId<0||rightId<0){snap('one-null',leftId,rightId,'只有一个指针为空 → False','if not left or not right: return False','只有一侧为空，镜像结构不一致，当前子问题返回 <span class="bad">False</span>。',false);finish(leftId,rightId,false,'一空一非空');stack.pop();return false;}
+    snap('structure-pass',leftId,rightId,'两个节点都存在，结构检查通过','if not left or not right: return False','两个指针都指向实际节点，当前层结构检查通过；接着比较节点值。');
+    frame.state='value';
+    if(nodes[leftId].value!==nodes[rightId].value){snap('value-fail',leftId,rightId,nodes[leftId].value+' ≠ '+nodes[rightId].value+' → False','if left.val != right.val: return False','值不同：<code>'+nodes[leftId].value+' != '+nodes[rightId].value+'</code>，无需继续递归，返回 <span class="bad">False</span>。',false);finish(leftId,rightId,false,'值不同');stack.pop();return false;}
+    snap('value-pass',leftId,rightId,nodes[leftId].value+' == '+nodes[rightId].value,'if left.val != right.val: return False','值相同：<code>'+nodes[leftId].value+' == '+nodes[rightId].value+'</code>。但相等值可能重复，仍必须继续检查镜像结构。');
+    frame.state='outside';var l=nodes[leftId],r=nodes[rightId];
+    snap('outside',leftId,rightId,'比较外侧 '+label(l.left)+' ↔ '+label(r.right),'compare(left.left, right.right)','先解决外侧子问题：左节点的 <code>left</code> 对右节点的 <code>right</code>。');
+    var outside=compare(l.left,r.right,'outside');
+    if(!outside){frame.state='short';snap('short-circuit',leftId,rightId,'外侧为 False，短路内侧','outside and compare(left.right, right.left)','外侧已经返回 <span class="bad">False</span>；<code>and</code> 短路，不会调用内侧 <code>compare('+label(l.right)+', '+label(r.left)+')</code>。',false);finish(leftId,rightId,false,'外侧失败');frame.state='return';snap('return',leftId,rightId,'回溯 False','return outside and inside','当前镜像节点对向上一层返回 <span class="bad">False</span>。',false);stack.pop();return false;}
+    frame.state='inside';snap('inside',leftId,rightId,'外侧为 True，比较内侧 '+label(l.right)+' ↔ '+label(r.left),'compare(left.right, right.left)','外侧通过，继续解决内侧子问题：左节点的 <code>right</code> 对右节点的 <code>left</code>。');
+    var inside=compare(l.right,r.left,'inside'),answer=outside&&inside;finish(leftId,rightId,answer,inside?'外侧与内侧都通过':'内侧失败');frame.state='return';
+    snap('return',leftId,rightId,'外侧 True ∧ 内侧 '+inside+' → '+answer,'return outside and inside','合并当前层结果：<code>True and '+inside+'</code>，向上一层返回 <span class="'+(answer?'ok':'bad')+'">'+answer+'</span>。',answer);stack.pop();return answer;
+  }
+  var answer=rootId<0?compare(-1,-1,'root'):compare(nodes[rootId].left,nodes[rootId].right,'root');
+  snap('done',null,null,'判断完成：'+answer,'return compare(root.left, root.right)','所有必要子问题已经返回；原树未被修改，最终答案为 <span class="'+(answer?'ok':'bad')+'">'+answer+'</span>。',answer);return steps;
+}
+function expected(nodes,rootId){function cmp(a,b){if(a<0&&b<0)return true;if(a<0||b<0)return false;if(nodes[a].value!==nodes[b].value)return false;return cmp(nodes[a].left,nodes[b].right)&&cmp(nodes[a].right,nodes[b].left);}return rootId<0?true:cmp(nodes[rootId].left,nodes[rootId].right);}
+function validateSnapshots(nodes,steps,answer){
+  var errors=[],seen={},previousReturns=0;for(var i=0;i<steps.length;i++){var s=steps[i];seen[s.phase]=true;if(!Array.isArray(s.stack)||!Array.isArray(s.returns)||!Array.isArray(s.successful)||!Array.isArray(s.failed)){errors.push('第 '+(i+1)+' 帧快照不完整');continue;}if(s.returns.length<previousReturns)errors.push('第 '+(i+1)+' 帧回溯记录倒退');previousReturns=s.returns.length;if(i){var p=steps[i-1];if(p.stack===s.stack||p.returns===s.returns||p.successful===s.successful||p.failed===s.failed)errors.push('相邻帧共享顶层可变引用');if(p.stack.length&&s.stack.length&&p.stack[0]===s.stack[0])errors.push('stack 帧对象未深拷贝');if(p.returns.length&&s.returns.length&&p.returns[0]===s.returns[0])errors.push('return 对象未深拷贝');}}
+  ['call','done'].forEach(function(x){if(!seen[x])errors.push('缺少阶段 '+x);});var last=steps[steps.length-1];if(!last||last.phase!=='done'||last.result!==answer)errors.push('结束帧或答案错误');if(last&&last.stack.length)errors.push('结束时调用栈必须为空');return{ok:errors.length===0,errors:errors,phases:Object.keys(seen)};
+}
+function run(input){var p=parseInput(input);if(p.error)return p;var before=JSON.stringify(p.nodes),answer=expected(p.nodes,p.rootId),steps=buildSteps(p.nodes,p.rootId),unchanged=before===JSON.stringify(p.nodes),validation=validateSnapshots(p.nodes,steps,answer);if(!unchanged)validation.errors.push('算法修改了原树');validation.ok=validation.errors.length===0;return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,nodes:cloneNodes(p.nodes),rootId:p.rootId,steps:steps,answer:answer,treeUnchanged:unchanged,validation:validation};}
+root.SymmetricTree101={tokenize:tokenize,buildTree:buildTree,cloneNodes:cloneNodes,parseInput:parseInput,layout:layout,buildSteps:buildSteps,expected:expected,validateSnapshots:validateSnapshots,run:run,limits:{minValue:MIN,maxValue:MAX,maxTokens:LIMIT}};
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+
+<script>
+(function(){
+'use strict';
+var App=window.SymmetricTree101,$=function(id){return document.getElementById(id);},input=$('treeInput'),svg=$('treeSvg'),prev=$('prevBtn'),nextBtn=$('nextBtn'),play=$('playBtn');var result,steps=[],index=0,timer=null,pos={},nodeEls={},edgeEls={},NS='http://www.w3.org/2000/svg';
+function el(name,attrs){var x=document.createElementNS(NS,name);Object.keys(attrs||{}).forEach(function(k){x.setAttribute(k,attrs[k]);});return x;}function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ 自动播放';}}function setOf(a){var o={};a.forEach(function(x){o[x]=true;});return o;}function label(id){return id===null?'—':id<0?'null':result.nodes[id].value+' / id'+id;}
+function phaseKey(p){if(p==='call')return'call';if(p==='both-null'||p==='one-null'||p==='structure-pass')return'structure';if(p==='value-pass'||p==='value-fail')return'value';if(p==='outside')return'outside';if(p==='inside')return'inside';if(p==='short-circuit')return'short';return'return';}
+function graphic(){svg.innerHTML='';nodeEls={};edgeEls={};if(!result.nodes.length){svg.style.display='none';$('emptyTree').style.display='flex';return{heightLevels:0};}$('emptyTree').style.display='none';svg.style.display='block';var size=App.layout(result.nodes,{xGap:82,yGap:92,padX:58,padY:46});pos=size.positions;svg.setAttribute('width',size.width);svg.setAttribute('height',size.height);svg.setAttribute('viewBox','0 0 '+size.width+' '+size.height);var rootX=pos[0].x,axis=el('line',{class:'mirror-axis',x1:rootX,y1:18,x2:rootX,y2:size.height-20});svg.appendChild(axis);var at=el('text',{class:'axis-label',x:rootX+7,y:20});at.textContent='镜像轴';svg.appendChild(at);result.nodes.forEach(function(n){if(n.parent<0)return;var a=pos[n.parent],b=pos[n.id],line=el('line',{class:'edge',x1:a.x,y1:a.y,x2:b.x,y2:b.y});svg.appendChild(line);edgeEls[n.id]=line;});result.nodes.forEach(function(n){var p=pos[n.id],g=el('g',{class:'node'});g.appendChild(el('circle',{cx:p.x,cy:p.y,r:21}));var v=el('text',{class:'value',x:p.x,y:p.y+5,'text-anchor':'middle'});v.textContent=n.value;g.appendChild(v);var t=el('text',{class:'node-id',x:p.x,y:p.y+35,'text-anchor':'middle'});t.textContent='id '+n.id;g.appendChild(t);svg.appendChild(g);nodeEls[n.id]=g;});return size;}
+function tree(s){var done=setOf(s.successful),fail=setOf(s.failed),pair={};if(s.leftId!==null&&s.leftId>=0)pair[s.leftId]='left';if(s.rightId!==null&&s.rightId>=0)pair[s.rightId]=pair[s.rightId]?'both':'right';result.nodes.forEach(function(n){var c='node';if(done[n.id])c+=' done';if(fail[n.id])c+=' failed';if(pair[n.id]==='left'||pair[n.id]==='both')c+=' pair-left';if(pair[n.id]==='right'||pair[n.id]==='both')c+=' pair-right';if((s.phase==='one-null'||s.phase==='value-fail')&&pair[n.id])c+=' failed';nodeEls[n.id].setAttribute('class',c);if(edgeEls[n.id]){var ec='edge';if(done[n.id])ec+=' done';if(pair[n.id])ec+=' pair';edgeEls[n.id].setAttribute('class',ec);}});var nulls=s.leftId!==null&&(s.leftId<0||s.rightId<0);$('nullPair').className='null-pair'+(nulls?' show':'');if(nulls)$('nullPair').textContent='当前节点对：'+label(s.leftId)+' ↔ '+label(s.rightId);}
+function stack(s){var box=$('stack');box.innerHTML='';if(!s.stack.length){box.innerHTML='<div class="empty">调用栈为空</div>';return;}s.stack.forEach(function(f,i){var row=document.createElement('div');row.className='frame'+(i===s.stack.length-1?' top':'');row.innerHTML='<span class="badge">'+(i+1)+'</span><span>compare('+label(f.leftId)+', '+label(f.rightId)+') · '+f.state+'</span>';box.appendChild(row);});}
+function returns(s){var box=$('results');box.innerHTML='';if(!s.returns.length){box.innerHTML='<span class="empty">尚无子问题返回</span>';return;}s.returns.slice(-8).forEach(function(x){var e=document.createElement('span');e.className='result-item'+(x.result?'':' false');e.textContent=label(x.leftId)+' ↔ '+label(x.rightId)+' = '+x.result;box.appendChild(e);});}
+function render(){var s=steps[index];if(result.nodes.length)tree(s);stack(s);returns(s);Array.prototype.forEach.call($('phaseStrip').children,function(x){x.className='phase'+(x.dataset.phase===phaseKey(s.phase)?' active':'');});$('leftPair').textContent=label(s.leftId);$('rightPair').textContent=label(s.rightId);$('action').innerHTML='<span class="kind">'+s.phase.toUpperCase()+'</span><b>'+s.action+'</b>';$('currentLine').textContent=s.codeLine;$('status').innerHTML=s.message;$('progress').textContent='帧 '+(index+1)+' / '+steps.length;prev.disabled=index===0;nextBtn.disabled=index===steps.length-1;}
+function load(){stop();var r=App.run(input.value);if(r.error){$('err').textContent='输入有误：'+r.error+'。';$('err').classList.add('show');return;}$('err').classList.remove('show');result=r;steps=r.steps;index=0;var size=graphic();$('stats').innerHTML='<div class="stat">token / 节点<b>'+r.tokenCount+' / 31 · '+r.nodes.length+'</b></div><div class="stat">树高 h<b>'+size.heightLevels+'</b></div><div class="stat answer">最终答案<b class="'+r.answer+'">'+r.answer+'</b></div><div class="stat">原树未修改<b>'+(r.treeUnchanged?'是 ✓':'否 ✗')+'</b></div><div class="stat">时间 / 栈<b>O(n) / O(h)</b></div><div class="stat">快照校验<b>'+(r.validation.ok?'通过 ✓':'失败 ✗')+'</b></div>';render();}
+function forward(){if(index<steps.length-1){index++;render();}}function backward(){if(index>0){index--;render();}}prev.onclick=function(){stop();backward();};nextBtn.onclick=function(){stop();forward();};play.onclick=function(){if(timer){stop();return;}if(index===steps.length-1){index=0;render();}play.textContent='⏸ 暂停';timer=setInterval(function(){if(index===steps.length-1)stop();else forward();},850);};$('resetBtn').onclick=function(){stop();index=0;render();};$('loadBtn').onclick=load;input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();load();}});Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){c.onclick=function(){input.value=c.dataset.spec;Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(x){x.classList.remove('active');});c.classList.add('active');load();};});document.addEventListener('keydown',function(e){if(document.activeElement===input)return;if(e.key==='ArrowRight'){stop();forward();}if(e.key==='ArrowLeft'){stop();backward();}});
+var codes={py:`<span class="cmt"># 直接比较镜像位置；不翻转、不修改原树</span>
+class Solution:
+    def isSymmetric(self, root: Optional[TreeNode]) -&gt; bool:
+        def compare(left, right):
+            if left is None and right is None:
+                return True
+            if left is None or right is None:
+                return False
+            if left.val != right.val:
+                return False
+            return (
+                compare(left.left, right.right)
+                and compare(left.right, right.left)
+            )
+
+        if root is None:
+            return True
+        return compare(root.left, root.right)`,java:`<span class="cmt">// 外侧优先；失败后由 && 短路内侧</span>
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        if (root == null) return true;
+        return compare(root.left, root.right);
+    }
+
+    private boolean compare(TreeNode left, TreeNode right) {
+        if (left == null &amp;&amp; right == null) return true;
+        if (left == null || right == null) return false;
+        if (left.val != right.val) return false;
+        return compare(left.left, right.right)
+            &amp;&amp; compare(left.right, right.left);
+    }
+}`};Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){t.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('active');});t.classList.add('active');$('codeBlock').innerHTML=codes[t.dataset.lang];};});$('codeBlock').innerHTML=codes.py;$('treeBox').setAttribute('tabindex','0');load();
+})();
+</script>
+</body>
+</html>

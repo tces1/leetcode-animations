@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 114 二叉树展开为链表逐帧动画：O(1) 额外空间原地迭代，寻找左子树最右节点并重接指针。">
+<meta name="tags" content="二叉树 · 原地修改 · 迭代 · 前序遍历 · 指针重连 · O(1) 空间">
+<title>114. 二叉树展开为链表 — 动画演示</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;padding:24px;background:#f6f7f9;color:#1d2129;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}.wrap{max-width:1280px;margin:auto}.navbar,.controls,.examples,.stats,.legend{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.navbar{margin-bottom:16px}.difftag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;background:#fef3c7;color:#92400e}.link{font-size:12px;color:#6b7280}.link a{color:#6366f1;text-decoration:none}h1{font-size:20px;margin:0 0 4px}.sub{color:#6b7280;font-size:13px;margin-bottom:18px}code{background:#eef0f4;padding:1px 5px;border-radius:5px;font:12px "SF Mono",Menlo,monospace}.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px #00000008}.panel-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:10px}.idea,.complexity{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.idea>div,.complexity>div{border:1px solid #e5e7eb;border-radius:10px;padding:11px 12px;font-size:13px;color:#4b5563;background:#f8fafc}.no{font-size:11px;font-weight:800;color:#6366f1}.note{margin-top:12px;padding:11px 14px;border:1px solid #fed7aa;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:13px}.input-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}.field{display:flex;flex-direction:column;gap:5px}.lab{font-size:12px;color:#6b7280;font-weight:700}input{width:100%;padding:9px 11px;font:13px "SF Mono",Menlo,monospace;border:1px solid #d1d5db;border-radius:8px;outline:0}input:focus{border-color:#6366f1;box-shadow:0 0 0 3px #6366f126}button{padding:9px 16px;font-size:14px;font-weight:600;border:0;border-radius:8px;cursor:pointer;background:#6366f1;color:#fff}button:hover{background:#4f46e5}button.ghost{background:#eef0f4;color:#374151}button:disabled{opacity:.45;cursor:not-allowed}.examples{margin-top:10px;gap:8px}.chip{font:12px "SF Mono",Menlo,monospace;padding:5px 10px;background:#f1f2f4;border:1px solid #e5e7eb;border-radius:99px;cursor:pointer}.chip:hover,.chip.active{background:#e0e7ff;border-color:#a5b4fc;color:#3730a3}.hint{font-size:12px;color:#9ca3af;margin-top:8px;line-height:1.65}.err{display:none;color:#dc2626;font-size:13px;margin-top:10px}.err.show{display:block}.stats{margin-bottom:14px}.stat{background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:8px 12px;font-size:12px;color:#6b7280}.stat b{display:block;font:800 13px "SF Mono",Menlo,monospace;color:#1d2129;max-width:350px;overflow-wrap:anywhere}.progress{margin-left:auto;font-size:12px;color:#9ca3af}.phases{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}.phase{border:1px solid #e5e7eb;border-radius:9px;padding:8px 4px;text-align:center;background:#f8fafc;color:#64748b;font-size:9px}.phase b{display:block;color:#334155;font-size:10px}.phase.active{background:#eef2ff;border-color:#818cf8;box-shadow:0 0 0 3px #6366f11c}.preorder{display:flex;align-items:center;gap:5px;overflow:auto;padding:11px 12px;margin-bottom:14px;border:1px solid #e0e7ff;border-radius:10px;background:#f8faff}.order-node{flex:0 0 auto;min-width:55px;padding:6px 8px;border:1px solid #dbe2ea;border-radius:8px;background:#fff;text-align:center;font:800 11px "SF Mono",Menlo,monospace;color:#64748b}.order-node.done{background:#dcfce7;border-color:#22c55e;color:#166534}.order-node.curr{background:#fef3c7;border-color:#f59e0b;color:#92400e;box-shadow:0 0 0 3px #f59e0b22}.arrow{color:#94a3b8}.visual{display:grid;grid-template-columns:minmax(235px,.55fr) minmax(0,1.45fr) minmax(320px,.72fr);gap:14px}.tree-box,.original-box,.side{border:1px solid #eef0f4;border-radius:12px;background:linear-gradient(#fafbff,#fff);min-height:440px}.tree-box,.original-box{padding:12px;overflow:auto}.original-box{background:#f8fafc}.tree-box svg,.original-box svg{display:block;margin:auto;overflow:visible}.empty{min-height:350px;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-direction:column}.edge{stroke:#cbd5e1;stroke-width:2.5;transition:.15s}.edge.left{stroke:#60a5fa}.edge.right{stroke:#a78bfa}.edge.active{stroke:#f97316;stroke-width:5}.edge.saved{stroke:#0ea5e9;stroke-width:5;stroke-dasharray:7 4}.edge.done{stroke:#22c55e}.edge-label{fill:#94a3b8;font:800 10px sans-serif}.node circle{fill:#fff;stroke:#cbd5e1;stroke-width:2.5}.node text.value{fill:#334155;font:800 14px "SF Mono",Menlo,monospace}.node.curr circle{fill:#fef3c7;stroke:#f59e0b;stroke-width:5}.node.pred circle{fill:#e0f2fe;stroke:#0ea5e9;stroke-width:5}.node.saved circle{fill:#f3e8ff;stroke:#a855f7;stroke-width:4}.node.done circle{fill:#dcfce7;stroke:#22c55e}.node text.id{fill:#94a3b8;font:600 9px "SF Mono",Menlo,monospace}.side{padding:14px;display:flex;flex-direction:column;gap:12px}.action{border:1px solid #ddd6fe;background:#f5f3ff;border-radius:10px;padding:10px 12px;color:#5b21b6;min-height:70px}.action span{font-size:10px;font-weight:800}.action b{display:block;color:#3730a3;font-size:13px}.pointers{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.pointer{border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;padding:7px;text-align:center;color:#64748b;font-size:10px}.pointer b{display:block;color:#334155;font:800 12px "SF Mono",Menlo,monospace}.pointer.curr b{color:#b45309}.pointer.pred b{color:#0369a1}.pointer.saved b{color:#7e22ce}.topology{border:1px dashed #cbd5e1;border-radius:8px;padding:8px;background:#f8fafc;font:11px "SF Mono",Menlo,monospace;min-height:61px}.line{background:#0f172a;color:#fcd34d;border-radius:8px;padding:9px 11px;font:11px "SF Mono",Menlo,monospace;overflow-wrap:anywhere}.legend{margin-top:13px;color:#6b7280;font-size:12px}.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1px solid #0001}.status{background:#111827;color:#e5e7eb;border-radius:10px;padding:14px 16px;min-height:50px;font-size:14px}.status b{color:#fcd34d}.status .op{color:#86efac}.status-title{margin-top:16px}.complexity{grid-template-columns:repeat(3,1fr)}.complexity b{display:block;color:#1d2129}details summary{cursor:pointer;font-weight:600;color:#4f46e5}.tabs{display:flex;gap:8px;margin:12px 0 10px}.tab{font-size:13px;padding:5px 12px;border-radius:99px;cursor:pointer;background:#f1f2f4;border:1px solid #e5e7eb}.tab.active{background:#6366f1;color:#fff}pre{margin:0;padding:14px;border-radius:10px;background:#0f172a;color:#e2e8f0;overflow:auto;font-size:13px;line-height:1.55}pre .cmt{color:#7dd3fc}@media(max-width:1020px){body{padding:16px 12px}.idea,.complexity,.visual,.input-grid{grid-template-columns:1fr}.phases{grid-template-columns:repeat(3,1fr)}.original-box{min-height:280px}.progress{width:100%;margin-left:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar"><span class="difftag">中等</span><span class="link">原题：<a href="https://leetcode.cn/problems/flatten-binary-tree-to-linked-list/" target="_blank" rel="noopener">LeetCode 114</a></span><span class="link">· <a href="../index.html">返回动画列表</a></span></div>
+  <h1>114. 二叉树展开为链表 · O(1) 原地迭代</h1>
+  <div class="sub"><code>curr</code> 沿 <code>right</code> 前进。若有左子树，就找到其最右节点 <code>predecessor</code>，把原右子树接到它后面，再把整棵左子树搬到右边并清空 <code>left</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">每次只重连引用，不交换节点值</div>
+    <div class="idea">
+      <div><div class="no">① FIND</div>从 <code>curr.left</code> 出发，沿 <code>right</code> 找到最右节点。</div>
+      <div><div class="no">② SAVE</div>记住 <code>curr.right</code>；动画单独显示这条原右子树入口。</div>
+      <div><div class="no">③ ATTACH</div><code>predecessor.right = curr.right</code>，把原右子树接到左子树尾部。</div>
+      <div><div class="no">④ MOVE / CLEAR</div><code>curr.right = curr.left</code>，随后 <code>curr.left = None</code>。</div>
+      <div><div class="no">⑤ ADVANCE</div><code>curr = curr.right</code>，继续处理前序中的下一个节点。</div>
+    </div>
+    <div class="note"><b>身份不变：</b>所有节点 id 与 value 始终不变，只改写 <code>left/right</code>。最终所有 <code>left</code> 都为 <code>None</code>，从根沿 <code>right</code> 的顺序恰好是原树前序遍历。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid"><label class="field"><span class="lab">二叉树（LeetCode 层序格式，0～31 个 token，最多 15 个实际节点）</span><input id="treeInput" value="[1,2,5,3,4,null,6]" spellcheck="false" autocomplete="off"></label><button id="loadBtn">演示</button></div>
+    <div class="examples"><span class="lab">示例：</span><span class="chip" data-v="[1,2,5,3,4,null,6]">经典</span><span class="chip" data-v="[1,2,3,null,4,5,null]">不完整树</span><span class="chip" data-v="[1,2,null,3,null,4]">只有左边</span><span class="chip" data-v="[1,null,2,null,3]">只有右边</span><span class="chip" data-v="[7]">单节点</span><span class="chip" data-v="[]">空树</span></div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">接受空白或逗号分隔，可带一对方括号；小写 <code>null</code> 或 <code>#</code> 表示空位。空输入、<code>[]</code>、单独 <code>null</code> 表示空树。严格拒绝空 token、混合分隔、非法整数、未配对括号、根为空后仍有 token 和孤儿 token；允许重复节点值。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px"><button id="prevBtn" class="ghost">◀ 上一步</button><button id="nextBtn">下一步 ▶</button><button id="playBtn" class="ghost">▶ 自动播放</button><button id="resetBtn" class="ghost">↺ 重置</button><span class="progress" id="progress"></span></div>
+    <div class="phases" id="phases"><div class="phase" data-phase="inspect"><span>INSPECT</span><b>检查 curr.left</b></div><div class="phase" data-phase="find"><span>FIND</span><b>寻找最右节点</b></div><div class="phase" data-phase="save"><span>SAVE</span><b>保存原右子树</b></div><div class="phase" data-phase="attach"><span>ATTACH</span><b>尾部接右子树</b></div><div class="phase" data-phase="move"><span>MOVE / CLEAR</span><b>左树搬右并清空</b></div><div class="phase" data-phase="advance"><span>ADVANCE</span><b>curr 前进</b></div><div class="phase" data-phase="done"><span>VERIFY</span><b>验证链表</b></div></div>
+    <div class="preorder" id="preorderStrip"></div>
+    <div class="visual">
+      <div class="original-box"><div class="panel-title" style="text-align:center">原始树（身份与前序基准）</div><svg id="originalSvg" aria-label="展开前的原始二叉树"></svg><div class="empty" id="originalEmpty"><b>root = null</b><span>原树为空</span></div></div>
+      <div class="tree-box"><div class="panel-title" style="text-align:center">当前真实拓扑（边与布局逐帧更新）</div><svg id="treeSvg" aria-label="二叉树原地展开为右链的动画"></svg><div class="empty" id="emptyTree"><b>root = null</b><span>空树展开后仍为空</span></div></div>
+      <div class="side">
+        <div><div class="panel-title">当前动作</div><div class="action" id="action"></div></div>
+        <div class="pointers"><div class="pointer curr">curr<b id="currValue"></b></div><div class="pointer pred">predecessor<b id="predValue"></b></div><div class="pointer saved">原 right<b id="savedValue"></b></div></div>
+        <div><div class="panel-title">当前从根沿 right 的前缀</div><div class="topology" id="topology"></div></div>
+        <div class="line" id="currentLine"></div>
+      </div>
+    </div>
+    <div class="legend"><span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>curr</span><span><span class="dot" style="background:#e0f2fe;border-color:#0ea5e9"></span>predecessor</span><span><span class="dot" style="background:#f3e8ff;border-color:#a855f7"></span>保存的原右子树根</span><span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>curr 已越过</span><span><span class="dot" style="background:#dbeafe;border-color:#60a5fa"></span>left 边</span><span><span class="dot" style="background:#ede9fe;border-color:#a78bfa"></span>right 边</span></div>
+    <div class="panel-title status-title">状态栏</div><div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card"><div class="panel-title">复杂度与正确性</div><div class="complexity"><div><b>时间 O(n)</b>外层沿最终 right 链访问每个节点；寻找最右节点时，每条相关 right 边总共只被常数次经过，总工作仍是 O(n)。</div><div><b>额外空间 O(1)</b>算法只使用 <code>curr</code>、<code>predecessor</code> 等有限引用；页面为回放保存的快照不属于算法空间。</div><div><b>原地前序链</b>不创建替代节点、不交换值；最终节点身份集合不变、无环、全 left 为空，right 链等于原树前序。</div></div></div>
+  <div class="card"><details open><summary>查看 Python / Java 参考代码（与主动画一致）</summary><div class="tabs"><span class="tab active" data-lang="py">Python</span><span class="tab" data-lang="java">Java</span></div><pre id="codeBlock"></pre></details></div>
+</div>
+
+<script data-flatten-tree-logic>
+(function(root){
+'use strict';
+var MIN=-1000000,MAX=1000000,MAX_TOKENS=31,MAX_NODES=15;
+function tokenize(input){
+  if(typeof input!=='string')return{error:'输入必须是字符串'};
+  var text=input.trim();if(!text)return{tokens:[],tokenCount:0,error:null};
+  if(text[0]==='['||text[text.length-1]===']'){if(text[0]!=='['||text[text.length-1]!==']')return{error:'方括号必须成对并包住整个输入'};text=text.slice(1,-1).trim();}
+  if(text.indexOf('[')>=0||text.indexOf(']')>=0)return{error:'方括号只能出现在最外层'};
+  if(!text)return{tokens:[],tokenCount:0,error:null};
+  var raw;
+  if(text.indexOf(',')>=0){raw=text.split(',');for(var i=0;i<raw.length;i++){raw[i]=raw[i].trim();if(!raw[i])return{error:'逗号之间、开头或结尾不能出现空 token'};if(/\s/.test(raw[i]))return{error:'不能混用逗号与空白分隔'};}}else raw=text.split(/\s+/);
+  if(raw.length>MAX_TOKENS)return{error:'最多允许 '+MAX_TOKENS+' 个 token'};
+  var tokens=[],count=0;
+  for(var j=0;j<raw.length;j++){var w=raw[j];if(w==='null'||w==='#')tokens.push(null);else{if(!/^-?\d+$/.test(w))return{error:'第 '+(j+1)+' 个 token「'+w+'」不是小写 null、# 或整数'};var v=Number(w);if(!Number.isSafeInteger(v)||v<MIN||v>MAX)return{error:'第 '+(j+1)+' 个节点值须在 -1,000,000～1,000,000'};tokens.push(v);count++;}}
+  if(tokens[0]===null&&tokens.length>1)return{error:'根为空时不能再提供其它 token'};
+  if(count>MAX_NODES)return{error:'动画最多允许 '+MAX_NODES+' 个实际节点'};
+  return{tokens:tokens,tokenCount:raw.length,error:null};
+}
+function buildTree(tokens){
+  if(!Array.isArray(tokens))return{error:'tokens 必须是数组'};
+  if(!tokens.length||tokens[0]===null)return{nodes:[],rootId:-1,error:null};
+  var nodes=[{id:0,value:tokens[0],left:-1,right:-1,parent:-1,side:'root',tokenIndex:0}],q=[0],qi=0,t=1;
+  while(t<tokens.length){
+    if(qi>=q.length)return{error:'第 '+(t+1)+' 个 token 没有可用父节点，属于孤儿 token'};
+    var pid=q[qi++],p=nodes[pid],v=tokens[t++];
+    if(v!==null){var l=nodes.length;nodes.push({id:l,value:v,left:-1,right:-1,parent:pid,side:'left',tokenIndex:t-1});p.left=l;q.push(l);}
+    if(t>=tokens.length)break;v=tokens[t++];
+    if(v!==null){var r=nodes.length;nodes.push({id:r,value:v,left:-1,right:-1,parent:pid,side:'right',tokenIndex:t-1});p.right=r;q.push(r);}
+  }
+  return{nodes:nodes,rootId:0,error:null};
+}
+function cloneNodes(nodes){return nodes.map(function(n){return{id:n.id,value:n.value,left:n.left,right:n.right,parent:n.parent,side:n.side,tokenIndex:n.tokenIndex};});}
+function parseInput(input){var p=tokenize(input);if(p.error)return p;var b=buildTree(p.tokens);if(b.error)return b;return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,nodes:cloneNodes(b.nodes),rootId:b.rootId};}
+function preorderIds(nodes,rootId){var out=[],path={};function walk(id){if(id<0)return;if(path[id])throw new Error('拓扑存在环');path[id]=true;out.push(id);walk(nodes[id].left);walk(nodes[id].right);delete path[id];}walk(rootId);return out;}
+function rightChain(nodes,rootId){var out=[],seen={};for(var id=rootId;id>=0;id=nodes[id].right){if(seen[id])return{ids:out,cycle:true};seen[id]=true;out.push(id);}return{ids:out,cycle:false};}
+function buildSteps(source,rootId){
+  var nodes=cloneNodes(source),steps=[],processed=[],curr=rootId,pre=-1,saved=-1;
+  function snap(phase,action,line,message,activeFrom,activeTo){steps.push({phase:phase,curr:curr,predecessor:pre,savedRight:saved,activeFrom:activeFrom===undefined?-1:activeFrom,activeTo:activeTo===undefined?-1:activeTo,action:action,codeLine:line,message:message,processed:processed.slice(),topology:cloneNodes(nodes)});}
+  snap('start','初始化 curr = root','curr = root','<code>curr</code> 指向根；之后始终沿当前 <code>right</code> 链前进。');
+  while(curr>=0){
+    pre=-1;saved=-1;snap('inspect','检查 curr.left','if curr.left:','检查节点 <b>'+nodes[curr].value+'</b>（id '+curr+'）的 left：'+(nodes[curr].left>=0?'存在左子树，需要重连。':'为空，无需搬树。'));
+    if(nodes[curr].left>=0){
+      pre=nodes[curr].left;snap('find-start','从 curr.left 开始找 predecessor','predecessor = curr.left','令 <code>predecessor</code> 从左子树根 <b>'+nodes[pre].value+'</b>（id '+pre+'）出发。',curr,pre);
+      while(nodes[pre].right>=0){
+        var next=nodes[pre].right;snap('find-step','沿 predecessor.right 向右','while predecessor.right:','id '+pre+' 仍有 right，沿这条边继续寻找左子树最右节点。',pre,next);pre=next;
+        snap('find-step','predecessor 前进到 id '+pre,'predecessor = predecessor.right','<code>predecessor</code> 现在是 <b>'+nodes[pre].value+'</b>（id '+pre+'）。');
+      }
+      snap('found','找到左子树最右节点','predecessor.right is None','id '+pre+' 的 right 为 null，因此它是左子树最右节点。');
+      saved=nodes[curr].right;snap('save','保存 curr 原右子树入口','saved_right = curr.right','保存原右子树：<code>curr.right = '+label(nodes,saved)+'</code>。后续改写 curr.right 时不会丢失它。',curr,saved);
+      nodes[pre].right=saved;snap('attach','原右子树接到 predecessor.right','predecessor.right = curr.right','重连 <code>id '+pre+'.right → '+label(nodes,saved)+'</code>；左子树尾部现在续上原右子树。',pre,saved);
+      var left=nodes[curr].left;nodes[curr].right=left;snap('move','把整棵左子树搬到 curr.right','curr.right = curr.left','改写 <code>id '+curr+'.right → id '+left+'</code>，前序中的左子树被放到右侧。',curr,left);
+      nodes[curr].left=-1;snap('clear','将 curr.left 置为 None','curr.left = None','清空 <code>id '+curr+'.left</code>。节点值和 id 均未改变，只改了引用。',curr,left);
+    }else snap('no-left','left 已为空，无需重连','else: pass','当前节点没有左子树；它已经满足链表节点的 <code>left = None</code> 要求。');
+    var old=curr;processed.push(old);curr=nodes[old].right;pre=-1;saved=-1;snap('advance','curr 沿 right 前进','curr = curr.right','标记 id '+old+' 已越过；<code>curr</code> 前进到 <b>'+label(nodes,curr)+'</b>。',old,curr);
+  }
+  snap('done','验证最终前序右链','all left is None','循环结束：<code>curr = null</code>。最终所有 left 为空，right 链无环且严格等于原树前序。');
+  return steps;
+}
+function label(nodes,id){return id<0?'null':nodes[id].value+'（id '+id+'）';}
+function checkReachable(nodes,rootId){
+  var reached={},errors=[];function walk(id,path){if(id<0)return;if(!nodes[id]){errors.push('引用无效 id '+id);return;}if(path[id]){errors.push('检测到环 id '+id);return;}reached[id]=true;var next=Object.assign({},path);next[id]=true;walk(nodes[id].left,next);walk(nodes[id].right,next);}walk(rootId,{});
+  if(Object.keys(reached).length!==nodes.length)errors.push('存在从根不可达的节点');return errors;
+}
+function same(a,b){return a.length===b.length&&a.every(function(x,i){return x===b[i];});}
+function validateSnapshots(original,rootId,steps){
+  var errors=[],expected=preorderIds(original,rootId),seenPhase={};
+  steps.forEach(function(s,i){
+    seenPhase[s.phase]=true;if(!Array.isArray(s.topology)||!Array.isArray(s.processed))errors.push('第 '+(i+1)+' 帧快照不完整');
+    if(s.topology.length!==original.length)errors.push('第 '+(i+1)+' 帧节点数量改变');
+    s.topology.forEach(function(n,j){if(n.id!==original[j].id||n.value!==original[j].value)errors.push('第 '+(i+1)+' 帧改变了节点身份或值');});
+    checkReachable(s.topology,rootId).forEach(function(e){errors.push('第 '+(i+1)+' 帧：'+e);});
+    if(i){var p=steps[i-1];if(p.topology===s.topology||p.processed===s.processed)errors.push('相邻帧共享快照数组');if(p.topology.length&&p.topology[0]===s.topology[0])errors.push('拓扑节点未深拷贝');}
+  });
+  ['start','done'].forEach(function(p){if(!seenPhase[p])errors.push('缺少阶段 '+p);});
+  if(original.length)['inspect','advance'].forEach(function(p){if(!seenPhase[p])errors.push('缺少阶段 '+p);});
+  if(original.some(function(n){return n.left>=0;}))['find-start','found','save','attach','move','clear'].forEach(function(p){if(!seenPhase[p])errors.push('缺少阶段 '+p);});
+  var last=steps[steps.length-1];if(!last||last.phase!=='done'||last.curr!==-1)errors.push('结束帧错误');else{
+    last.topology.forEach(function(n){if(n.left!==-1)errors.push('最终 id '+n.id+' 的 left 未清空');});
+    var chain=rightChain(last.topology,rootId);if(chain.cycle)errors.push('最终 right 链存在环');if(!same(chain.ids,expected))errors.push('最终 right 链不等于原树前序');
+    if(new Set(chain.ids).size!==original.length||chain.ids.length!==original.length)errors.push('最终节点身份集合改变、重复或丢失');
+  }
+  return{ok:errors.length===0,errors:errors};
+}
+function layout(nodes,rootId,compact){
+  var pos={},col=0,maxDepth=0,xg=compact?58:76,yg=compact?70:82,px=compact?35:48,py=compact?38:44,path={};
+  function walk(id,d){if(id<0||path[id])return;path[id]=true;walk(nodes[id].left,d+1);if(!pos[id]){pos[id]={x:px+col*xg,y:py+d*yg};col++;maxDepth=Math.max(maxDepth,d);}walk(nodes[id].right,d+1);delete path[id];}
+  walk(rootId,0);return{positions:pos,width:Math.max(compact?220:330,px*2+Math.max(0,col-1)*xg),height:Math.max(compact?350:370,py*2+maxDepth*yg+38),heightLevels:nodes.length?maxDepth+1:0};
+}
+function run(input){
+  var p=parseInput(input);if(p.error)return p;var original=cloneNodes(p.nodes),order=preorderIds(original,p.rootId),steps=buildSteps(original,p.rootId),last=steps[steps.length-1],finalNodes=cloneNodes(last.topology),chain=rightChain(finalNodes,p.rootId),validation=validateSnapshots(original,p.rootId,steps);
+  return{error:null,tokens:p.tokens.slice(),tokenCount:p.tokenCount,rootId:p.rootId,nodes:original,preorderIds:order.slice(),preorderValues:order.map(function(id){return original[id].value;}),steps:steps,finalNodes:finalNodes,finalChainValues:chain.ids.map(function(id){return finalNodes[id].value;}),validation:validation};
+}
+root.FlattenBinaryTree114={tokenize:tokenize,buildTree:buildTree,parseInput:parseInput,cloneNodes:cloneNodes,preorderIds:preorderIds,rightChain:rightChain,buildSteps:buildSteps,checkReachable:checkReachable,validateSnapshots:validateSnapshots,layout:layout,run:run,limits:{minValue:MIN,maxValue:MAX,maxTokens:MAX_TOKENS,maxNodes:MAX_NODES}};
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+
+<script>
+(function(){
+'use strict';
+var App=window.FlattenBinaryTree114,$=function(id){return document.getElementById(id);},input=$('treeInput'),svg=$('treeSvg'),originalSvg=$('originalSvg'),prev=$('prevBtn'),nextBtn=$('nextBtn'),play=$('playBtn');
+var result,steps=[],index=0,timer=null,NS='http://www.w3.org/2000/svg';
+function el(name,attrs){var x=document.createElementNS(NS,name);Object.keys(attrs||{}).forEach(function(k){x.setAttribute(k,attrs[k]);});return x;}
+function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ 自动播放';}}
+function phase(p){if(p==='start'||p==='no-left')return'inspect';if(p==='find-start'||p==='find-step'||p==='found')return'find';if(p==='clear')return'move';return p;}
+function parentEdges(nodes){var out=[];nodes.forEach(function(n){if(n.left>=0)out.push({from:n.id,to:n.left,side:'left'});if(n.right>=0)out.push({from:n.id,to:n.right,side:'right'});});return out;}
+function draw(target,nodes,step,compact){
+  target.innerHTML='';if(!nodes.length){target.style.display='none';return{heightLevels:0};}target.style.display='block';var size=App.layout(nodes,result.rootId,compact),pos=size.positions,done={};if(step)step.processed.forEach(function(id){done[id]=true;});target.setAttribute('width',size.width);target.setAttribute('height',size.height);target.setAttribute('viewBox','0 0 '+size.width+' '+size.height);
+  parentEdges(nodes).forEach(function(e){var a=pos[e.from],b=pos[e.to];if(!a||!b)return;var c='edge '+e.side+(done[e.from]?' done':'');if(step&&step.activeFrom===e.from&&step.activeTo===e.to)c+=' active';if(step&&step.phase==='save'&&step.curr===e.from&&step.savedRight===e.to)c+=' saved';target.appendChild(el('line',{class:c,x1:a.x,y1:a.y,x2:b.x,y2:b.y}));var t=el('text',{class:'edge-label',x:(a.x+b.x)/2+(e.side==='left'?-9:9),y:(a.y+b.y)/2-3,'text-anchor':'middle'});t.textContent=e.side==='left'?'L':'R';target.appendChild(t);});
+  nodes.forEach(function(n){var p=pos[n.id];if(!p)return;var c='node'+(done[n.id]?' done':'');if(step&&step.curr===n.id)c+=' curr';if(step&&step.predecessor===n.id)c+=' pred';if(step&&step.savedRight===n.id)c+=' saved';var g=el('g',{class:c});g.appendChild(el('circle',{cx:p.x,cy:p.y,r:compact?17:20}));var v=el('text',{class:'value',x:p.x,y:p.y+5,'text-anchor':'middle'});v.textContent=n.value;g.appendChild(v);var q=el('text',{class:'id',x:p.x,y:p.y+(compact?29:34),'text-anchor':'middle'});q.textContent='id '+n.id;g.appendChild(q);target.appendChild(g);});
+  return size;
+}
+function ptr(id){return id<0?'null':'id'+id+' / '+result.nodes[id].value;}
+function rightText(nodes){var c=App.rightChain(nodes,result.rootId),a=c.ids.map(function(id){return'id'+id+'/'+nodes[id].value;});return(a.length?a.join(' → '):'[]')+(c.cycle?' → 环！':' → null');}
+function strip(s){var box=$('preorderStrip');box.innerHTML='<span class="lab">原树前序：</span>';result.preorderIds.forEach(function(id,i){if(i){var a=document.createElement('span');a.className='arrow';a.textContent='→';box.appendChild(a);}var x=document.createElement('span');x.className='order-node'+(s.processed.indexOf(id)>=0?' done':'')+(s.curr===id?' curr':'');x.textContent=result.nodes[id].value+' · id'+id;box.appendChild(x);});if(!result.preorderIds.length)box.innerHTML+='<span class="hint">[] · 空树</span>';}
+function render(){
+  var s=steps[index];draw(svg,s.topology,s,false);strip(s);Array.prototype.forEach.call($('phases').children,function(x){x.className='phase'+(x.dataset.phase===phase(s.phase)?' active':'');});$('action').innerHTML='<span>'+s.phase.toUpperCase()+'</span><b>'+s.action+'</b>';$('currValue').textContent=ptr(s.curr);$('predValue').textContent=ptr(s.predecessor);$('savedValue').textContent=ptr(s.savedRight);$('topology').textContent=rightText(s.topology);$('currentLine').textContent=s.codeLine;$('status').innerHTML=s.message;$('progress').textContent='帧 '+(index+1)+' / '+steps.length;prev.disabled=index===0;nextBtn.disabled=index===steps.length-1;$('emptyTree').style.display=s.topology.length?'none':'flex';
+}
+function load(){
+  stop();var r=App.run(input.value);if(r.error){$('err').textContent='输入有误：'+r.error+'。';$('err').classList.add('show');return;}$('err').classList.remove('show');result=r;steps=r.steps;index=0;var size=draw(originalSvg,r.nodes,null,true);$('originalEmpty').style.display=r.nodes.length?'none':'flex';$('stats').innerHTML='<div class="stat">token / 实际节点<b>'+r.tokenCount+' / 31 · '+r.nodes.length+' / 15</b></div><div class="stat">原树前序 / 最终 right 链<b>['+r.preorderValues.join(', ')+'] / ['+r.finalChainValues.join(', ')+']</b></div><div class="stat">原树高度<b>'+size.heightLevels+'</b></div><div class="stat">时间 / 额外空间<b>O(n) / O(1)</b></div><div class="stat">身份 / 无环 / 全 left 空 / 前序<b>'+(r.validation.ok?'全部通过 ✓':'验证失败 ✗')+'</b></div><div class="stat">深拷贝拓扑快照<b>'+(r.validation.ok?'通过 ✓':'失败 ✗')+'</b></div>';render();
+}
+function forward(){if(index<steps.length-1){index++;render();}}function backward(){if(index>0){index--;render();}}
+prev.onclick=function(){stop();backward();};nextBtn.onclick=function(){stop();forward();};play.onclick=function(){if(timer){stop();return;}if(index===steps.length-1){index=0;render();}play.textContent='⏸ 暂停';timer=setInterval(function(){if(index===steps.length-1)stop();else forward();},800);};$('resetBtn').onclick=function(){stop();index=0;render();};$('loadBtn').onclick=load;input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();load();}});
+Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){c.onclick=function(){input.value=c.dataset.v;Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(x){x.classList.remove('active');});c.classList.add('active');load();};});document.addEventListener('keydown',function(e){if(document.activeElement===input)return;if(e.key==='ArrowRight'){stop();forward();}if(e.key==='ArrowLeft'){stop();backward();}});
+var codes={py:`<span class="cmt"># O(n) 时间 · O(1) 额外空间 · 原地修改节点引用</span>
+class Solution:
+    def flatten(self, root: Optional[TreeNode]) -&gt; None:
+        curr = root
+        while curr:
+            if curr.left:
+                predecessor = curr.left
+                while predecessor.right:
+                    predecessor = predecessor.right
+
+                predecessor.right = curr.right
+                curr.right = curr.left
+                curr.left = None
+
+            curr = curr.right`,java:`<span class="cmt">// O(n) 时间 · O(1) 额外空间 · 不交换节点值</span>
+class Solution {
+    public void flatten(TreeNode root) {
+        TreeNode curr = root;
+        while (curr != null) {
+            if (curr.left != null) {
+                TreeNode predecessor = curr.left;
+                while (predecessor.right != null) {
+                    predecessor = predecessor.right;
+                }
+                predecessor.right = curr.right;
+                curr.right = curr.left;
+                curr.left = null;
+            }
+            curr = curr.right;
+        }
+    }
+}`};Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){t.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('active');});t.classList.add('active');$('codeBlock').innerHTML=codes[t.dataset.lang];};});$('codeBlock').innerHTML=codes.py;load();
+})();
+</script>
+</body>
+</html>

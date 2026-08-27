@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 108 将有序数组转换为二叉搜索树逐帧动画：下标区间分治、取中点建根、递归左右区间，并验证平衡性与中序遍历。">
+<meta name="tags" content="二叉搜索树 · 分治 · 递归 · 下标区间 · 高度平衡 · O(n)">
+<title>108. 将有序数组转换为二叉搜索树 — 动画演示</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;padding:24px;background:#f6f7f9;color:#1d2129;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}.wrap{max-width:1240px;margin:auto}.navbar,.controls,.examples,.stats,.legend{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.navbar{margin-bottom:16px}.difftag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;background:#dcfce7;color:#166534}.link{font-size:12px;color:#6b7280}.link a{color:#6366f1;text-decoration:none}h1{font-size:20px;margin:0 0 4px}.sub{color:#6b7280;font-size:13px;margin-bottom:18px}code{background:#eef0f4;padding:1px 5px;border-radius:5px;font:12px "SF Mono",Menlo,monospace}.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px #00000008}.panel-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:10px}.idea,.complexity{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.idea>div,.complexity>div{border:1px solid #e5e7eb;border-radius:10px;padding:11px 13px;font-size:13px;color:#4b5563;background:#f8fafc}.no{font-size:11px;font-weight:800;color:#6366f1}.note{margin-top:12px;padding:11px 14px;border:1px solid #fed7aa;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:13px}.input-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}.field{display:flex;flex-direction:column;gap:5px}.lab{font-size:12px;color:#6b7280;font-weight:700}input{width:100%;padding:9px 11px;font:13px "SF Mono",Menlo,monospace;border:1px solid #d1d5db;border-radius:8px;outline:0}input:focus{border-color:#6366f1;box-shadow:0 0 0 3px #6366f126}button{padding:9px 16px;font-size:14px;font-weight:600;border:0;border-radius:8px;cursor:pointer;background:#6366f1;color:#fff}button:hover{background:#4f46e5}button.ghost{background:#eef0f4;color:#374151}button:disabled{opacity:.45;cursor:not-allowed}.examples{margin-top:10px;gap:8px}.chip{font:12px "SF Mono",Menlo,monospace;padding:5px 10px;background:#f1f2f4;border:1px solid #e5e7eb;border-radius:99px;cursor:pointer}.chip:hover,.chip.active{background:#e0e7ff;border-color:#a5b4fc;color:#3730a3}.hint{font-size:12px;color:#9ca3af;margin-top:8px}.err{display:none;color:#dc2626;font-size:13px;margin-top:10px}.err.show{display:block}.stats{margin-bottom:14px}.stat{background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:8px 12px;font-size:12px;color:#6b7280}.stat b{display:block;font:800 13px "SF Mono",Menlo,monospace;color:#1d2129;max-width:360px;overflow-wrap:anywhere}.progress{margin-left:auto;font-size:12px;color:#9ca3af}.phases{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}.phase{border:1px solid #e5e7eb;border-radius:9px;padding:8px 4px;text-align:center;background:#f8fafc;color:#64748b;font-size:9px}.phase b{display:block;color:#334155;font-size:10px}.phase.active{background:#eef2ff;border-color:#818cf8;box-shadow:0 0 0 3px #6366f11c}.array-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,.4fr);gap:12px;margin-bottom:14px}.array-box,.formula{border:1px solid #e5e7eb;border-radius:11px;background:#fafbff;padding:12px}.cells{display:flex;gap:6px;overflow:auto;padding:8px 2px 17px}.cell{position:relative;flex:0 0 46px;height:39px;display:flex;align-items:center;justify-content:center;border:1px solid #d1d5db;border-radius:7px;background:#fff;font:800 12px "SF Mono",Menlo,monospace}.cell .idx{position:absolute;top:41px;color:#94a3b8;font:9px "SF Mono",Menlo,monospace}.cell.out{opacity:.28}.cell.range{background:#dbeafe;border-color:#60a5fa;color:#1d4ed8}.cell.mid{background:#fef3c7;border-color:#f59e0b;color:#92400e;box-shadow:0 0 0 3px #f59e0b22}.cell.created{box-shadow:inset 0 -4px #22c55e}.formula{display:flex;flex-direction:column;justify-content:center}.formula strong{display:block;margin-bottom:7px;color:#3730a3}.formula-line{background:#0f172a;color:#fcd34d;border-radius:8px;padding:10px;font:12px "SF Mono",Menlo,monospace}.visual{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(330px,.7fr);gap:14px}.tree-box,.side{border:1px solid #eef0f4;border-radius:12px;background:linear-gradient(#fafbff,#fff);min-height:410px}.tree-box{padding:12px;overflow:auto}.tree-box svg{display:block;margin:auto;overflow:visible}.empty{min-height:330px;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-direction:column}.edge{stroke:#cbd5e1;stroke-width:2.5}.edge.active{stroke:#f59e0b;stroke-width:4}.edge.done{stroke:#86efac}.edge-label{fill:#94a3b8;font:800 10px sans-serif}.node circle{fill:#fff;stroke:#cbd5e1;stroke-width:2.5}.node text.value{fill:#334155;font:800 14px "SF Mono",Menlo,monospace}.node.created circle{fill:#fef3c7;stroke:#f59e0b}.node.current circle{fill:#e0e7ff;stroke:#6366f1;stroke-width:4}.node.done circle{fill:#dcfce7;stroke:#22c55e}.node text.id{fill:#94a3b8;font:600 9px "SF Mono",Menlo,monospace}.side{padding:14px;display:flex;flex-direction:column;gap:12px}.action{border:1px solid #ddd6fe;background:#f5f3ff;border-radius:10px;padding:10px 12px;color:#5b21b6;min-height:66px}.action span{font-size:10px;font-weight:800}.action b{display:block;color:#3730a3;font-size:13px}.stack{display:flex;flex-direction:column-reverse;gap:6px;min-height:125px;max-height:230px;overflow:auto}.frame{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:center;padding:7px 8px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;font:10px "SF Mono",Menlo,monospace;color:#475569}.frame.top{border-color:#818cf8;background:#eef2ff}.frame.base{border-style:dashed;border-color:#f59e0b;background:#fffbeb}.depth{border-radius:99px;min-width:22px;height:20px;display:flex;align-items:center;justify-content:center;background:#e2e8f0;font-weight:800}.line{background:#0f172a;color:#fcd34d;border-radius:8px;padding:9px 11px;font:12px "SF Mono",Menlo,monospace}.sequence{border:1px dashed #cbd5e1;border-radius:8px;padding:8px;background:#f8fafc;font:11px "SF Mono",Menlo,monospace}.sequence b{color:#15803d}.legend{margin-top:13px;color:#6b7280;font-size:12px}.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1px solid #0001}.status{background:#111827;color:#e5e7eb;border-radius:10px;padding:14px 16px;min-height:50px;font-size:14px}.status b{color:#fcd34d}.status .op{color:#86efac}.status-title{margin-top:16px}.complexity{grid-template-columns:repeat(3,1fr)}.complexity b{display:block;color:#1d2129}details summary{cursor:pointer;font-weight:600;color:#4f46e5}.tabs{display:flex;gap:8px;margin:12px 0 10px}.tab{font-size:13px;padding:5px 12px;border-radius:99px;cursor:pointer;background:#f1f2f4;border:1px solid #e5e7eb}.tab.active{background:#6366f1;color:#fff}pre{margin:0;padding:14px;border-radius:10px;background:#0f172a;color:#e2e8f0;overflow:auto;font-size:13px;line-height:1.55}pre .cmt{color:#7dd3fc}@media(max-width:920px){body{padding:16px 12px}.idea,.complexity,.array-panel,.visual,.input-grid{grid-template-columns:1fr}.phases{grid-template-columns:repeat(3,1fr)}.progress{width:100%;margin-left:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar"><span class="difftag">简单</span><span class="link">原题：<a href="https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/" target="_blank" rel="noopener">LeetCode 108</a></span><span class="link">· <a href="../index.html">返回动画列表</a></span></div>
+  <h1>108. 将有序数组转换为二叉搜索树</h1>
+  <div class="sub">用闭区间 <code>build(left, right)</code> 分治：中点建根，左半区递归成左子树，右半区递归成右子树；全程只传下标，不复制子数组。</div>
+
+  <div class="card">
+    <div class="panel-title">下标区间分治</div>
+    <div class="idea">
+      <div><div class="no">① RANGE</div><code>left &gt; right</code> 表示空区间，返回 <code>None</code>。</div>
+      <div><div class="no">② MID</div><code>mid = (left + right) // 2</code>，用中间值创建当前根。</div>
+      <div><div class="no">③ LEFT</div><code>build(left, mid - 1)</code> 构造严格较小的左子树。</div>
+      <div><div class="no">④ RIGHT</div><code>build(mid + 1, right)</code> 构造严格较大的右子树。</div>
+    </div>
+    <div class="note"><b>为什么平衡：</b>中点把每个区间拆成长度至多相差 1 的两半，所以每个节点左右子树高度差不超过 1。节点的中序遍历按下标从左到右，必然还原原数组。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid"><label class="field"><span class="lab">严格递增整数数组（0～15 项）</span><input id="arrayInput" value="[-10,-3,0,5,9]" spellcheck="false" autocomplete="off"></label><button id="loadBtn">演示</button></div>
+    <div class="examples"><span class="lab">示例：</span><span class="chip" data-v="[-10,-3,0,5,9]">经典</span><span class="chip" data-v="[1,3,5,7,9,11,13]">完整 7 项</span><span class="chip" data-v="[-4,-1,2,8]">偶数长度</span><span class="chip" data-v="[6]">单元素</span><span class="chip" data-v="[]">空数组</span></div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">接受逗号或空白分隔，可带一对方括号。仅接受 −1,000,000～1,000,000 的安全整数；必须严格递增，因此重复值、降序、空 token、混合分隔和未配对括号都会被拒绝。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px"><button id="prevBtn" class="ghost">◀ 上一步</button><button id="nextBtn">下一步 ▶</button><button id="playBtn" class="ghost">▶ 自动播放</button><button id="resetBtn" class="ghost">↺ 重置</button><span class="progress" id="progress"></span></div>
+    <div class="phases" id="phases"><div class="phase" data-phase="call"><span>CALL / BASE</span><b>进入区间</b></div><div class="phase" data-phase="mid"><span>MID</span><b>计算中点</b></div><div class="phase" data-phase="create"><span>CREATE</span><b>创建节点</b></div><div class="phase" data-phase="left"><span>LEFT</span><b>递归左区间</b></div><div class="phase" data-phase="right"><span>RIGHT</span><b>递归右区间</b></div><div class="phase" data-phase="return"><span>RETURN</span><b>返回子树</b></div><div class="phase" data-phase="done"><span>VERIFY</span><b>验证结果</b></div></div>
+    <div class="array-panel">
+      <div class="array-box"><div class="panel-title">数组与树节点联动（绿色底线 = 已创建）</div><div class="cells" id="cells"></div></div>
+      <div class="formula"><strong id="rangeText">等待区间</strong><div class="formula-line" id="formulaLine"></div></div>
+    </div>
+    <div class="visual">
+      <div class="tree-box"><div class="panel-title" style="text-align:center">逐步形成的高度平衡 BST</div><svg id="treeSvg" aria-label="将有序数组转换为平衡二叉搜索树的动画"></svg><div class="empty" id="emptyTree"><b>root = None</b><span>尚未创建节点或输入为空</span></div></div>
+      <div class="side">
+        <div><div class="panel-title">当前动作</div><div class="action" id="action"></div></div>
+        <div><div class="panel-title">调用栈（栈顶在上）</div><div class="stack" id="stack"></div></div>
+        <div><div class="panel-title">中序验证进度</div><div class="sequence" id="sequence"></div></div>
+        <div class="line" id="currentLine"></div>
+      </div>
+    </div>
+    <div class="legend"><span><span class="dot" style="background:#dbeafe;border-color:#60a5fa"></span>当前区间</span><span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>当前 mid / 新节点</span><span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>当前节点</span><span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>子树已完成</span></div>
+    <div class="panel-title status-title">状态栏</div><div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card"><div class="panel-title">复杂度</div><div class="complexity"><div><b>时间 O(n)</b>每个数组元素恰好创建一个节点；中点和边界计算都是 O(1)。</div><div><b>递归栈 O(log n)</b>中点分治始终形成平衡树，高度为 O(log n)；输出树本身占 O(n)。</div><div><b>为什么禁止切片</b>若每层创建左右切片，会复制 O(n) 个元素，共 O(log n) 层，可能增至 O(n log n)；下标版不复制。</div></div></div>
+  <div class="card"><details open><summary>查看 Python / Java 参考代码（闭区间下标，无切片）</summary><div class="tabs"><span class="tab active" data-lang="py">Python</span><span class="tab" data-lang="java">Java</span></div><pre id="codeBlock"></pre></details></div>
+</div>
+
+<script data-sorted-array-to-bst-logic>
+(function(root){
+'use strict';
+var MIN=-1000000,MAX=1000000,LIMIT=15;
+function parseInput(input){
+  if(typeof input!=='string')return{error:'输入必须是字符串'};
+  var text=input.trim();
+  if(!text)return{values:[],error:null};
+  if(text[0]==='['||text[text.length-1]===']'){
+    if(text[0]!=='['||text[text.length-1]!==']')return{error:'方括号必须成对并包住整个输入'};
+    text=text.slice(1,-1).trim();
+  }
+  if(text.indexOf('[')>=0||text.indexOf(']')>=0)return{error:'方括号只能出现在最外层'};
+  if(!text)return{values:[],error:null};
+  var raw;
+  if(text.indexOf(',')>=0){
+    raw=text.split(',');
+    for(var i=0;i<raw.length;i++){raw[i]=raw[i].trim();if(!raw[i])return{error:'逗号之间、开头或结尾不能出现空项'};if(/\s/.test(raw[i]))return{error:'不能混用逗号与空白分隔'};}
+  }else raw=text.split(/\s+/);
+  if(raw.length>LIMIT)return{error:'动画最多允许 '+LIMIT+' 项，当前有 '+raw.length+' 项'};
+  var values=[];
+  for(var j=0;j<raw.length;j++){
+    if(!/^-?\d+$/.test(raw[j]))return{error:'第 '+(j+1)+' 项「'+raw[j]+'」不是整数'};
+    var value=Number(raw[j]);
+    if(!Number.isSafeInteger(value)||value<MIN||value>MAX)return{error:'第 '+(j+1)+' 项须在 -1,000,000～1,000,000'};
+    if(j&&value<=values[j-1])return{error:'数组必须严格递增：第 '+j+' 项 '+values[j-1]+' 不小于第 '+(j+1)+' 项 '+value};
+    values.push(value);
+  }
+  return{values:values,error:null};
+}
+function cloneNodes(nodes){return nodes.map(function(n){return{id:n.id,value:n.value,left:n.left,right:n.right,parent:n.parent,side:n.side,arrayIndex:n.arrayIndex};});}
+function cloneStack(stack){return stack.map(function(f){return{left:f.left,right:f.right,mid:f.mid,nodeId:f.nodeId,state:f.state,side:f.side};});}
+function buildSteps(values){
+  var nodes=[],steps=[],stack=[],completed=[];
+  function snap(phase,current,left,right,mid,action,line,message,edgeSide){
+    steps.push({phase:phase,currentNode:current,left:left,right:right,mid:mid,action:action,codeLine:line,message:message,edgeSide:edgeSide||null,topology:cloneNodes(nodes),stack:cloneStack(stack),completed:completed.slice()});
+  }
+  function build(left,right,parent,side){
+    var frame={left:left,right:right,mid:null,nodeId:null,state:'call',side:side};stack.push(frame);
+    snap('call',parent>=0?parent:null,left,right,null,'进入 build('+left+', '+right+')','def build(left, right):','进入闭区间 <code>['+left+', '+right+']</code>；只传边界，没有创建子数组。',side);
+    if(left>right){
+      frame.state='base';snap('base',parent>=0?parent:null,left,right,null,'空区间返回 None','if left > right: return None','<code>'+left+' &gt; '+right+'</code>，命中空区间基例并返回 <b>None</b>。',side);stack.pop();return-1;
+    }
+    var mid=Math.floor((left+right)/2);frame.mid=mid;frame.state='mid';
+    snap('mid',null,left,right,mid,'计算中点 mid = '+mid,'mid = (left + right) // 2','<code>mid = ('+left+' + '+right+') // 2 = <b>'+mid+'</b></code>，值为 <b>'+values[mid]+'</b>。');
+    var id=nodes.length;frame.nodeId=id;frame.state='create';nodes.push({id:id,value:values[mid],left:-1,right:-1,parent:parent,side:side,arrayIndex:mid});if(parent>=0)nodes[parent][side]=id;
+    snap('create',id,left,right,mid,'用 nums['+mid+'] 创建节点 '+values[mid],'root = TreeNode(nums[mid])','创建节点 <b>'+values[mid]+'</b>（id '+id+'），数组格与树节点通过原下标 '+mid+' 联动。',side);
+    frame.state='left';snap('left',id,left,right,mid,'递归左区间 ['+left+', '+(mid-1)+']','root.left = build(left, mid - 1)','左侧所有值都小于根；递归 <code>build('+left+', '+(mid-1)+')</code>。','left');
+    nodes[id].left=build(left,mid-1,id,'left');
+    frame.state='right';snap('right',id,left,right,mid,'递归右区间 ['+(mid+1)+', '+right+']','root.right = build(mid + 1, right)','左子树已形成；右侧所有值都大于根，递归 <code>build('+(mid+1)+', '+right+')</code>。','right');
+    nodes[id].right=build(mid+1,right,id,'right');
+    frame.state='return';completed.push(id);snap('return',id,left,right,mid,'返回以 '+values[mid]+' 为根的子树','return root','区间 <code>['+left+', '+right+']</code> 的左右子树均完成，返回节点 <b>'+values[mid]+'</b>。');stack.pop();return id;
+  }
+  var rootId=build(0,values.length-1,-1,'root');
+  var inorder=inorderValues(nodes,rootId);
+  snap('done',rootId,0,values.length-1,values.length?Math.floor((values.length-1)/2):null,'验证平衡 BST 与中序结果','return build(0, len(nums) - 1)','构造完成：所有节点 <code>left/right</code> 形成高度平衡 BST，中序为 <span class="op">['+inorder.join(', ')+']</span>。');
+  return steps;
+}
+function inorderValues(nodes,rootId){var out=[];function walk(id){if(id<0)return;walk(nodes[id].left);out.push(nodes[id].value);walk(nodes[id].right);}walk(rootId);return out;}
+function analyze(nodes,rootId){
+  var errors=[],seen={};
+  function dfs(id,min,max){
+    if(id<0)return 0;
+    if(!nodes[id]||seen[id]){errors.push('拓扑存在环、重复父引用或无效 id '+id);return 0;}
+    seen[id]=true;var n=nodes[id];
+    if(!(n.value>min&&n.value<max))errors.push('节点 '+n.value+' 违反 BST 严格上下界');
+    var lh=dfs(n.left,min,n.value),rh=dfs(n.right,n.value,max);
+    if(Math.abs(lh-rh)>1)errors.push('节点 '+n.value+' 左右高度差超过 1');
+    return Math.max(lh,rh)+1;
+  }
+  var height=dfs(rootId,-Infinity,Infinity);
+  if(Object.keys(seen).length!==nodes.length)errors.push('存在从根不可达的节点');
+  return{ok:errors.length===0,errors:errors,height:height};
+}
+function same(a,b){return a.length===b.length&&a.every(function(x,i){return x===b[i];});}
+function validateSnapshots(values,steps){
+  var errors=[],required={},last;
+  steps.forEach(function(s,i){
+    required[s.phase]=true;
+    if(!Array.isArray(s.topology)||!Array.isArray(s.stack)||!Array.isArray(s.completed))errors.push('第 '+(i+1)+' 帧快照不完整');
+    if(s.mid!==null&&s.left<=s.right&&(s.mid!==Math.floor((s.left+s.right)/2)||s.mid<s.left||s.mid>s.right))errors.push('第 '+(i+1)+' 帧 mid 错误');
+    s.topology.forEach(function(n){if(n.id<0||n.id>=s.topology.length||values[n.arrayIndex]!==n.value)errors.push('第 '+(i+1)+' 帧节点身份或数组下标错误');});
+    if(i){var p=steps[i-1];if(p.topology===s.topology||p.stack===s.stack||p.completed===s.completed)errors.push('相邻帧共享快照数组');if(p.topology.length&&s.topology.length&&p.topology[0]===s.topology[0])errors.push('拓扑节点未深拷贝');if(p.stack.length&&s.stack.length&&p.stack[0]===s.stack[0])errors.push('调用帧未深拷贝');}
+  });
+  ['call','base','done'].forEach(function(p){if(!required[p])errors.push('缺少阶段 '+p);});
+  if(values.length)['mid','create','left','right','return'].forEach(function(p){if(!required[p])errors.push('缺少阶段 '+p);});
+  last=steps[steps.length-1];
+  if(!last||last.phase!=='done'||last.stack.length)errors.push('结束帧或调用栈错误');
+  else{
+    var rootId=last.topology.length?0:-1,a=analyze(last.topology,rootId);
+    if(!a.ok)errors=errors.concat(a.errors);
+    if(!same(inorderValues(last.topology,rootId),values))errors.push('最终中序不等于原数组');
+    if(last.topology.length!==values.length||last.completed.length!==values.length)errors.push('最终节点数或完成数错误');
+  }
+  return{ok:errors.length===0,errors:errors};
+}
+function layout(nodes,rootId){
+  var pos={},maxDepth=0;function walk(id,d){if(id<0)return;var n=nodes[id];pos[id]={x:50+n.arrayIndex*76,y:45+d*82};maxDepth=Math.max(maxDepth,d);walk(n.left,d+1);walk(n.right,d+1);}walk(rootId,0);
+  return{positions:pos,width:Math.max(320,100+Math.max(0,nodes.length-1)*76),height:Math.max(330,100+maxDepth*82),heightLevels:nodes.length?maxDepth+1:0};
+}
+function run(input){
+  var p=parseInput(input);if(p.error)return p;var steps=buildSteps(p.values),last=steps[steps.length-1],nodes=cloneNodes(last.topology),rootId=nodes.length?0:-1,a=analyze(nodes,rootId);
+  return{error:null,values:p.values.slice(),rootId:rootId,nodes:nodes,steps:steps,inorder:inorderValues(nodes,rootId),height:a.height,balanced:a.ok,validation:validateSnapshots(p.values,steps)};
+}
+root.SortedArrayToBST108={parseInput:parseInput,cloneNodes:cloneNodes,buildSteps:buildSteps,inorderValues:inorderValues,analyze:analyze,validateSnapshots:validateSnapshots,layout:layout,run:run,limits:{minValue:MIN,maxValue:MAX,maxNodes:LIMIT}};
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+
+<script>
+(function(){
+'use strict';
+var App=window.SortedArrayToBST108,$=function(id){return document.getElementById(id);},input=$('arrayInput'),svg=$('treeSvg'),prev=$('prevBtn'),nextBtn=$('nextBtn'),play=$('playBtn');
+var result,steps=[],index=0,timer=null,NS='http://www.w3.org/2000/svg';
+function el(name,attrs){var x=document.createElementNS(NS,name);Object.keys(attrs||{}).forEach(function(k){x.setAttribute(k,attrs[k]);});return x;}
+function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ 自动播放';}}
+function phase(p){return p==='base'?'call':p;}
+function renderCells(s){var box=$('cells');box.innerHTML='';if(!result.values.length){box.innerHTML='<span class="hint">[] · 空数组</span>';return;}var made={};s.topology.forEach(function(n){made[n.arrayIndex]=true;});result.values.forEach(function(v,i){var x=document.createElement('span'),c='cell';if(i<s.left||i>s.right)c+=' out';else c+=' range';if(i===s.mid)c+=' mid';if(made[i])c+=' created';x.className=c;x.textContent=v;var q=document.createElement('span');q.className='idx';q.textContent=i;x.appendChild(q);box.appendChild(x);});}
+function parentMap(nodes){var m={};nodes.forEach(function(n){if(n.left>=0)m[n.left]={parent:n.id,side:'left'};if(n.right>=0)m[n.right]={parent:n.id,side:'right'};});return m;}
+function draw(s){
+  svg.innerHTML='';var nodes=s.topology,empty=$('emptyTree');empty.style.display=nodes.length?'none':'flex';svg.style.display=nodes.length?'block':'none';if(!nodes.length)return;
+  var size=App.layout(nodes,result.rootId),pos=size.positions,parents=parentMap(nodes),done={};s.completed.forEach(function(id){done[id]=true;});svg.setAttribute('width',size.width);svg.setAttribute('height',size.height);svg.setAttribute('viewBox','0 0 '+size.width+' '+size.height);
+  nodes.forEach(function(n){if(n.id===result.rootId)return;var r=parents[n.id],a=pos[r.parent],b=pos[n.id],c='edge'+(done[n.id]?' done':'');if((s.phase==='left'||s.phase==='right'||s.phase==='create')&&s.currentNode===r.parent&&s.edgeSide===r.side)c+=' active';svg.appendChild(el('line',{class:c,x1:a.x,y1:a.y,x2:b.x,y2:b.y}));var t=el('text',{class:'edge-label',x:(a.x+b.x)/2+(r.side==='left'?-8:8),y:(a.y+b.y)/2-3,'text-anchor':'middle'});t.textContent=r.side==='left'?'L':'R';svg.appendChild(t);});
+  nodes.forEach(function(n){var p=pos[n.id],c='node created'+(done[n.id]?' done':'')+(s.currentNode===n.id?' current':'');var g=el('g',{class:c});g.appendChild(el('circle',{cx:p.x,cy:p.y,r:20}));var v=el('text',{class:'value',x:p.x,y:p.y+5,'text-anchor':'middle'});v.textContent=n.value;g.appendChild(v);var q=el('text',{class:'id',x:p.x,y:p.y+34,'text-anchor':'middle'});q.textContent='id '+n.id+' · nums['+n.arrayIndex+']';g.appendChild(q);svg.appendChild(g);});
+}
+function renderStack(s){var box=$('stack');box.innerHTML='';if(!s.stack.length){box.innerHTML='<div class="hint" style="text-align:center;padding:28px">调用栈为空</div>';return;}s.stack.forEach(function(f,i){var x=document.createElement('div');x.className='frame'+(i===s.stack.length-1?' top':'')+(f.state==='base'?' base':'');x.innerHTML='<span class="depth">'+(i+1)+'</span><span>build('+f.left+', '+f.right+') · '+f.state+'</span>';box.appendChild(x);});}
+function render(){
+  var s=steps[index];renderCells(s);draw(s);renderStack(s);Array.prototype.forEach.call($('phases').children,function(x){x.className='phase'+(x.dataset.phase===phase(s.phase)?' active':'');});
+  $('rangeText').textContent=s.left<=s.right?'当前闭区间 ['+s.left+', '+s.right+']':'空区间 ['+s.left+', '+s.right+']';$('formulaLine').textContent=s.mid===null?'left > right ? '+(s.left>s.right):'mid = ('+s.left+' + '+s.right+') // 2 = '+s.mid;
+  $('action').innerHTML='<span>'+s.phase.toUpperCase()+'</span><b>'+s.action+'</b>';$('currentLine').textContent=s.codeLine;$('status').innerHTML=s.message;$('sequence').innerHTML='目标：['+result.values.join(', ')+']<br><b>当前树中序：['+App.inorderValues(s.topology,s.topology.length?0:-1).join(', ')+']</b>';$('progress').textContent='帧 '+(index+1)+' / '+steps.length;prev.disabled=index===0;nextBtn.disabled=index===steps.length-1;
+}
+function load(){stop();var r=App.run(input.value);if(r.error){$('err').textContent='输入有误：'+r.error+'。';$('err').classList.add('show');return;}$('err').classList.remove('show');result=r;steps=r.steps;index=0;$('stats').innerHTML='<div class="stat">节点数<b>'+r.values.length+' / 15</b></div><div class="stat">输入 / 最终中序<b>['+r.values.join(', ')+'] / ['+r.inorder.join(', ')+']</b></div><div class="stat">树高<b>'+r.height+'</b></div><div class="stat">高度平衡 BST<b>'+(r.balanced?'是 ✓':'否 ✗')+'</b></div><div class="stat">时间 / 递归栈<b>O(n) / O(log n)</b></div><div class="stat">深拷贝快照校验<b>'+(r.validation.ok?'通过 ✓':'失败 ✗')+'</b></div>';render();}
+function forward(){if(index<steps.length-1){index++;render();}}function backward(){if(index>0){index--;render();}}
+prev.onclick=function(){stop();backward();};nextBtn.onclick=function(){stop();forward();};play.onclick=function(){if(timer){stop();return;}if(index===steps.length-1){index=0;render();}play.textContent='⏸ 暂停';timer=setInterval(function(){if(index===steps.length-1)stop();else forward();},800);};$('resetBtn').onclick=function(){stop();index=0;render();};$('loadBtn').onclick=load;input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();load();}});
+Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){c.onclick=function(){input.value=c.dataset.v;Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(x){x.classList.remove('active');});c.classList.add('active');load();};});document.addEventListener('keydown',function(e){if(document.activeElement===input)return;if(e.key==='ArrowRight'){stop();forward();}if(e.key==='ArrowLeft'){stop();backward();}});
+var codes={py:`<span class="cmt"># 闭区间下标分治；不创建 nums 切片</span>
+class Solution:
+    def sortedArrayToBST(self, nums: List[int]) -&gt; Optional[TreeNode]:
+        def build(left: int, right: int) -&gt; Optional[TreeNode]:
+            if left &gt; right:
+                return None
+            mid = (left + right) // 2
+            root = TreeNode(nums[mid])
+            root.left = build(left, mid - 1)
+            root.right = build(mid + 1, right)
+            return root
+
+        return build(0, len(nums) - 1)`,java:`<span class="cmt">// 闭区间下标分治；不复制子数组</span>
+class Solution {
+    public TreeNode sortedArrayToBST(int[] nums) {
+        return build(nums, 0, nums.length - 1);
+    }
+    private TreeNode build(int[] nums, int left, int right) {
+        if (left &gt; right) return null;
+        int mid = left + (right - left) / 2;
+        TreeNode root = new TreeNode(nums[mid]);
+        root.left = build(nums, left, mid - 1);
+        root.right = build(nums, mid + 1, right);
+        return root;
+    }
+}`};Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){t.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('active');});t.classList.add('active');$('codeBlock').innerHTML=codes[t.dataset.lang];};});$('codeBlock').innerHTML=codes.py;load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 105 从前序与中序遍历序列构造二叉树逐帧动画：哈希定位中序根、计算左子树长度、四边界递归与增量建树。">
+<meta name="tags" content="二叉树 · 前序遍历 · 中序遍历 · 哈希表 · 递归 · 区间边界 · O(n)">
+<title>105. 从前序与中序遍历序列构造二叉树 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap { max-width:1240px; margin:0 auto; }
+  .navbar,.controls,.examples,.legend,.stats { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .navbar { margin-bottom:16px; gap:12px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono",Menlo,monospace; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:11px 13px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:800; color:#6366f1; letter-spacing:.04em; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:13px; }
+  .compare { margin-top:10px; color:#64748b; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; }
+  input[type=text] {
+    width:100%; min-width:0; padding:9px 11px; font:13px "SF Mono",Menlo,monospace;
+    border:1px solid #d1d5db; border-radius:8px; outline:none; background:#fff;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; gap:8px; }
+  .examples .lab,.hint { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover,.chip.active { background:#e0e7ff; border-color:#a5b4fc; color:#3730a3; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { margin-top:8px; line-height:1.65; }
+  .stats { gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:800 13px "SF Mono",Menlo,monospace; color:#1d2129; max-width:310px; overflow-wrap:anywhere; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .phase-strip { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; margin-bottom:14px; }
+  .phase { border:1px solid #e5e7eb; border-radius:9px; padding:8px 4px; font-size:9px; color:#64748b; background:#f8fafc; transition:.18s; text-align:center; }
+  .phase b { display:block; color:#334155; font-size:10px; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.11); color:#4338ca; }
+  .array-stage { display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,.38fr); gap:12px; margin-bottom:14px; }
+  .arrays,.formula-box { border:1px solid #e5e7eb; border-radius:11px; background:#fafbff; padding:12px; min-width:0; }
+  .array-row { display:grid; grid-template-columns:75px minmax(0,1fr); align-items:center; gap:8px; margin:7px 0; }
+  .array-name { font:800 11px "SF Mono",Menlo,monospace; color:#475569; }
+  .cells { display:flex; gap:5px; overflow:auto; padding:3px 1px 13px; }
+  .cell { position:relative; flex:0 0 42px; height:35px; display:flex; align-items:center; justify-content:center; border:1px solid #d1d5db; border-radius:7px; background:#fff; color:#334155; font:800 12px "SF Mono",Menlo,monospace; transition:.18s; }
+  .cell .idx { position:absolute; top:37px; color:#94a3b8; font:9px "SF Mono",Menlo,monospace; }
+  .cell.outside { opacity:.3; }
+  .cell.left { background:#dbeafe; border-color:#60a5fa; color:#1d4ed8; }
+  .cell.root { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 2px rgba(245,158,11,.13); }
+  .cell.right { background:#ede9fe; border-color:#a78bfa; color:#6d28d9; }
+  .cell.pending { background:#f8fafc; }
+  .empty-array { color:#94a3b8; font:12px "SF Mono",Menlo,monospace; padding:7px; }
+  .formula-box { display:flex; flex-direction:column; justify-content:center; }
+  .formula { border-radius:8px; background:#0f172a; color:#fcd34d; padding:11px; min-height:47px; font:12px "SF Mono",Menlo,monospace; overflow-wrap:anywhere; }
+  .bounds { margin-top:8px; color:#64748b; font:11px "SF Mono",Menlo,monospace; overflow-wrap:anywhere; }
+  .visual-grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(330px,.75fr); gap:14px; }
+  .tree-box,.side-box { border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fafbff,#fff); min-height:390px; }
+  .tree-box { padding:12px; overflow:auto; position:relative; }
+  .tree-heading { color:#4f46e5; font-size:12px; font-weight:700; text-align:center; margin-bottom:4px; }
+  .tree-box svg { display:block; margin:0 auto; overflow:visible; }
+  .empty-tree { min-height:325px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:#94a3b8; font-size:13px; }
+  .empty-tree b { font:800 20px "SF Mono",Menlo,monospace; color:#64748b; }
+  .edge { stroke:#cbd5e1; stroke-width:2.5; }
+  .edge.active { stroke:#f59e0b; stroke-width:4; }
+  .edge.done { stroke:#86efac; }
+  .edge-label { fill:#94a3b8; font:800 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .node circle { fill:#fff; stroke:#cbd5e1; stroke-width:2.5; transition:.18s; }
+  .node text { fill:#334155; font:800 14px "SF Mono",Menlo,monospace; }
+  .node.created circle { fill:#fef3c7; stroke:#f59e0b; }
+  .node.done circle { fill:#dcfce7; stroke:#22c55e; }
+  .node.current circle { fill:#e0e7ff; stroke:#6366f1; stroke-width:4; filter:drop-shadow(0 2px 4px rgba(79,70,229,.22)); }
+  .node.current text { fill:#3730a3; }
+  .node-id { fill:#94a3b8!important; font-size:9px!important; font-weight:600!important; }
+  .side-box { padding:14px; display:flex; flex-direction:column; gap:13px; }
+  .action { border:1px solid #ddd6fe; background:#f5f3ff; border-radius:10px; padding:11px 12px; color:#5b21b6; min-height:68px; }
+  .action .kind { font-size:11px; font-weight:800; letter-spacing:.05em; }
+  .action b { display:block; color:#3730a3; font-size:13px; margin-top:3px; }
+  .stack { display:flex; flex-direction:column-reverse; gap:6px; min-height:125px; max-height:230px; overflow:auto; }
+  .frame { display:grid; grid-template-columns:auto 1fr; gap:7px; align-items:center; padding:7px 8px; border:1px solid #e5e7eb; border-radius:8px; background:#f8fafc; font:10px "SF Mono",Menlo,monospace; color:#475569; }
+  .frame.top { border-color:#818cf8; background:#eef2ff; color:#3730a3; }
+  .frame.base { border-style:dashed; border-color:#f59e0b; background:#fffbeb; color:#92400e; }
+  .depth { border-radius:999px; min-width:22px; height:20px; display:flex; align-items:center; justify-content:center; background:#e2e8f0; font-weight:800; }
+  .frame.top .depth { background:#c7d2fe; }
+  .stack-empty { color:#94a3b8; font-size:12px; text-align:center; padding:28px 0; }
+  .completed { border:1px dashed #cbd5e1; border-radius:9px; padding:8px; background:#f8fafc; color:#475569; font:11px "SF Mono",Menlo,monospace; min-height:39px; }
+  .completed b { color:#15803d; }
+  .current-line { border-radius:8px; background:#0f172a; color:#fcd34d; padding:9px 11px; min-height:39px; font:12px "SF Mono",Menlo,monospace; overflow-wrap:anywhere; }
+  .legend { margin-top:13px; font-size:12px; color:#6b7280; gap:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.1); }
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; } .status .op { color:#86efac; } .status code { background:#1f2937; color:#93c5fd; }
+  .complexity { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .complexity > div { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; color:#4b5563; font-size:13px; }
+  .complexity b { display:block; color:#1d2129; margin-bottom:3px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+  @media (max-width:930px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .idea,.complexity,.input-grid,.array-stage,.visual-grid { grid-template-columns:1fr; }
+    .phase-strip { grid-template-columns:repeat(4,1fr); }
+    .progress { width:100%; margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/" target="_blank" rel="noopener">LeetCode 105</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>105. 从前序与中序遍历序列构造二叉树</h1>
+  <div class="sub">前序是 <code>根 → 左 → 右</code>，中序是 <code>左 → 根 → 右</code>。用中序根位置算出左子树长度，再用四个闭区间边界递归，全程不切片。</div>
+
+  <div class="card">
+    <div class="panel-title">用中序得到的长度递归</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① ROOT</div><code>preorder[pre_left]</code> 一定是当前子树根，因为前序先访问根。</div>
+      <div class="idea-item"><div class="no">② LOCATE</div>用 <code>inorder_index[root_value]</code> O(1) 定位根；节点值唯一，位置才唯一。</div>
+      <div class="idea-item"><div class="no">③ LENGTH</div><code>left_size = root_index - in_left</code>，这是中序根左侧的元素个数。</div>
+      <div class="idea-item"><div class="no">④ SPLIT</div>左树占根后的 <code>left_size</code> 项；右树因此从 <code>pre_left + left_size + 1</code> 开始。</div>
+    </div>
+    <div class="key-note"><b>为什么右子树前序起点要再加 1？</b>前序区间先占 1 个根，再占 <code>left_size</code> 个左子树节点，所以右子树首项下标是 <code>pre_left + 1 + left_size</code>。</div>
+    <div class="compare"><b>不要切片：</b>递归中反复复制子数组，斜树时复制总量可能达到 O(n²)；哈希表定位 + 四个下标边界让每个节点只处理一次，时间 O(n)。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">preorder（0～15 个唯一整数）</span><input id="preInput" type="text" value="[3,9,20,15,7]" spellcheck="false" autocomplete="off"></label>
+      <label class="field"><span class="lab">inorder（须与 preorder 等长且集合一致）</span><input id="inInput" type="text" value="[9,3,15,20,7]" spellcheck="false" autocomplete="off"></label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-pre="3,9,20,15,7" data-in="9,3,15,20,7">经典</span>
+      <span class="chip" data-pre="4,2,1,3,6,5,7" data-in="1,2,3,4,5,6,7">完全树</span>
+      <span class="chip" data-pre="4,3,2,1" data-in="1,2,3,4">左斜</span>
+      <span class="chip" data-pre="1,2,3,4" data-in="1,2,3,4">右斜</span>
+      <span class="chip" data-pre="-7" data-in="-7">单节点</span>
+      <span class="chip" data-pre="" data-in="">空树</span>
+      <span class="chip" data-pre="-1,-2,-4,3" data-in="-4,-2,-1,3">负数</span>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="hint">接受逗号或空白分隔，可带一对方括号，例如 <code>[3, 9, 20]</code>。两行必须同时为空或同时非空；长度一致、元素各自唯一、集合一致，且递归区间必须能构成同一棵树。节点值范围为 −1,000,000～1,000,000；动画最多 15 个节点。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip">
+      <div class="phase" data-phase="call"><span>CALL / BASE</span><b>四边界调用</b></div>
+      <div class="phase" data-phase="root"><span>ROOT</span><b>前序取根</b></div>
+      <div class="phase" data-phase="locate"><span>LOCATE</span><b>中序定位</b></div>
+      <div class="phase" data-phase="size"><span>LEFT SIZE</span><b>计算左长</b></div>
+      <div class="phase" data-phase="ranges"><span>RANGES</span><b>划分区间</b></div>
+      <div class="phase" data-phase="create"><span>CREATE</span><b>创建根节点</b></div>
+      <div class="phase" data-phase="left"><span>LEFT</span><b>递归左树</b></div>
+      <div class="phase" data-phase="right"><span>RIGHT / RETURN</span><b>右树与返回</b></div>
+    </div>
+
+    <div class="array-stage">
+      <div class="arrays">
+        <div class="array-row"><div class="array-name">preorder</div><div class="cells" id="preCells"></div></div>
+        <div class="array-row"><div class="array-name">inorder</div><div class="cells" id="inCells"></div></div>
+      </div>
+      <div class="formula-box">
+        <div class="panel-title">当前公式</div>
+        <div class="formula" id="formula"></div>
+        <div class="bounds" id="bounds"></div>
+      </div>
+    </div>
+
+    <div class="visual-grid">
+      <div class="tree-box" id="treeBox">
+        <div class="tree-heading">逐步生长的树（绿色表示整棵子树已完成）</div>
+        <svg id="treeSvg" aria-label="从遍历序列逐步构造的二叉树"></svg>
+        <div class="empty-tree" id="emptyTree"><b>root = null</b><span>尚未创建节点，或输入表示空树</span></div>
+      </div>
+      <div class="side-box">
+        <div><div class="panel-title">当前动作</div><div class="action" id="action"></div></div>
+        <div><div class="panel-title">递归调用栈（栈顶在上）</div><div class="stack" id="stack"></div></div>
+        <div><div class="panel-title">已完成子树根</div><div class="completed" id="completed"></div></div>
+        <div class="current-line" id="currentLine"></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#dbeafe;border-color:#60a5fa"></span>左区间</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>根</span>
+      <span><span class="dot" style="background:#ede9fe;border-color:#a78bfa"></span>右区间</span>
+      <span><span class="dot" style="background:#e0e7ff;border-color:#6366f1"></span>当前树节点</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#22c55e"></span>已完成子树</span>
+    </div>
+    <div class="panel-title status-title">状态栏</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">复杂度</div>
+    <div class="complexity">
+      <div><b>时间 O(n)</b>哈希表 O(1) 定位每个根；每个节点恰好创建并返回一次，没有递归切片。</div>
+      <div><b>哈希表 O(n)</b><code>inorder_index</code> 保存每个唯一值在中序数组中的唯一位置。</div>
+      <div><b>递归栈 O(h)</b>h 是树高；平衡树为 O(log n)，左斜或右斜树最坏为 O(n)。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="code" open>
+      <summary>查看 Python / Java 参考代码（四边界 + left_size，无切片）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script data-construct-tree-logic>
+(function (root) {
+  'use strict';
+  var MIN_VALUE = -1000000, MAX_VALUE = 1000000, MAX_NODES = 15;
+
+  function parseArray(input, name) {
+    if (typeof input !== 'string') return { error:name + ' 必须是字符串' };
+    var text = input.trim();
+    if (!text) return { values:[], error:null };
+    if (text[0] === '[' || text[text.length - 1] === ']') {
+      if (text[0] !== '[' || text[text.length - 1] !== ']') return { error:name + ' 的方括号必须成对并包住整个输入' };
+      text = text.slice(1, -1).trim();
+    }
+    if (text.indexOf('[') >= 0 || text.indexOf(']') >= 0) return { error:name + ' 的方括号只能出现在最外层' };
+    if (!text) return { values:[], error:null };
+    var raw;
+    if (text.indexOf(',') >= 0) {
+      raw = text.split(',');
+      for (var i = 0; i < raw.length; i++) {
+        raw[i] = raw[i].trim();
+        if (!raw[i]) return { error:name + ' 的逗号之间、开头或结尾不能出现空元素' };
+        if (/\s/.test(raw[i])) return { error:name + ' 不能混用逗号与空白分隔元素' };
+      }
+    } else {
+      raw = text.split(/\s+/);
+    }
+    if (raw.length > MAX_NODES) return { error:'动画最多允许 ' + MAX_NODES + ' 个节点，' + name + ' 当前有 ' + raw.length + ' 个' };
+    var values = [];
+    for (var j = 0; j < raw.length; j++) {
+      if (!/^-?\d+$/.test(raw[j])) return { error:name + ' 第 ' + (j + 1) + ' 项「' + raw[j] + '」不是整数' };
+      var value = Number(raw[j]);
+      if (!Number.isSafeInteger(value) || value < MIN_VALUE || value > MAX_VALUE) {
+        return { error:name + ' 第 ' + (j + 1) + ' 项须在 -1,000,000～1,000,000' };
+      }
+      values.push(value);
+    }
+    return { values:values, error:null };
+  }
+
+  function validateCombination(preorder, inorder) {
+    if (!Array.isArray(preorder) || !Array.isArray(inorder)) return { error:'preorder 与 inorder 必须是数组' };
+    if ((preorder.length === 0) !== (inorder.length === 0)) return { error:'preorder 与 inorder 必须同时为空或同时非空' };
+    if (preorder.length !== inorder.length) return { error:'preorder 与 inorder 长度不一致' };
+    if (preorder.length > MAX_NODES) return { error:'动画最多允许 ' + MAX_NODES + ' 个节点' };
+    var preSet = new Set(preorder), inSet = new Set(inorder);
+    if (preSet.size !== preorder.length) return { error:'preorder 含重复元素；节点值必须唯一' };
+    if (inSet.size !== inorder.length) return { error:'inorder 含重复元素；节点值必须唯一' };
+    for (var i = 0; i < preorder.length; i++) {
+      if (!inSet.has(preorder[i])) return { error:'两序列元素集合不一致：值 ' + preorder[i] + ' 只出现在 preorder' };
+    }
+    for (var j = 0; j < inorder.length; j++) {
+      if (!preSet.has(inorder[j])) return { error:'两序列元素集合不一致：值 ' + inorder[j] + ' 只出现在 inorder' };
+    }
+    var index = {};
+    inorder.forEach(function (value, position) { index[value] = position; });
+    var error = null;
+    function check(preLeft, preRight, inLeft, inRight) {
+      if (error || preLeft > preRight) return;
+      if (inLeft > inRight || preRight - preLeft !== inRight - inLeft) {
+        error = '当前前序与中序区间长度不一致，序列组合不可构造'; return;
+      }
+      var rootValue = preorder[preLeft], rootIndex = index[rootValue];
+      if (rootIndex < inLeft || rootIndex > inRight) {
+        error = '值 ' + rootValue + ' 不在当前中序区间 [' + inLeft + ', ' + inRight + ']，序列组合不可构造'; return;
+      }
+      var leftSize = rootIndex - inLeft;
+      check(preLeft + 1, preLeft + leftSize, inLeft, rootIndex - 1);
+      check(preLeft + leftSize + 1, preRight, rootIndex + 1, inRight);
+    }
+    check(0, preorder.length - 1, 0, inorder.length - 1);
+    return { error:error, inorderIndex:index };
+  }
+
+  function parseInputs(preInput, inInput) {
+    var pre = parseArray(preInput, 'preorder');
+    if (pre.error) return pre;
+    var ino = parseArray(inInput, 'inorder');
+    if (ino.error) return ino;
+    var valid = validateCombination(pre.values, ino.values);
+    if (valid.error) return valid;
+    return { preorder:pre.values.slice(), inorder:ino.values.slice(), inorderIndex:valid.inorderIndex, error:null };
+  }
+
+  function cloneTopology(nodes) {
+    return nodes.map(function (node) {
+      return { id:node.id, value:node.value, left:node.left, right:node.right, parent:node.parent, side:node.side, preIndex:node.preIndex, inIndex:node.inIndex };
+    });
+  }
+  function cloneStack(stack) {
+    return stack.map(function (frame) {
+      return {
+        preLeft:frame.preLeft, preRight:frame.preRight, inLeft:frame.inLeft, inRight:frame.inRight,
+        state:frame.state, nodeId:frame.nodeId, rootValue:frame.rootValue, rootIndex:frame.rootIndex,
+        leftSize:frame.leftSize, parentId:frame.parentId, side:frame.side
+      };
+    });
+  }
+  function cloneBounds(bounds) {
+    if (!bounds) return null;
+    return {
+      preLeft:bounds.preLeft, preRight:bounds.preRight, inLeft:bounds.inLeft, inRight:bounds.inRight,
+      rootIndex:bounds.rootIndex, leftSize:bounds.leftSize
+    };
+  }
+  function cloneRanges(ranges) {
+    if (!ranges) return null;
+    var copy = {};
+    Object.keys(ranges).forEach(function (key) { copy[key] = ranges[key] ? ranges[key].slice() : null; });
+    return copy;
+  }
+
+  function buildSteps(preorder, inorder, inorderIndex) {
+    var steps = [], nodes = [], stack = [], completed = [];
+    function rangesFor(bounds) {
+      if (!bounds || bounds.preLeft > bounds.preRight || bounds.rootIndex === null) return null;
+      return {
+        preRoot:[bounds.preLeft, bounds.preLeft],
+        preLeft:[bounds.preLeft + 1, bounds.preLeft + bounds.leftSize],
+        preRight:[bounds.preLeft + bounds.leftSize + 1, bounds.preRight],
+        inLeft:[bounds.inLeft, bounds.rootIndex - 1],
+        inRoot:[bounds.rootIndex, bounds.rootIndex],
+        inRight:[bounds.rootIndex + 1, bounds.inRight]
+      };
+    }
+    function snap(phase, currentNode, bounds, formula, action, codeLine, message, edgeSide) {
+      steps.push({
+        phase:phase, currentNode:currentNode, bounds:cloneBounds(bounds), ranges:cloneRanges(rangesFor(bounds)),
+        formula:formula, action:action, codeLine:codeLine, message:message, edgeSide:edgeSide || null,
+        stack:cloneStack(stack), topology:cloneTopology(nodes), completed:completed.slice()
+      });
+    }
+    if (!preorder.length) {
+      var emptyBounds = { preLeft:0, preRight:-1, inLeft:0, inRight:-1, rootIndex:null, leftSize:null };
+      stack.push({ preLeft:0, preRight:-1, inLeft:0, inRight:-1, state:'call', nodeId:null, rootValue:null, rootIndex:null, leftSize:null, parentId:-1, side:'root' });
+      snap('call', null, emptyBounds, 'build(0, -1, 0, -1)', '进入空区间调用', 'build(0, -1, 0, -1)', '两行输入同时为空，仍展示统一递归基例。');
+      stack[0].state = 'base';
+      snap('base', null, emptyBounds, '0 > -1  →  True', '命中空区间基例', 'if pre_left > pre_right: return None', '<code>pre_left &gt; pre_right</code>，返回 <b>None</b>，空树构造完成。');
+      stack.pop();
+      snap('done', null, emptyBounds, 'root = None', '构造完成', 'return root', '最终结果是 <span class="op">root = None</span>。');
+      return steps;
+    }
+
+    function build(preLeft, preRight, inLeft, inRight, parentId, side) {
+      var frame = {
+        preLeft:preLeft, preRight:preRight, inLeft:inLeft, inRight:inRight, state:'call',
+        nodeId:null, rootValue:null, rootIndex:null, leftSize:null, parentId:parentId, side:side
+      };
+      stack.push(frame);
+      var bounds = { preLeft:preLeft, preRight:preRight, inLeft:inLeft, inRight:inRight, rootIndex:null, leftSize:null };
+      snap('call', parentId >= 0 ? parentId : null, bounds,
+        'build(' + [preLeft, preRight, inLeft, inRight].join(', ') + ')',
+        '进入四边界递归调用', 'def build(pre_left, pre_right, in_left, in_right):',
+        '创建调用帧：前序闭区间 <code>[' + preLeft + ', ' + preRight + ']</code>，中序闭区间 <code>[' + inLeft + ', ' + inRight + ']</code>。', side);
+      if (preLeft > preRight) {
+        frame.state = 'base';
+        snap('base', parentId >= 0 ? parentId : null, bounds,
+          preLeft + ' > ' + preRight + '  →  True', '命中空区间基例',
+          'if pre_left > pre_right: return None',
+          '<code>pre_left &gt; pre_right</code>，当前子树为空，直接返回 <b>None</b>。', side);
+        stack.pop();
+        return -1;
+      }
+
+      frame.state = 'root';
+      var rootValue = preorder[preLeft];
+      frame.rootValue = rootValue;
+      snap('take-root', null, bounds,
+        'root_value = preorder[' + preLeft + '] = ' + rootValue,
+        '从前序区间首项取根 ' + rootValue, 'root_value = preorder[pre_left]',
+        '前序顺序是 <b>根 → 左 → 右</b>，所以当前前序区间首项 <code>preorder[' + preLeft + ']</code> 必为根。');
+
+      frame.state = 'locate';
+      var rootIndex = inorderIndex[rootValue];
+      frame.rootIndex = rootIndex; bounds.rootIndex = rootIndex;
+      snap('locate-root', null, bounds,
+        'root_index = inorder_index[' + rootValue + '] = ' + rootIndex,
+        '在中序中定位根下标 ' + rootIndex, 'root_index = inorder_index[root_value]',
+        '哈希表 O(1) 找到根 <b>' + rootValue + '</b> 的中序下标 <code>' + rootIndex + '</code>。值唯一保证这个位置唯一。');
+
+      frame.state = 'size';
+      var leftSize = rootIndex - inLeft;
+      frame.leftSize = leftSize; bounds.leftSize = leftSize;
+      snap('left-size', null, bounds,
+        'left_size = ' + rootIndex + ' - ' + inLeft + ' = ' + leftSize,
+        '用中序根位置计算左子树长度', 'left_size = root_index - in_left',
+        '中序是 <b>左 → 根 → 右</b>；根左侧共有 <span class="op">' + leftSize + '</span> 个节点，因此左子树长度为 ' + leftSize + '。');
+
+      frame.state = 'ranges';
+      snap('highlight-inorder', null, bounds,
+        'inorder: [' + inLeft + ', ' + (rootIndex - 1) + '] | ' + rootIndex + ' | [' + (rootIndex + 1) + ', ' + inRight + ']',
+        '高亮中序的左 / 根 / 右区间', 'inorder[in_left : root_index : in_right]',
+        '中序区间被根切成：蓝色左子树、黄色根、紫色右子树。这里展示的是边界，不创建切片。');
+      snap('highlight-preorder', null, bounds,
+        'preorder: ' + preLeft + ' | [' + (preLeft + 1) + ', ' + (preLeft + leftSize) + '] | [' + (preLeft + leftSize + 1) + ', ' + preRight + ']',
+        '按 left_size 划分前序区间', 'right_start = pre_left + left_size + 1',
+        '前序先放根，再放 <b>' + leftSize + '</b> 个左树节点；因此右子树从 <code>' + preLeft + ' + ' + leftSize + ' + 1 = <span class="op">' + (preLeft + leftSize + 1) + '</span></code> 开始。');
+
+      frame.state = 'create';
+      var nodeId = nodes.length;
+      frame.nodeId = nodeId;
+      nodes.push({ id:nodeId, value:rootValue, left:-1, right:-1, parent:parentId, side:side, preIndex:preLeft, inIndex:rootIndex });
+      if (parentId >= 0) nodes[parentId][side] = nodeId;
+      snap('create', nodeId, bounds,
+        'root = TreeNode(' + rootValue + ')',
+        '创建根节点 ' + rootValue, 'root = TreeNode(root_value)',
+        '创建节点 <b>' + rootValue + '</b>（id ' + nodeId + '），并把它连接到' + (parentId < 0 ? '整棵树的根' : '父节点的' + (side === 'left' ? '左边' : '右边')) + '。', side);
+
+      frame.state = 'left';
+      snap('descend-left', nodeId, bounds,
+        'build(' + [preLeft + 1, preLeft + leftSize, inLeft, rootIndex - 1].join(', ') + ')',
+        '递归构造左子树', 'root.left = build(pre_left + 1, pre_left + left_size, in_left, root_index - 1)',
+        '左子树在前序中紧跟根，占 <code>left_size = ' + leftSize + '</code> 项；递归传入对应的四个边界。', 'left');
+      var leftId = build(preLeft + 1, preLeft + leftSize, inLeft, rootIndex - 1, nodeId, 'left');
+      nodes[nodeId].left = leftId;
+
+      frame.state = 'right';
+      snap('descend-right', nodeId, bounds,
+        'build(' + [preLeft + leftSize + 1, preRight, rootIndex + 1, inRight].join(', ') + ')',
+        '左树完成，递归构造右子树', 'root.right = build(pre_left + left_size + 1, pre_right, root_index + 1, in_right)',
+        '跳过前序中的 <b>1 个根 + ' + leftSize + ' 个左树节点</b>，右树起点正是 <code>pre_left + left_size + 1 = ' + (preLeft + leftSize + 1) + '</code>。', 'right');
+      var rightId = build(preLeft + leftSize + 1, preRight, rootIndex + 1, inRight, nodeId, 'right');
+      nodes[nodeId].right = rightId;
+
+      frame.state = 'return';
+      completed.push(nodeId);
+      snap('return', nodeId, bounds,
+        'return root  # ' + rootValue,
+        '左右子树完成，返回节点 ' + rootValue, 'return root',
+        '节点 <b>' + rootValue + '</b> 的左右子树都已构造完成；整棵子树变为绿色，并返回当前根。');
+      stack.pop();
+      return nodeId;
+    }
+
+    var rootId = build(0, preorder.length - 1, 0, inorder.length - 1, -1, 'root');
+    snap('done', rootId, { preLeft:0, preRight:preorder.length - 1, inLeft:0, inRight:inorder.length - 1, rootIndex:inorderIndex[preorder[0]], leftSize:inorderIndex[preorder[0]] },
+      'return root  # 全部完成', '整棵二叉树构造完成', 'return root',
+      '全部递归帧已经弹出，返回根节点 <b>' + preorder[0] + '</b>；前序与中序复核均与输入一致。');
+    return steps;
+  }
+
+  function traversals(nodes, rootId) {
+    var preorder = [], inorder = [];
+    function walk(id) {
+      if (id < 0) return;
+      preorder.push(nodes[id].value);
+      walk(nodes[id].left);
+      inorder.push(nodes[id].value);
+      walk(nodes[id].right);
+    }
+    walk(rootId);
+    return { preorder:preorder, inorder:inorder };
+  }
+  function sameArray(a, b) {
+    return a.length === b.length && a.every(function (value, index) { return value === b[index]; });
+  }
+
+  function validateSnapshots(preorder, inorder, steps) {
+    var errors = [], seen = {};
+    for (var i = 0; i < steps.length; i++) {
+      var step = steps[i]; seen[step.phase] = true;
+      if (!Array.isArray(step.stack) || !Array.isArray(step.topology) || !Array.isArray(step.completed)) {
+        errors.push('第 ' + (i + 1) + ' 帧缺少 stack/topology/completed 快照'); continue;
+      }
+      if (step.bounds && typeof step.bounds !== 'object') errors.push('第 ' + (i + 1) + ' 帧 bounds 无效');
+      if (new Set(step.completed).size !== step.completed.length) errors.push('第 ' + (i + 1) + ' 帧重复完成子树');
+      for (var n = 0; n < step.topology.length; n++) {
+        var node = step.topology[n];
+        if (node.id !== n || node.preIndex < 0 || node.preIndex >= preorder.length ||
+            node.inIndex < 0 || node.inIndex >= inorder.length || preorder[node.preIndex] !== node.value || inorder[node.inIndex] !== node.value) {
+          errors.push('第 ' + (i + 1) + ' 帧拓扑节点身份或遍历下标错误');
+        }
+        if (node.left >= step.topology.length || node.right >= step.topology.length) errors.push('第 ' + (i + 1) + ' 帧拓扑引用未来节点');
+      }
+      if (i > 0) {
+        var prev = steps[i - 1];
+        if (prev.stack === step.stack || prev.topology === step.topology || prev.completed === step.completed ||
+            (prev.bounds && prev.bounds === step.bounds) || (prev.ranges && prev.ranges === step.ranges)) {
+          errors.push('相邻帧共享可变快照引用');
+        }
+        if (prev.stack.length && step.stack.length && prev.stack[0] === step.stack[0]) errors.push('相邻帧共享调用帧对象');
+        if (prev.topology.length && step.topology.length && prev.topology[0] === step.topology[0]) errors.push('相邻帧共享拓扑节点对象');
+      }
+      if (step.phase === 'left-size' && step.bounds) {
+        if (step.bounds.leftSize !== step.bounds.rootIndex - step.bounds.inLeft) errors.push('left_size 计算错误');
+      }
+      if (step.phase === 'highlight-preorder' && step.ranges) {
+        if (step.ranges.preRight[0] !== step.bounds.preLeft + step.bounds.leftSize + 1) errors.push('右子树前序起点错误');
+      }
+    }
+    var required = ['call','take-root','locate-root','left-size','highlight-inorder','highlight-preorder','create','descend-left','descend-right','return','done'];
+    if (preorder.length) required.forEach(function (phase) { if (!seen[phase]) errors.push('缺少阶段 ' + phase); });
+    var last = steps[steps.length - 1];
+    if (!last || last.phase !== 'done') errors.push('最后一帧必须是 done');
+    else {
+      if (last.stack.length) errors.push('结束时调用栈必须为空');
+      if (last.topology.length !== preorder.length || last.completed.length !== preorder.length) errors.push('结束时节点或完成子树数量错误');
+      var rebuilt = traversals(last.topology, last.topology.length ? 0 : -1);
+      if (!sameArray(rebuilt.preorder, preorder) || !sameArray(rebuilt.inorder, inorder)) errors.push('重建后的遍历与输入不一致');
+    }
+    return { ok:errors.length === 0, errors:errors };
+  }
+
+  function layout(nodes, rootId, options) {
+    options = options || {};
+    var xGap = options.xGap || 72, yGap = options.yGap || 82, padX = options.padX || 48, padY = options.padY || 40;
+    var positions = {}, column = 0, maxDepth = 0;
+    function walk(id, depth) {
+      if (id < 0) return;
+      walk(nodes[id].left, depth + 1);
+      positions[id] = { x:padX + column * xGap, y:padY + depth * yGap, depth:depth };
+      column++;
+      if (depth > maxDepth) maxDepth = depth;
+      walk(nodes[id].right, depth + 1);
+    }
+    if (rootId >= 0) walk(rootId, 0);
+    return {
+      positions:positions,
+      width:Math.max(300, padX * 2 + Math.max(0, column - 1) * xGap),
+      height:Math.max(325, padY * 2 + maxDepth * yGap + 30),
+      heightLevels:nodes.length ? maxDepth + 1 : 0
+    };
+  }
+
+  function run(preInput, inInput) {
+    var parsed = parseInputs(preInput, inInput);
+    if (parsed.error) return { error:parsed.error };
+    var steps = buildSteps(parsed.preorder, parsed.inorder, parsed.inorderIndex);
+    var validation = validateSnapshots(parsed.preorder, parsed.inorder, steps);
+    var finalTopology = cloneTopology(steps[steps.length - 1].topology);
+    return {
+      error:null, preorder:parsed.preorder.slice(), inorder:parsed.inorder.slice(),
+      inorderIndex:Object.assign({}, parsed.inorderIndex), rootId:finalTopology.length ? 0 : -1,
+      nodes:finalTopology, steps:steps, validation:validation
+    };
+  }
+
+  root.ConstructTree105 = {
+    parseArray:parseArray, validateCombination:validateCombination, parseInputs:parseInputs,
+    cloneTopology:cloneTopology, buildSteps:buildSteps, traversals:traversals,
+    validateSnapshots:validateSnapshots, layout:layout, run:run,
+    limits:{ minValue:MIN_VALUE, maxValue:MAX_VALUE, maxNodes:MAX_NODES }
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.ConstructTree105, $ = function (id) { return document.getElementById(id); };
+  var preInput = $('preInput'), inInput = $('inInput'), svg = $('treeSvg');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var result = null, steps = [], stepIndex = 0, timer = null, positions = {};
+  var SVG_NS = 'http://www.w3.org/2000/svg', RADIUS = 20;
+
+  function svgElement(name, attrs) {
+    var element = document.createElementNS(SVG_NS, name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    return element;
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function phaseKey(phase) {
+    if (phase === 'call' || phase === 'base') return 'call';
+    if (phase === 'take-root') return 'root';
+    if (phase === 'locate-root') return 'locate';
+    if (phase === 'left-size') return 'size';
+    if (phase === 'highlight-inorder' || phase === 'highlight-preorder') return 'ranges';
+    if (phase === 'create') return 'create';
+    if (phase === 'descend-left') return 'left';
+    return 'right';
+  }
+  function stateText(state) {
+    return { call:'进入', base:'空区间', root:'取根', locate:'定位', size:'算左长', ranges:'划区间', create:'创建', left:'等左树', right:'等右树', return:'返回' }[state] || state;
+  }
+  function inRange(index, range) { return range && range[0] <= range[1] && index >= range[0] && index <= range[1]; }
+
+  function renderArray(containerId, values, kind, step) {
+    var container = $(containerId); container.innerHTML = '';
+    if (!values.length) { container.innerHTML = '<span class="empty-array">[]</span>'; return; }
+    var bounds = step.bounds, ranges = step.ranges;
+    values.forEach(function (value, index) {
+      var cell = document.createElement('span'), className = 'cell';
+      var active = bounds && (kind === 'pre' ? index >= bounds.preLeft && index <= bounds.preRight : index >= bounds.inLeft && index <= bounds.inRight);
+      if (!active) className += ' outside';
+      else if (!ranges) className += ' pending';
+      else if (kind === 'pre') {
+        if (inRange(index, ranges.preRoot)) className += ' root';
+        else if (inRange(index, ranges.preLeft)) className += ' left';
+        else if (inRange(index, ranges.preRight)) className += ' right';
+      } else {
+        if (inRange(index, ranges.inRoot)) className += ' root';
+        else if (inRange(index, ranges.inLeft)) className += ' left';
+        else if (inRange(index, ranges.inRight)) className += ' right';
+      }
+      cell.className = className; cell.textContent = value;
+      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = index; cell.appendChild(idx);
+      container.appendChild(cell);
+    });
+  }
+
+  function parentMap(nodes) {
+    var map = {};
+    nodes.forEach(function (node) {
+      if (node.left >= 0) map[node.left] = { parentId:node.id, side:'left' };
+      if (node.right >= 0) map[node.right] = { parentId:node.id, side:'right' };
+    });
+    return map;
+  }
+  function drawTree(step) {
+    svg.innerHTML = '';
+    var nodes = step.topology;
+    $('emptyTree').style.display = nodes.length ? 'none' : 'flex';
+    svg.style.display = nodes.length ? 'block' : 'none';
+    if (!nodes.length) return;
+    var parents = parentMap(nodes), completed = {};
+    step.completed.forEach(function (id) { completed[id] = true; });
+    svg.setAttribute('width', result.layout.width); svg.setAttribute('height', result.layout.height);
+    svg.setAttribute('viewBox', '0 0 ' + result.layout.width + ' ' + result.layout.height);
+    nodes.forEach(function (node) {
+      if (node.id === result.rootId) return;
+      var relation = parents[node.id], from = positions[relation.parentId], to = positions[node.id];
+      var edgeClass = 'edge' + (completed[node.id] ? ' done' : '');
+      if ((step.phase === 'descend-left' || step.phase === 'descend-right' || step.phase === 'create') &&
+          step.currentNode === relation.parentId && step.edgeSide === relation.side) edgeClass += ' active';
+      svg.appendChild(svgElement('line', { class:edgeClass, x1:from.x, y1:from.y, x2:to.x, y2:to.y }));
+      var label = svgElement('text', {
+        class:'edge-label', x:(from.x + to.x) / 2 + (relation.side === 'left' ? -8 : 8),
+        y:(from.y + to.y) / 2 - 3, 'text-anchor':'middle'
+      });
+      label.textContent = relation.side === 'left' ? 'L' : 'R'; svg.appendChild(label);
+    });
+    nodes.forEach(function (node) {
+      var point = positions[node.id], className = 'node created';
+      if (completed[node.id]) className += ' done';
+      if (step.currentNode === node.id) className += ' current';
+      var group = svgElement('g', { class:className });
+      group.appendChild(svgElement('circle', { cx:point.x, cy:point.y, r:RADIUS }));
+      var text = svgElement('text', { x:point.x, y:point.y + 5, 'text-anchor':'middle' });
+      text.textContent = node.value; group.appendChild(text);
+      var idText = svgElement('text', { class:'node-id', x:point.x, y:point.y + 33, 'text-anchor':'middle' });
+      idText.textContent = 'pre ' + node.preIndex + ' · in ' + node.inIndex; group.appendChild(idText);
+      svg.appendChild(group);
+    });
+  }
+
+  function renderStack(step) {
+    var container = $('stack'); container.innerHTML = '';
+    if (!step.stack.length) { container.innerHTML = '<div class="stack-empty">调用栈为空</div>'; return; }
+    step.stack.forEach(function (frame, index) {
+      var element = document.createElement('div'), top = index === step.stack.length - 1;
+      element.className = 'frame' + (top ? ' top' : '') + (frame.state === 'base' ? ' base' : '');
+      var depth = document.createElement('span'); depth.className = 'depth'; depth.textContent = index + 1;
+      var detail = document.createElement('span');
+      detail.textContent = 'build(' + [frame.preLeft, frame.preRight, frame.inLeft, frame.inRight].join(',') + ') · ' + stateText(frame.state);
+      element.appendChild(depth); element.appendChild(detail); container.appendChild(element);
+    });
+  }
+  function render() {
+    var step = steps[stepIndex];
+    renderArray('preCells', result.preorder, 'pre', step);
+    renderArray('inCells', result.inorder, 'in', step);
+    drawTree(step); renderStack(step);
+    Array.prototype.forEach.call($('phaseStrip').children, function (element) {
+      element.className = 'phase' + (element.dataset.phase === phaseKey(step.phase) ? ' active' : '');
+    });
+    $('formula').textContent = step.formula;
+    $('bounds').textContent = step.bounds ?
+      'pre=[' + step.bounds.preLeft + ',' + step.bounds.preRight + '] · in=[' + step.bounds.inLeft + ',' + step.bounds.inRight + ']' : '无活动区间';
+    $('action').innerHTML = '<span class="kind">' + step.phase.toUpperCase() + '</span><b>' + step.action + '</b>';
+    $('currentLine').textContent = step.codeLine;
+    $('status').innerHTML = step.message;
+    $('completed').innerHTML = step.completed.length ?
+      '<b>' + step.completed.map(function (id) { return step.topology[id].value; }).join(' → ') + '</b>' :
+      '[] · 尚无完整返回的非空子树';
+    $('progress').textContent = '帧 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0; nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+  function formatArray(values) { return '[' + values.join(', ') + ']'; }
+  function load() {
+    stopPlay();
+    var nextResult = App.run(preInput.value, inInput.value);
+    if (nextResult.error) {
+      $('err').textContent = '输入有误：' + nextResult.error + '。';
+      $('err').classList.add('show'); return;
+    }
+    $('err').classList.remove('show');
+    result = nextResult; steps = result.steps; stepIndex = 0;
+    result.layout = App.layout(result.nodes, result.rootId, { xGap:76, yGap:84, padX:52, padY:42 });
+    positions = result.layout.positions;
+    $('stats').innerHTML =
+      '<div class="stat">节点数<b>' + result.preorder.length + ' / 15</b></div>' +
+      '<div class="stat">前序<b>' + formatArray(result.preorder) + '</b></div>' +
+      '<div class="stat">中序<b>' + formatArray(result.inorder) + '</b></div>' +
+      '<div class="stat">树高 h<b>' + result.layout.heightLevels + '</b></div>' +
+      '<div class="stat">时间 / 哈希 / 栈<b>O(n) / O(n) / O(h)</b></div>' +
+      '<div class="stat">快照与遍历校验<b>' + (result.validation.ok ? '通过 ✓' : '失败 ✗') + '</b></div>';
+    render();
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function previous() { if (stepIndex > 0) { stepIndex--; render(); } }
+  prevBtn.onclick = function () { stopPlay(); previous(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = function () {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex === steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex === steps.length - 1) stopPlay(); else next();
+    }, 900);
+  };
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  [preInput, inInput].forEach(function (input) {
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') { event.preventDefault(); load(); }
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      preInput.value = chip.dataset.pre; inInput.value = chip.dataset.in;
+      Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (item) { item.classList.remove('active'); });
+      chip.classList.add('active'); load();
+    };
+  });
+  document.addEventListener('keydown', function (event) {
+    if (document.activeElement === preInput || document.activeElement === inInput) return;
+    if (event.key === 'ArrowRight') { stopPlay(); next(); }
+    if (event.key === 'ArrowLeft') { stopPlay(); previous(); }
+  });
+
+  var codes = {
+    py:`<span class="cmt"># 四个闭区间边界；不创建任何切片</span>
+class Solution:
+    def buildTree(self, preorder: List[int],
+                  inorder: List[int]) -&gt; Optional[TreeNode]:
+        inorder_index = {
+            value: i for i, value in enumerate(inorder)
+        }
+
+        def build(pre_left: int, pre_right: int,
+                  in_left: int, in_right: int) -&gt; Optional[TreeNode]:
+            if pre_left &gt; pre_right:
+                return None
+
+            root_value = preorder[pre_left]
+            root_index = inorder_index[root_value]
+            left_size = root_index - in_left
+
+            root = TreeNode(root_value)
+            root.left = build(
+                pre_left + 1,
+                pre_left + left_size,
+                in_left,
+                root_index - 1
+            )
+            root.right = build(
+                pre_left + left_size + 1,
+                pre_right,
+                root_index + 1,
+                in_right
+            )
+            return root
+
+        return build(0, len(preorder) - 1,
+                     0, len(inorder) - 1)`,
+    java:`<span class="cmt">// Map 定位中序根；四个闭区间边界；不复制子数组</span>
+class Solution {
+    private int[] preorder;
+    private Map&lt;Integer, Integer&gt; inorderIndex;
+
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        this.preorder = preorder;
+        this.inorderIndex = new HashMap&lt;&gt;();
+        for (int i = 0; i &lt; inorder.length; i++) {
+            inorderIndex.put(inorder[i], i);
+        }
+        return build(0, preorder.length - 1,
+                     0, inorder.length - 1);
+    }
+
+    private TreeNode build(int preLeft, int preRight,
+                           int inLeft, int inRight) {
+        if (preLeft &gt; preRight) {
+            return null;
+        }
+
+        int rootValue = preorder[preLeft];
+        int rootIndex = inorderIndex.get(rootValue);
+        int leftSize = rootIndex - inLeft;
+
+        TreeNode root = new TreeNode(rootValue);
+        root.left = build(
+            preLeft + 1,
+            preLeft + leftSize,
+            inLeft,
+            rootIndex - 1
+        );
+        root.right = build(
+            preLeft + leftSize + 1,
+            preRight,
+            rootIndex + 1,
+            inRight
+        );
+        return root;
+    }
+}`
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active'); $('codeBlock').innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  $('codeBlock').innerHTML = codes.py;
+  $('treeBox').setAttribute('tabindex', '0');
+  load();
+})();
+</script>
+</body>
+</html>
