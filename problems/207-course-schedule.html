@@ -3,456 +3,882 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 207 课程表 Kahn BFS 逐批动画：直观展示入度、固定批次队列、课程解锁和环导致的阻塞。">
+<meta name="tags" content="图 · 拓扑排序 · Kahn BFS · 入度 · 队列 · O(V+E)">
 <title>207. 课程表 — 动画演示</title>
 <style>
-  :root { color-scheme: light; }
-  * { box-sizing: border-box; }
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
   body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
   }
-  .wrap { max-width: 960px; margin: 0 auto; }
-  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
-  h1 { font-size: 20px; margin: 0 0 4px; }
-  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
-  .sub b { color:#1d2129; }
-  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
-  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
-  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  input[type=text] { flex: 1; min-width: 160px; padding: 9px 12px; font-size: 15px; font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none; }
-  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
-  button { padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; background: #6366f1; color: #fff; transition: background .15s; }
-  button:hover { background: #4f46e5; }
-  button.ghost { background: #eef0f4; color: #374151; }
-  button.ghost:hover { background: #e2e5eb; }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items:center; }
-  .examples .lab { font-size:12px; color:#9ca3af; }
-  .chip { font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151; }
-  .chip:hover { background: #e6e8ec; }
-  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .wrap { max-width:1120px; margin:0 auto; }
+  .navbar,.controls,.examples,.stats,.legend,.code-tabs { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .navbar { margin-bottom:16px; gap:12px; }
+  .difftag { padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; font-size:11px; font-weight:800; }
+  .link { color:#6b7280; font-size:12px; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { margin:0 0 4px; font-size:20px; }
+  .sub { margin-bottom:20px; color:#6b7280; font-size:13px; }
+  code { padding:1px 5px; border-radius:5px; background:#eef0f4; font:12px "SF Mono",Menlo,monospace; }
+  .card { margin-bottom:16px; padding:18px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { margin-bottom:10px; color:#6b7280; font-size:12px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+  .story { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; }
+  .story-item { padding:11px 12px; border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; color:#4b5563; font-size:13px; }
+  .story-item .no { color:#6366f1; font-size:11px; font-weight:800; letter-spacing:.04em; }
+  .story-item b { display:block; margin:2px 0; color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border:1px solid #bfdbfe; border-radius:10px; background:#eff6ff; color:#1e3a8a; font-size:13px; }
+  .batch-note { margin-top:10px; padding:10px 13px; border:1px solid #fde68a; border-radius:10px; background:#fffbeb; color:#92400e; font-size:13px; }
+  .input-grid { display:grid; grid-template-columns:minmax(140px,.35fr) minmax(0,1.65fr) auto; gap:10px; align-items:end; }
+  .field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field .lab { color:#6b7280; font-size:12px; font-weight:700; }
+  input[type=text] {
+    width:100%; min-width:0; padding:9px 11px; border:1px solid #d1d5db; border-radius:8px;
+    outline:none; background:#fff; font:13px "SF Mono",Menlo,monospace;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; border:0; border-radius:8px; background:#6366f1; color:#fff; font-size:14px; font-weight:700; cursor:pointer; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; gap:8px; }
+  .examples .lab,.hint { color:#9ca3af; font-size:12px; }
+  .chip { padding:5px 10px; border:1px solid #e5e7eb; border-radius:999px; background:#f1f2f4; color:#374151; font:12px "SF Mono",Menlo,monospace; cursor:pointer; }
+  .chip:hover { border-color:#a5b4fc; background:#e0e7ff; color:#3730a3; }
+  .err { display:none; margin-top:10px; color:#dc2626; font-size:13px; }
   .err.show { display:block; }
-  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
-  .steps5 { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
-  .s5 { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
-  .s5 .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
-  .s5 b { color:#1d2129; }
-  .s5 code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-size:12px; }
-  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
-  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
-  .stat b { display:block; font-size:15px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
-  .stage { overflow:auto; border:1px solid #f1f2f4; border-radius:10px; background:linear-gradient(#fff,#fbfbfd); padding:16px; }
-  .vars { display:flex; flex-wrap:wrap; gap:10px 22px; margin:16px 2px 0; font-size:13px; color:#4b5563; font-family:"SF Mono",Menlo,monospace; }
-  .vars b { color:#1d2129; }
-  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
-  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .area { color:#fcd34d; font-weight:700; }
-  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
-  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
-  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px;}
-  details.code { margin-top: 4px; }
-  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
-  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
-  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
-  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
-  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
-  pre .cmt { color:#7dd3fc; }
-  .nav-row { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
-  #graph-svg { width:100%; min-height:320px; }
-  .node-circle { transition: fill .25s, stroke .25s; }
+  .hint { margin-top:8px; line-height:1.65; }
+  .stats { margin-bottom:14px; gap:8px 10px; }
+  .stat { padding:8px 12px; border:1px solid #eef0f4; border-radius:8px; background:#f8fafc; color:#6b7280; font-size:12px; }
+  .stat b { display:block; color:#1d2129; font:800 15px "SF Mono",Menlo,monospace; }
+  .stat b.yes { color:#15803d; } .stat b.no { color:#b91c1c; }
+  .progress { margin-left:auto; color:#9ca3af; font-size:12px; }
+  .table-scroll { width:100%; overflow-x:auto; border:1px solid #cbd5e1; border-radius:12px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.05); }
+  .structure-table { width:max-content; min-width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:13px; }
+  .structure-table th,.structure-table td { min-width:108px; height:58px; padding:9px 8px; border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; text-align:center; transition:.18s; }
+  .structure-table tr:last-child th,.structure-table tr:last-child td { border-bottom:0; }
+  .structure-table th:last-child,.structure-table td:last-child { border-right:0; }
+  .structure-table .row-label {
+    position:sticky; left:0; z-index:3; min-width:128px; background:#f8fafc; color:#334155;
+    text-align:left; font:800 12px "SF Mono",Menlo,monospace; box-shadow:2px 0 0 #e5e7eb;
+  }
+  .structure-table thead th { height:46px; background:#eef2ff; color:#3730a3; font:900 15px "SF Mono",Menlo,monospace; }
+  .structure-table thead .row-label { z-index:4; background:#e0e7ff; }
+  .structure-table .current-col { background:#f5f3ff; box-shadow:inset 0 0 0 2px #8b5cf6; }
+  .structure-table .ready-col { background:#fffbeb; }
+  .structure-table .unlocked-col { background:#eff6ff; box-shadow:inset 0 0 0 2px #60a5fa; }
+  .structure-table .blocked-col { background:#fff1f2; color:#991b1b; }
+  .graph-list { display:flex; min-height:30px; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px; font:800 12px "SF Mono",Menlo,monospace; }
+  .edge-token { padding:3px 5px; border-radius:5px; background:#eef2ff; color:#4338ca; }
+  .edge-token.removed { background:#f1f5f9; color:#94a3b8; text-decoration:line-through; }
+  .edge-token.just-removed { background:#fef3c7; color:#92400e; text-decoration:line-through; outline:2px solid #f59e0b; }
+  .active-list { background:#ede9fe!important; }
+  .degree-value { font:900 17px "SF Mono",Menlo,monospace; }
+  .degree-change { padding:4px 6px; border-radius:6px; background:#fef3c7; color:#92400e; font:900 14px "SF Mono",Menlo,monospace; }
+  .degree-change.zero { background:#dbeafe; color:#1d4ed8; }
+  .course-status { display:inline-block; padding:4px 8px; border-radius:999px; background:#f1f5f9; color:#64748b; font-size:11px; font-weight:800; }
+  .course-status.ready { background:#fef3c7; color:#92400e; }
+  .course-status.current { background:#ede9fe; color:#5b21b6; }
+  .course-status.unlocked { background:#dbeafe; color:#1d4ed8; }
+  .course-status.finished { background:#dcfce7; color:#166534; }
+  .course-status.blocked { background:#fee2e2; color:#991b1b; }
+  .queue-area { margin-top:12px; padding:13px; border:1px solid #dbeafe; border-radius:12px; background:#f8fbff; }
+  .queue-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+  .queue-panel { min-width:0; padding:8px; border:1px dashed #cbd5e1; border-radius:9px; background:#fff; }
+  .queue-panel.q-current { grid-column:1/-1; border-style:solid; border-color:#93c5fd; background:#eff6ff; }
+  .queue-label { margin-bottom:6px; color:#64748b; font-size:11px; font-weight:800; }
+  .queue-label b { color:#1d4ed8; }
+  .work-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(310px,.9fr); gap:12px; margin-top:12px; }
+  .action { min-height:178px; padding:13px 14px; border:1px solid #ddd6fe; border-radius:10px; background:#f5f3ff; color:#5b21b6; font-size:13px; }
+  .action b { color:#3730a3; }
+  .changes { margin:7px 0 0; padding:0; list-style:none; }
+  .changes li { margin-top:5px; padding-top:5px; border-top:1px solid #e9d5ff; color:#4c1d95; font:11px "SF Mono",Menlo,monospace; }
+  .code-trace { overflow:auto; border-radius:10px; background:#0f172a; color:#94a3b8; font:11px/1.6 "SF Mono",Menlo,monospace; }
+  .trace-line { min-width:max-content; padding:1px 11px; white-space:pre; border-left:3px solid transparent; }
+  .trace-line.active { border-left-color:#f59e0b; background:#1e293b; color:#fde68a; font-weight:800; }
+  .aux-graph { margin-top:14px; border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; }
+  .aux-graph summary { padding:10px 12px; color:#64748b; font-size:12px; font-weight:700; cursor:pointer; }
+  .graph-box { padding:8px; overflow:auto; border-top:1px solid #e5e7eb; background:#fff; }
+  .graph-heading { padding:5px 8px 0; color:#475569; font-size:12px; font-weight:800; }
+  .graph-heading span { color:#6366f1; }
+  #graphSvg { display:block; width:100%; min-width:520px; height:300px; }
+  .edge { fill:none; stroke:#94a3b8; stroke-width:2.3; marker-end:url(#arrow); transition:.18s; }
+  .edge.removed { stroke:#d1d5db; stroke-width:2; stroke-dasharray:5 4; marker-end:url(#arrowGone); opacity:.48; }
+  .edge.just-removed { stroke:#f59e0b; stroke-width:4; stroke-dasharray:6 3; marker-end:url(#arrowActive); opacity:1; }
+  .edge.blocked { stroke:#dc2626; stroke-width:4; marker-end:url(#arrowBad); opacity:1; }
+  .edge-label { fill:#64748b; font:800 10px "SF Mono",Menlo,monospace; }
+  .node circle { fill:#fff; stroke:#cbd5e1; stroke-width:2.5; transition:.18s; }
+  .node text.course { fill:#1e293b; text-anchor:middle; font:900 19px "SF Mono",Menlo,monospace; }
+  .node text.degree { fill:#64748b; text-anchor:middle; font:800 10px "SF Mono",Menlo,monospace; }
+  .node.ready circle { fill:#fef3c7; stroke:#f59e0b; }
+  .node.unlocked circle { fill:#dbeafe; stroke:#3b82f6; stroke-width:4; }
+  .node.current circle { fill:#ede9fe; stroke:#7c3aed; stroke-width:4; filter:drop-shadow(0 2px 4px rgba(109,40,217,.2)); }
+  .node.finished circle { fill:#dcfce7; stroke:#22c55e; }
+  .node.blocked circle { fill:#fee2e2; stroke:#dc2626; stroke-width:4; }
+  .sequence { display:flex; min-height:31px; flex-wrap:wrap; align-items:center; gap:6px; }
+  .item { min-width:31px; padding:4px 7px; border:1px solid #818cf8; border-radius:7px; background:#e0e7ff; color:#3730a3; text-align:center; font:800 12px "SF Mono",Menlo,monospace; }
+  .item.done-in-batch { border-color:#86efac; background:#dcfce7; color:#166534; }
+  .item.current-in-batch { border-color:#a78bfa; background:#ede9fe; color:#5b21b6; }
+  .item.new-item { border-color:#60a5fa; background:#dbeafe; color:#1d4ed8; }
+  .none { color:#94a3b8; font-size:12px; }
+  .queue-caption { margin-top:5px; color:#94a3b8; font-size:11px; }
+  .status-title { margin-top:16px; }
+  .status { min-height:52px; padding:14px 16px; border-radius:10px; background:#111827; color:#e5e7eb; font-size:14px; }
+  .status b { color:#fcd34d; } .status .ok { color:#86efac; font-weight:800; } .status .bad { color:#fca5a5; font-weight:800; }
+  .legend { margin-top:13px; gap:14px; color:#6b7280; font-size:12px; }
+  .dot { display:inline-block; width:12px; height:12px; margin-right:5px; border:1px solid rgba(0,0,0,.1); border-radius:50%; vertical-align:-2px; }
+  .complexity { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .complexity > div { padding:12px 14px; border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; color:#4b5563; font-size:13px; }
+  .complexity b { display:block; margin-bottom:3px; color:#1d2129; }
+  details.code summary { color:#4f46e5; font-size:14px; font-weight:700; cursor:pointer; }
+  .code-tabs { margin:12px 0 10px; gap:8px; }
+  .code-tab { padding:5px 12px; border:1px solid #e5e7eb; border-radius:999px; background:#f1f2f4; color:#374151; font-size:13px; cursor:pointer; }
+  .code-tab.active { border-color:#4338ca; background:#6366f1; color:#fff; }
+  pre { margin:0; padding:14px; overflow:auto; border-radius:10px; background:#0f172a; color:#e2e8f0; font-size:13px; line-height:1.55; }
+  @media (max-width:850px) {
+    body { padding:16px 12px; } .card { padding:14px; }
+    .story { grid-template-columns:1fr 1fr; }
+    .input-grid,.complexity,.work-grid { grid-template-columns:1fr; }
+    .queue-grid { grid-template-columns:1fr; }
+    .queue-panel.q-current { grid-column:auto; }
+    .progress { width:100%; margin-left:0; }
+  }
+  @media (max-width:520px) { .story { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-
   <div class="navbar">
     <span class="difftag">中等</span>
-    <span class="link-lc"><a href="https://leetcode.cn/problems/course-schedule/" target="_blank">#207 课程表</a></span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/course-schedule/" target="_blank" rel="noopener">LeetCode 207</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
   </div>
-  <h1>207. 课程表</h1>
-  <p class="sub">拓扑排序 BFS（Kahn 算法）· <b>时间 O(V+E)</b> · <b>空间 O(V+E)</b></p>
+  <h1>207. 课程表 · Kahn BFS 分批动画</h1>
+  <div class="sub">只做一件事：不断完成“现在就能学”的课程，看看最后完成数 <code>count</code> 是否等于课程总数。</div>
 
   <div class="card">
-    <div class="controls">
-      <input type="text" id="inp" value="4,[[1,0],[2,0],[3,1],[3,2]]" placeholder="numCourses,[[a,b],...]">
-      <button id="btnBuild">构建</button>
+    <div class="panel-title">先用一句话理解每一步</div>
+    <div class="story">
+      <div class="story-item"><div class="no">① 入度</div><b>还欠几门先修课</b>入度 2，就是还有 2 门先修课没完成。</div>
+      <div class="story-item"><div class="no">② 入队</div><b>入度 0，现在就能学</b>把所有入度 0 的课程放进队列。</div>
+      <div class="story-item"><div class="no">③ 完成</div><b>队首出队，count + 1</b>完成这门课，并删除它指向后续课程的边。</div>
+      <div class="story-item"><div class="no">④ 解锁</div><b>后续课程入度 −1</b>若入度降到 0，它被解锁并加入队尾。</div>
+      <div class="story-item"><div class="no">⑤ 判断</div><b>队列空时比较数量</b><code>count == numCourses</code> 才能完成全部课程。</div>
+    </div>
+    <div class="batch-note"><b>为什么代码有 <code>for _ in range(len(q))</code>？</b>每次 while 开始就冻结本批数量。过程中刚解锁并入队的课程属于<b>下一批</b>，不会被当前固定次数的 for 立刻处理。</div>
+    <div class="key-note"><b>箭头始终是“先修课 → 后续课程”。</b><code>1&lt;-0</code> 对应 LeetCode <code>[1,0]</code>，意思是先学 0 才能学 1，所以画边 <code>0 → 1</code>。课程编号顺序不重要，本题只返回能否完成。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">numCourses（1～12）</span><input id="numInput" type="text" value="4" inputmode="numeric" spellcheck="false"></label>
+      <label class="field"><span class="lab">prerequisites（课程&lt;-先修课；英文分号分隔）</span><input id="edgesInput" type="text" value="1&lt;-0; 2&lt;-0; 3&lt;-1; 3&lt;-2" spellcheck="false" placeholder="允许留空，例如：1&lt;-0; 2&lt;-0"></label>
+      <button type="button" id="loadBtn">演示</button>
     </div>
     <div class="examples">
       <span class="lab">示例：</span>
-      <span class="chip" onclick="setEx('2,[[1,0]]')">2,[[1,0]]</span>
-      <span class="chip" onclick="setEx('4,[[1,0],[2,0],[3,1],[3,2]]')">4,[[1,0],[2,0],[3,1],[3,2]]</span>
-      <span class="chip" onclick="setEx('3,[[0,1],[1,2],[2,0]]')">3,[[0,1],[1,2],[2,0]] (有环)</span>
-      <span class="chip" onclick="setEx('6,[[1,0],[2,1],[3,1],[4,2],[4,3],[5,4]]')">6,[[1,0],[2,1],[3,1],[4,2],[4,3],[5,4]]</span>
+      <span class="chip" data-n="4" data-e="1&lt;-0; 2&lt;-0; 3&lt;-1; 3&lt;-2">默认：菱形 DAG</span>
+      <span class="chip" data-n="2" data-e="1&lt;-0; 0&lt;-1">两节点环</span>
+      <span class="chip" data-n="3" data-e="1&lt;-0; 2&lt;-1; 0&lt;-2">三节点环</span>
+      <span class="chip" data-n="1" data-e="0&lt;-0">自环</span>
+      <span class="chip" data-n="6" data-e="1&lt;-0; 3&lt;-2; 4&lt;-3">多组件</span>
+      <span class="chip" data-n="5" data-e="">无依赖</span>
     </div>
-    <div class="err" id="err"></div>
+    <div class="err" id="error" role="alert"></div>
+    <div class="hint">严格语法：每项必须是 <code>course&lt;-prerequisite</code>；编号须在 0～numCourses−1，最多 36 条边，重复边会被拒绝。空输入表示无依赖；自环是合法输入，但会导致无法完成。</div>
   </div>
 
-  <div class="card" id="animCard" style="display:none">
-    <div class="panel-title">动画演示</div>
-    <div class="stats">
-      <div class="stat">已处理<b id="stCount">0</b></div>
-      <div class="stat">队列<b id="stQueue">[]</b></div>
-      <div class="stat">结果<b id="stResult">—</b></div>
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
     </div>
-    <div class="stage">
-      <svg id="graph-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="panel-title">代码数据结构表格（主视图）</div>
+    <div class="table-scroll" aria-label="课程 graph 与 in_degree 表格，可横向滚动">
+      <table class="structure-table" id="structureTable"></table>
     </div>
-    <div class="vars" id="varsRow"></div>
-    <div class="status" id="statusBox">准备开始</div>
-    <div class="nav-row">
-      <button class="ghost" id="btnPrev" disabled>◀ 上一步</button>
-      <button class="ghost" id="btnNext">下一步 ▶</button>
-      <button class="ghost" id="btnAuto">自动播放</button>
-      <button class="ghost" id="btnReset">重置</button>
-      <span class="progress" id="progTxt"></span>
+    <div class="queue-area">
+      <div class="panel-title">队列 q：从左到右 = 队首 → 队尾</div>
+      <div class="queue-grid">
+        <div class="queue-panel q-current">
+          <div class="queue-label">当前真实队列 q</div>
+          <div class="sequence" id="currentQueue"></div>
+        </div>
+        <div class="queue-panel">
+          <div class="queue-label">本批开始冻结 <b id="batchSizeLabel"></b></div>
+          <div class="sequence" id="batchStart"></div>
+        </div>
+        <div class="queue-panel">
+          <div class="queue-label">本批还需处理</div>
+          <div class="sequence" id="batchRemaining"></div>
+        </div>
+        <div class="queue-panel">
+          <div class="queue-label">本批新增，下一批再处理</div>
+          <div class="sequence" id="nextBatch"></div>
+        </div>
+      </div>
+      <div class="queue-caption" id="batchCaption"></div>
+    </div>
+    <div class="work-grid">
+      <div><div class="panel-title">当前完整动作</div><div class="action" id="action"></div></div>
+      <div><div class="panel-title">当前对应代码</div><div class="code-trace" id="codeTrace"></div></div>
     </div>
     <div class="legend">
-      <span><span class="dot" style="background:#e5e7eb;border:2px dashed #9ca3af"></span>未处理</span>
-      <span><span class="dot" style="background:#fef3c7;border:2px solid #f59e0b"></span>在队列中</span>
-      <span><span class="dot" style="background:#6366f1"></span>正在处理</span>
-      <span><span class="dot" style="background:#dcfce7;border:2px solid #86efac"></span>已完成</span>
+      <span><i class="dot" style="background:#fff"></i>仍在等待</span>
+      <span><i class="dot" style="background:#fef3c7"></i>本批可学</span>
+      <span><i class="dot" style="background:#dbeafe"></i>新解锁、下批再学</span>
+      <span><i class="dot" style="background:#ede9fe"></i>当前完成</span>
+      <span><i class="dot" style="background:#dcfce7"></i>已完成</span>
+      <span><i class="dot" style="background:#fee2e2"></i>卡在环里</span>
+    </div>
+    <div class="panel-title status-title">状态栏</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+    <details class="aux-graph">
+      <summary>辅助：展开依赖关系图（主线请看上方代码表格）</summary>
+      <div class="graph-box">
+        <div class="graph-heading">箭头方向：<span>先修课 → 后续课程</span></div>
+        <svg id="graphSvg" role="img" aria-label="先修课指向后续课程的辅助有向图"></svg>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">复杂度</div>
+    <div class="complexity">
+      <div><b>时间 O(V+E)</b>每门课程只出队一次，每条依赖边也只在其先修课程完成时处理一次。</div>
+      <div><b>图存储 O(V+E)</b>邻接表保存 V 门课程及 E 条“先修课 → 后续课程”边。</div>
+      <div><b>辅助空间 O(V)</b>入度数组与队列最多各保存 V 项；批次展示不改变算法复杂度。</div>
     </div>
   </div>
 
   <div class="card">
     <details class="code">
-      <summary>参考代码</summary>
+      <summary>查看 Python / Java 参考代码（严格对应动画批次）</summary>
       <div class="code-tabs">
-        <span class="code-tab active" onclick="switchTab(this,'java')">Java</span>
-        <span class="code-tab" onclick="switchTab(this,'python')">Python</span>
+        <span class="code-tab active" data-lang="python">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
       </div>
-      <pre id="codeJava"><span class="cmt">// Java · 拓扑排序 BFS · 时间 O(V+E) 空间 O(V+E)</span>
-class Solution {
+      <pre id="pythonCode">from collections import deque
+
+class Solution:
+    def canFinish(self, numCourses: int, prerequisites: list[list[int]]) -> bool:
+        graph = [[] for _ in range(numCourses)]
+        in_degree = [0] * numCourses
+        for course, prerequisite in prerequisites:
+            graph[prerequisite].append(course)
+            in_degree[course] += 1
+
+        q = deque(i for i in range(numCourses) if in_degree[i] == 0)
+        count = 0
+        while q:
+            # 本轮只处理 while 开始时已经在队列里的课程
+            for _ in range(len(q)):
+                idx = q.popleft()
+                count += 1
+                for item in graph[idx]:
+                    in_degree[item] -= 1
+                    if in_degree[item] == 0:
+                        q.append(item)  # 留给下一批
+        return count == numCourses</pre>
+      <pre id="javaCode" hidden>class Solution {
     public boolean canFinish(int numCourses, int[][] prerequisites) {
-        int[] inDegree = new int[numCourses];
         List&lt;List&lt;Integer&gt;&gt; graph = new ArrayList&lt;&gt;();
+        int[] inDegree = new int[numCourses];
         for (int i = 0; i &lt; numCourses; i++) graph.add(new ArrayList&lt;&gt;());
-        for (int[] p : prerequisites) {
-            graph.get(p[1]).add(p[0]);
-            inDegree[p[0]]++;
+        for (int[] edge : prerequisites) {
+            graph.get(edge[1]).add(edge[0]);
+            inDegree[edge[0]]++;
         }
-        Queue&lt;Integer&gt; q = new LinkedList&lt;&gt;();
+
+        Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
         for (int i = 0; i &lt; numCourses; i++)
             if (inDegree[i] == 0) q.offer(i);
         int count = 0;
         while (!q.isEmpty()) {
-            int cur = q.poll();
-            count++;
-            for (int next : graph.get(cur)) {
-                if (--inDegree[next] == 0) q.offer(next);
+            int batchSize = q.size(); // 冻结本批次数
+            for (int i = 0; i &lt; batchSize; i++) {
+                int idx = q.poll();
+                count++;
+                for (int item : graph.get(idx)) {
+                    inDegree[item]--;
+                    if (inDegree[item] == 0) q.offer(item);
+                }
             }
         }
         return count == numCourses;
     }
 }</pre>
-      <pre id="codePython" style="display:none"><span class="cmt"># Python · 拓扑排序 BFS · 时间 O(V+E) 空间 O(V+E)</span>
-from collections import deque
-class Solution:
-    def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
-        in_degree = [0] * numCourses
-        graph = [[] for _ in range(numCourses)]
-        for a, b in prerequisites:
-            graph[b].append(a)
-            in_degree[a] += 1
-        q = deque(i for i in range(numCourses) if in_degree[i] == 0)
-        count = 0
-        while q:
-            cur = q.popleft()
-            count += 1
-            for nxt in graph[cur]:
-                in_degree[nxt] -= 1
-                if in_degree[nxt] == 0:
-                    q.append(nxt)
-        return count == numCourses</pre>
     </details>
   </div>
-
 </div>
 
-<script>
-// ── Script 1: pure logic ──────────────────────────────────────────────
-function parseInput(raw) {
-  raw = raw.trim();
-  const commaIdx = raw.indexOf(',');
-  if (commaIdx === -1) throw new Error('格式错误');
-  const numCourses = parseInt(raw.slice(0, commaIdx));
-  if (isNaN(numCourses) || numCourses < 1) throw new Error('numCourses 无效');
-  const arrStr = raw.slice(commaIdx + 1).trim();
-  let prereqs;
-  try { prereqs = JSON.parse(arrStr); } catch(e) { throw new Error('先修关系格式错误'); }
-  if (!Array.isArray(prereqs)) throw new Error('先修关系必须是数组');
-  return { numCourses, prereqs };
-}
+<script data-course-logic>
+(function (root) {
+  'use strict';
+  var MAX_COURSES = 12, MAX_EDGES = 36;
 
-function buildSteps(numCourses, prereqs) {
-  const steps = [];
-  const graph = Array.from({length: numCourses}, () => []);
-  const inDegree = new Array(numCourses).fill(0);
-
-  for (const [a, b] of prereqs) {
-    graph[b].push(a);
-    inDegree[a]++;
-  }
-
-  const snap = (nodeStates, queue, processing, msg, count) => {
-    steps.push({
-      nodeStates: nodeStates.slice(),
-      queue: queue.slice(),
-      processing,
-      msg,
-      count,
-      inDegree: inDegree.slice()
-    });
-  };
-
-  // STATE: 0=unvisited, 1=inQueue, 2=processing, 3=done
-  const nodeStates = new Array(numCourses).fill(0);
-  const queue = [];
-  let count = 0;
-
-  snap(nodeStates, queue, -1, '建图完成，初始化入度数组', count);
-
-  for (let i = 0; i < numCourses; i++) {
-    if (inDegree[i] === 0) {
-      queue.push(i);
-      nodeStates[i] = 1;
+  function parseInput(numText, edgeText) {
+    if (typeof numText !== 'string' || !/^(?:[1-9]|1[0-2])$/.test(numText.trim())) {
+      throw new Error('numCourses 必须是 1～12 的十进制整数');
     }
+    if (typeof edgeText !== 'string') throw new Error('prerequisites 必须是字符串');
+    var numCourses = Number(numText.trim()), text = edgeText.trim();
+    if (!text) return { numCourses:numCourses, prerequisites:[] };
+    var parts = text.split(';');
+    if (parts.length > MAX_EDGES) throw new Error('先修关系最多 36 条');
+    var prerequisites = [], seen = Object.create(null);
+    parts.forEach(function (raw, index) {
+      var match = /^(\d+)\s*<-\s*(\d+)$/.exec(raw.trim());
+      if (!match) throw new Error('第 ' + (index + 1) + ' 项格式错误，应为 course<-prerequisite');
+      var course = Number(match[1]), prerequisite = Number(match[2]);
+      if (!Number.isSafeInteger(course) || !Number.isSafeInteger(prerequisite) ||
+          course >= numCourses || prerequisite >= numCourses) {
+        throw new Error('第 ' + (index + 1) + ' 项编号越界，必须在 0～' + (numCourses - 1));
+      }
+      var key = prerequisite + '>' + course;
+      if (seen[key]) throw new Error('第 ' + (index + 1) + ' 项是重复边：' + course + '<-' + prerequisite);
+      seen[key] = true;
+      prerequisites.push([course, prerequisite]);
+    });
+    return { numCourses:numCourses, prerequisites:prerequisites };
   }
-  snap(nodeStates, queue, -1, `将入度为 0 的节点入队：[${queue.join(', ')}]`, count);
 
-  while (queue.length > 0) {
-    const cur = queue.shift();
-    nodeStates[cur] = 2;
-    snap(nodeStates, queue, cur, `出队节点 <b>${cur}</b>，处理其邻居`, count);
+  function createGraph(numCourses, prerequisites) {
+    if (!Number.isInteger(numCourses) || numCourses < 1 || numCourses > MAX_COURSES) throw new Error('numCourses 超出范围');
+    if (!Array.isArray(prerequisites) || prerequisites.length > MAX_EDGES) throw new Error('prerequisites 无效或超限');
+    var graph = Array.from({ length:numCourses }, function () { return []; });
+    var indegree = new Array(numCourses).fill(0), edges = [], seen = Object.create(null);
+    prerequisites.forEach(function (pair, index) {
+      if (!Array.isArray(pair) || pair.length !== 2 || !Number.isInteger(pair[0]) || !Number.isInteger(pair[1]) ||
+          pair[0] < 0 || pair[0] >= numCourses || pair[1] < 0 || pair[1] >= numCourses) {
+        throw new Error('prerequisites[' + index + '] 必须是范围内的 [course, prerequisite]');
+      }
+      var course = pair[0], prerequisite = pair[1], key = prerequisite + '>' + course;
+      if (seen[key]) throw new Error('存在重复先修边');
+      seen[key] = true;
+      graph[prerequisite].push(course);
+      indegree[course]++;
+      edges.push({ from:prerequisite, to:course, removed:false });
+    });
+    graph.forEach(function (list) { list.sort(function (a, b) { return a - b; }); });
+    edges.sort(function (a, b) { return a.from - b.from || a.to - b.to; });
+    return { graph:graph, indegree:indegree, edges:edges };
+  }
 
-    count++;
-    nodeStates[cur] = 3;
+  function copyEdges(edges) {
+    return edges.map(function (edge) { return { from:edge.from, to:edge.to, removed:edge.removed }; });
+  }
 
-    const newlyAdded = [];
-    for (const next of graph[cur]) {
-      inDegree[next]--;
-      if (inDegree[next] === 0) {
-        queue.push(next);
-        nodeStates[next] = 1;
-        newlyAdded.push(next);
+  function courseStatuses(state, detail) {
+    var current = detail.current == null ? -1 : detail.current;
+    var blocked = detail.blocked || [], nextBatch = detail.nextBatch || [];
+    return state.indegree.map(function (degree, course) {
+      if (blocked.indexOf(course) >= 0) return '卡住';
+      if (course === current) return '正在完成';
+      if (state.processed.indexOf(course) >= 0) return '已完成';
+      if (nextBatch.indexOf(course) >= 0) return '新解锁';
+      if (state.queue.indexOf(course) >= 0 || degree === 0) return '可学';
+      return '等待';
+    });
+  }
+
+  function makeSnapshot(state, detail) {
+    return {
+      type:detail.type,
+      batch:detail.batch || 0,
+      current:detail.current == null ? -1 : detail.current,
+      message:detail.message,
+      queue:state.queue.slice(),
+      batchStartQueue:(detail.batchStartQueue || []).slice(),
+      batchSize:detail.batchSize || 0,
+      batchPosition:detail.batchPosition || 0,
+      batchRemaining:(detail.batchRemaining || []).slice(),
+      nextBatch:(detail.nextBatch || []).slice(),
+      processed:state.processed.slice(),
+      blocked:(detail.blocked || []).slice(),
+      graph:state.graph.map(function (list) { return list.slice(); }),
+      indegree:state.indegree.slice(),
+      statuses:courseStatuses(state, detail),
+      edges:copyEdges(state.edges),
+      beforeQueue:(detail.beforeQueue || []).slice(),
+      newlyUnlocked:(detail.newlyUnlocked || []).slice(),
+      indegreeBefore:(detail.indegreeBefore || state.indegree).slice(),
+      indegreeAfter:(detail.indegreeAfter || state.indegree).slice(),
+      removedEdges:(detail.removedEdges || []).map(function (edge) { return edge.slice(); }),
+      affectedCourses:(detail.affectedCourses || []).slice(),
+      codeLines:(detail.codeLines || []).slice(),
+      count:state.count,
+      countBefore:detail.countBefore == null ? state.count : detail.countBefore,
+      countAfter:detail.countAfter == null ? state.count : detail.countAfter,
+      result:detail.result == null ? null : detail.result
+    };
+  }
+
+  function buildSteps(numCourses, prerequisites) {
+    var built = createGraph(numCourses, prerequisites);
+    var state = {
+      graph:built.graph.map(function (list) { return list.slice(); }),
+      indegree:built.indegree.slice(),
+      queue:[],
+      edges:copyEdges(built.edges),
+      processed:[],
+      count:0
+    };
+    var steps = [], batch = 0;
+    steps.push(makeSnapshot(state, {
+      type:'build-table',
+      codeLines:[1, 2, 3, 4, 5],
+      message:'建表完成：每条 <code>[course, prerequisite]</code> 都写入 <code>graph[prerequisite]</code>，同时执行 <code>in_degree[course] += 1</code>。先看清下方完整表格。'
+    }));
+
+    for (var course = 0; course < numCourses; course++) {
+      if (state.indegree[course] === 0) state.queue.push(course);
+    }
+    steps.push(makeSnapshot(state, {
+      type:'init-queue',
+      batchStartQueue:state.queue,
+      batchRemaining:state.queue,
+      codeLines:[6, 7],
+      message:state.queue.length
+        ? '初始化：入度 0 表示“现在就能学”，所以先把 <b>[' + state.queue.join(', ') + ']</b> 放入队列。'
+        : '初始化：<span class="bad">没有任何入度 0 的课程</span>，一开始就没有课程能学。'
+    }));
+
+    while (state.queue.length) {
+      batch++;
+      var batchStartQueue = state.queue.slice();
+      var batchSize = batchStartQueue.length;
+      var nextBatch = [];
+      steps.push(makeSnapshot(state, {
+        type:'batch-start',
+        batch:batch,
+        batchStartQueue:batchStartQueue,
+        batchSize:batchSize,
+        batchRemaining:batchStartQueue,
+        nextBatch:nextBatch,
+        codeLines:[8, 9],
+        message:'第 <b>' + batch + '</b> 批开始：冻结 <code>len(q) = ' + batchSize + '</code>，本批 for 循环只执行 ' + batchSize + ' 次。'
+      }));
+
+      for (var position = 0; position < batchSize; position++) {
+        var beforeQueue = state.queue.slice();
+        var idx = state.queue.shift();
+        var countBefore = state.count;
+        var indegreeBefore = state.indegree.slice();
+        var removedEdges = [], newlyUnlocked = [];
+        state.count++;
+        state.processed.push(idx);
+
+        built.graph[idx].forEach(function (item) {
+          var edge = state.edges.find(function (candidate) { return candidate.from === idx && candidate.to === item; });
+          if (!edge || edge.removed) throw new Error('内部错误：依赖边被重复处理');
+          edge.removed = true;
+          removedEdges.push([idx, item]);
+          state.indegree[item]--;
+          if (state.indegree[item] < 0) throw new Error('内部错误：入度变为负数');
+          if (state.indegree[item] === 0) {
+            state.queue.push(item);
+            nextBatch.push(item);
+            newlyUnlocked.push(item);
+          }
+        });
+
+        var batchRemaining = batchStartQueue.slice(position + 1);
+        var changes = removedEdges.length
+          ? removedEdges.map(function (edge) {
+              return edge[0] + '→' + edge[1] + '：入度 ' + indegreeBefore[edge[1]] + '→' + state.indegree[edge[1]];
+            }).join('；')
+          : '这门课没有指向后续课程的边';
+        var unlockText = newlyUnlocked.length ? '；新解锁 [' + newlyUnlocked.join(', ') + ']，留给下一批' : '；没有新课程被解锁';
+        steps.push(makeSnapshot(state, {
+          type:'process-course',
+          batch:batch,
+          current:idx,
+          batchStartQueue:batchStartQueue,
+          batchSize:batchSize,
+          batchPosition:position + 1,
+          batchRemaining:batchRemaining,
+          nextBatch:nextBatch,
+          beforeQueue:beforeQueue,
+          newlyUnlocked:newlyUnlocked,
+          indegreeBefore:indegreeBefore,
+          indegreeAfter:state.indegree,
+          removedEdges:removedEdges,
+          affectedCourses:removedEdges.map(function (edge) { return edge[1]; }),
+          codeLines:[10, 11, 12, 13, 14, 15],
+          countBefore:countBefore,
+          countAfter:state.count,
+          message:'队首 <b>' + idx + '</b> 出队并完成，count ' + countBefore + '→' + state.count + '。' + changes + unlockText + '。'
+        }));
+      }
+
+      if (state.queue.length !== nextBatch.length ||
+          state.queue.some(function (value, index) { return value !== nextBatch[index]; })) {
+        throw new Error('内部错误：固定批次语义被破坏');
+      }
+      steps.push(makeSnapshot(state, {
+        type:'batch-end',
+        batch:batch,
+        batchStartQueue:batchStartQueue,
+        batchSize:batchSize,
+        batchRemaining:[],
+        nextBatch:nextBatch,
+        codeLines:[8],
+        message:'第 <b>' + batch + '</b> 批结束。本批固定的 ' + batchSize + ' 门课已处理完；队列中 [' + state.queue.join(', ') + '] 全是本批新解锁的课程，下一次 while 再处理。'
+      }));
+    }
+
+    var result = state.count === numCourses, blocked = [];
+    if (!result) {
+      for (var node = 0; node < numCourses; node++) {
+        if (state.processed.indexOf(node) < 0) blocked.push(node);
       }
     }
-    const addMsg = newlyAdded.length
-      ? `节点 <b>${cur}</b> 已完成，邻居 [${newlyAdded.join(', ')}] 入度变为 0，入队`
-      : `节点 <b>${cur}</b> 已完成，无新节点入队`;
-    snap(nodeStates, queue, -1, addMsg, count);
+    steps.push(makeSnapshot(state, {
+      type:'done',
+      batch:batch,
+      blocked:blocked,
+      result:result,
+      codeLines:[16],
+      message:result
+        ? '<span class="ok">true：队列空，count == numCourses（' + state.count + ' == ' + numCourses + '）</span>，所有课程都能完成。'
+        : '<span class="bad">false：队列空，但 count != numCourses（' + state.count + ' != ' + numCourses + '）</span>；红色课程卡在依赖环里，无法继续。'
+    }));
+    return {
+      numCourses:numCourses,
+      prerequisites:prerequisites.map(function (pair) { return pair.slice(); }),
+      graph:built.graph.map(function (list) { return list.slice(); }),
+      canFinish:result,
+      steps:steps
+    };
   }
 
-  const canFinish = count === numCourses;
-  const finalMsg = canFinish
-    ? `<span class="op">✓ 可以完成所有课程</span>（处理节点数 ${count} == ${numCourses}）`
-    : `<b>✗ 存在环，无法完成所有课程</b>（处理节点数 ${count} ≠ ${numCourses}）`;
-  snap(nodeStates, queue, -1, finalMsg, count);
-
-  return { steps, graph, canFinish };
-}
+  root.CourseScheduleKahn = Object.freeze({
+    MAX_COURSES:MAX_COURSES,
+    MAX_EDGES:MAX_EDGES,
+    parseInput:parseInput,
+    createGraph:createGraph,
+    buildSteps:buildSteps
+  });
+})(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
 <script>
-// ── Script 2: UI rendering ────────────────────────────────────────────
-let steps = [], stepIdx = 0, autoTimer = null;
-let numCourses = 0, graph = [], prereqs = [];
+(function () {
+  'use strict';
+  var logic = window.CourseScheduleKahn;
+  var model = null, stepIndex = 0, timer = null;
+  var numInput = document.getElementById('numInput');
+  var edgesInput = document.getElementById('edgesInput');
+  var error = document.getElementById('error');
 
-function setEx(v) {
-  document.getElementById('inp').value = v;
-  doBuild();
-}
-
-function doBuild() {
-  clearAuto();
-  const raw = document.getElementById('inp').value;
-  const errEl = document.getElementById('err');
-  try {
-    const parsed = parseInput(raw);
-    numCourses = parsed.numCourses;
-    prereqs = parsed.prereqs;
-    errEl.className = 'err';
-    const result = buildSteps(numCourses, prereqs);
-    steps = result.steps;
-    graph = result.graph;
-    stepIdx = 0;
-    document.getElementById('animCard').style.display = '';
-    renderSVG();
-    renderStep();
-  } catch(e) {
-    errEl.textContent = e.message;
-    errEl.className = 'err show';
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char];
+    });
   }
-}
 
-function nodePos(i, n, cx, cy, r) {
-  const angle = (2 * Math.PI * i / n) - Math.PI / 2;
-  return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
-}
+  function stopPlay() {
+    if (timer !== null) clearInterval(timer);
+    timer = null;
+    document.getElementById('playBtn').textContent = '▶ 自动播放';
+  }
 
-function renderSVG() {
-  const svg = document.getElementById('graph-svg');
-  const W = svg.clientWidth || 600, H = 320;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.innerHTML = '';
-
-  const cx = W / 2, cy = H / 2, r = Math.min(W, H) * 0.35;
-  const NODE_R = 26;
-
-  // defs for arrowhead
-  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  defs.innerHTML = `<marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#9ca3af"/>
-  </marker>
-  <marker id="arr-active" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#6366f1"/>
-  </marker>`;
-  svg.appendChild(defs);
-
-  // edges
-  for (let b = 0; b < numCourses; b++) {
-    for (const a of graph[b]) {
-      const p1 = nodePos(b, numCourses, cx, cy, r);
-      const p2 = nodePos(a, numCourses, cx, cy, r);
-      const dx = p2.x - p1.x, dy = p2.y - p1.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      const ex = p2.x - (dx/dist) * (NODE_R + 2);
-      const ey = p2.y - (dy/dist) * (NODE_R + 2);
-      const sx = p1.x + (dx/dist) * NODE_R;
-      const sy = p1.y + (dy/dist) * NODE_R;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', sx); line.setAttribute('y1', sy);
-      line.setAttribute('x2', ex); line.setAttribute('y2', ey);
-      line.setAttribute('stroke', '#d1d5db'); line.setAttribute('stroke-width', '1.5');
-      line.setAttribute('marker-end', 'url(#arr)');
-      line.dataset.from = b; line.dataset.to = a;
-      svg.appendChild(line);
+  function load() {
+    stopPlay();
+    try {
+      var parsed = logic.parseInput(numInput.value, edgesInput.value);
+      model = logic.buildSteps(parsed.numCourses, parsed.prerequisites);
+      stepIndex = 0;
+      error.className = 'err';
+      render();
+    } catch (err) {
+      error.textContent = err.message;
+      error.className = 'err show';
     }
   }
 
-  // nodes
-  for (let i = 0; i < numCourses; i++) {
-    const pos = nodePos(i, numCourses, cx, cy, r);
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.dataset.node = i;
-
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y);
-    circle.setAttribute('r', NODE_R);
-    circle.setAttribute('fill', '#f8fafc');
-    circle.setAttribute('stroke', '#9ca3af'); circle.setAttribute('stroke-width', '2');
-    circle.setAttribute('stroke-dasharray', '5,3');
-    circle.classList.add('node-circle');
-    g.appendChild(circle);
-
-    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    txt.setAttribute('x', pos.x); txt.setAttribute('y', pos.y - 5);
-    txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('dominant-baseline', 'middle');
-    txt.setAttribute('font-size', '14'); txt.setAttribute('font-weight', '700');
-    txt.setAttribute('fill', '#374151'); txt.setAttribute('font-family', 'SF Mono, Menlo, monospace');
-    txt.textContent = i;
-    g.appendChild(txt);
-
-    const deg = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    deg.setAttribute('x', pos.x); deg.setAttribute('y', pos.y + 10);
-    deg.setAttribute('text-anchor', 'middle'); deg.setAttribute('dominant-baseline', 'middle');
-    deg.setAttribute('font-size', '10'); deg.setAttribute('fill', '#6b7280');
-    deg.setAttribute('font-family', 'SF Mono, Menlo, monospace');
-    deg.classList.add('node-deg');
-    g.appendChild(deg);
-
-    svg.appendChild(g);
-  }
-}
-
-function renderStep() {
-  if (!steps.length) return;
-  const s = steps[stepIdx];
-
-  // update nodes
-  for (let i = 0; i < numCourses; i++) {
-    const g = document.querySelector(`[data-node="${i}"]`);
-    if (!g) continue;
-    const circle = g.querySelector('.node-circle');
-    const deg = g.querySelector('.node-deg');
-    deg.textContent = `in:${s.inDegree[i]}`;
-
-    circle.setAttribute('stroke-dasharray', '');
-    switch(s.nodeStates[i]) {
-      case 0: // unvisited
-        circle.setAttribute('fill', '#f8fafc');
-        circle.setAttribute('stroke', '#9ca3af');
-        circle.setAttribute('stroke-dasharray', '5,3');
-        g.querySelector('text').setAttribute('fill', '#374151');
-        break;
-      case 1: // in queue
-        circle.setAttribute('fill', '#fef3c7');
-        circle.setAttribute('stroke', '#f59e0b');
-        g.querySelector('text').setAttribute('fill', '#92400e');
-        break;
-      case 2: // processing
-        circle.setAttribute('fill', '#6366f1');
-        circle.setAttribute('stroke', '#4338ca');
-        g.querySelector('text').setAttribute('fill', '#fff');
-        break;
-      case 3: // done
-        circle.setAttribute('fill', '#dcfce7');
-        circle.setAttribute('stroke', '#86efac');
-        g.querySelector('text').setAttribute('fill', '#166534');
-        break;
+  function positions(count, width, height) {
+    if (count === 1) return [{ x:width / 2, y:height / 2 }];
+    var result = [], radius = Math.min(width * .37, height * .36);
+    for (var i = 0; i < count; i++) {
+      var angle = -Math.PI / 2 + Math.PI * 2 * i / count;
+      result.push({ x:width / 2 + radius * Math.cos(angle), y:height / 2 + radius * Math.sin(angle) });
     }
+    return result;
   }
 
-  document.getElementById('stCount').textContent = s.count;
-  document.getElementById('stQueue').textContent = s.queue.length ? `[${s.queue.join(', ')}]` : '[]';
-  const isLast = stepIdx === steps.length - 1;
-  if (isLast) {
-    const canFinish = s.count === numCourses;
-    document.getElementById('stResult').textContent = canFinish ? '✓ true' : '✗ false';
-    document.getElementById('stResult').style.color = canFinish ? '#16a34a' : '#dc2626';
-  } else {
-    document.getElementById('stResult').textContent = '—';
-    document.getElementById('stResult').style.color = '';
+  function edgePath(from, to, positionsList) {
+    var nodeRadius = 36, start = positionsList[from], end = positionsList[to];
+    if (from === to) {
+      return 'M ' + (start.x + 24) + ' ' + (start.y - 27) +
+        ' C ' + (start.x + 88) + ' ' + (start.y - 95) + ', ' + (start.x - 88) + ' ' + (start.y - 95) +
+        ', ' + (start.x - 24) + ' ' + (start.y - 27);
+    }
+    var dx = end.x - start.x, dy = end.y - start.y, distance = Math.sqrt(dx * dx + dy * dy) || 1;
+    var sx = start.x + dx / distance * nodeRadius, sy = start.y + dy / distance * nodeRadius;
+    var ex = end.x - dx / distance * (nodeRadius + 5), ey = end.y - dy / distance * (nodeRadius + 5);
+    var bend = (from + to) % 2 ? 10 : -10;
+    var mx = (sx + ex) / 2 - dy / distance * bend, my = (sy + ey) / 2 + dx / distance * bend;
+    return 'M ' + sx + ' ' + sy + ' Q ' + mx + ' ' + my + ' ' + ex + ' ' + ey;
   }
 
-  document.getElementById('statusBox').innerHTML = s.msg;
-  document.getElementById('progTxt').textContent = `${stepIdx + 1} / ${steps.length}`;
-  document.getElementById('btnPrev').disabled = stepIdx === 0;
-  document.getElementById('btnNext').disabled = isLast;
-}
+  function drawGraph(step) {
+    var svg = document.getElementById('graphSvg');
+    var width = Math.max(520, svg.clientWidth || 650), height = 300;
+    var positionsList = positions(model.numCourses, width, height);
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+    var html = '<defs>' +
+      '<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="#94a3b8"/></marker>' +
+      '<marker id="arrowGone" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="#d1d5db"/></marker>' +
+      '<marker id="arrowActive" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="#f59e0b"/></marker>' +
+      '<marker id="arrowBad" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="#dc2626"/></marker></defs>';
+    var justRemoved = Object.create(null);
+    step.removedEdges.forEach(function (edge) { justRemoved[edge[0] + '>' + edge[1]] = true; });
 
-function clearAuto() {
-  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
-  document.getElementById('btnAuto').textContent = '自动播放';
-}
+    step.edges.forEach(function (edge) {
+      var key = edge.from + '>' + edge.to;
+      var blocked = step.blocked.indexOf(edge.from) >= 0 && step.blocked.indexOf(edge.to) >= 0 && !edge.removed;
+      var stateClass = blocked ? 'blocked' : justRemoved[key] ? 'just-removed' : edge.removed ? 'removed' : '';
+      html += '<path class="edge ' + stateClass + '" d="' + edgePath(edge.from, edge.to, positionsList) + '"></path>';
+      var labelX = edge.from === edge.to ? positionsList[edge.from].x : (positionsList[edge.from].x + positionsList[edge.to].x) / 2;
+      var labelY = edge.from === edge.to ? positionsList[edge.from].y - 90 : (positionsList[edge.from].y + positionsList[edge.to].y) / 2 - 9;
+      html += '<text class="edge-label" x="' + labelX + '" y="' + labelY + '" text-anchor="middle">' + edge.from + '→' + edge.to + '</text>';
+    });
 
-document.getElementById('btnBuild').onclick = doBuild;
-document.getElementById('btnPrev').onclick = () => { if (stepIdx > 0) { stepIdx--; renderStep(); } };
-document.getElementById('btnNext').onclick = () => { if (stepIdx < steps.length - 1) { stepIdx++; renderStep(); } };
-document.getElementById('btnReset').onclick = () => { clearAuto(); stepIdx = 0; renderStep(); };
-document.getElementById('btnAuto').onclick = () => {
-  if (autoTimer) { clearAuto(); return; }
-  document.getElementById('btnAuto').textContent = '暂停';
-  autoTimer = setInterval(() => {
-    if (stepIdx < steps.length - 1) { stepIdx++; renderStep(); }
-    else clearAuto();
-  }, 900);
-};
+    for (var course = 0; course < model.numCourses; course++) {
+      var classes = ['node'];
+      if (step.processed.indexOf(course) >= 0) classes.push('finished');
+      if (step.batchRemaining.indexOf(course) >= 0) classes.push('ready');
+      if (step.nextBatch.indexOf(course) >= 0) classes.push('unlocked');
+      if (step.current === course) classes.push('current');
+      if (step.blocked.indexOf(course) >= 0) classes.push('blocked');
+      html += '<g class="' + classes.join(' ') + '" transform="translate(' + positionsList[course].x + ',' + positionsList[course].y + ')">' +
+        '<circle r="36"></circle><text class="course" y="-5">' + course + '</text>' +
+        '<text class="degree" y="15">入度 ' + step.indegree[course] + '</text></g>';
+    }
+    svg.innerHTML = html;
+  }
 
-document.getElementById('inp').addEventListener('keydown', e => { if (e.key === 'Enter') doBuild(); });
+  function itemsHtml(values, className) {
+    if (!values.length) return '<span class="none">空</span>';
+    return values.map(function (value) {
+      return '<span class="item ' + (className || '') + '">' + escapeHtml(value) + '</span>';
+    }).join('');
+  }
 
-function switchTab(el, lang) {
-  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('codeJava').style.display = lang === 'java' ? '' : 'none';
-  document.getElementById('codePython').style.display = lang === 'python' ? '' : 'none';
-}
+  function batchStartHtml(step) {
+    if (!step.batchStartQueue.length) return '<span class="none">尚未进入批次</span>';
+    return step.batchStartQueue.map(function (course, index) {
+      var className = '';
+      if (step.type === 'process-course' && index < step.batchPosition - 1) className = 'done-in-batch';
+      if (step.type === 'process-course' && index === step.batchPosition - 1) className = 'current-in-batch';
+      if (step.type === 'batch-end' || step.type === 'done') className = 'done-in-batch';
+      return '<span class="item ' + className + '">' + course + '</span>';
+    }).join('');
+  }
 
-window.addEventListener('resize', () => { if (steps.length) { renderSVG(); renderStep(); } });
+  function currentQueueHtml(step) {
+    if (!step.queue.length) return '<span class="none">q = []</span>';
+    return step.queue.map(function (course) {
+      var className = step.nextBatch.indexOf(course) >= 0 ? 'new-item' : '';
+      return '<span class="item ' + className + '">' + course + '</span>';
+    }).join('');
+  }
 
-// auto-build default
-doBuild();
+  function statusClass(status) {
+    return {
+      '可学':'ready',
+      '正在完成':'current',
+      '新解锁':'unlocked',
+      '已完成':'finished',
+      '卡住':'blocked'
+    }[status] || '';
+  }
+
+  function renderTable(step) {
+    var html = '<thead><tr><th class="row-label">course</th>';
+    for (var course = 0; course < model.numCourses; course++) {
+      var headClass = step.current === course ? 'current-col' :
+        step.newlyUnlocked.indexOf(course) >= 0 ? 'unlocked-col' :
+        step.blocked.indexOf(course) >= 0 ? 'blocked-col' :
+        step.statuses[course] === '可学' ? 'ready-col' : '';
+      html += '<th class="' + headClass + '" data-course="' + course + '">' + course + '</th>';
+    }
+    html += '</tr></thead><tbody><tr><th class="row-label">graph[i]<br><small>出边列表</small></th>';
+    for (course = 0; course < model.numCourses; course++) {
+      var graphCellClass = step.current === course ? 'current-col active-list' : '';
+      var entries = step.graph[course].map(function (target) {
+        var edge = step.edges.find(function (item) { return item.from === course && item.to === target; });
+        var justRemoved = step.removedEdges.some(function (item) { return item[0] === course && item[1] === target; });
+        var edgeClass = justRemoved ? 'just-removed' : edge.removed ? 'removed' : '';
+        return '<span class="edge-token ' + edgeClass + '">' + target + '</span>';
+      }).join('<span>,</span>');
+      html += '<td class="' + graphCellClass + '" data-course="' + course + '"><div class="graph-list">[' +
+        (entries || '<span class="none"> </span>') + ']</div></td>';
+    }
+    html += '</tr><tr><th class="row-label">in_degree[i]<br><small>还欠几门先修课</small></th>';
+    for (course = 0; course < model.numCourses; course++) {
+      var affected = step.affectedCourses.indexOf(course) >= 0;
+      var degreeClass = step.current === course ? 'current-col' :
+        step.newlyUnlocked.indexOf(course) >= 0 ? 'unlocked-col' :
+        step.blocked.indexOf(course) >= 0 ? 'blocked-col' : '';
+      var degreeHtml = affected
+        ? '<span class="degree-change ' + (step.indegreeAfter[course] === 0 ? 'zero' : '') + '">' +
+          step.indegreeBefore[course] + ' → ' + step.indegreeAfter[course] + '</span>'
+        : '<span class="degree-value">' + step.indegree[course] + '</span>';
+      html += '<td class="' + degreeClass + '" data-course="' + course + '">' + degreeHtml + '</td>';
+    }
+    html += '</tr><tr><th class="row-label">状态</th>';
+    for (course = 0; course < model.numCourses; course++) {
+      var status = step.statuses[course];
+      var statusCellClass = step.current === course ? 'current-col' :
+        status === '新解锁' ? 'unlocked-col' :
+        status === '卡住' ? 'blocked-col' :
+        status === '可学' ? 'ready-col' : '';
+      html += '<td class="' + statusCellClass + '" data-course="' + course + '"><span class="course-status ' +
+        statusClass(status) + '">' + status + '</span></td>';
+    }
+    html += '</tr></tbody>';
+    document.getElementById('structureTable').innerHTML = html;
+  }
+
+  var TRACE_LINES = [
+    'graph = [[] for _ in range(numCourses)]',
+    'in_degree = [0 for _ in range(numCourses)]',
+    'for a, b in prerequisites:',
+    '    graph[b].append(a)',
+    '    in_degree[a] += 1',
+    'q = deque(i for i in range(numCourses) if in_degree[i] == 0)',
+    'count = 0',
+    'while q:',
+    '    for _ in range(len(q)):  # 冻结本批大小',
+    '        idx = q.popleft()',
+    '        count += 1',
+    '        for item in graph[idx]:',
+    '            in_degree[item] -= 1',
+    '            if in_degree[item] == 0:',
+    '                q.append(item)',
+    'return count == numCourses'
+  ];
+
+  function renderCodeTrace(step) {
+    document.getElementById('codeTrace').innerHTML = TRACE_LINES.map(function (line, index) {
+      var lineNumber = index + 1;
+      return '<div class="trace-line ' + (step.codeLines.indexOf(lineNumber) >= 0 ? 'active' : '') + '">' +
+        String(lineNumber).padStart(2, ' ') + '  ' + escapeHtml(line) + '</div>';
+    }).join('');
+  }
+
+  function actionHtml(step) {
+    if (step.type !== 'process-course') {
+      var labels = {
+        'build-table':'建立 graph / in_degree 表',
+        'init-queue':'扫描入度 0，初始化 q',
+        'batch-start':'冻结本批大小',
+        'batch-end':'本批结束',
+        done:'最终判断'
+      };
+      return '<b>' + labels[step.type] + '</b><div style="margin-top:6px">' + step.message + '</div>';
+    }
+    var list = step.removedEdges.map(function (edge) {
+      var target = edge[1], unlocked = step.newlyUnlocked.indexOf(target) >= 0 ? '，解锁并入队' : '';
+      return '<li>删 ' + edge[0] + '→' + target + '；课程 ' + target + ' 入度 ' +
+        step.indegreeBefore[target] + '→' + step.indegreeAfter[target] + unlocked + '</li>';
+    }).join('');
+    if (!list) list = '<li>没有出边，无需降低其他课程入度</li>';
+    return '<b>q.popleft() = ' + step.current + '；count ' + step.countBefore + ' → ' + step.countAfter + '</b>' +
+      '<ul class="changes">' + list + '</ul>';
+  }
+
+  function render() {
+    if (!model) return;
+    var step = model.steps[stepIndex];
+    renderTable(step);
+    renderCodeTrace(step);
+    drawGraph(step);
+    var resultText = step.result === null ? '—' : step.result ? 'true ✓' : 'false ✗';
+    var resultClass = step.result === null ? '' : step.result ? 'yes' : 'no';
+    document.getElementById('stats').innerHTML =
+      '<div class="stat">count / numCourses<b>' + step.count + ' / ' + model.numCourses + '</b></div>' +
+      '<div class="stat">当前批次<b>' + (step.batch || '—') + '</b></div>' +
+      '<div class="stat">本批固定次数<b>' + step.batchSize + '</b></div>' +
+      '<div class="stat">结果<b class="' + resultClass + '">' + resultText + '</b></div>';
+    document.getElementById('action').innerHTML = actionHtml(step);
+    document.getElementById('currentQueue').innerHTML = currentQueueHtml(step);
+    document.getElementById('batchStart').innerHTML = batchStartHtml(step);
+    document.getElementById('batchRemaining').innerHTML = itemsHtml(step.batchRemaining);
+    document.getElementById('nextBatch').innerHTML = itemsHtml(step.nextBatch, 'new-item');
+    document.getElementById('batchSizeLabel').textContent = step.batchSize ? 'len(q) = ' + step.batchSize : '—';
+    document.getElementById('batchCaption').textContent = step.type === 'init-queue'
+      ? '初始 q；下一步进入 while 并冻结本批大小'
+      : step.type === 'build-table'
+        ? '先建立 graph 和 in_degree；下一步才扫描入度 0 初始化 q'
+      : step.batchSize
+        ? 'len(q) 在批次开始时固定为 ' + step.batchSize
+        : '队列为空，没有新的批次';
+    document.getElementById('status').innerHTML = step.message;
+    document.getElementById('progress').textContent = (stepIndex + 1) + ' / ' + model.steps.length;
+    document.getElementById('prevBtn').disabled = stepIndex === 0;
+    document.getElementById('nextBtn').disabled = stepIndex === model.steps.length - 1;
+  }
+
+  document.getElementById('loadBtn').addEventListener('click', load);
+  [numInput, edgesInput].forEach(function (input) {
+    input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(); });
+  });
+  document.querySelectorAll('.chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      numInput.value = chip.dataset.n;
+      edgesInput.value = chip.dataset.e;
+      load();
+    });
+  });
+  document.getElementById('prevBtn').addEventListener('click', function () {
+    stopPlay();
+    if (stepIndex > 0) stepIndex--;
+    render();
+  });
+  document.getElementById('nextBtn').addEventListener('click', function () {
+    stopPlay();
+    if (stepIndex + 1 < model.steps.length) stepIndex++;
+    render();
+  });
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    stopPlay();
+    stepIndex = 0;
+    render();
+  });
+  document.getElementById('playBtn').addEventListener('click', function () {
+    if (timer !== null) { stopPlay(); return; }
+    if (stepIndex === model.steps.length - 1) stepIndex = 0;
+    document.getElementById('playBtn').textContent = '❚❚ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex + 1 < model.steps.length) {
+        stepIndex++;
+        render();
+      } else {
+        stopPlay();
+      }
+    }, 1050);
+  });
+  document.querySelectorAll('.code-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.code-tab').forEach(function (item) { item.classList.toggle('active', item === tab); });
+      document.getElementById('pythonCode').hidden = tab.dataset.lang !== 'python';
+      document.getElementById('javaCode').hidden = tab.dataset.lang !== 'java';
+    });
+  });
+  window.addEventListener('resize', function () { if (model) render(); });
+  load();
+})();
 </script>
 </body>
 </html>
