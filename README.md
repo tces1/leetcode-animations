@@ -123,7 +123,7 @@ leetcode-animations/
 | 199 | [二叉树的右视图](https://tces1.github.io/leetcode-animations/problems/199-binary-tree-right-side-view.html) | 中等 | 二叉树 · 右视图 · 深度优先搜索 · 广度优先搜索 · 递归 · 队列 · O(n) |
 | 200 | [岛屿数量](https://tces1.github.io/leetcode-animations/problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
 | 206 | [反转链表](https://tces1.github.io/leetcode-animations/problems/206-reverse-linked-list.html) | 简单 | 链表 · 迭代 · 递归 · 双指针 · 调用栈 · 原地修改 |
-| 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | — |
+| 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | 图 · 拓扑排序 · Kahn BFS · 入度 · 队列 · O(V+E) |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
 | 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
 | 226 | [翻转二叉树](https://tces1.github.io/leetcode-animations/problems/226-invert-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 翻转二叉树 · 调用栈 · O(n) |
