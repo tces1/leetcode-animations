@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="回溯 · 子集 · DFS · 后缀切片">
+<meta name="description" content="LeetCode 78 子集：用 res 保存当前路径，用剩余后缀 subnums 演示选择、递归、撤销，以及 None 结束标记收集。">
+<title>78. 子集 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; background:#f6f7f9; color:#1d2129; line-height:1.5; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#dcfce7; color:#166534; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; }
+  .copy-note { margin-top:12px; padding:11px 14px; border:1px solid #fde68a; border-radius:10px; background:#fffbeb; color:#78350f; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  input[type=text] { flex:1; min-width:220px; padding:9px 12px; font:15px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .hint { margin-top:8px; font-size:12px; color:#9ca3af; }
+  .err { display:none; margin-top:9px; color:#dc2626; font-size:13px; }
+  .err.show { display:block; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { padding:8px 12px; border:1px solid #eef0f4; border-radius:8px; background:#f8fafc; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:700 14px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .workbench { display:grid; grid-template-columns:minmax(330px,1.1fr) minmax(280px,.9fr); gap:16px; align-items:start; }
+  .visual, .side-box { border:1px solid #e5e7eb; border-radius:10px; padding:13px; background:#f8fafc; }
+  .visual + .visual, .side-box + .side-box { margin-top:10px; }
+  .side-title { margin-bottom:8px; font-size:11px; font-weight:800; color:#64748b; letter-spacing:.03em; }
+  .array { display:flex; flex-wrap:wrap; gap:8px; min-height:62px; }
+  .cell { position:relative; min-width:52px; height:54px; display:flex; align-items:center; justify-content:center; border:2px solid #d1d5db; border-radius:9px; background:#fff; font:700 15px "SF Mono",Menlo,monospace; color:#334155; }
+  .cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#94a3b8; }
+  .cell.chosen { background:#ede9fe; border-color:#a78bfa; color:#5b21b6; }
+  .cell.remain { background:#fff; border-color:#93c5fd; }
+  .cell.skipped { background:#f1f5f9; border-color:#e2e8f0; color:#94a3b8; }
+  .cell.scan { box-shadow:0 0 0 4px rgba(245,158,11,.25); border-color:#f59e0b; background:#fef3c7; }
+  .cell.undo { border-color:#64748b; background:#e2e8f0; color:#475569; }
+  .cell .tag { display:block; position:absolute; bottom:2px; font-size:9px; }
+  .cell.chosen .tag { color:#7c3aed; }
+  .cell.remain .tag { color:#2563eb; }
+  .cell.skipped .tag { color:#94a3b8; }
+  .path { display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-height:36px; }
+  .path-node { padding:6px 9px; border-radius:7px; border:1px solid #c7d2fe; background:#eef2ff; color:#4338ca; font:700 13px "SF Mono",Menlo,monospace; }
+  .path-node.none { border-color:#f59e0b; background:#fffbeb; color:#92400e; }
+  .arrow { color:#94a3b8; }
+  .empty { color:#9ca3af; font-size:12px; }
+  .remain { display:flex; flex-wrap:wrap; gap:6px; min-height:32px; }
+  .remain-chip { padding:5px 8px; border-radius:7px; border:1px solid #93c5fd; background:#eff6ff; color:#1d4ed8; font:700 12px "SF Mono",Menlo,monospace; }
+  .remain-chip.scan { border-color:#f59e0b; background:#fef3c7; color:#92400e; }
+  .stack { display:grid; gap:5px; max-height:210px; overflow:auto; }
+  .frame { display:flex; justify-content:space-between; gap:8px; padding:6px 9px; border:1px solid #e5e7eb; border-radius:7px; background:#fff; font:12px "SF Mono",Menlo,monospace; color:#475569; }
+  .frame:last-child { border-color:#818cf8; background:#eef2ff; color:#4338ca; }
+  .results { display:flex; flex-wrap:wrap; gap:6px; max-height:180px; overflow:auto; }
+  .result { padding:4px 7px; border:1px solid #bbf7d0; border-radius:6px; background:#dcfce7; color:#166534; font:10px "SF Mono",Menlo,monospace; }
+  .vars { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .var { padding:4px 9px; border:1px solid #eef0f4; border-radius:7px; background:#f8fafc; color:#4b5563; font:12px "SF Mono",Menlo,monospace; }
+  .status { margin-top:12px; min-height:52px; padding:14px 16px; border-radius:10px; background:#111827; color:#e5e7eb; font-size:14px; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status b { color:#fcd34d; }
+  details summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { padding:5px 12px; border:1px solid #e5e7eb; border-radius:999px; background:#f1f2f4; color:#374151; font-size:13px; cursor:pointer; }
+  .code-tab.active { border-color:#4338ca; background:#6366f1; color:#fff; }
+  pre { margin:0; padding:14px; overflow:auto; border-radius:10px; background:#0f172a; color:#e2e8f0; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  .star-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; margin:0 0 16px; padding:12px 16px; border:1px solid #e0e7ff; border-radius:12px; background:linear-gradient(180deg,#f8faff 0%,#fff 100%); }
+  .star-banner-copy { flex:1; min-width:180px; }
+  .star-banner-title { font-size:14px; font-weight:700; color:#1d2129; }
+  .star-banner-sub { margin-top:2px; font-size:12px; color:#6b7280; }
+  .star-cta { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid #c7d2fe; border-radius:8px; background:#fff; color:#312e81; text-decoration:none; font-size:13px; font-weight:700; box-shadow:0 1px 0 rgba(99,102,241,.08); }
+  .star-cta:hover { border-color:#818cf8; background:#eef2ff; }
+  .star-cta svg { width:14px; height:14px; fill:currentColor; }
+  @media(max-width:760px) { body{padding:16px 12px}.card{padding:14px}.workbench{grid-template-columns:1fr}.progress{width:100%;margin-left:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/subsets/" target="_blank" rel="noopener">LeetCode 78</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>78. 子集 · 回溯动画</h1>
+  <div class="sub">用 <code>res</code> 保存当前子集，用剩余后缀 <code>subnums</code> 作为本层候选。每个数最多选一次、且只能选更后面的，因此不会重复。for 循环穷尽「再选一个」之后，往 <code>res</code> 放入 <code>None</code> 作为结束标记，进入 <code>dfs([])</code> 收集当前路径。</div>
+
+  <div class="card">
+    <div class="panel-title">回溯流程</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 状态</div><code>res</code> 是当前路径，<code>subnums</code> 是还没决定的后缀。</div>
+      <div class="idea-item"><div class="no">② 选择</div>枚举 <code>subnums[i]</code> 作为下一个元素，递归 <code>subnums[i+1:]</code>。</div>
+      <div class="idea-item"><div class="no">③ 撤销</div>递归返回后 <code>res.pop()</code>，换下一个候选。</div>
+      <div class="idea-item"><div class="no">④ 收集</div>本层不再往后选时放入 <code>None</code>，在 <code>dfs([])</code> 里 pop 掉标记并复制 <code>res</code>。</div>
+    </div>
+    <div class="copy-note"><b>None 不会出现在答案里：</b>它只是「本层结束、收集当前路径」的哨兵。收集时先 <code>pop</code> 再 <code>res.copy()</code>。等价写法是 for 结束后直接 <code>resp.append(res.copy())</code>，不必再递归一次。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input id="input" type="text" value="[1,2,3]" spellcheck="false" aria-label="互不相同的整数数组">
+      <button id="loadBtn" type="button">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip">[1,2,3]</span><span class="chip">[0]</span><span class="chip">[4,7]</span><span class="chip">[-1,2,5]</span>
+    </div>
+    <div id="err" class="err"></div>
+    <div class="hint">请输入 1～6 个互不相同的安全整数，格式如 [1,2,3]；n 个元素会得到 2ⁿ 个子集。</div>
+  </div>
+
+  <div class="card">
+    <div id="stats" class="stats"></div>
+    <div class="controls play-controls">
+      <button id="prevBtn" class="ghost" type="button">◀ 上一步</button>
+      <button id="nextBtn" type="button">下一步 ▶</button>
+      <button id="playBtn" class="ghost" type="button">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost" type="button">↺ 重置</button>
+      <span id="progress" class="progress"></span>
+    </div>
+    <div class="workbench">
+      <div>
+        <div class="visual"><div class="side-title">原数组 nums（紫=已选，蓝框=剩余后缀，灰=本支路已跳过）</div><div id="array" class="array"></div></div>
+        <div class="visual"><div class="side-title">本层剩余候选 subnums</div><div id="remain" class="remain"></div></div>
+        <div class="visual"><div class="side-title">当前路径 res</div><div id="path" class="path"></div></div>
+      </div>
+      <div>
+        <div class="side-box"><div class="side-title">调用栈（底 → 顶）</div><div id="stack" class="stack"></div></div>
+        <div class="side-box"><div class="side-title">已经收集的子集（按 DFS 顺序）</div><div id="results" class="results"></div></div>
+      </div>
+    </div>
+    <div id="vars" class="vars"></div>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>查看参考代码（Python / Java）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  function parseInput(value) {
+    if (typeof value !== 'string') return null;
+    var s = value.trim();
+    if (!/^\[\s*[+-]?\d+(?:\s*,\s*[+-]?\d+){0,5}\s*\]$/.test(s)) return null;
+    var nums = s.slice(1, -1).split(',').map(function (x) { return Number(x.trim()); });
+    if (!nums.every(Number.isSafeInteger) || new Set(nums).size !== nums.length) return null;
+    return nums;
+  }
+
+  function fmtList(arr) {
+    return '[' + arr.map(function (x) { return x === null ? 'None' : String(x); }).join(', ') + ']';
+  }
+
+  function buildSteps(nums) {
+    var n = nums.length, res = [], steps = [], subsets = [], stack = [];
+    function snap(phase, start, candidate, message) {
+      steps.push({
+        phase: phase,
+        start: start,
+        candidate: candidate,
+        nums: nums.slice(),
+        remaining: start < 0 ? [] : nums.slice(start),
+        path: res.slice(),
+        chosen: res.filter(function (x) { return x !== null; }),
+        stack: stack.slice(),
+        resultCount: subsets.length,
+        message: message
+      });
+    }
+    function dfs(start) {
+      var remaining = nums.slice(start);
+      stack.push('dfs(' + fmtList(remaining) + ')');
+      snap('enter', start, -1, '进入 <b>dfs(' + fmtList(remaining) + ')</b>：当前 res = ' + fmtList(res) + '。');
+      if (res.length && res[res.length - 1] === null) {
+        res.pop();
+        subsets.push(res.slice());
+        snap('collect', start, -1, '<span class="ok">发现结束标记 None，pop 后收集第 ' + subsets.length + ' 个子集 ' + fmtList(res) + '</span>。这里保存的是 <b>res 的副本</b>。');
+        stack.pop();
+        return;
+      }
+      for (var i = 0; i < remaining.length; i++) {
+        var orig = start + i;
+        var val = remaining[i];
+        snap('scan', start, orig, '本层扫描剩余候选 <b>subnums[' + i + '] = ' + val + '</b>（原数组下标 ' + orig + '）。');
+        res.push(val);
+        snap('choose', start, orig, '选择 <b>' + val + '</b> 加入 res，接着递归 <b>dfs(' + fmtList(nums.slice(orig + 1)) + ')</b>。');
+        snap('recurse', orig + 1, orig, '沿选择 ' + val + ' 进入下一层，当前 res = ' + fmtList(res) + '。');
+        dfs(orig + 1);
+        res.pop();
+        snap('undo', start, orig, '从更深一层返回，<b>撤销 ' + val + '</b>：res.pop()，继续看后面的候选。');
+      }
+      res.push(null);
+      snap('sentinel', start, -1, '本层所有「再选一个」都试完了，放入结束标记 <b>None</b>，调用 <b>dfs([])</b> 收集当前路径 ' + fmtList(res.filter(function (x) { return x !== null; })) + '。');
+      dfs(n);
+      stack.pop();
+    }
+    snap('start', 0, -1, '初始化 res=[]，从 dfs(' + fmtList(nums) + ') 开始搜索。空集也会在最外层结束后被收集。');
+    dfs(0);
+    snap('done', -1, -1, '搜索结束，共得到 <span class="ok">' + subsets.length + ' 个子集</span>（2<sup>' + n + '</sup> = ' + (1 << n) + '）。');
+    return { steps: steps, subsets: subsets };
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var nums = [], steps = [], subsets = [], index = 0, timer = null;
+  var input = $('input'), err = $('err'), playBtn = $('playBtn');
+  function stop() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function phaseName(p) {
+    return ({
+      start: '初始化', enter: '进入递归', scan: '扫描候选', choose: '做出选择',
+      recurse: '递归调用', collect: '收集副本', undo: '撤销选择', sentinel: '结束标记', done: '完成'
+    })[p] || p;
+  }
+  function fmtPath(arr) {
+    return arr.map(function (v) { return v === null ? 'None' : String(v); }).join(', ');
+  }
+  function render() {
+    var s = steps[index];
+    var chosenSet = {};
+    s.chosen.forEach(function (v) { chosenSet[v] = true; });
+    $('array').innerHTML = '';
+    s.nums.forEach(function (v, i) {
+      var c = document.createElement('div'), cls = 'cell', tag = '';
+      var inPath = chosenSet[v] === true;
+      var remaining = s.start >= 0 && i >= s.start;
+      if (inPath) { cls += ' chosen'; tag = '已选'; }
+      else if (remaining) { cls += ' remain'; tag = '剩余'; }
+      else { cls += ' skipped'; tag = '跳过'; }
+      if (s.candidate === i) cls += s.phase === 'undo' ? ' undo' : ' scan';
+      c.className = cls;
+      c.innerHTML = '<span class="idx">' + i + '</span>' + v + (tag ? '<span class="tag">' + tag + '</span>' : '');
+      $('array').appendChild(c);
+    });
+    if (!s.remaining.length) {
+      $('remain').innerHTML = '<span class="empty">[] 没有剩余候选</span>';
+    } else {
+      $('remain').innerHTML = s.remaining.map(function (v, i) {
+        var orig = s.start + i;
+        var cls = 'remain-chip' + (s.candidate === orig ? ' scan' : '');
+        return '<span class="' + cls + '">' + v + '</span>';
+      }).join('');
+    }
+    if (!s.path.length) {
+      $('path').innerHTML = '<span class="empty">[] 空路径</span>';
+    } else {
+      $('path').innerHTML = s.path.map(function (v, i) {
+        var node = v === null
+          ? '<span class="path-node none">None</span>'
+          : '<span class="path-node">' + v + '</span>';
+        return (i ? '<span class="arrow">→</span>' : '') + node;
+      }).join('');
+    }
+    $('stack').innerHTML = s.stack.length
+      ? s.stack.map(function (v, i) { return '<div class="frame"><span>层 ' + i + '</span><b>' + v + '</b></div>'; }).join('')
+      : '<span class="empty">调用栈为空</span>';
+    var visible = Math.min(s.resultCount, 32), html = '';
+    for (var r = 0; r < visible; r++) {
+      html += '<span class="result">#' + (r + 1) + ' [' + subsets[r].join(',') + ']</span>';
+    }
+    if (!visible) html = '<span class="empty">尚未收集子集</span>';
+    if (s.resultCount > visible) html += '<span class="empty">另有 ' + (s.resultCount - visible) + ' 个…</span>';
+    $('results').innerHTML = html;
+    $('vars').innerHTML =
+      '<span class="var">阶段 = <b>' + phaseName(s.phase) + '</b></span>' +
+      '<span class="var">start = <b>' + (s.start < 0 ? '—' : s.start) + '</b></span>' +
+      '<span class="var">subnums = <b>' + (s.start < 0 ? '—' : '[' + s.remaining.join(', ') + ']') + '</b></span>' +
+      '<span class="var">res = <b>[' + fmtPath(s.path) + ']</b></span>';
+    $('status').innerHTML = s.message;
+    $('progress').textContent = '步骤 ' + (index + 1) + ' / ' + steps.length;
+    $('prevBtn').disabled = index === 0;
+    $('nextBtn').disabled = index === steps.length - 1;
+    $('stats').innerHTML =
+      '<div class="stat">n<b>' + nums.length + '</b></div>' +
+      '<div class="stat">子集总数<b>' + subsets.length + '</b></div>' +
+      '<div class="stat">当前已收集<b>' + s.resultCount + '</b></div>' +
+      '<div class="stat">时间<b>O(n · 2ⁿ)</b></div>' +
+      '<div class="stat">辅助空间<b>O(n)</b></div>' +
+      '<div class="stat">结果空间<b>O(n · 2ⁿ)</b></div>';
+  }
+  function load(raw) {
+    var parsed = parseInput(raw);
+    if (!parsed) {
+      err.textContent = '格式错误：请输入 1～6 个互不相同的安全整数，例如 [1,2,3]。';
+      err.classList.add('show');
+      return false;
+    }
+    err.classList.remove('show');
+    stop();
+    nums = parsed;
+    var data = buildSteps(nums);
+    steps = data.steps;
+    subsets = data.subsets;
+    index = 0;
+    render();
+    return true;
+  }
+  $('loadBtn').onclick = function () { load(input.value); };
+  $('prevBtn').onclick = function () { stop(); if (index > 0) { index--; render(); } };
+  $('nextBtn').onclick = function () { stop(); if (index < steps.length - 1) { index++; render(); } };
+  $('resetBtn').onclick = function () { stop(); index = 0; render(); };
+  playBtn.onclick = function () {
+    if (timer) { stop(); return; }
+    if (index === steps.length - 1) { index = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (index === steps.length - 1) { stop(); return; }
+      index++;
+      render();
+    }, 560);
+  };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (c) {
+    c.onclick = function () { input.value = c.textContent; load(c.textContent); };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === input) return;
+    if (e.key === 'ArrowRight') $('nextBtn').click();
+    if (e.key === 'ArrowLeft') $('prevBtn').click();
+  });
+  var codes = {
+    py: '<span class="cmt"># 时间 O(n · 2ⁿ)；辅助空间 O(n)，结果空间 O(n · 2ⁿ)</span>\nclass Solution:\n    def subsets(self, nums: list[int]) -&gt; list[list[int]]:\n        resp, res = [], []\n\n        def dfs(subnums: list[int]) -&gt; None:\n            if res and res[-1] is None:       <span class="cmt"># 结束标记：收集当前路径</span>\n                res.pop()\n                resp.append(res.copy())       <span class="cmt"># 必须复制</span>\n                return\n            for i, n in enumerate(subnums):\n                res.append(n)                 <span class="cmt"># choose</span>\n                dfs(subnums[i + 1:])          <span class="cmt"># 只能选后面的数</span>\n                res.pop()                     <span class="cmt"># undo</span>\n            res.append(None)                  <span class="cmt"># 本层不再往后选</span>\n            dfs([])\n\n        dfs(nums)\n        return resp',
+    java: '<span class="cmt">// 时间 O(n · 2ⁿ)；辅助空间 O(n)，结果空间 O(n · 2ⁿ)</span>\nclass Solution {\n    public List&lt;List&lt;Integer&gt;&gt; subsets(int[] nums) {\n        List&lt;List&lt;Integer&gt;&gt; resp = new ArrayList&lt;&gt;();\n        List&lt;Integer&gt; res = new ArrayList&lt;&gt;();\n        dfs(nums, 0, res, resp);\n        return resp;\n    }\n\n    private void dfs(int[] nums, int start, List&lt;Integer&gt; res, List&lt;List&lt;Integer&gt;&gt; resp) {\n        if (!res.isEmpty() &amp;&amp; res.get(res.size() - 1) == null) {\n            res.remove(res.size() - 1);\n            resp.add(new ArrayList&lt;&gt;(res));  <span class="cmt">// 保存副本</span>\n            return;\n        }\n        for (int i = start; i &lt; nums.length; i++) {\n            res.add(nums[i]);                 <span class="cmt">// choose</span>\n            dfs(nums, i + 1, res, resp);\n            res.remove(res.size() - 1);       <span class="cmt">// undo</span>\n        }\n        res.add(null);                        <span class="cmt">// 结束标记</span>\n        dfs(nums, nums.length, res, resp);\n    }\n}'
+  };
+  function showCode(lang) { $('codeBlock').innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      document.querySelectorAll('.code-tab').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('py');
+  load(input.value);
+})();
+</script>
+</body>
+</html>
