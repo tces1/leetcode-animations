@@ -85,6 +85,7 @@ leetcode-animations/
 | 41 | [缺失的第一个正数](https://tces1.github.io/leetcode-animations/problems/41-first-missing-positive.html) | 困难 | 数组 · 原地哈希 · 交换归位 · O(1) 空间 |
 | 42 | [接雨水](https://tces1.github.io/leetcode-animations/problems/42-trapping-rain-water.html) | 困难 | 数组 · 双指针 · 前后缀最大值 · 空间优化 |
 | 45 | [跳跃游戏 II](https://tces1.github.io/leetcode-animations/problems/45-jump-game-ii.html) | 中等 | 贪心 · 分层(隐式BFS) · 数组 |
+| 46 | [全排列](https://tces1.github.io/leetcode-animations/problems/46-permutations.html) | 中等 | 回溯 · 排列 · DFS · used 数组 |
 | 48 | [旋转图像](https://tces1.github.io/leetcode-animations/problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
 | 49 | [字母异位词分组](https://tces1.github.io/leetcode-animations/problems/49-group-anagrams.html) | 中等 | 字符串 · 哈希表 · 计数 · 字母异位词 · 分组 |
 | 51 | [N 皇后](https://tces1.github.io/leetcode-animations/problems/51-n-queens.html) | 困难 | 回溯 · 剪枝 · 集合 · 棋盘 · 对角线 |
@@ -124,7 +125,7 @@ leetcode-animations/
 | 200 | [岛屿数量](https://tces1.github.io/leetcode-animations/problems/200-number-of-islands.html) | 中等 | DFS · 洪水填充 · 网格 |
 | 206 | [反转链表](https://tces1.github.io/leetcode-animations/problems/206-reverse-linked-list.html) | 简单 | 链表 · 迭代 · 递归 · 双指针 · 调用栈 · 原地修改 |
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | 图 · 拓扑排序 · Kahn BFS · 入度 · 队列 · O(V+E) |
-| 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 |
+| 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 · 哈希映射 |
 | 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · 三路划分 · 数组 |
 | 226 | [翻转二叉树](https://tces1.github.io/leetcode-animations/problems/226-invert-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 翻转二叉树 · 调用栈 · O(n) |
 | 230 | [二叉搜索树中第 K 小的元素](https://tces1.github.io/leetcode-animations/problems/230-kth-smallest-element-in-a-bst.html) | 中等 | 二叉搜索树 · 中序遍历 · 栈 · 递归 · 提前停止 · O(h+k) |
