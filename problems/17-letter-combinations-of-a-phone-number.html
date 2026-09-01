@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="回溯 · DFS · 电话按键 · 笛卡尔积">
+<meta name="description" content="LeetCode 17 电话号码的字母组合：用剩余后缀 sub_digits 与字符串 res 逐帧演示选择、递归、收集和撤销。">
+<title>17. 电话号码的字母组合 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; background:#f6f7f9; color:#1d2129; line-height:1.5; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; }
+  .copy-note { margin-top:12px; padding:11px 14px; border:1px solid #fde68a; border-radius:10px; background:#fffbeb; color:#78350f; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  input[type=text] { flex:1; min-width:220px; padding:9px 12px; font:15px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .hint { margin-top:8px; font-size:12px; color:#9ca3af; }
+  .err { display:none; margin-top:9px; color:#dc2626; font-size:13px; }
+  .err.show { display:block; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { padding:8px 12px; border:1px solid #eef0f4; border-radius:8px; background:#f8fafc; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:700 14px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .workbench { display:grid; grid-template-columns:minmax(330px,1.1fr) minmax(280px,.9fr); gap:16px; align-items:start; }
+  .visual, .side-box { border:1px solid #e5e7eb; border-radius:10px; padding:13px; background:#f8fafc; }
+  .visual + .visual, .side-box + .side-box { margin-top:10px; }
+  .side-title { margin-bottom:8px; font-size:11px; font-weight:800; color:#64748b; letter-spacing:.03em; }
+  .array { display:flex; flex-wrap:wrap; gap:8px; min-height:62px; }
+  .cell { position:relative; min-width:58px; height:58px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px solid #d1d5db; border-radius:9px; background:#fff; font:700 16px "SF Mono",Menlo,monospace; color:#334155; }
+  .cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#94a3b8; }
+  .cell .letters { font:700 9px "SF Mono",Menlo,monospace; color:#94a3b8; margin-top:1px; }
+  .cell.done { background:#ede9fe; border-color:#a78bfa; color:#5b21b6; }
+  .cell.done .letters { color:#7c3aed; }
+  .cell.remain { border-color:#93c5fd; }
+  .cell.scan { box-shadow:0 0 0 4px rgba(245,158,11,.25); border-color:#f59e0b; background:#fef3c7; }
+  .cell.undo { border-color:#64748b; background:#e2e8f0; color:#475569; }
+  .keypad { display:grid; grid-template-columns:repeat(3,72px); gap:8px; justify-content:center; }
+  .key { height:62px; border:2px solid #e5e7eb; border-radius:12px; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#334155; }
+  .key .num { font:800 16px "SF Mono",Menlo,monospace; }
+  .key .let { font:700 10px "SF Mono",Menlo,monospace; color:#94a3b8; }
+  .key.off { background:#f8fafc; color:#cbd5e1; }
+  .key.current { border-color:#f59e0b; background:#fef3c7; box-shadow:0 0 0 3px rgba(245,158,11,.22); }
+  .key.current .let { color:#92400e; }
+  .letters-row { display:flex; flex-wrap:wrap; gap:6px; min-height:36px; }
+  .letter { min-width:36px; padding:6px 8px; text-align:center; border:1px solid #c7d2fe; border-radius:7px; background:#eef2ff; color:#4338ca; font:700 14px "SF Mono",Menlo,monospace; }
+  .letter.scan { border-color:#f59e0b; background:#fef3c7; color:#92400e; }
+  .letter.undo { border-color:#64748b; background:#e2e8f0; color:#475569; }
+  .path { display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-height:36px; }
+  .path-node { padding:6px 9px; border-radius:7px; border:1px solid #c7d2fe; background:#eef2ff; color:#4338ca; font:700 13px "SF Mono",Menlo,monospace; }
+  .arrow { color:#94a3b8; }
+  .empty { color:#9ca3af; font-size:12px; }
+  .stack { display:grid; gap:5px; max-height:210px; overflow:auto; }
+  .frame { display:flex; justify-content:space-between; gap:8px; padding:6px 9px; border:1px solid #e5e7eb; border-radius:7px; background:#fff; font:12px "SF Mono",Menlo,monospace; color:#475569; }
+  .frame:last-child { border-color:#818cf8; background:#eef2ff; color:#4338ca; }
+  .results { display:flex; flex-wrap:wrap; gap:6px; max-height:180px; overflow:auto; }
+  .result { padding:4px 7px; border:1px solid #bbf7d0; border-radius:6px; background:#dcfce7; color:#166534; font:10px "SF Mono",Menlo,monospace; }
+  .vars { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .var { padding:4px 9px; border:1px solid #eef0f4; border-radius:7px; background:#f8fafc; color:#4b5563; font:12px "SF Mono",Menlo,monospace; }
+  .status { margin-top:12px; min-height:52px; padding:14px 16px; border-radius:10px; background:#111827; color:#e5e7eb; font-size:14px; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status b { color:#fcd34d; }
+  details summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { padding:5px 12px; border:1px solid #e5e7eb; border-radius:999px; background:#f1f2f4; color:#374151; font-size:13px; cursor:pointer; }
+  .code-tab.active { border-color:#4338ca; background:#6366f1; color:#fff; }
+  pre { margin:0; padding:14px; overflow:auto; border-radius:10px; background:#0f172a; color:#e2e8f0; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  .star-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; margin:0 0 16px; padding:12px 16px; border:1px solid #e0e7ff; border-radius:12px; background:linear-gradient(180deg,#f8faff 0%,#fff 100%); }
+  .star-banner-copy { flex:1; min-width:180px; }
+  .star-banner-title { font-size:14px; font-weight:700; color:#1d2129; }
+  .star-banner-sub { margin-top:2px; font-size:12px; color:#6b7280; }
+  .star-cta { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid #c7d2fe; border-radius:8px; background:#fff; color:#312e81; text-decoration:none; font-size:13px; font-weight:700; box-shadow:0 1px 0 rgba(99,102,241,.08); flex-shrink:0; }
+  .star-cta:hover { border-color:#818cf8; background:#eef2ff; }
+  .star-cta svg { width:14px; height:14px; fill:currentColor; }
+  @media(max-width:760px) { body{padding:16px 12px}.card{padding:14px}.workbench{grid-template-columns:1fr}.progress{width:100%;margin-left:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/letter-combinations-of-a-phone-number/" target="_blank" rel="noopener">LeetCode 17</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>17. 电话号码的字母组合 · 回溯动画</h1>
+  <div class="sub">每位数字对应按键上的若干字母。<code>res</code> 保存已经选好的前缀，<code>sub_digits</code> 是还没处理的后缀。取当前第一位，枚举它的每个字母：<b>拼上 → 递归剩余后缀 → 去掉末尾字符</b>。后缀为空时收集完整组合。</div>
+
+  <div class="card">
+    <div class="panel-title">回溯流程</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 映射</div><code>lst[2..9]</code> 对应 <code>abc … wxyz</code>；下标就是数字本身。</div>
+      <div class="idea-item"><div class="no">② 状态</div><code>res</code> 是当前字符串，<code>sub_digits</code> 是剩余数字。</div>
+      <div class="idea-item"><div class="no">③ 选择 / 递归</div>取 <code>sub_digits[0]</code>，对每个字母 <code>res += c</code>，再 <code>dfs(sub_digits[1:])</code>。</div>
+      <div class="idea-item"><div class="no">④ 收集 / 撤销</div>剩余为空就收集；返回后 <code>res = res[:-1]</code>。</div>
+    </div>
+    <div class="copy-note"><b>Python 字符串不可变：</b><code>resp.append(res)</code> 保存的是当前这个字符串对象，后面 <code>res += c</code> 会生成新串，不会改掉已经收集的结果。Java 若用 <code>StringBuilder</code>，收集时必须 <code>toString()</code>。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input id="input" type="text" value="23" spellcheck="false" aria-label="仅含 2-9 的数字串">
+      <button id="loadBtn" type="button">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip">23</span><span class="chip">2</span><span class="chip">79</span><span class="chip">234</span>
+    </div>
+    <div id="err" class="err"></div>
+    <div class="hint">请输入 1～4 个数字，每位只能是 2～9，例如 23。本题按键不含 0 和 1。</div>
+  </div>
+
+  <div class="card">
+    <div id="stats" class="stats"></div>
+    <div class="controls play-controls">
+      <button id="prevBtn" class="ghost" type="button">◀ 上一步</button>
+      <button id="nextBtn" type="button">下一步 ▶</button>
+      <button id="playBtn" class="ghost" type="button">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost" type="button">↺ 重置</button>
+      <span id="progress" class="progress"></span>
+    </div>
+    <div class="workbench">
+      <div>
+        <div class="visual"><div class="side-title">输入 digits（黄=当前位，紫=已选完，蓝框=尚未处理）</div><div id="array" class="array"></div></div>
+        <div class="visual"><div class="side-title">电话按键 lst[2..9]</div><div id="keypad" class="keypad"></div></div>
+        <div class="visual"><div class="side-title">当前数字对应的字母 lst[n]</div><div id="letters" class="letters-row"></div></div>
+        <div class="visual"><div class="side-title">当前路径 res</div><div id="path" class="path"></div></div>
+      </div>
+      <div>
+        <div class="side-box"><div class="side-title">调用栈（底 → 顶）</div><div id="stack" class="stack"></div></div>
+        <div class="side-box"><div class="side-title">已经收集的组合（按 DFS 顺序）</div><div id="results" class="results"></div></div>
+      </div>
+    </div>
+    <div id="vars" class="vars"></div>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>查看参考代码（Python / Java）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var MAP = ['', '', 'abc', 'def', 'ghi', 'jkl', 'mno', 'pqrs', 'tuv', 'wxyz'];
+
+  function parseInput(value) {
+    if (typeof value !== 'string') return null;
+    var s = value.trim().replace(/^["']|["']$/g, '');
+    if (!/^[2-9]{1,4}$/.test(s)) return null;
+    return s;
+  }
+
+  function quote(s) { return '"' + s + '"'; }
+
+  function buildSteps(digits) {
+    var n = digits.length, res = '', steps = [], combos = [], stack = [];
+    function snap(phase, start, letter, message) {
+      steps.push({
+        phase: phase,
+        start: start,
+        letter: letter,
+        digits: digits,
+        remaining: start < 0 || start > n ? '' : digits.slice(start),
+        path: res,
+        stack: stack.slice(),
+        resultCount: combos.length,
+        message: message
+      });
+    }
+    function dfs(start) {
+      var remaining = digits.slice(start);
+      stack.push('dfs(' + quote(remaining) + ')');
+      snap('enter', start, '', '进入 <b>dfs(' + quote(remaining) + ')</b>：当前 res = ' + quote(res) + '。');
+      if (remaining === '') {
+        combos.push(res);
+        snap('collect', start, '', '<span class="ok">剩余为空，收集第 ' + combos.length + ' 个组合 ' + quote(res) + '</span>。Python 字符串不可变，直接 append 即可。');
+        stack.pop();
+        return;
+      }
+      var digit = remaining[0];
+      var num = Number(digit);
+      var letters = MAP[num];
+      snap('digit', start, '', '当前第一位是 <b>' + digit + '</b>，查表 <b>lst[' + num + '] = ' + quote(letters) + '</b>，依次尝试每个字母。');
+      for (var i = 0; i < letters.length; i++) {
+        var c = letters[i];
+        snap('scan', start, c, '本层扫描字母 <b>' + c + '</b>（lst[' + num + '] 的第 ' + i + ' 个）。');
+        res += c;
+        snap('choose', start, c, '选择 <b>' + c + '</b>：res += c，得到 ' + quote(res) + '，接着递归 <b>dfs(' + quote(digits.slice(start + 1)) + ')</b>。');
+        snap('recurse', start + 1, c, '沿字母 ' + c + ' 进入下一层，当前 res = ' + quote(res) + '。');
+        dfs(start + 1);
+        res = res.slice(0, -1);
+        snap('undo', start, c, '从更深一层返回，<b>撤销 ' + c + '</b>：res = res[:-1]，回到 ' + quote(res) + '。');
+      }
+      stack.pop();
+    }
+    snap('start', 0, '', '初始化 res = ""，从 dfs(' + quote(digits) + ') 开始。每位数字必须选且只选一个字母，顺序与 digits 一致。');
+    dfs(0);
+    snap('done', -1, '', '搜索结束，共得到 <span class="ok">' + combos.length + ' 个组合</span>。');
+    return { steps: steps, combos: combos };
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var digits = '', steps = [], combos = [], index = 0, timer = null;
+  var input = $('input'), err = $('err'), playBtn = $('playBtn');
+  function stop() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function phaseName(p) {
+    return ({
+      start: '初始化', enter: '进入递归', digit: '查表映射', scan: '扫描字母',
+      choose: '做出选择', recurse: '递归调用', collect: '收集组合', undo: '撤销选择', done: '完成'
+    })[p] || p;
+  }
+  function renderKeypad(s) {
+    var current = s.start >= 0 && s.start < s.digits.length ? s.digits[s.start] : '';
+    var html = '';
+    for (var d = 1; d <= 9; d++) {
+      var cls = 'key';
+      if (!MAP[d]) cls += ' off';
+      if (String(d) === current) cls += ' current';
+      html += '<div class="' + cls + '"><span class="num">' + d + '</span><span class="let">' + (MAP[d] || '无字母') + '</span></div>';
+    }
+    $('keypad').innerHTML = html;
+  }
+  function render() {
+    var s = steps[index];
+    $('array').innerHTML = '';
+    for (var i = 0; i < s.digits.length; i++) {
+      var c = document.createElement('div'), cls = 'cell', d = s.digits[i];
+      if (s.start >= 0 && i < s.start) cls += ' done';
+      else if (s.start === i) cls += (s.phase === 'undo' ? ' undo' : ' scan');
+      else if (s.start >= 0 && i > s.start) cls += ' remain';
+      c.className = cls;
+      c.innerHTML = '<span class="idx">' + i + '</span>' + d + '<span class="letters">' + MAP[Number(d)] + '</span>';
+      $('array').appendChild(c);
+    }
+    renderKeypad(s);
+    var currentDigit = s.start >= 0 && s.start < s.digits.length ? Number(s.digits[s.start]) : 0;
+    var letters = currentDigit ? MAP[currentDigit] : '';
+    if (!letters) {
+      $('letters').innerHTML = '<span class="empty">当前层没有待选字母</span>';
+    } else {
+      $('letters').innerHTML = letters.split('').map(function (ch) {
+        var cls = 'letter';
+        if (s.letter === ch) cls += s.phase === 'undo' ? ' undo' : ' scan';
+        return '<span class="' + cls + '">' + ch + '</span>';
+      }).join('');
+    }
+    if (!s.path) {
+      $('path').innerHTML = '<span class="empty">"" 空串</span>';
+    } else {
+      $('path').innerHTML = s.path.split('').map(function (ch, i) {
+        return (i ? '<span class="arrow">→</span>' : '') + '<span class="path-node">' + ch + '</span>';
+      }).join('');
+    }
+    $('stack').innerHTML = s.stack.length
+      ? s.stack.map(function (v, i) { return '<div class="frame"><span>层 ' + i + '</span><b>' + v + '</b></div>'; }).join('')
+      : '<span class="empty">调用栈为空</span>';
+    var visible = Math.min(s.resultCount, 36), html = '';
+    for (var r = 0; r < visible; r++) html += '<span class="result">#' + (r + 1) + ' ' + combos[r] + '</span>';
+    if (!visible) html = '<span class="empty">尚未收集组合</span>';
+    if (s.resultCount > visible) html += '<span class="empty">另有 ' + (s.resultCount - visible) + ' 个…</span>';
+    $('results').innerHTML = html;
+    $('vars').innerHTML =
+      '<span class="var">阶段 = <b>' + phaseName(s.phase) + '</b></span>' +
+      '<span class="var">sub_digits = <b>' + (s.start < 0 ? '—' : quote(s.remaining)) + '</b></span>' +
+      '<span class="var">res = <b>' + quote(s.path) + '</b></span>' +
+      '<span class="var">当前字母 = <b>' + (s.letter || '—') + '</b></span>';
+    $('status').innerHTML = s.message;
+    $('progress').textContent = '步骤 ' + (index + 1) + ' / ' + steps.length;
+    $('prevBtn').disabled = index === 0;
+    $('nextBtn').disabled = index === steps.length - 1;
+    $('stats').innerHTML =
+      '<div class="stat">n<b>' + digits.length + '</b></div>' +
+      '<div class="stat">组合总数<b>' + combos.length + '</b></div>' +
+      '<div class="stat">当前已收集<b>' + s.resultCount + '</b></div>' +
+      '<div class="stat">时间<b>O(4ⁿ · n)</b></div>' +
+      '<div class="stat">辅助空间<b>O(n)</b></div>' +
+      '<div class="stat">结果空间<b>O(4ⁿ · n)</b></div>';
+  }
+  function load(raw) {
+    var parsed = parseInput(raw);
+    if (!parsed) {
+      err.textContent = '格式错误：请输入 1～4 个数字 2～9，例如 23。';
+      err.classList.add('show');
+      return false;
+    }
+    err.classList.remove('show');
+    stop();
+    digits = parsed;
+    var data = buildSteps(digits);
+    steps = data.steps;
+    combos = data.combos;
+    index = 0;
+    render();
+    return true;
+  }
+  $('loadBtn').onclick = function () { load(input.value); };
+  $('prevBtn').onclick = function () { stop(); if (index > 0) { index--; render(); } };
+  $('nextBtn').onclick = function () { stop(); if (index < steps.length - 1) { index++; render(); } };
+  $('resetBtn').onclick = function () { stop(); index = 0; render(); };
+  playBtn.onclick = function () {
+    if (timer) { stop(); return; }
+    if (index === steps.length - 1) { index = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (index === steps.length - 1) { stop(); return; }
+      index++;
+      render();
+    }, 560);
+  };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (c) {
+    c.onclick = function () { input.value = c.textContent; load(c.textContent); };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === input) return;
+    if (e.key === 'ArrowRight') $('nextBtn').click();
+    if (e.key === 'ArrowLeft') $('prevBtn').click();
+  });
+  var codes = {
+    py: '<span class="cmt"># 时间 O(4ⁿ · n)；辅助空间 O(n)，结果空间 O(4ⁿ · n)</span>\nclass Solution:\n    def letterCombinations(self, digits: str) -&gt; list[str]:\n        lst = ["", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"]\n        resp, res = [], ""\n\n        def dfs(sub_digits: str) -&gt; None:\n            nonlocal res\n            if sub_digits == "":              <span class="cmt"># 每位都选完了</span>\n                resp.append(res)\n                return\n            n = int(sub_digits[0])\n            for c in lst[n]:\n                res += c                      <span class="cmt"># choose</span>\n                dfs(sub_digits[1:])           <span class="cmt"># 处理剩余后缀</span>\n                res = res[:-1]                <span class="cmt"># undo</span>\n\n        dfs(digits)\n        return resp',
+    java: '<span class="cmt">// 时间 O(4ⁿ · n)；辅助空间 O(n)，结果空间 O(4ⁿ · n)</span>\nclass Solution {\n    private static final String[] LST = {\n        "", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"\n    };\n\n    public List&lt;String&gt; letterCombinations(String digits) {\n        List&lt;String&gt; resp = new ArrayList&lt;&gt;();\n        dfs(digits, 0, new StringBuilder(), resp);\n        return resp;\n    }\n\n    private void dfs(String digits, int start, StringBuilder res, List&lt;String&gt; resp) {\n        if (start == digits.length()) {\n            resp.add(res.toString());         <span class="cmt">// 必须复制</span>\n            return;\n        }\n        String letters = LST[digits.charAt(start) - \'0\'];\n        for (int i = 0; i &lt; letters.length(); i++) {\n            res.append(letters.charAt(i));    <span class="cmt"># choose</span>\n            dfs(digits, start + 1, res, resp);\n            res.deleteCharAt(res.length() - 1); <span class="cmt"># undo</span>\n        }\n    }\n}'
+  };
+  function showCode(lang) { $('codeBlock').innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      document.querySelectorAll('.code-tab').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('py');
+  load(input.value);
+})();
+</script>
+</body>
+</html>
