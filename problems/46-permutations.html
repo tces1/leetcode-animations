@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="回溯 · 排列 · DFS · used 数组">
+<meta name="description" content="LeetCode 46 全排列：用 path 与 used 数组逐帧演示选择、递归、收集和撤销。">
+<title>46. 全排列 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; background:#f6f7f9; color:#1d2129; line-height:1.5; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; }
+  .copy-note { margin-top:12px; padding:11px 14px; border:1px solid #fde68a; border-radius:10px; background:#fffbeb; color:#78350f; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  input[type=text] { flex:1; min-width:220px; padding:9px 12px; font:15px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .hint { margin-top:8px; font-size:12px; color:#9ca3af; }
+  .err { display:none; margin-top:9px; color:#dc2626; font-size:13px; }
+  .err.show { display:block; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { padding:8px 12px; border:1px solid #eef0f4; border-radius:8px; background:#f8fafc; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:700 14px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .workbench { display:grid; grid-template-columns:minmax(330px,1.1fr) minmax(280px,.9fr); gap:16px; align-items:start; }
+  .visual, .side-box { border:1px solid #e5e7eb; border-radius:10px; padding:13px; background:#f8fafc; }
+  .visual + .visual, .side-box + .side-box { margin-top:10px; }
+  .side-title { margin-bottom:8px; font-size:11px; font-weight:800; color:#64748b; letter-spacing:.03em; }
+  .array { display:flex; flex-wrap:wrap; gap:8px; min-height:62px; }
+  .cell { position:relative; min-width:52px; height:54px; display:flex; align-items:center; justify-content:center; border:2px solid #d1d5db; border-radius:9px; background:#fff; font:700 15px "SF Mono",Menlo,monospace; color:#334155; }
+  .cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#94a3b8; }
+  .cell.used { background:#ede9fe; border-color:#a78bfa; color:#5b21b6; }
+  .cell.scan { box-shadow:0 0 0 4px rgba(245,158,11,.25); border-color:#f59e0b; background:#fef3c7; }
+  .cell.skip { border-color:#ef4444; background:#fee2e2; color:#b91c1c; }
+  .cell.undo { border-color:#64748b; background:#e2e8f0; color:#475569; }
+  .used-label { display:block; position:absolute; bottom:2px; font-size:9px; color:#7c3aed; }
+  .path { display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-height:36px; }
+  .path-node { padding:6px 9px; border-radius:7px; border:1px solid #c7d2fe; background:#eef2ff; color:#4338ca; font:700 13px "SF Mono",Menlo,monospace; }
+  .arrow { color:#94a3b8; }
+  .empty { color:#9ca3af; font-size:12px; }
+  .stack { display:grid; gap:5px; max-height:210px; overflow:auto; }
+  .frame { display:flex; justify-content:space-between; gap:8px; padding:6px 9px; border:1px solid #e5e7eb; border-radius:7px; background:#fff; font:12px "SF Mono",Menlo,monospace; color:#475569; }
+  .frame:last-child { border-color:#818cf8; background:#eef2ff; color:#4338ca; }
+  .results { display:flex; flex-wrap:wrap; gap:6px; max-height:180px; overflow:auto; }
+  .result { padding:4px 7px; border:1px solid #bbf7d0; border-radius:6px; background:#dcfce7; color:#166534; font:10px "SF Mono",Menlo,monospace; }
+  .vars { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .var { padding:4px 9px; border:1px solid #eef0f4; border-radius:7px; background:#f8fafc; color:#4b5563; font:12px "SF Mono",Menlo,monospace; }
+  .status { margin-top:12px; min-height:52px; padding:14px 16px; border-radius:10px; background:#111827; color:#e5e7eb; font-size:14px; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .bad { color:#fca5a5; font-weight:700; }
+  .status b { color:#fcd34d; }
+  details summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { padding:5px 12px; border:1px solid #e5e7eb; border-radius:999px; background:#f1f2f4; color:#374151; font-size:13px; cursor:pointer; }
+  .code-tab.active { border-color:#4338ca; background:#6366f1; color:#fff; }
+  pre { margin:0; padding:14px; overflow:auto; border-radius:10px; background:#0f172a; color:#e2e8f0; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  @media(max-width:760px) { body{padding:16px 12px}.card{padding:14px}.workbench{grid-template-columns:1fr}.progress{width:100%;margin-left:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/permutations/" target="_blank" rel="noopener">LeetCode 46</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>46. 全排列 · 回溯动画</h1>
+  <div class="sub">用 <code>path</code> 保存当前排列，用 <code>used[i]</code> 标记 nums[i] 是否已经选过。每层扫描所有候选：已使用就跳过，否则执行<b>选择 → 递归 → 撤销</b>。</div>
+
+  <div class="card">
+    <div class="panel-title">回溯流程</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 状态</div><code>path</code> 是当前路径，<code>used</code> 防止同一元素重复出现。</div>
+      <div class="idea-item"><div class="no">② 扫描</div>每层从下标 0 开始扫描；遇到 <code>used[i]</code> 就跳过。</div>
+      <div class="idea-item"><div class="no">③ 选择 / 递归</div>加入 <code>nums[i]</code>，置 <code>used[i]=true</code>，递归下一层。</div>
+      <div class="idea-item"><div class="no">④ 收集 / 撤销</div><code>len(path)==n</code> 时收集；返回后 pop 并恢复 used。</div>
+    </div>
+    <div class="copy-note"><b>必须保存副本：</b><code>result.append(path[:])</code>。<code>path</code> 会持续被 pop 和复用；若直接保存它，所有结果都会引用同一个可变列表。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input id="input" type="text" value="[1,2,3]" spellcheck="false" aria-label="互不相同的整数数组">
+      <button id="loadBtn" type="button">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip">[1,2,3]</span><span class="chip">[4,9]</span><span class="chip">[-7]</span><span class="chip">[-2,5,11]</span>
+    </div>
+    <div id="err" class="err"></div>
+    <div class="hint">请输入 1～7 个互不相同的安全整数，格式如 [1,2,3]；n=7 会产生较多动画帧。</div>
+  </div>
+
+  <div class="card">
+    <div id="stats" class="stats"></div>
+    <div class="controls play-controls">
+      <button id="prevBtn" class="ghost" type="button">◀ 上一步</button>
+      <button id="nextBtn" type="button">下一步 ▶</button>
+      <button id="playBtn" class="ghost" type="button">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost" type="button">↺ 重置</button>
+      <span id="progress" class="progress"></span>
+    </div>
+    <div class="workbench">
+      <div>
+        <div class="visual"><div class="side-title">候选数组 nums / used 状态</div><div id="array" class="array"></div></div>
+        <div class="visual"><div class="side-title">当前递归路径 path</div><div id="path" class="path"></div></div>
+      </div>
+      <div>
+        <div class="side-box"><div class="side-title">调用栈（底 → 顶）</div><div id="stack" class="stack"></div></div>
+        <div class="side-box"><div class="side-title">已经收集的排列（按 DFS 顺序）</div><div id="results" class="results"></div></div>
+      </div>
+    </div>
+    <div id="vars" class="vars"></div>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>查看参考代码（Python / Java）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+/* 纯逻辑核心：可在 Node 中导出验证。 */
+(function (root) {
+  'use strict';
+  function parseInput(value) {
+    if (typeof value !== 'string') return null;
+    var s = value.trim();
+    if (!/^\[\s*[+-]?\d+(?:\s*,\s*[+-]?\d+){0,6}\s*\]$/.test(s)) return null;
+    var nums = s.slice(1, -1).split(',').map(function (x) { return Number(x.trim()); });
+    if (!nums.every(Number.isSafeInteger) || new Set(nums).size !== nums.length) return null;
+    return nums;
+  }
+
+  function buildSteps(nums) {
+    var n = nums.length, used = new Array(n).fill(false), path = [], stack = [];
+    var steps = [], permutations = [];
+    function snap(phase, depth, candidate, message) {
+      steps.push({
+        phase:phase, depth:depth, candidate:candidate,
+        nums:nums.slice(), used:used.slice(), path:path.slice(), stack:stack.slice(),
+        resultCount:permutations.length, message:message
+      });
+    }
+    function dfs(depth) {
+      stack.push('dfs(' + depth + ')');
+      snap('enter', depth, -1, '进入 <b>dfs(' + depth + ')</b>：当前 path 长度为 ' + path.length + '，目标长度为 ' + n + '。');
+      if (path.length === n) {
+        permutations.push(path.slice());
+        snap('collect', depth, -1, '<span class="ok">path 已满，收集第 ' + permutations.length + ' 个排列 [' + path.join(', ') + ']</span>。这里保存的是 <b>path 的副本</b>。');
+        stack.pop();
+        return;
+      }
+      for (var i = 0; i < n; i++) {
+        snap('scan', depth, i, '第 ' + depth + ' 层扫描候选 <b>nums[' + i + '] = ' + nums[i] + '</b>，检查 used[' + i + ']。');
+        if (used[i]) {
+          snap('skip', depth, i, '<span class="bad">used[' + i + '] = true</span>，元素 ' + nums[i] + ' 已在 path 中，跳过。');
+          continue;
+        }
+        used[i] = true;
+        path.push(nums[i]);
+        snap('choose', depth, i, '选择 <b>' + nums[i] + '</b>：加入 path，设置 used[' + i + ']=true；接着递归 <b>dfs(' + (depth + 1) + ')</b>。');
+        snap('recurse', depth + 1, i, '沿选择 ' + nums[i] + ' 进入下一层，当前 path = [' + path.join(', ') + ']。');
+        dfs(depth + 1);
+        path.pop();
+        used[i] = false;
+        snap('undo', depth, i, '从 dfs(' + (depth + 1) + ') 返回，<b>撤销 ' + nums[i] + '</b>：path.pop()，恢复 used[' + i + ']=false。');
+      }
+      stack.pop();
+    }
+    snap('start', 0, -1, '初始化 path=[]、used 全为 false，从 dfs(0) 开始搜索。');
+    dfs(0);
+    snap('done', -1, -1, '搜索结束，共得到 <span class="ok">' + permutations.length + ' 个全排列</span>。');
+    return { steps:steps, permutations:permutations };
+  }
+  root.PERMUTATIONS = { parseInput:parseInput, buildSteps:buildSteps };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var P = window.PERMUTATIONS, $ = function (id) { return document.getElementById(id); };
+  var nums = [], steps = [], permutations = [], index = 0, timer = null;
+  var input = $('input'), err = $('err'), playBtn = $('playBtn');
+  function stop() { if (timer) { clearInterval(timer); timer=null; playBtn.textContent='▶ 自动播放'; } }
+  function phaseName(p) {
+    return ({start:'初始化',enter:'进入递归',scan:'扫描候选',skip:'跳过已用',choose:'做出选择',recurse:'递归调用',collect:'收集副本',undo:'撤销选择',done:'完成'})[p] || p;
+  }
+  function render() {
+    var s = steps[index];
+    $('array').innerHTML = '';
+    s.nums.forEach(function (v, i) {
+      var c=document.createElement('div'), cls='cell';
+      if (s.used[i]) cls+=' used';
+      if (s.candidate===i) cls += s.phase==='skip'?' skip':s.phase==='undo'?' undo':' scan';
+      c.className=cls; c.innerHTML='<span class="idx">'+i+'</span>'+v+(s.used[i]?'<span class="used-label">used</span>':'');
+      $('array').appendChild(c);
+    });
+    $('path').innerHTML = s.path.length ? s.path.map(function(v,i){return (i?'<span class="arrow">→</span>':'')+'<span class="path-node">'+v+'</span>';}).join('') : '<span class="empty">[] 空路径</span>';
+    $('stack').innerHTML = s.stack.length ? s.stack.map(function(v,i){return '<div class="frame"><span>层 '+i+'</span><b>'+v+'</b></div>';}).join('') : '<span class="empty">调用栈为空</span>';
+    var visible=Math.min(s.resultCount,30), html='';
+    for(var r=0;r<visible;r++) html+='<span class="result">#'+(r+1)+' ['+permutations[r].join(',')+']</span>';
+    if(!visible) html='<span class="empty">尚未收集排列</span>';
+    if(s.resultCount>visible) html+='<span class="empty">另有 '+(s.resultCount-visible)+' 个…</span>';
+    $('results').innerHTML=html;
+    $('vars').innerHTML='<span class="var">阶段 = <b>'+phaseName(s.phase)+'</b></span><span class="var">递归层 = <b>'+(s.depth<0?'—':s.depth)+'</b></span><span class="var">候选 i = <b>'+(s.candidate<0?'—':s.candidate)+'</b></span><span class="var">len(path) = <b>'+s.path.length+'</b></span>';
+    $('status').innerHTML=s.message;
+    $('progress').textContent='步骤 '+(index+1)+' / '+steps.length;
+    $('prevBtn').disabled=index===0; $('nextBtn').disabled=index===steps.length-1;
+    $('stats').innerHTML='<div class="stat">n<b>'+nums.length+'</b></div><div class="stat">排列总数<b>'+permutations.length+'</b></div><div class="stat">当前已收集<b>'+s.resultCount+'</b></div><div class="stat">时间<b>O(n · n!)</b></div><div class="stat">辅助空间<b>O(n)</b></div><div class="stat">结果空间<b>O(n · n!)</b></div>';
+  }
+  function load(raw) {
+    var parsed=P.parseInput(raw);
+    if(!parsed){err.textContent='格式错误：请输入 1～7 个互不相同的安全整数，例如 [1,2,3]。';err.classList.add('show');return false;}
+    err.classList.remove('show'); stop(); nums=parsed; var data=P.buildSteps(nums); steps=data.steps; permutations=data.permutations; index=0; render(); return true;
+  }
+  $('loadBtn').onclick=function(){load(input.value);};
+  $('prevBtn').onclick=function(){stop();if(index>0){index--;render();}};
+  $('nextBtn').onclick=function(){stop();if(index<steps.length-1){index++;render();}};
+  $('resetBtn').onclick=function(){stop();index=0;render();};
+  playBtn.onclick=function(){if(timer){stop();return;}if(index===steps.length-1){index=0;render();}playBtn.textContent='⏸ 暂停';timer=setInterval(function(){if(index===steps.length-1){stop();return;}index++;render();},560);};
+  input.addEventListener('keydown',function(e){if(e.key==='Enter')load(input.value);});
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(c){c.onclick=function(){input.value=c.textContent;load(c.textContent);};});
+  document.addEventListener('keydown',function(e){if(document.activeElement===input)return;if(e.key==='ArrowRight')$('nextBtn').click();if(e.key==='ArrowLeft')$('prevBtn').click();});
+  var codes={
+    py:'<span class="cmt"># 时间 O(n · n!)；辅助空间 O(n)，结果空间 O(n · n!)</span>\nclass Solution:\n    def permute(self, nums: list[int]) -&gt; list[list[int]]:\n        n, path, result = len(nums), [], []\n        used = [False] * n\n\n        def dfs() -&gt; None:\n            if len(path) == n:\n                result.append(path[:])       <span class="cmt"># 必须复制！</span>\n                return\n            for i in range(n):\n                if used[i]:\n                    continue\n                used[i] = True              <span class="cmt"># choose</span>\n                path.append(nums[i])\n                dfs()\n                path.pop()                  <span class="cmt"># undo</span>\n                used[i] = False\n\n        dfs()\n        return result',
+    java:'<span class="cmt">// 时间 O(n · n!)；辅助空间 O(n)，结果空间 O(n · n!)</span>\nclass Solution {\n    private final List&lt;List&lt;Integer&gt;&gt; result = new ArrayList&lt;&gt;();\n\n    public List&lt;List&lt;Integer&gt;&gt; permute(int[] nums) {\n        dfs(nums, new boolean[nums.length], new ArrayList&lt;&gt;());\n        return result;\n    }\n\n    private void dfs(int[] nums, boolean[] used, List&lt;Integer&gt; path) {\n        if (path.size() == nums.length) {\n            result.add(new ArrayList&lt;&gt;(path)); <span class="cmt">// 保存副本</span>\n            return;\n        }\n        for (int i = 0; i &lt; nums.length; i++) {\n            if (used[i]) continue;\n            used[i] = true;\n            path.add(nums[i]);                 <span class="cmt">// choose</span>\n            dfs(nums, used, path);\n            path.remove(path.size() - 1);      <span class="cmt">// undo</span>\n            used[i] = false;\n        }\n    }\n}'
+  };
+  function showCode(lang){$('codeBlock').innerHTML=codes[lang];}
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'),function(t){t.onclick=function(){document.querySelectorAll('.code-tab').forEach(function(x){x.classList.remove('active');});t.classList.add('active');showCode(t.dataset.lang);};});
+  showCode('py'); load(input.value);
+})();
+</script>
+</body>
+</html>
