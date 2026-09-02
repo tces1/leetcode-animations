@@ -75,6 +75,7 @@ leetcode-animations/
 | 5 | [最长回文子串](https://tces1.github.io/leetcode-animations/problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 字符串 |
 | 11 | [盛最多水的容器](https://tces1.github.io/leetcode-animations/problems/11-container-with-most-water.html) | 中等 | 数组 · 双指针 · 贪心 |
 | 15 | [三数之和](https://tces1.github.io/leetcode-animations/problems/15-3sum.html) | 中等 | 数组 · 排序 · 双指针 · 去重 · 剪枝 |
+| 17 | [电话号码的字母组合](https://tces1.github.io/leetcode-animations/problems/17-letter-combinations-of-a-phone-number.html) | 中等 | 回溯 · DFS · 电话按键 · 笛卡尔积 |
 | 19 | [删除链表的倒数第 N 个结点](https://tces1.github.io/leetcode-animations/problems/19-remove-nth-node-from-end-of-list.html) | 中等 | 链表 · 双指针 · dummy · 前后指针 · 原地删除 · O(1) 空间 |
 | 21 | [合并两个有序链表](https://tces1.github.io/leetcode-animations/problems/21-merge-two-sorted-lists.html) | 简单 | 链表 · 双指针 · dummy · 迭代 · 稳定合并 · O(1) 空间 |
 | 23 | [合并 K 个升序链表](https://tces1.github.io/leetcode-animations/problems/23-merge-k-sorted-lists.html) | 困难 | 链表 · 分治 · 自底向上归并 · dummy · 稳定合并 · 原地压缩 · O(N log k) |
