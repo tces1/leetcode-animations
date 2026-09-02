@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="回溯 · DFS · 组合总和 · 可重复选取">
+<meta name="description" content="LeetCode 39 组合总和：用 start_idx 与剩余目标 _target 逐帧演示选择、重复使用、剪枝、收集和撤销。">
+<title>39. 组合总和 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; background:#f6f7f9; color:#1d2129; line-height:1.5; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; }
+  .copy-note { margin-top:12px; padding:11px 14px; border:1px solid #fde68a; border-radius:10px; background:#fffbeb; color:#78350f; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .field { display:flex; align-items:center; gap:8px; flex:1; min-width:180px; }
+  .field.grow { flex:2; min-width:240px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; white-space:nowrap; }
+  input[type=text], input[type=number] { flex:1; min-width:0; padding:9px 12px; font:15px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  input[type=number] { width:88px; flex:0 0 88px; }
+  input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .hint { margin-top:8px; font-size:12px; color:#9ca3af; }
+  .err { display:none; margin-top:9px; color:#dc2626; font-size:13px; }
+  .err.show { display:block; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { padding:8px 12px; border:1px solid #eef0f4; border-radius:8px; background:#f8fafc; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:700 14px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .workbench { display:grid; grid-template-columns:minmax(330px,1.1fr) minmax(280px,.9fr); gap:16px; align-items:start; }
+  .visual, .side-box { border:1px solid #e5e7eb; border-radius:10px; padding:13px; background:#f8fafc; }
+  .visual + .visual, .side-box + .side-box { margin-top:10px; }
+  .side-title { margin-bottom:8px; font-size:11px; font-weight:800; color:#64748b; letter-spacing:.03em; }
+  .array { display:flex; flex-wrap:wrap; gap:8px; min-height:62px; }
+  .cell { position:relative; min-width:52px; height:54px; display:flex; align-items:center; justify-content:center; border:2px solid #d1d5db; border-radius:9px; background:#fff; font:700 15px "SF Mono",Menlo,monospace; color:#334155; }
+  .cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#94a3b8; }
+  .cell .tag { display:block; position:absolute; bottom:2px; font-size:9px; }
+  .cell.skipped { background:#f1f5f9; border-color:#e2e8f0; color:#94a3b8; }
+  .cell.skipped .tag { color:#94a3b8; }
+  .cell.remain { border-color:#93c5fd; }
+  .cell.remain .tag { color:#2563eb; }
+  .cell.start { background:#ede9fe; border-color:#a78bfa; color:#5b21b6; }
+  .cell.start .tag { color:#7c3aed; }
+  .cell.scan { box-shadow:0 0 0 4px rgba(245,158,11,.25); border-color:#f59e0b; background:#fef3c7; }
+  .cell.undo { border-color:#64748b; background:#e2e8f0; color:#475569; }
+  .cell.over { border-color:#ef4444; background:#fee2e2; color:#b91c1c; }
+  .path { display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-height:36px; }
+  .path-node { padding:6px 9px; border-radius:7px; border:1px solid #c7d2fe; background:#eef2ff; color:#4338ca; font:700 13px "SF Mono",Menlo,monospace; }
+  .arrow { color:#94a3b8; }
+  .empty { color:#9ca3af; font-size:12px; }
+  .meter { height:10px; border-radius:99px; background:#e5e7eb; overflow:hidden; }
+  .meter > span { display:block; height:100%; background:#6366f1; }
+  .meter.ok > span { background:#16a34a; }
+  .meter.bad > span { background:#dc2626; }
+  .meter-lab { margin-top:6px; font:12px "SF Mono",Menlo,monospace; color:#4b5563; }
+  .stack { display:grid; gap:5px; max-height:210px; overflow:auto; }
+  .frame { display:flex; justify-content:space-between; gap:8px; padding:6px 9px; border:1px solid #e5e7eb; border-radius:7px; background:#fff; font:12px "SF Mono",Menlo,monospace; color:#475569; }
+  .frame:last-child { border-color:#818cf8; background:#eef2ff; color:#4338ca; }
+  .results { display:flex; flex-wrap:wrap; gap:6px; max-height:180px; overflow:auto; }
+  .result { padding:4px 7px; border:1px solid #bbf7d0; border-radius:6px; background:#dcfce7; color:#166534; font:10px "SF Mono",Menlo,monospace; }
+  .vars { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .var { padding:4px 9px; border:1px solid #eef0f4; border-radius:7px; background:#f8fafc; color:#4b5563; font:12px "SF Mono",Menlo,monospace; }
+  .status { margin-top:12px; min-height:52px; padding:14px 16px; border-radius:10px; background:#111827; color:#e5e7eb; font-size:14px; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .bad { color:#fca5a5; font-weight:700; }
+  .status b { color:#fcd34d; }
+  details summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { padding:5px 12px; border:1px solid #e5e7eb; border-radius:999px; background:#f1f2f4; color:#374151; font-size:13px; cursor:pointer; }
+  .code-tab.active { border-color:#4338ca; background:#6366f1; color:#fff; }
+  pre { margin:0; padding:14px; overflow:auto; border-radius:10px; background:#0f172a; color:#e2e8f0; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  .star-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; margin:0 0 16px; padding:12px 16px; border:1px solid #e0e7ff; border-radius:12px; background:linear-gradient(180deg,#f8faff 0%,#fff 100%); }
+  .star-banner-copy { flex:1; min-width:180px; }
+  .star-banner-title { font-size:14px; font-weight:700; color:#1d2129; }
+  .star-banner-sub { margin-top:2px; font-size:12px; color:#6b7280; }
+  .star-cta { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid #c7d2fe; border-radius:8px; background:#fff; color:#312e81; text-decoration:none; font-size:13px; font-weight:700; box-shadow:0 1px 0 rgba(99,102,241,.08); flex-shrink:0; }
+  .star-cta:hover { border-color:#818cf8; background:#eef2ff; }
+  .star-cta svg { width:14px; height:14px; fill:currentColor; }
+  @media(max-width:760px) { body{padding:16px 12px}.card{padding:14px}.workbench{grid-template-columns:1fr}.progress{width:100%;margin-left:0}.field,.field.grow{min-width:100%} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/combination-sum/" target="_blank" rel="noopener">LeetCode 39</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>39. 组合总和 · 回溯动画</h1>
+  <div class="sub">从 <code>candidates</code> 里选数字，使它们的和等于 <code>target</code>。同一个数可以选多次，但组合不能重复。用 <code>start_idx</code> 只往右看，递归时传入 <b>同一个 idx</b> 表示「这个数还能再用」；剩余目标 <code>_target &lt; 0</code> 就剪枝，<code>== 0</code> 就收集。</div>
+
+  <div class="card">
+    <div class="panel-title">回溯流程</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 状态</div><code>res</code> 是当前组合，<code>_target</code> 是还差多少。</div>
+      <div class="idea-item"><div class="no">② 起点</div>本层从 <code>start_idx</code> 扫到末尾，左边已经放弃，避免 [2,3] 和 [3,2] 重复。</div>
+      <div class="idea-item"><div class="no">③ 可重复</div>选中 <code>candidates[idx]</code> 后递归 <code>dfs(idx, _target-item)</code>，不是 idx+1。</div>
+      <div class="idea-item"><div class="no">④ 终止</div><code>_target == 0</code> 收集副本；<code>_target &lt; 0</code> 剪枝返回。</div>
+    </div>
+    <div class="copy-note"><b>必须保存副本：</b><code>resp.append(res.copy())</code>。<code>res</code> 会继续 pop 复用。递归传 <code>idx</code> 而不是 <code>idx+1</code>，才允许同一个数字用多次。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field grow"><span class="lab">candidates</span><input id="input" type="text" value="[2,3,6,7]" spellcheck="false"></label>
+      <label class="field"><span class="lab">target</span><input id="target" type="number" value="7" min="1" max="15"></label>
+      <button id="loadBtn" type="button">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-c="[2,3,6,7]" data-t="7">[2,3,6,7], 7</span>
+      <span class="chip" data-c="[2,3,5]" data-t="8">[2,3,5], 8</span>
+      <span class="chip" data-c="[2]" data-t="4">[2], 4</span>
+      <span class="chip" data-c="[8,7,4,3]" data-t="11">[8,7,4,3], 11</span>
+    </div>
+    <div id="err" class="err"></div>
+    <div class="hint">请输入 1～6 个互不相同的正整数，以及 1～15 的 target。数字可重复选取，target 过大时动画帧会比较多。</div>
+  </div>
+
+  <div class="card">
+    <div id="stats" class="stats"></div>
+    <div class="controls play-controls">
+      <button id="prevBtn" class="ghost" type="button">◀ 上一步</button>
+      <button id="nextBtn" type="button">下一步 ▶</button>
+      <button id="playBtn" class="ghost" type="button">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost" type="button">↺ 重置</button>
+      <span id="progress" class="progress"></span>
+    </div>
+    <div class="workbench">
+      <div>
+        <div class="visual"><div class="side-title">candidates（灰=已跳过，紫=本层起点可重复，黄=正在看）</div><div id="array" class="array"></div></div>
+        <div class="visual">
+          <div class="side-title">剩余目标 _target</div>
+          <div class="meter" id="meter"><span id="meterFill"></span></div>
+          <div class="meter-lab" id="meterLab"></div>
+        </div>
+        <div class="visual"><div class="side-title">当前路径 res</div><div id="path" class="path"></div></div>
+      </div>
+      <div>
+        <div class="side-box"><div class="side-title">调用栈（底 → 顶）</div><div id="stack" class="stack"></div></div>
+        <div class="side-box"><div class="side-title">已经收集的组合（按 DFS 顺序）</div><div id="results" class="results"></div></div>
+      </div>
+    </div>
+    <div id="vars" class="vars"></div>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>查看参考代码（Python / Java）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  function parseCandidates(value) {
+    if (typeof value !== 'string') return null;
+    var s = value.trim();
+    if (!/^\[\s*\d+(?:\s*,\s*\d+){0,5}\s*\]$/.test(s)) return null;
+    var nums = s.slice(1, -1).split(',').map(function (x) { return Number(x.trim()); });
+    if (!nums.every(function (n) { return Number.isSafeInteger(n) && n >= 1 && n <= 40; })) return null;
+    if (new Set(nums).size !== nums.length) return null;
+    return nums;
+  }
+  function parseTarget(value) {
+    var n = Number(value);
+    if (!Number.isSafeInteger(n) || n < 1 || n > 15) return null;
+    return n;
+  }
+  function fmtList(arr) { return '[' + arr.join(', ') + ']'; }
+
+  function buildSteps(candidates, target) {
+    var res = [], steps = [], combos = [], stack = [];
+    function snap(phase, start, idx, remain, message) {
+      steps.push({
+        phase: phase,
+        start: start,
+        idx: idx,
+        remain: remain,
+        sum: target - remain,
+        candidates: candidates.slice(),
+        path: res.slice(),
+        stack: stack.slice(),
+        resultCount: combos.length,
+        message: message
+      });
+    }
+    function dfs(start, remain) {
+      stack.push('dfs(' + start + ', ' + remain + ')');
+      snap('enter', start, -1, remain, '进入 <b>dfs(' + start + ', ' + remain + ')</b>：当前 res = ' + fmtList(res) + '。');
+      if (remain <= 0) {
+        if (remain === 0) {
+          combos.push(res.slice());
+          snap('collect', start, -1, remain, '<span class="ok">_target = 0，收集第 ' + combos.length + ' 个组合 ' + fmtList(res) + '</span>。这里保存的是 <b>res 的副本</b>。');
+        } else {
+          snap('prune', start, -1, remain, '<span class="bad">_target = ' + remain + ' &lt; 0</span>，这条路超过 target，剪枝返回。');
+        }
+        stack.pop();
+        return;
+      }
+      for (var idx = start; idx < candidates.length; idx++) {
+        var item = candidates[idx];
+        snap('scan', start, idx, remain, '本层从 start_idx = ' + start + ' 扫描到 <b>candidates[' + idx + '] = ' + item + '</b>。');
+        res.push(item);
+        snap('choose', start, idx, remain - item, '选择 <b>' + item + '</b> 加入 res，接着递归 <b>dfs(' + idx + ', ' + (remain - item) + ')</b>。同一下标还可以再用。');
+        snap('recurse', idx, idx, remain - item, '沿数字 ' + item + ' 进入下一层，当前 res = ' + fmtList(res) + '，剩余 ' + (remain - item) + '。');
+        dfs(idx, remain - item);
+        res.pop();
+        snap('undo', start, idx, remain, '从更深一层返回，<b>撤销 ' + item + '</b>：res.pop()，剩余目标回到 ' + remain + '。');
+      }
+      stack.pop();
+    }
+    snap('start', 0, -1, target, '初始化 res=[]，从 dfs(0, ' + target + ') 开始。不排序也可以：靠 start_idx 保证每种组合只出现一次。');
+    dfs(0, target);
+    snap('done', -1, -1, 0, '搜索结束，共得到 <span class="ok">' + combos.length + ' 个组合</span>。');
+    return { steps: steps, combos: combos };
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var candidates = [], target = 0, steps = [], combos = [], index = 0, timer = null;
+  var input = $('input'), targetInput = $('target'), err = $('err'), playBtn = $('playBtn');
+  function stop() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function phaseName(p) {
+    return ({
+      start: '初始化', enter: '进入递归', scan: '扫描候选', choose: '做出选择',
+      recurse: '递归调用', collect: '收集副本', prune: '超额剪枝', undo: '撤销选择', done: '完成'
+    })[p] || p;
+  }
+  function render() {
+    var s = steps[index];
+    $('array').innerHTML = '';
+    s.candidates.forEach(function (v, i) {
+      var c = document.createElement('div'), cls = 'cell', tag = '';
+      if (s.start < 0) { /* done / start handled below */ }
+      else if (i < s.start) { cls += ' skipped'; tag = '跳过'; }
+      else if (i === s.start) { cls += ' start'; tag = '可再用'; }
+      else { cls += ' remain'; tag = '可选'; }
+      if (s.idx === i) {
+        if (s.phase === 'undo') cls += ' undo';
+        else if (s.phase === 'prune' || (s.phase === 'choose' && s.remain < 0) || (s.phase === 'recurse' && s.remain < 0)) cls += ' over';
+        else cls += ' scan';
+      }
+      c.className = cls;
+      c.innerHTML = '<span class="idx">' + i + '</span>' + v + (tag ? '<span class="tag">' + tag + '</span>' : '');
+      $('array').appendChild(c);
+    });
+    var used = Math.max(0, s.sum);
+    var pct = target ? Math.min(100, Math.round(used / target * 100)) : 0;
+    var meter = $('meter');
+    meter.className = 'meter' + (s.remain === 0 && s.phase !== 'start' ? ' ok' : s.remain < 0 ? ' bad' : '');
+    $('meterFill').style.width = (s.remain < 0 ? 100 : pct) + '%';
+    $('meterLab').textContent = 'sum(res) = ' + used + '  ·  _target = ' + s.remain + '  ·  target = ' + target;
+    if (!s.path.length) {
+      $('path').innerHTML = '<span class="empty">[] 空组合</span>';
+    } else {
+      $('path').innerHTML = s.path.map(function (v, i) {
+        return (i ? '<span class="arrow">+</span>' : '') + '<span class="path-node">' + v + '</span>';
+      }).join('') + '<span class="arrow">=</span><span class="path-node">' + s.sum + '</span>';
+    }
+    $('stack').innerHTML = s.stack.length
+      ? s.stack.map(function (v, i) { return '<div class="frame"><span>层 ' + i + '</span><b>' + v + '</b></div>'; }).join('')
+      : '<span class="empty">调用栈为空</span>';
+    var visible = Math.min(s.resultCount, 32), html = '';
+    for (var r = 0; r < visible; r++) html += '<span class="result">#' + (r + 1) + ' [' + combos[r].join(',') + ']</span>';
+    if (!visible) html = '<span class="empty">尚未收集组合</span>';
+    if (s.resultCount > visible) html += '<span class="empty">另有 ' + (s.resultCount - visible) + ' 个…</span>';
+    $('results').innerHTML = html;
+    $('vars').innerHTML =
+      '<span class="var">阶段 = <b>' + phaseName(s.phase) + '</b></span>' +
+      '<span class="var">start_idx = <b>' + (s.start < 0 ? '—' : s.start) + '</b></span>' +
+      '<span class="var">idx = <b>' + (s.idx < 0 ? '—' : s.idx) + '</b></span>' +
+      '<span class="var">_target = <b>' + s.remain + '</b></span>';
+    $('status').innerHTML = s.message;
+    $('progress').textContent = '步骤 ' + (index + 1) + ' / ' + steps.length;
+    $('prevBtn').disabled = index === 0;
+    $('nextBtn').disabled = index === steps.length - 1;
+    $('stats').innerHTML =
+      '<div class="stat">n<b>' + candidates.length + '</b></div>' +
+      '<div class="stat">target<b>' + target + '</b></div>' +
+      '<div class="stat">组合总数<b>' + combos.length + '</b></div>' +
+      '<div class="stat">当前已收集<b>' + s.resultCount + '</b></div>' +
+      '<div class="stat">时间<b>指数级</b></div>' +
+      '<div class="stat">辅助空间<b>O(target)</b></div>';
+  }
+  function load(rawC, rawT) {
+    var parsed = parseCandidates(rawC);
+    var t = parseTarget(rawT);
+    if (!parsed || t == null) {
+      err.textContent = '格式错误：candidates 为 1～6 个互不相同的正整数，target 为 1～15，例如 [2,3,6,7] 和 7。';
+      err.classList.add('show');
+      return false;
+    }
+    err.classList.remove('show');
+    stop();
+    candidates = parsed;
+    target = t;
+    var data = buildSteps(candidates, target);
+    steps = data.steps;
+    combos = data.combos;
+    index = 0;
+    render();
+    return true;
+  }
+  $('loadBtn').onclick = function () { load(input.value, targetInput.value); };
+  $('prevBtn').onclick = function () { stop(); if (index > 0) { index--; render(); } };
+  $('nextBtn').onclick = function () { stop(); if (index < steps.length - 1) { index++; render(); } };
+  $('resetBtn').onclick = function () { stop(); index = 0; render(); };
+  playBtn.onclick = function () {
+    if (timer) { stop(); return; }
+    if (index === steps.length - 1) { index = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (index === steps.length - 1) { stop(); return; }
+      index++;
+      render();
+    }, 560);
+  };
+  function onEnter(e) { if (e.key === 'Enter') load(input.value, targetInput.value); }
+  input.addEventListener('keydown', onEnter);
+  targetInput.addEventListener('keydown', onEnter);
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (c) {
+    c.onclick = function () {
+      input.value = c.getAttribute('data-c');
+      targetInput.value = c.getAttribute('data-t');
+      load(input.value, targetInput.value);
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === input || document.activeElement === targetInput) return;
+    if (e.key === 'ArrowRight') $('nextBtn').click();
+    if (e.key === 'ArrowLeft') $('prevBtn').click();
+  });
+  var codes = {
+    py: '<span class="cmt"># 同一数字可重复；靠 start_idx 去重。时间随 target 指数增长</span>\nclass Solution:\n    def combinationSum(self, candidates: list[int], target: int) -&gt; list[list[int]]:\n        resp, res = [], []\n\n        def dfs(start_idx: int, _target: int) -&gt; None:\n            if _target &lt;= 0:\n                if _target == 0:\n                    resp.append(res.copy())   <span class="cmt"># 必须复制</span>\n                return                        <span class="cmt"># &lt; 0 剪枝</span>\n            for idx in range(start_idx, len(candidates)):\n                item = candidates[idx]\n                res.append(item)              <span class="cmt"># choose</span>\n                dfs(idx, _target - item)      <span class="cmt"># 传 idx，允许再用</span>\n                res.pop()                     <span class="cmt"># undo</span>\n\n        dfs(0, target)\n        return resp',
+    java: '<span class="cmt">// 同一数字可重复；靠 start 去重。时间随 target 指数增长</span>\nclass Solution {\n    public List&lt;List&lt;Integer&gt;&gt; combinationSum(int[] candidates, int target) {\n        List&lt;List&lt;Integer&gt;&gt; resp = new ArrayList&lt;&gt;();\n        dfs(candidates, 0, target, new ArrayList&lt;&gt;(), resp);\n        return resp;\n    }\n\n    private void dfs(int[] candidates, int start, int remain,\n                     List&lt;Integer&gt; res, List&lt;List&lt;Integer&gt;&gt; resp) {\n        if (remain &lt;= 0) {\n            if (remain == 0) resp.add(new ArrayList&lt;&gt;(res)); <span class="cmt">// 副本</span>\n            return;\n        }\n        for (int idx = start; idx &lt; candidates.length; idx++) {\n            res.add(candidates[idx]);          <span class="cmt">// choose</span>\n            dfs(candidates, idx, remain - candidates[idx], res, resp);\n            res.remove(res.size() - 1);        <span class="cmt">// undo</span>\n        }\n    }\n}'
+  };
+  function showCode(lang) { $('codeBlock').innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      document.querySelectorAll('.code-tab').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('py');
+  load(input.value, targetInput.value);
+})();
+</script>
+</body>
+</html>
