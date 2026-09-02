@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="回溯 · DFS · 网格 · 原地标记">
+<meta name="description" content="LeetCode 79 单词搜索：用下标 start 与棋盘原地 # 标记，逐帧演示四向搜索、匹配、回溯还原。">
+<title>79. 单词搜索 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; background:#f6f7f9; color:#1d2129; line-height:1.5; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; background:#f8fafc; font-size:13px; color:#4b5563; }
+  .idea-item .no { font-size:11px; font-weight:700; color:#6366f1; }
+  .copy-note { margin-top:12px; padding:11px 14px; border:1px solid #fde68a; border-radius:10px; background:#fffbeb; color:#78350f; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+  .play-controls { margin-bottom:14px; align-items:center; }
+  .field { display:flex; flex-direction:column; gap:5px; }
+  .field.grow { flex:1; min-width:240px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:600; }
+  input[type=text] { padding:9px 12px; font:15px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; }
+  textarea { width:100%; min-height:78px; padding:9px 12px; font:13px "SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none; resize:vertical; }
+  input:focus, textarea:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button { padding:9px 16px; font-size:14px; font-weight:600; border:0; border-radius:8px; cursor:pointer; background:#6366f1; color:#fff; }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  .lab { font-size:12px; color:#9ca3af; }
+  .chip { font:12px "SF Mono",Menlo,monospace; padding:5px 10px; background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151; }
+  .chip:hover { background:#e6e8ec; }
+  .hint { margin-top:8px; font-size:12px; color:#9ca3af; }
+  .err { display:none; margin-top:9px; color:#dc2626; font-size:13px; }
+  .err.show { display:block; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { padding:8px 12px; border:1px solid #eef0f4; border-radius:8px; background:#f8fafc; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font:700 14px "SF Mono",Menlo,monospace; color:#1d2129; }
+  .progress { margin-left:auto; font-size:12px; color:#9ca3af; }
+  .workbench { display:grid; grid-template-columns:minmax(330px,1.15fr) minmax(260px,.85fr); gap:16px; align-items:start; }
+  .visual, .side-box { border:1px solid #e5e7eb; border-radius:10px; padding:13px; background:#f8fafc; }
+  .visual + .visual, .side-box + .side-box { margin-top:10px; }
+  .side-title { margin-bottom:8px; font-size:11px; font-weight:800; color:#64748b; letter-spacing:.03em; }
+  .board-scroll { overflow:auto; }
+  .grid { display:inline-grid; gap:6px; }
+  .gcell { width:46px; height:46px; border-radius:10px; display:flex; align-items:center; justify-content:center; border:2px solid #e5e7eb; background:#fff; color:#334155; font:800 16px "SF Mono",Menlo,monospace; }
+  .gcell.mark { background:#1f2937; border-color:#111827; color:#fbbf24; }
+  .gcell.path { background:#ede9fe; border-color:#a78bfa; color:#5b21b6; }
+  .gcell.cur { background:#6366f1; border-color:#4338ca; color:#fff; box-shadow:0 0 0 4px rgba(99,102,241,.25); }
+  .gcell.look { background:#fef3c7; border-color:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.22); }
+  .gcell.miss { background:#fee2e2; border-color:#ef4444; color:#b91c1c; }
+  .gcell.ok { background:#dcfce7; border-color:#22c55e; color:#166534; }
+  .word { display:flex; flex-wrap:wrap; gap:6px; min-height:36px; }
+  .wch { min-width:28px; padding:6px 8px; text-align:center; border-radius:7px; border:1px solid #e5e7eb; background:#fff; font:800 14px "SF Mono",Menlo,monospace; color:#334155; }
+  .wch.done { background:#dcfce7; border-color:#86efac; color:#166534; }
+  .wch.cur { background:#6366f1; border-color:#4338ca; color:#fff; }
+  .wch.next { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
+  .empty { color:#9ca3af; font-size:12px; }
+  .stack { display:grid; gap:5px; max-height:210px; overflow:auto; }
+  .frame { display:flex; justify-content:space-between; gap:8px; padding:6px 9px; border:1px solid #e5e7eb; border-radius:7px; background:#fff; font:12px "SF Mono",Menlo,monospace; color:#475569; }
+  .frame:last-child { border-color:#818cf8; background:#eef2ff; color:#4338ca; }
+  .vars { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .var { padding:4px 9px; border:1px solid #eef0f4; border-radius:7px; background:#f8fafc; color:#4b5563; font:12px "SF Mono",Menlo,monospace; }
+  .status { margin-top:12px; min-height:52px; padding:14px 16px; border-radius:10px; background:#111827; color:#e5e7eb; font-size:14px; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .bad { color:#fca5a5; font-weight:700; }
+  .status b { color:#fcd34d; }
+  details summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; margin:12px 0 10px; }
+  .code-tab { padding:5px 12px; border:1px solid #e5e7eb; border-radius:999px; background:#f1f2f4; color:#374151; font-size:13px; cursor:pointer; }
+  .code-tab.active { border-color:#4338ca; background:#6366f1; color:#fff; }
+  pre { margin:0; padding:14px; overflow:auto; border-radius:10px; background:#0f172a; color:#e2e8f0; font-size:13px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  .star-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; margin:0 0 16px; padding:12px 16px; border:1px solid #e0e7ff; border-radius:12px; background:linear-gradient(180deg,#f8faff 0%,#fff 100%); }
+  .star-banner-copy { flex:1; min-width:180px; }
+  .star-banner-title { font-size:14px; font-weight:700; color:#1d2129; }
+  .star-banner-sub { margin-top:2px; font-size:12px; color:#6b7280; }
+  .star-cta { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid #c7d2fe; border-radius:8px; background:#fff; color:#312e81; text-decoration:none; font-size:13px; font-weight:700; box-shadow:0 1px 0 rgba(99,102,241,.08); flex-shrink:0; }
+  .star-cta:hover { border-color:#818cf8; background:#eef2ff; }
+  .star-cta svg { width:14px; height:14px; fill:currentColor; }
+  @media(max-width:760px) { body{padding:16px 12px}.card{padding:14px}.workbench{grid-template-columns:1fr}.progress{width:100%;margin-left:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/word-search/" target="_blank" rel="noopener">LeetCode 79</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>79. 单词搜索 · 回溯动画</h1>
+  <div class="sub">在棋盘上四向走，走出 <code>word</code>。用下标 <code>start</code> 表示已经匹配到第几位；当前格改成 <code>#</code> 防止走回头，四个方向都失败后再改回来。最后一位匹配成功就返回 <code>True</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">回溯流程</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 起点</div>枚举每个 <code>board[i][j] == word[0]</code> 的格子，调用 <code>goin(i, j, 0)</code>。</div>
+      <div class="idea-item"><div class="no">② 终止</div><code>start == len(word)-1</code> 说明当前格已经是单词最后一位，成功。</div>
+      <div class="idea-item"><div class="no">③ 标记</div>把当前格改成 <code>#</code>，再看上下左右是否等于 <code>word[start+1]</code>。</div>
+      <div class="idea-item"><div class="no">④ 撤销</div>四个方向都走不通，把 <code>#</code> 改回原字母，换下一条路或下一个起点。</div>
+    </div>
+    <div class="copy-note"><b>用下标，不要切片：</b><code>word[1:]</code> 每层都复制字符串。传 <code>start+1</code> 是 O(1)。<code>#</code> 比把坐标放进 list 再 <code>in</code> 查找便宜得多。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field grow"><span class="lab">board</span><textarea id="boardInput" spellcheck="false">[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]</textarea></label>
+      <label class="field"><span class="lab">word</span><input id="wordInput" type="text" value="ABCCED" spellcheck="false"></label>
+      <button id="loadBtn" type="button">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-b='[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]' data-w="ABCCED">ABCCED → true</span>
+      <span class="chip" data-b='[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]' data-w="SEE">SEE → true</span>
+      <span class="chip" data-b='[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]' data-w="ABCB">ABCB → false</span>
+      <span class="chip" data-b='[["A","B"],["C","D"]]' data-w="ACDB">ACDB → true</span>
+    </div>
+    <div id="err" class="err"></div>
+    <div class="hint">棋盘 1～4 行、1～6 列，格子为单个字母；单词长度 1～8。可直接贴力扣的二维数组格式。</div>
+  </div>
+
+  <div class="card">
+    <div id="stats" class="stats"></div>
+    <div class="controls play-controls">
+      <button id="prevBtn" class="ghost" type="button">◀ 上一步</button>
+      <button id="nextBtn" type="button">下一步 ▶</button>
+      <button id="playBtn" class="ghost" type="button">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost" type="button">↺ 重置</button>
+      <span id="progress" class="progress"></span>
+    </div>
+    <div class="workbench">
+      <div>
+        <div class="visual"><div class="side-title">棋盘 board（紫=路径，黄=正在看的邻居，黑=# 已占用）</div><div class="board-scroll"><div id="grid" class="grid"></div></div></div>
+        <div class="visual"><div class="side-title">单词 word（绿=已匹配，紫=当前格，黄=下一个要找的字母）</div><div id="word" class="word"></div></div>
+      </div>
+      <div>
+        <div class="side-box"><div class="side-title">调用栈（底 → 顶）</div><div id="stack" class="stack"></div></div>
+        <div class="side-box"><div class="side-title">答案</div><div id="answer" class="word"></div></div>
+      </div>
+    </div>
+    <div id="vars" class="vars"></div>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>查看参考代码（Python / Java）</summary>
+      <div class="code-tabs"><span class="code-tab active" data-lang="py">Python</span><span class="code-tab" data-lang="java">Java</span></div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var DIRS = [[1, 0, '下'], [-1, 0, '上'], [0, 1, '右'], [0, -1, '左']];
+
+  function cloneBoard(board) {
+    return board.map(function (row) { return row.slice(); });
+  }
+  function parseBoard(value) {
+    if (typeof value !== 'string') return null;
+    var s = value.trim();
+    if (!s) return null;
+    var board;
+    try {
+      board = JSON.parse(s.replace(/'/g, '"'));
+    } catch (e) {
+      var lines = s.split(/\n+/).map(function (line) { return line.trim(); }).filter(Boolean);
+      board = lines.map(function (line) {
+        if (/^\[.*\]$/.test(line)) {
+          try { return JSON.parse(line.replace(/'/g, '"')); } catch (err) { return null; }
+        }
+        return line.replace(/[,\[\]]/g, ' ').trim().split(/\s+/);
+      });
+      if (board.some(function (row) { return !row; })) return null;
+    }
+    if (!Array.isArray(board) || !board.length || board.length > 4) return null;
+    var cols = board[0].length;
+    if (!cols || cols > 6) return null;
+    for (var i = 0; i < board.length; i++) {
+      if (!Array.isArray(board[i]) || board[i].length !== cols) return null;
+      for (var j = 0; j < cols; j++) {
+        var cell = board[i][j];
+        if (typeof cell !== 'string' || !/^[A-Za-z]$/.test(cell)) return null;
+        board[i][j] = cell;
+      }
+    }
+    return board;
+  }
+  function parseWord(value) {
+    if (typeof value !== 'string') return null;
+    var s = value.trim().replace(/^["']|["']$/g, '');
+    if (!/^[A-Za-z]{1,8}$/.test(s)) return null;
+    return s;
+  }
+
+  function buildSteps(board0, word) {
+    var m = board0.length, n = board0[0].length, x = word.length;
+    var board = cloneBoard(board0);
+    var steps = [], stack = [], path = [], found = false;
+    function snap(phase, i, j, look, start, message) {
+      steps.push({
+        phase: phase,
+        i: i, j: j,
+        look: look,
+        start: start,
+        board: cloneBoard(board),
+        path: path.map(function (p) { return p.slice(); }),
+        stack: stack.slice(),
+        found: found,
+        message: message
+      });
+    }
+    function goin(i, j, start) {
+      stack.push('goin(' + i + ', ' + j + ', ' + start + ')');
+      path.push([i, j]);
+      snap('enter', i, j, null, start, '进入 <b>goin(' + i + ', ' + j + ', ' + start + ')</b>，当前格是 <b>' + word[start] + '</b>。');
+      if (start === x - 1) {
+        found = true;
+        snap('found', i, j, null, start, '<span class="ok">start == len(word)-1，已经匹配完 "' + word + '"</span>。');
+        stack.pop();
+        return true;
+      }
+      var tmp = board[i][j];
+      board[i][j] = '#';
+      snap('mark', i, j, null, start, '把 board[' + i + '][' + j + '] 改成 <b>#</b>，避免走回头。接着找 <b>word[' + (start + 1) + '] = ' + word[start + 1] + '</b>。');
+      for (var d = 0; d < DIRS.length; d++) {
+        var nx = i + DIRS[d][0], ny = j + DIRS[d][1], name = DIRS[d][2];
+        var look = [nx, ny];
+        if (nx < 0 || nx >= m || ny < 0 || ny >= n) {
+          snap('skip', i, j, look, start, '向' + name + '走出边界，跳过。');
+          continue;
+        }
+        if (board[nx][ny] !== word[start + 1]) {
+          snap('miss', i, j, look, start, '向' + name + '看到 <b>' + board[nx][ny] + '</b>，不是下一个字母 <b>' + word[start + 1] + '</b>。');
+          continue;
+        }
+        snap('choose', i, j, look, start, '向' + name + '匹配到 <b>' + word[start + 1] + '</b>，递归 <b>goin(' + nx + ', ' + ny + ', ' + (start + 1) + ')</b>。');
+        if (goin(nx, ny, start + 1)) {
+          stack.pop();
+          return true;
+        }
+      }
+      board[i][j] = tmp;
+      snap('undo', i, j, null, start, '四个方向都走不通，把 <b>#</b> 改回 <b>' + tmp + '</b>，回溯。');
+      path.pop();
+      stack.pop();
+      return false;
+    }
+
+    snap('start', -1, -1, null, -1, '按行扫描起点：只有 <b>board[i][j] == word[0] = ' + word[0] + '</b> 才进入 DFS。');
+    for (var i = 0; i < m; i++) {
+      for (var j = 0; j < n; j++) {
+        snap('scan', i, j, null, 0, '看起点 <b>board[' + i + '][' + j + '] = ' + board[i][j] + '</b>。');
+        if (board[i][j] !== word[0]) {
+          snap('reject', i, j, null, 0, '<span class="bad">不是 word[0] = ' + word[0] + '</span>，换下一格。');
+          continue;
+        }
+        snap('try', i, j, null, 0, '等于 word[0]，从这里调用 <b>goin(' + i + ', ' + j + ', 0)</b>。');
+        if (goin(i, j, 0)) {
+          snap('done', i, j, null, x - 1, '<span class="ok">找到单词，返回 True</span>。成功路径上的 # 可以不还原，本题已经结束。');
+          return { steps: steps, found: true };
+        }
+        snap('failstart', i, j, null, 0, '从 (' + i + ', ' + j + ') 出发失败，继续扫后面的起点。');
+      }
+    }
+    snap('done', -1, -1, null, -1, '<span class="bad">所有起点都失败，返回 False</span>。');
+    return { steps: steps, found: false };
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var board = [], word = '', steps = [], index = 0, timer = null, found = false;
+  var boardInput = $('boardInput'), wordInput = $('wordInput'), err = $('err'), playBtn = $('playBtn');
+  function stop() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function phaseName(p) {
+    return ({
+      start: '初始化', scan: '扫描起点', reject: '跳过起点', try: '选定起点',
+      enter: '进入递归', mark: '标记占用', skip: '越界跳过', miss: '字母不匹配',
+      choose: '走入邻居', found: '匹配完成', undo: '撤销标记', failstart: '该起点失败', done: '结束'
+    })[p] || p;
+  }
+  function render() {
+    var s = steps[index], rows = s.board.length, cols = s.board[0].length;
+    var pathSet = {};
+    s.path.forEach(function (p) { pathSet[p[0] + ',' + p[1]] = true; });
+    $('grid').style.gridTemplateColumns = 'repeat(' + cols + ', 46px)';
+    $('grid').innerHTML = '';
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var cell = document.createElement('div');
+        var v = s.board[r][c];
+        var cls = 'gcell';
+        if (v === '#') cls += ' mark';
+        else if (s.look && s.look[0] === r && s.look[1] === c) cls += (s.phase === 'miss' ? ' miss' : s.phase === 'found' ? ' ok' : ' look');
+        else if (s.i === r && s.j === c) cls += (s.phase === 'found' || (s.found && s.phase === 'done') ? ' ok' : s.phase === 'reject' ? ' miss' : ' cur');
+        else if (pathSet[r + ',' + c]) cls += ' path';
+        cell.className = cls;
+        cell.textContent = v;
+        $('grid').appendChild(cell);
+      }
+    }
+    $('word').innerHTML = word.split('').map(function (ch, k) {
+      var cls = 'wch';
+      if (s.start >= 0 && k < s.start) cls += ' done';
+      else if (k === s.start && s.start >= 0) cls += ' cur';
+      else if (k === s.start + 1 && s.phase !== 'found' && s.phase !== 'done') cls += ' next';
+      return '<span class="' + cls + '">' + ch + '</span>';
+    }).join('');
+    $('stack').innerHTML = s.stack.length
+      ? s.stack.map(function (v, i) { return '<div class="frame"><span>层 ' + i + '</span><b>' + v + '</b></div>'; }).join('')
+      : '<span class="empty">调用栈为空</span>';
+    $('answer').innerHTML = s.found || (s.phase === 'done' && found)
+      ? '<span class="wch" style="background:#dcfce7;border-color:#86efac;color:#166534">True</span>'
+      : (s.phase === 'done' ? '<span class="wch" style="background:#fee2e2;border-color:#ef4444;color:#b91c1c">False</span>' : '<span class="empty">搜索中…</span>');
+    $('vars').innerHTML =
+      '<span class="var">阶段 = <b>' + phaseName(s.phase) + '</b></span>' +
+      '<span class="var">start = <b>' + (s.start < 0 ? '—' : s.start) + '</b></span>' +
+      '<span class="var">当前格 = <b>' + (s.i < 0 ? '—' : '(' + s.i + ', ' + s.j + ')') + '</b></span>' +
+      '<span class="var">路径长度 = <b>' + s.path.length + '</b></span>';
+    $('status').innerHTML = s.message;
+    $('progress').textContent = '步骤 ' + (index + 1) + ' / ' + steps.length;
+    $('prevBtn').disabled = index === 0;
+    $('nextBtn').disabled = index === steps.length - 1;
+    $('stats').innerHTML =
+      '<div class="stat">棋盘<b>' + board.length + ' × ' + board[0].length + '</b></div>' +
+      '<div class="stat">单词长<b>' + word.length + '</b></div>' +
+      '<div class="stat">答案<b>' + (found ? 'True' : 'False') + '</b></div>' +
+      '<div class="stat">时间<b>O(mn · 4ᴸ)</b></div>' +
+      '<div class="stat">额外空间<b>O(L)</b></div>';
+  }
+  function load(rawB, rawW) {
+    var parsedB = parseBoard(rawB);
+    var parsedW = parseWord(rawW);
+    if (!parsedB || !parsedW) {
+      err.textContent = '格式错误：棋盘为 1～4 行、1～6 列的字母矩阵，单词为 1～8 个字母。';
+      err.classList.add('show');
+      return false;
+    }
+    err.classList.remove('show');
+    stop();
+    board = parsedB;
+    word = parsedW;
+    var data = buildSteps(board, word);
+    steps = data.steps;
+    found = data.found;
+    index = 0;
+    render();
+    return true;
+  }
+  $('loadBtn').onclick = function () { load(boardInput.value, wordInput.value); };
+  $('prevBtn').onclick = function () { stop(); if (index > 0) { index--; render(); } };
+  $('nextBtn').onclick = function () { stop(); if (index < steps.length - 1) { index++; render(); } };
+  $('resetBtn').onclick = function () { stop(); index = 0; render(); };
+  playBtn.onclick = function () {
+    if (timer) { stop(); return; }
+    if (index === steps.length - 1) { index = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (index === steps.length - 1) { stop(); return; }
+      index++;
+      render();
+    }, 520);
+  };
+  boardInput.addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) load(boardInput.value, wordInput.value); });
+  wordInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(boardInput.value, wordInput.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (c) {
+    c.onclick = function () {
+      boardInput.value = c.getAttribute('data-b');
+      wordInput.value = c.getAttribute('data-w');
+      load(boardInput.value, wordInput.value);
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === boardInput || document.activeElement === wordInput) return;
+    if (e.key === 'ArrowRight') $('nextBtn').click();
+    if (e.key === 'ArrowLeft') $('prevBtn').click();
+  });
+  var codes = {
+    py: '<span class="cmt"># 时间 O(mn · 4ᴸ)；递归栈 O(L)。L = len(word)</span>\nclass Solution:\n    def exist(self, board: list[list[str]], word: str) -&gt; bool:\n        m, n, x = len(board), len(board[0]), len(word)\n\n        def goin(i: int, j: int, start: int) -&gt; bool:\n            if start == x - 1:\n                return True\n            tmp, board[i][j] = board[i][j], "#"\n            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):\n                nx, ny = i + dx, j + dy\n                if 0 &lt;= nx &lt; m and 0 &lt;= ny &lt; n and board[nx][ny] == word[start + 1]:\n                    if goin(nx, ny, start + 1):\n                        return True\n            board[i][j] = tmp\n            return False\n\n        for i in range(m):\n            for j in range(n):\n                if board[i][j] == word[0] and goin(i, j, 0):\n                    return True\n        return False',
+    java: '<span class="cmt">// 时间 O(mn · 4ᴸ)；递归栈 O(L)</span>\nclass Solution {\n    public boolean exist(char[][] board, String word) {\n        int m = board.length, n = board[0].length;\n        for (int i = 0; i &lt; m; i++) {\n            for (int j = 0; j &lt; n; j++) {\n                if (board[i][j] == word.charAt(0) &amp;&amp; dfs(board, word, i, j, 0))\n                    return true;\n            }\n        }\n        return false;\n    }\n\n    private boolean dfs(char[][] board, String word, int i, int j, int start) {\n        if (start == word.length() - 1) return true;\n        char tmp = board[i][j];\n        board[i][j] = \'#\';\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        for (int[] d : dirs) {\n            int nx = i + d[0], ny = j + d[1];\n            if (nx &gt;= 0 &amp;&amp; nx &lt; board.length &amp;&amp; ny &gt;= 0 &amp;&amp; ny &lt; board[0].length\n                    &amp;&amp; board[nx][ny] == word.charAt(start + 1)) {\n                if (dfs(board, word, nx, ny, start + 1)) return true;\n            }\n        }\n        board[i][j] = tmp;\n        return false;\n    }\n}'
+  };
+  function showCode(lang) { $('codeBlock').innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      document.querySelectorAll('.code-tab').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('py');
+  load(boardInput.value, wordInput.value);
+})();
+</script>
+</body>
+</html>
