@@ -91,7 +91,7 @@ leetcode-animations/
 | 46 | [全排列](https://tces1.github.io/leetcode-animations/problems/46-permutations.html) | 中等 | 回溯 · 排列 · DFS · used 数组 |
 | 48 | [旋转图像](https://tces1.github.io/leetcode-animations/problems/48-rotate-image.html) | 中等 | 矩阵 · 原地旋转 · 转置 · 四元素交换 |
 | 49 | [字母异位词分组](https://tces1.github.io/leetcode-animations/problems/49-group-anagrams.html) | 中等 | 字符串 · 哈希表 · 计数 · 字母异位词 · 分组 |
-| 51 | [N 皇后](https://tces1.github.io/leetcode-animations/problems/51-n-queens.html) | 困难 | 回溯 · 剪枝 · 集合 · 棋盘 · 对角线 |
+| 51 | [N 皇后](https://tces1.github.io/leetcode-animations/problems/51-n-queens.html) | 困难 | 回溯 · 剪枝 · 集合 · 棋盘 · 投影 |
 | 53 | [最大子数组和](https://tces1.github.io/leetcode-animations/problems/53-maximum-subarray.html) | 中等 | 数组 · 动态规划 · Kadane · 子数组 |
 | 54 | [螺旋矩阵](https://tces1.github.io/leetcode-animations/problems/54-spiral-matrix.html) | 中等 | 矩阵 · 模拟 · 收缩边界 |
 | 55 | [跳跃游戏](https://tces1.github.io/leetcode-animations/problems/55-jump-game.html) | 中等 | 贪心 · 最远可达 · 数组 |
