@@ -161,16 +161,16 @@
   </div>
 
   <h1>131. 分割回文串 · 回溯动画</h1>
-  <div class="sub">把字符串 <b>s</b> 切成若干段，要求<b>每一段都是回文串</b>，返回所有切法。核心是<b>回溯</b>：从左端不断尝试切出一个前缀，若前缀是回文就把它作为一段、递归分割剩余部分；若不是回文就<b>剪枝</b>。当剩余部分为空时，走过的这条路径就是一个合法方案。视角 B 额外用一张 <code>isPal[i][j]</code> 表把「是否回文」的判断预处理成 <b>O(1) 查表</b>。</div>
+  <div class="sub">把字符串 <b>s</b> 切成若干段，要求<b>每一段都是回文串</b>，返回所有切法。回溯用 <code>start</code> 表示剩余串的起点，枚举结束下标 <code>end</code>，用 <code>check_string(start, end)</code> 在原串上双指针判断。前缀是回文才切下去，<code>start == n</code> 时收集方案。视角 B 用一张完整的 <code>isPal</code> 表做 O(1) 查表。</div>
 
   <div class="card">
     <div class="panel-title">回溯三要素</div>
     <div class="steps5">
-      <div class="s5"><div class="no">① 状态</div>用 <code>start</code> 表示「剩余待分割的子串从下标 start 开始」，已选的若干回文段记在 <code>path</code> 里。</div>
-      <div class="s5"><div class="no">② 选择</div>枚举前缀结束位置 <code>end</code>：取子串 <code>s[start:end]</code>。只有当它<b>是回文</b>时才是一个合法选择。</div>
-      <div class="s5"><div class="no">③ 递归 / 回退</div>选了就 <code>dfs(end)</code> 分割剩余；返回后<b>撤销</b>这段，换更长的前缀继续试（回溯）。</div>
-      <div class="s5"><div class="no">④ 终止</div><code>start == n</code>：剩余为空，<code>path</code> 就是一个完整方案，收集它。</div>
-      <div class="s5"><div class="no">⑤ 优化</div>先用二维 DP 预处理 <code>isPal[i][j]</code>，回溯中判断回文从 O(len) 降到 <b>O(1)</b>。</div>
+      <div class="s5"><div class="no">① 状态</div>用 <code>start</code> 表示「剩余待分割的子串从下标 start 开始」，已选的若干回文段记在 <code>res</code> 里，全部方案记在 <code>resp</code>。</div>
+      <div class="s5"><div class="no">② 选择</div>枚举 <code>end</code>（含），调用 <code>check_string(start, end)</code> 看 <code>s[start..end]</code> 是不是回文；是才切这一段。</div>
+      <div class="s5"><div class="no">③ 递归 / 回退</div>选了就 <code>dfs(end + 1)</code>；返回后 <code>res.pop()</code>，换更长的前缀。</div>
+      <div class="s5"><div class="no">④ 终止</div><code>start == n</code>：剩余为空，<code>resp.append(res.copy())</code> 收集后 <b>return</b>。</div>
+      <div class="s5"><div class="no">⑤ 剪枝</div>前缀不是回文就跳过。视角 B 预先填完整张 <code>isPal</code> 表，判断变成 O(1) 查表。</div>
     </div>
   </div>
 
@@ -273,7 +273,14 @@
     if (s.length < 1 || s.length > 7) return null;
     return s;
   }
-  function isPal(s, i, j) { while (i < j) { if (s[i] !== s[j]) return false; i++; j--; } return true; }
+  function isPal(s, left, right) {
+    while (left <= right) {
+      if (s[left] !== s[right]) return false;
+      left++;
+      right--;
+    }
+    return true;
+  }
   function allPartitions(s) {
     var res = [], n = s.length, path = [];
     (function dfs(start) {
@@ -324,25 +331,28 @@
       if (node.kind === 'solution') {
         solutions.push(node.pieces.slice()); states[node.id] = 'success';
         snap({ activeId: node.id, pieces: node.pieces,
-          msg: '剩余部分为空 ✅ 得到一个完整分割方案：<span class="op">[' +
-               node.pieces.map(function (p) { return '"' + p + '"'; }).join(', ') + ']</span>（第 ' + solutions.length + ' 个）。' });
+          msg: 'start == n，剩余为空 ✅ <code>resp.append(res.copy())</code> 收集方案：<span class="op">[' +
+               node.pieces.map(function (p) { return '"' + p + '"'; }).join(', ') + ']</span>（第 ' + solutions.length + ' 个），然后 <b>return</b>。' });
         return;
       }
       snap({ activeId: node.id, pieces: node.pieces,
-        msg: '进入 <b>dfs(' + node.start + ')</b>：分割剩余子串 <b>"' + s.slice(node.start) + '"</b>，依次尝试每种前缀切法。' });
+        msg: '进入 <b>dfs(' + node.start + ')</b>：枚举 end ∈ [' + node.start + ', n)，用 <code>check_string(start, end)</code> 判断前缀。' });
       for (var k = 0; k < node.children.length; k++) {
-        var ch = node.children[k], test = { start: ch.start, end: ch.end, sub: ch.piece, pal: !ch.dead };
+        var ch = node.children[k];
+        var left = ch.start, right = ch.end - 1;
+        var test = { start: ch.start, end: ch.end, sub: ch.piece, pal: !ch.dead, left: left, right: right };
+        var call = '<code>check_string(' + left + ', ' + right + ')</code>';
         if (!ch.dead) {
           snap({ activeId: node.id, pieces: node.pieces, test: test, edge: { from: node.id, to: ch.id },
-            msg: '切出前缀 <b>"' + ch.piece + '"</b> → <span class="ok">是回文 ✓</span>，作为一段，递归分割剩余 "' + s.slice(ch.end) + '"。' });
+            msg: call + '：双指针扫描 <b>"' + ch.piece + '"</b> → <span class="ok">是回文 ✓</span>。切成一段，递归 <b>dfs(' + ch.end + ')</b>。' });
           run(nodes[ch.id]);
           states[nodes[ch.id].id] = (nodes[ch.id].kind === 'solution') ? 'success' : 'done';
           snap({ activeId: node.id, pieces: node.pieces, test: null,
-            msg: '回退到 <b>dfs(' + node.start + ')</b>，撤销前缀 "' + ch.piece + '"，尝试下一种更长的切法。' });
+            msg: '回退到 <b>dfs(' + node.start + ')</b>，<code>res.pop()</code> 撤销 "' + ch.piece + '"，换更长的 end。' });
         } else {
           states[ch.id] = 'dead';
           snap({ activeId: node.id, pieces: node.pieces, test: test, edge: { from: node.id, to: ch.id },
-            msg: '切出前缀 <b>"' + ch.piece + '"</b> → <span class="no">不是回文 ✗</span>，<b>剪枝</b>，不递归。' });
+            msg: call + '：双指针扫描 <b>"' + ch.piece + '"</b> → <span class="no">不是回文 ✗</span>，<b>剪枝</b>。' });
         }
       }
       states[node.id] = 'done';
@@ -527,10 +537,14 @@
     if (pos < s.length) strPanel.appendChild(segEl('rest', s.slice(pos), ''));
 
     if (test) {
-      var rev = test.sub.split('').reverse().join('');
-      checkBox.innerHTML = '检查前缀 <code>"' + test.sub + '"</code> 是否回文：反转为 <code>"' + rev + '"</code> —— ' +
-        (test.pal ? '与原串<span class="ok">相同 → 是回文 ✓</span>' : '与原串<span class="no">不同 → 不是回文 ✗（剪枝）</span>') +
-        (mode === 'dp' ? '（本视角直接查 isPal[' + test.start + '][' + (test.end - 1) + ']）' : '');
+      if (mode === 'dp') {
+        checkBox.innerHTML = '查表 <code>isPal[' + test.start + '][' + (test.end - 1) + ']</code> —— ' +
+          (test.pal ? '<span class="ok">T → 是回文 ✓</span>' : '<span class="no">F → 不是回文 ✗（剪枝）</span>');
+      } else {
+        var L = test.left, R = test.right, ok = test.pal;
+        checkBox.innerHTML = '<code>check_string(' + L + ', ' + R + ')</code>：双指针比较 <code>s[' + L + '..' + R + '] = "' + test.sub + '"</code> 的两端，不相等就 False —— ' +
+          (ok ? '<span class="ok">两端始终相同 → 是回文 ✓</span>' : '<span class="no">某一对两端不同 → 不是回文 ✗（剪枝）</span>');
+      }
     } else checkBox.innerHTML = '';
   }
 
@@ -541,7 +555,7 @@
       '<div class="stat">字符串<b>"' + s + '" (n=' + s.length + ')</b></div>' +
       '<div class="stat">合法方案数<b>' + solutions.length + '</b></div>' +
       '<div class="stat">回溯节点<b>' + totalNodes + '</b></div>' +
-      '<div class="stat">' + (mode === 'dp' ? '回文判断<b>O(1) 查表</b>' : '回文判断<b>O(len) 比较</b>') + '</div>';
+      '<div class="stat">' + (mode === 'dp' ? '回文判断<b>O(1) 查表</b>' : '回文判断<b>双指针扫描</b>') + '</div>';
   }
 
   /* ---------- 主渲染 ---------- */
@@ -648,21 +662,29 @@
   /* ---------- 参考代码 ---------- */
   var codes = {
     py:
-'<span class="cmt"># Python · 回溯 · 每段都要求回文</span>\n' +
+'<span class="cmt"># Python · 回溯：原串双指针判回文</span>\n' +
 'class Solution:\n' +
-'    def partition(self, s: str) -&gt; List[List[str]]:\n' +
-'        res, path, n = [], [], len(s)\n' +
-'        def dfs(start):\n' +
-'            if start == n:                      <span class="cmt"># 剩余为空,收集一个方案</span>\n' +
-'                res.append(path[:]); return\n' +
-'            for end in range(start + 1, n + 1):\n' +
-'                sub = s[start:end]\n' +
-'                if sub == sub[::-1]:            <span class="cmt"># 前缀是回文才选</span>\n' +
-'                    path.append(sub)\n' +
-'                    dfs(end)                    <span class="cmt"># 递归分割剩余</span>\n' +
-'                    path.pop()                  <span class="cmt"># 回溯撤销</span>\n' +
+'    def partition(self, s: str) -&gt; list[list[str]]:\n' +
+'        def check_string(left: int, right: int) -&gt; bool:\n' +
+'            while left &lt;= right:\n' +
+'                if s[left] != s[right]:\n' +
+'                    return False\n' +
+'                left += 1\n' +
+'                right -= 1\n' +
+'            return True\n' +
+'\n' +
+'        resp, res = [], []\n' +
+'        def dfs(start: int) -&gt; None:\n' +
+'            if start == len(s):\n' +
+'                resp.append(res.copy())         <span class="cmt"># 必须复制</span>\n' +
+'                return\n' +
+'            for end in range(start, len(s)):\n' +
+'                if check_string(start, end):\n' +
+'                    res.append(s[start:end + 1])\n' +
+'                    dfs(end + 1)\n' +
+'                    res.pop()\n' +
 '        dfs(0)\n' +
-'        return res',
+'        return resp',
     pydp:
 '<span class="cmt"># Python · 先用 DP 预处理 isPal[i][j], 回溯里 O(1) 查表</span>\n' +
 'class Solution:\n' +
@@ -685,26 +707,35 @@
 '        dfs(0)\n' +
 '        return res',
     java:
-'<span class="cmt">// Java · 回溯</span>\n' +
+'<span class="cmt">// Java · 回溯：原串双指针判回文</span>\n' +
 'class Solution {\n' +
-'    List&lt;List&lt;String&gt;&gt; res = new ArrayList&lt;&gt;();\n' +
-'    Deque&lt;String&gt; path = new ArrayDeque&lt;&gt;();\n' +
+'    private String s;\n' +
+'    private final List&lt;List&lt;String&gt;&gt; resp = new ArrayList&lt;&gt;();\n' +
+'    private final List&lt;String&gt; res = new ArrayList&lt;&gt;();\n' +
+'\n' +
 '    public List&lt;List&lt;String&gt;&gt; partition(String s) {\n' +
-'        dfs(s, 0); return res;\n' +
+'        this.s = s;\n' +
+'        dfs(0);\n' +
+'        return resp;\n' +
 '    }\n' +
-'    void dfs(String s, int start) {\n' +
-'        if (start == s.length()) { res.add(new ArrayList&lt;&gt;(path)); return; }\n' +
-'        for (int end = start + 1; end &lt;= s.length(); end++) {\n' +
-'            if (isPal(s, start, end - 1)) {      <span class="cmt">// 前缀回文才选</span>\n' +
-'                path.addLast(s.substring(start, end));\n' +
-'                dfs(s, end);\n' +
-'                path.removeLast();               <span class="cmt">// 回溯</span>\n' +
+'\n' +
+'    private boolean checkString(int left, int right) {\n' +
+'        while (left &lt;= right) {\n' +
+'            if (s.charAt(left) != s.charAt(right)) return false;\n' +
+'            left++; right--;\n' +
+'        }\n' +
+'        return true;\n' +
+'    }\n' +
+'\n' +
+'    private void dfs(int start) {\n' +
+'        if (start == s.length()) { resp.add(new ArrayList&lt;&gt;(res)); return; }\n' +
+'        for (int end = start; end &lt; s.length(); end++) {\n' +
+'            if (checkString(start, end)) {\n' +
+'                res.add(s.substring(start, end + 1));\n' +
+'                dfs(end + 1);\n' +
+'                res.remove(res.size() - 1);\n' +
 '            }\n' +
 '        }\n' +
-'    }\n' +
-'    boolean isPal(String s, int i, int j) {\n' +
-'        while (i &lt; j) if (s.charAt(i++) != s.charAt(j--)) return false;\n' +
-'        return true;\n' +
 '    }\n' +
 '}'
   };
