@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="tags" content="回溯 · 剪枝 · 集合 · 棋盘 · 对角线">
+<meta name="tags" content="回溯 · 剪枝 · 集合 · 棋盘 · 投影">
 <title>51. N 皇后 — 动画演示</title>
 <style>
   :root { color-scheme: light; }
@@ -163,17 +163,17 @@
   </div>
 
   <h1>51. N 皇后 · 回溯动画</h1>
-  <div class="sub">在 <code>n × n</code> 棋盘上放置 n 个皇后，使任意两个皇后都不能同行、同列或同斜线。最自然的搜索方式是<b>一行放一个</b>：当前行逐列尝试，冲突就剪枝；安全就递归到下一行；后面走不通时撤销皇后，继续尝试下一列。</div>
+  <div class="sub">在 <code>n × n</code> 棋盘上放置 n 个皇后，使任意两个皇后都不能同行、同列或同斜线。<code>queen(r)</code> 表示给第 <code>r</code> 行找列；已放的皇后记在 <code>res</code> 里。进入每一行时，把已放皇后的攻击<b>投影到当前行</b>，得到禁止列集合 <code>ban_c</code>，然后 <code>for c in range(n)</code>，只有 <code>c not in ban_c</code> 才放下并递归。</div>
 
   <div class="card">
     <div class="panel-title">回溯四步</div>
     <div class="idea">
-      <div class="idea-item"><div class="no">① 状态</div><code>row</code> 表示当前要放的行；前面每一行已经恰好放了一个皇后，所以天然不会<b>同行</b>。</div>
-      <div class="idea-item"><div class="no">② 选择与剪枝</div>枚举当前行的每一列。若列或任一对角线已经被占用，立即<b>跳过</b>。</div>
-      <div class="idea-item"><div class="no">③ 递归</div>安全时记录列和两条对角线，把皇后放下，然后递归处理 <code>row + 1</code>。</div>
-      <div class="idea-item"><div class="no">④ 撤销</div>递归返回后移走皇后，并从三个集合里删除对应标记，继续试下一列。</div>
+      <div class="idea-item"><div class="no">① 状态</div><code>queen(r)</code> 要放第 r 行；<code>res</code> 里是已放的 <code>(x, y)</code>，一行一个，所以不会同行。</div>
+      <div class="idea-item"><div class="no">② 选择与剪枝</div>用已放皇后算出 <code>ban_c</code>，枚举列 <code>c</code>。在集合里就跳过。</div>
+      <div class="idea-item"><div class="no">③ 递归</div><code>res.append((r, c))</code> 后调用 <code>queen(r + 1)</code>。</div>
+      <div class="idea-item"><div class="no">④ 撤销 / 收集</div>返回后 <code>res.pop()</code>。<code>r &gt;= n</code> 时按坐标拼棋盘，<code>resp.append(tmp)</code> 再 return。</div>
     </div>
-    <div class="diag-note">对角线不必画线判断：同一条 <b>↘ 主对角线</b>上的格子都有相同的 <code>row - col</code>；同一条 <b>↙ 副对角线</b>都有相同的 <code>row + col</code>。因此三个集合 <code>cols</code>、<code>diagDown</code>、<code>diagUp</code> 就能在 O(1) 时间判断冲突。</div>
+    <div class="diag-note">皇后 <code>(x, y)</code> 投影到第 <code>r</code> 行，禁止三列：同列 <code>y</code>、一条斜线 <code>y + (r - x)</code>、另一条 <code>y - (r - x)</code>。把它们放进 <code>ban_c</code>。集合里可能出现负数或 ≥ n 的值，对 <code>for c in range(n)</code> 没有影响。</div>
   </div>
 
   <div class="card">
@@ -214,13 +214,11 @@
       </div>
       <div class="side">
         <div class="side-box">
-          <div class="side-title">O(1) 冲突集合</div>
-          <div class="set-line"><b>列 cols</b><span class="set-values" id="colsSet">∅</span></div>
-          <div class="set-line"><b>↘ row-col</b><span class="set-values" id="downSet">∅</span></div>
-          <div class="set-line"><b>↙ row+col</b><span class="set-values" id="upSet">∅</span></div>
+          <div class="side-title">当前行的 ban_c</div>
+          <div class="set-line"><b>禁止列</b><span class="set-values" id="banSet">∅</span></div>
         </div>
         <div class="side-box">
-          <div class="side-title">当前递归路径（每行皇后的列）</div>
+          <div class="side-title">res（已放皇后的坐标）</div>
           <div class="path" id="path"></div>
         </div>
         <div class="side-box">
@@ -233,7 +231,7 @@
     <div class="legend">
       <span><span class="dot dot-queen"></span>已放皇后</span>
       <span><span class="dot dot-try"></span>正在尝试 / 攻击范围</span>
-      <span><span class="dot dot-conflict"></span>发生冲突</span>
+      <span><span class="dot dot-conflict"></span>冲突 / 当前行禁止列</span>
       <span><span class="dot dot-safe"></span>安全 / 完整方案</span>
       <span><span class="dot dot-remove"></span>回溯撤销</span>
     </div>
@@ -275,8 +273,8 @@
   }
 
   function buildSteps(n) {
+    var res = [];
     var queens = new Array(n).fill(-1);
-    var cols = new Set(), diagDown = new Set(), diagUp = new Set();
     var steps = [], solutions = [];
 
     function sortedValues(set) {
@@ -285,81 +283,94 @@
 
     function snap(o) {
       steps.push({
-        phase:o.phase || '',
-        row:o.row === undefined ? -1 : o.row,
-        col:o.col === undefined ? -1 : o.col,
-        candidate:o.candidate ? { row:o.candidate.row, col:o.candidate.col } : null,
-        conflicts:o.conflicts ? o.conflicts.map(function (x) { return { row:x.row, col:x.col, kind:x.kind }; }) : [],
-        queens:queens.slice(),
-        cols:sortedValues(cols),
-        diagDown:sortedValues(diagDown),
-        diagUp:sortedValues(diagUp),
-        solutionCount:solutions.length,
-        msg:o.msg || ''
+        phase: o.phase || '',
+        row: o.row === undefined ? -1 : o.row,
+        col: o.col === undefined ? -1 : o.col,
+        candidate: o.candidate ? { row: o.candidate.row, col: o.candidate.col } : null,
+        conflicts: o.conflicts ? o.conflicts.map(function (x) { return { row: x.row, col: x.col, kind: x.kind }; }) : [],
+        queens: queens.slice(),
+        banC: o.banC ? o.banC.slice() : [],
+        solutionCount: solutions.length,
+        msg: o.msg || ''
       });
     }
 
-    function findConflicts(row, col) {
+    function makeBan(r) {
+      var ban = new Set();
+      for (var i = 0; i < res.length; i++) {
+        var x = res[i][0], y = res[i][1];
+        ban.add(y);
+        ban.add(y + (r - x));
+        ban.add(y - (r - x));
+      }
+      return ban;
+    }
+
+    function findConflicts(r, c) {
       var found = [];
-      for (var r = 0; r < row; r++) {
-        var c = queens[r];
-        if (c === col) found.push({ row:r, col:c, kind:'同列' });
-        else if (r - c === row - col) found.push({ row:r, col:c, kind:'↘ 对角线' });
-        else if (r + c === row + col) found.push({ row:r, col:c, kind:'↙ 对角线' });
+      for (var i = 0; i < res.length; i++) {
+        var x = res[i][0], y = res[i][1];
+        if (c === y) found.push({ row: x, col: y, kind: '同列 y' });
+        else if (c === y + (r - x)) found.push({ row: x, col: y, kind: '斜线 y+(r-x)' });
+        else if (c === y - (r - x)) found.push({ row: x, col: y, kind: '斜线 y-(r-x)' });
       }
       return found;
     }
 
-    function dfs(row) {
-      if (row === n) {
+    function queen(r) {
+      if (r >= n) {
         solutions.push(queens.slice());
-        snap({ phase:'solution', row:row,
-          msg:'每一行都成功放置！<span class="ok">找到第 ' + solutions.length + ' 个方案</span>：列序列 [' + queens.join(', ') + ']。记录副本后继续回溯，寻找其他方案。' });
+        snap({ phase: 'solution', row: r, banC: [],
+          msg: '<code>r &gt;= n</code> ✅ 按 res 里每个 <code>(x, y)</code> 拼行 <code>"." * y + "Q" + "." * (n-y-1)</code>，<code>resp.append(tmp)</code>。这是第 ' + solutions.length + ' 个方案，然后 <b>return</b>。' });
         return;
       }
 
-      snap({ phase:'enter', row:row,
-        msg:'进入 <b>dfs(' + row + ')</b>：现在为第 <b>' + row + '</b> 行选择皇后位置，从第 0 列开始逐一尝试。' });
+      snap({ phase: 'enter', row: r, banC: [],
+        msg: '进入 <b>queen(' + r + ')</b>：扫描 res 里已放的皇后，把攻击投影到第 <b>' + r + '</b> 行，填入 <code>ban_c</code>。' });
 
-      for (var col = 0; col < n; col++) {
-        var conflicts = findConflicts(row, col);
-        if (conflicts.length) {
+      var ban = makeBan(r);
+      var banList = sortedValues(ban);
+      var onBoard = banList.filter(function (c) { return c >= 0 && c < n; });
+      snap({ phase: 'ban', row: r, banC: banList,
+        msg: res.length === 0
+          ? 'res 为空，<code>ban_c = ∅</code>，第 0 行每一列都可以放。'
+          : '对每个 <code>(x, y)</code> 加入 <code>y</code>、<code>y+(r-x)</code>、<code>y-(r-x)</code> → <code>ban_c = {' + banList.join(', ') + '}</code>。落在棋盘上的禁止列：[' + onBoard.join(', ') + ']。' });
+
+      for (var c = 0; c < n; c++) {
+        if (ban.has(c)) {
+          var conflicts = findConflicts(r, c);
           var detail = conflicts.map(function (x) { return '(' + x.row + ',' + x.col + ') ' + x.kind; }).join('、');
-          snap({ phase:'reject', row:row, col:col, candidate:{ row:row, col:col }, conflicts:conflicts,
-            msg:'尝试 <b>(' + row + ',' + col + ')</b>：与皇后 ' + detail + ' 冲突，<span class="bad">剪枝，不递归</span>。' });
+          snap({ phase: 'reject', row: r, col: c, candidate: { row: r, col: c }, conflicts: conflicts, banC: banList,
+            msg: '<code>c=' + c + ' in ban_c</code>：与皇后 ' + detail + ' 冲突，<span class="bad">不 append、不递归</span>。' });
           continue;
         }
 
-        snap({ phase:'try', row:row, col:col, candidate:{ row:row, col:col },
-          msg:'尝试 <b>(' + row + ',' + col + ')</b>：列 ' + col + '、↘ 标识 ' + (row - col) + '、↙ 标识 ' + (row + col) + ' 都未被占用，位置安全。' });
+        snap({ phase: 'try', row: r, col: c, candidate: { row: r, col: c }, banC: banList,
+          msg: '<code>c=' + c + ' not in ban_c</code>，第 ' + r + ' 行第 ' + c + ' 列安全。' });
 
-        queens[row] = col;
-        cols.add(col);
-        diagDown.add(row - col);
-        diagUp.add(row + col);
-        snap({ phase:'place', row:row, col:col, candidate:{ row:row, col:col },
-          msg:'<span class="ok">放置皇后 (' + row + ',' + col + ')</span>，把 <code>' + col + '</code>、<code>' + (row - col) + '</code>、<code>' + (row + col) + '</code> 分别加入三个集合，然后递归 <b>dfs(' + (row + 1) + ')</b>。' });
+        res.push([r, c]);
+        queens[r] = c;
+        snap({ phase: 'place', row: r, col: c, candidate: { row: r, col: c }, banC: banList,
+          msg: '<span class="ok"><code>res.append((' + r + ', ' + c + '))</code></span>，然后调用 <b>queen(' + (r + 1) + ')</b>。' });
 
-        dfs(row + 1);
+        queen(r + 1);
 
-        queens[row] = -1;
-        cols.delete(col);
-        diagDown.delete(row - col);
-        diagUp.delete(row + col);
-        snap({ phase:'remove', row:row, col:col, candidate:{ row:row, col:col },
-          msg:'从 <b>dfs(' + (row + 1) + ')</b> 返回，<b>回溯撤销 (' + row + ',' + col + ')</b>，并从三个集合删除对应标记；继续尝试第 ' + row + ' 行的下一列。' });
+        res.pop();
+        queens[r] = -1;
+        snap({ phase: 'remove', row: r, col: c, candidate: { row: r, col: c }, banC: banList,
+          msg: '从 <b>queen(' + (r + 1) + ')</b> 返回，<code>res.pop()</code> 撤销 (' + r + ', ' + c + ')，继续试下一列。' });
       }
     }
 
-    snap({ phase:'start', row:0,
-      msg:'从第 0 行开始。每行只放一个皇后，并用三个集合记录已经占用的列与两类对角线。' });
-    dfs(0);
-    snap({ phase:'done', row:-1,
-      msg:solutions.length
+    snap({ phase: 'start', row: 0, banC: [],
+      msg: '调用 <b>queen(0)</b>。<code>res</code> 记录已放的 <code>(行, 列)</code>；每一行先算出 <code>ban_c</code>，再 <code>for c in range(n)</code>。' });
+    queen(0);
+    snap({ phase: 'done', row: -1, banC: [],
+      msg: solutions.length
         ? '搜索结束，共找到 <span class="ok">' + solutions.length + ' 个不同方案</span>。'
         : '搜索结束。n=' + n + ' 时<span class="bad">不存在合法方案</span>。' });
 
-    return { steps:steps, solutions:solutions };
+    return { steps: steps, solutions: solutions };
   }
 
   root.N_QUEENS = { parseN:parseN, buildSteps:buildSteps };
@@ -444,6 +455,7 @@
         if (candidate) cls += ' candidate';
         if (step.phase === 'place' && candidate) cls += ' candidate-safe';
         if (hasConflict(step, r, c) || (step.phase === 'reject' && candidate)) cls += ' conflict';
+        if (step.phase === 'ban' && r === step.row && step.banC.indexOf(c) !== -1) cls += ' conflict';
         if (step.phase === 'solution' && queen) cls += ' solution';
         if (step.phase === 'remove' && candidate) cls += ' removed';
         sq.className = cls;
@@ -464,9 +476,7 @@
   }
 
   function renderSide(step) {
-    $('colsSet').textContent = setText(step.cols);
-    $('downSet').textContent = setText(step.diagDown);
-    $('upSet').textContent = setText(step.diagUp);
+    $('banSet').textContent = setText(step.banC || []);
 
     pathEl.innerHTML = '';
     var placed = 0;
@@ -475,10 +485,10 @@
       placed++;
       var tag = document.createElement('span');
       tag.className = 'path-step';
-      tag.textContent = 'r' + row + '→c' + col;
+      tag.textContent = '(' + row + ', ' + col + ')';
       pathEl.appendChild(tag);
     });
-    if (!placed) pathEl.innerHTML = '<span class="empty">尚未放置皇后</span>';
+    if (!placed) pathEl.innerHTML = '<span class="empty">res 为空</span>';
 
     solutionsEl.innerHTML = '';
     var visible = Math.min(step.solutionCount, 12);
@@ -504,12 +514,12 @@
       '<div class="stat">当前已找到<b>' + step.solutionCount + '</b></div>' +
       '<div class="stat">动画步数<b>' + steps.length + '</b></div>' +
       '<div class="stat">时间上界<b>O(n!)</b></div>' +
-      '<div class="stat">搜索空间<b>O(n)</b></div>';
+      '<div class="stat">冲突判断<b>c not in ban_c</b></div>';
   }
 
   function phaseName(phase) {
     var names = {
-      start:'初始化', enter:'进入递归', try:'尝试位置', reject:'冲突剪枝',
+      start:'初始化', enter:'进入递归', ban:'计算 ban_c', try:'尝试位置', reject:'冲突剪枝',
       place:'放置皇后', remove:'回溯撤销', solution:'找到方案', done:'结束'
     };
     return names[phase] || phase;
@@ -598,76 +608,73 @@
 
   var codes = {
     py:
-'<span class="cmt"># 逐行回溯；三个集合 O(1) 判断冲突</span>\n' +
+'<span class="cmt"># 逐行回溯：已放皇后投影到当前行，得到 ban_c</span>\n' +
 'class Solution:\n' +
 '    def solveNQueens(self, n: int) -&gt; list[list[str]]:\n' +
-'        ans = []\n' +
-'        queens = [-1] * n\n' +
-'        cols, diag_down, diag_up = set(), set(), set()\n' +
+'        resp, res = [], []\n' +
 '\n' +
-'        def dfs(row: int) -&gt; None:\n' +
-'            if row == n:\n' +
-'                board = []\n' +
-'                for col in queens:\n' +
-'                    board.append(\".\" * col + \"Q\" + \".\" * (n - col - 1))\n' +
-'                ans.append(board)\n' +
+'        def queen(r):\n' +
+'            if r &gt;= n:\n' +
+'                tmp = ["" for _ in range(n)]\n' +
+'                for (x, y) in res:\n' +
+'                    tmp[x] = "." * y + "Q" + "." * (n - y - 1)\n' +
+'                resp.append(tmp)\n' +
 '                return\n' +
 '\n' +
-'            for col in range(n):\n' +
-'                down = row - col             <span class="cmt"># ↘ 对角线标识</span>\n' +
-'                up = row + col               <span class="cmt"># ↙ 对角线标识</span>\n' +
-'                if col in cols or down in diag_down or up in diag_up:\n' +
-'                    continue                  <span class="cmt"># 冲突，剪枝</span>\n' +
+'            ban_c = set()\n' +
+'            for (x, y) in res:\n' +
+'                ban_c.add(y)\n' +
+'                ban_c.add(y + (r - x))\n' +
+'                ban_c.add(y - (r - x))\n' +
 '\n' +
-'                queens[row] = col             <span class="cmt"># 做选择</span>\n' +
-'                cols.add(col)\n' +
-'                diag_down.add(down)\n' +
-'                diag_up.add(up)\n' +
-'                dfs(row + 1)\n' +
-'                queens[row] = -1              <span class="cmt"># 撤销选择</span>\n' +
-'                cols.remove(col)\n' +
-'                diag_down.remove(down)\n' +
-'                diag_up.remove(up)\n' +
+'            for c in range(n):\n' +
+'                if c not in ban_c:\n' +
+'                    res.append((r, c))\n' +
+'                    queen(r + 1)\n' +
+'                    res.pop()\n' +
 '\n' +
-'        dfs(0)\n' +
-'        return ans',
+'        queen(0)\n' +
+'        return resp',
     java:
-'<span class="cmt">// 逐行回溯；三个集合 O(1) 判断冲突</span>\n' +
+'<span class="cmt">// 逐行回溯：已放皇后投影到当前行，得到 ban_c</span>\n' +
 'class Solution {\n' +
-'    List&lt;List&lt;String&gt;&gt; ans = new ArrayList&lt;&gt;();\n' +
-'    Set&lt;Integer&gt; cols = new HashSet&lt;&gt;();\n' +
-'    Set&lt;Integer&gt; diagDown = new HashSet&lt;&gt;();\n' +
-'    Set&lt;Integer&gt; diagUp = new HashSet&lt;&gt;();\n' +
-'    int[] queens;\n' +
+'    List&lt;List&lt;String&gt;&gt; resp = new ArrayList&lt;&gt;();\n' +
+'    List&lt;int[]&gt; res = new ArrayList&lt;&gt;();\n' +
 '\n' +
 '    public List&lt;List&lt;String&gt;&gt; solveNQueens(int n) {\n' +
-'        queens = new int[n];\n' +
-'        Arrays.fill(queens, -1);\n' +
-'        dfs(0, n);\n' +
-'        return ans;\n' +
+'        queen(0, n);\n' +
+'        return resp;\n' +
 '    }\n' +
 '\n' +
-'    void dfs(int row, int n) {\n' +
-'        if (row == n) {\n' +
-'            List&lt;String&gt; board = new ArrayList&lt;&gt;();\n' +
-'            for (int col : queens) {\n' +
+'    void queen(int r, int n) {\n' +
+'        if (r &gt;= n) {\n' +
+'            String[] tmp = new String[n];\n' +
+'            Arrays.fill(tmp, "");\n' +
+'            for (int[] p : res) {\n' +
+'                int x = p[0], y = p[1];\n' +
 '                char[] line = new char[n];\n' +
 '                Arrays.fill(line, \'.\');\n' +
-'                line[col] = \'Q\';\n' +
-'                board.add(new String(line));\n' +
+'                line[y] = \'Q\';\n' +
+'                tmp[x] = new String(line);\n' +
 '            }\n' +
-'            ans.add(board);\n' +
+'            resp.add(Arrays.asList(tmp));\n' +
 '            return;\n' +
 '        }\n' +
 '\n' +
-'        for (int col = 0; col &lt; n; col++) {\n' +
-'            int down = row - col, up = row + col;\n' +
-'            if (cols.contains(col) || diagDown.contains(down) || diagUp.contains(up)) continue;\n' +
-'            queens[row] = col;\n' +
-'            cols.add(col); diagDown.add(down); diagUp.add(up);\n' +
-'            dfs(row + 1, n);\n' +
-'            queens[row] = -1;\n' +
-'            cols.remove(col); diagDown.remove(down); diagUp.remove(up);\n' +
+'        Set&lt;Integer&gt; banC = new HashSet&lt;&gt;();\n' +
+'        for (int[] p : res) {\n' +
+'            int x = p[0], y = p[1];\n' +
+'            banC.add(y);\n' +
+'            banC.add(y + (r - x));\n' +
+'            banC.add(y - (r - x));\n' +
+'        }\n' +
+'\n' +
+'        for (int c = 0; c &lt; n; c++) {\n' +
+'            if (!banC.contains(c)) {\n' +
+'                res.add(new int[]{r, c});\n' +
+'                queen(r + 1, n);\n' +
+'                res.remove(res.size() - 1);\n' +
+'            }\n' +
 '        }\n' +
 '    }\n' +
 '}'
