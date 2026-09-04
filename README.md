@@ -101,6 +101,7 @@ leetcode-animations/
 | 70 | [爬楼梯](https://tces1.github.io/leetcode-animations/problems/70-climbing-stairs.html) | 简单 | 递归 · 记忆化 · 滚动 DP |
 | 72 | [编辑距离](https://tces1.github.io/leetcode-animations/problems/72-edit-distance.html) | 困难 | 动态规划 · 二维 DP · 字符串 |
 | 73 | [矩阵置零](https://tces1.github.io/leetcode-animations/problems/73-set-matrix-zeroes.html) | 中等 | 矩阵 · 原地标记 · 数组 · O(1) 空间 |
+| 74 | [搜索二维矩阵](https://tces1.github.io/leetcode-animations/problems/74-search-a-2d-matrix.html) | 中等 | 矩阵 · 二分查找 · 展平 · O(log(mn)) |
 | 76 | [最小覆盖子串](https://tces1.github.io/leetcode-animations/problems/76-minimum-window-substring.html) | 困难 | 字符串 · 滑动窗口 · 哈希表 · 计数 |
 | 78 | [子集](https://tces1.github.io/leetcode-animations/problems/78-subsets.html) | 简单 | 回溯 · 子集 · DFS · 后缀切片 |
 | 79 | [单词搜索](https://tces1.github.io/leetcode-animations/problems/79-word-search.html) | 中等 | 回溯 · DFS · 网格 · 原地标记 |
