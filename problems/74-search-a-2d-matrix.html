@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="矩阵 · 二分查找 · 展平 · O(log(mn))">
+<title>74. 搜索二维矩阵 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; line-height: 1.5;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .navbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .difftag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; }
+  .link { font-size: 12px; color: #6b7280; }
+  .link a { color: #6366f1; text-decoration: none; }
+  .link a:hover { text-decoration: underline; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color: #1d2129; }
+  code { background: #eef0f4; padding: 1px 5px; border-radius: 5px; font: 12px "SF Mono", Menlo, monospace; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+  .idea { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .idea-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #4b5563; background: #f8fafc; }
+  .idea-item .no { font-size: 11px; font-weight: 700; letter-spacing: .05em; color: #6366f1; }
+  .idea-item b { color: #1d2129; }
+  .key-note { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #f5f3ff; border: 1px solid #ddd6fe; color: #5b21b6; font-size: 13px; }
+  .key-note code { background: #ede9fe; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 220px; }
+  .field .lab { font-size: 12px; color: #6b7280; font-weight: 600; white-space: nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 120px; padding: 9px 12px; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  input.tgt { max-width: 110px; flex: none; }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .examples .lab { font-size: 12px; color: #9ca3af; }
+  .chip {
+    font: 12px "SF Mono", Menlo, monospace; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+  .err.show { display: block; }
+  .hint { font-size: 12px; color: #9ca3af; margin-top: 8px; }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 14px; }
+  .stat { background: #f8fafc; border: 1px solid #eef0f4; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #6b7280; }
+  .stat b { display: block; font-size: 15px; color: #1d2129; font-family: "SF Mono", Menlo, monospace; }
+  .progress { font-size: 12px; color: #9ca3af; margin-left: auto; }
+
+  .stage { overflow: auto; border: 1px solid #eef0f4; border-radius: 12px; background: linear-gradient(#fafbff, #fff); padding: 20px; text-align: center; }
+  .matrix-shell { display: inline-grid; grid-template-columns: 28px auto; grid-template-rows: 22px auto; gap: 5px; min-width: max-content; }
+  .col-labels, .matrix-grid { display: grid; gap: 6px; }
+  .row-labels { display: grid; gap: 6px; }
+  .axis-label { width: 54px; height: 22px; display: flex; align-items: center; justify-content: center; font: 10px "SF Mono", Menlo, monospace; color: #94a3b8; }
+  .row-labels .axis-label { width: 28px; height: 50px; }
+  .gcell {
+    position: relative; width: 54px; height: 50px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font: 800 16px "SF Mono", Menlo, monospace; color: #334155;
+    background: #fff; border: 2px solid #e2e8f0;
+    transition: background .18s, border-color .18s, box-shadow .18s, transform .18s, opacity .18s;
+  }
+  .gcell .idx { position: absolute; top: 2px; left: 5px; font: 700 9px "SF Mono", Menlo, monospace; color: #cbd5e1; }
+  .gcell.inrange { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .gcell.inrange .idx { color: #818cf8; }
+  .gcell.excluded { background: #f1f5f9; border-color: #eef0f4; color: #cbd5e1; opacity: .48; }
+  .gcell.mid { background: #6366f1; border-color: #4338ca; color: #fff; box-shadow: 0 0 0 4px rgba(99,102,241,.28); transform: scale(1.08); z-index: 2; }
+  .gcell.mid .idx { color: #c7d2fe; }
+  .gcell.found { background: #22c55e; border-color: #16a34a; color: #fff; box-shadow: 0 0 0 4px rgba(34,197,94,.3); transform: scale(1.08); z-index: 3; }
+  .gcell.found .idx { color: #dcfce7; }
+  .gcell.leftp { box-shadow: 0 0 0 3px rgba(14,165,233,.35); }
+  .gcell.rightp { box-shadow: 0 0 0 3px rgba(234,88,12,.3); }
+
+  .formula {
+    margin: 14px 0 0; border-radius: 10px; background: #0f172a; color: #e2e8f0;
+    padding: 11px 14px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+    font: 14px "SF Mono", Menlo, monospace; text-align: center;
+  }
+  .formula .hi { color: #a5b4fc; font-weight: 800; }
+  .formula .ok { color: #86efac; font-weight: 800; }
+  .formula .no { color: #fca5a5; font-weight: 800; }
+
+  .flat-title { margin-top: 18px; }
+  .flat-stage { overflow: auto; border: 1px solid #eef0f4; border-radius: 12px; background: #fbfbfd; padding: 18px 14px 10px; }
+  .flat-row { display: inline-flex; gap: 6px; min-width: max-content; }
+  .fcell {
+    position: relative; width: 46px; height: 54px; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font: 800 14px "SF Mono", Menlo, monospace; color: #334155;
+    background: #fff; border: 2px solid #e2e8f0;
+    transition: background .18s, border-color .18s, box-shadow .18s, opacity .18s;
+  }
+  .fcell .fi { font: 700 9px "SF Mono", Menlo, monospace; color: #94a3b8; margin-top: 2px; }
+  .fcell.inrange { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .fcell.excluded { background: #f1f5f9; border-color: #eef0f4; color: #cbd5e1; opacity: .45; }
+  .fcell.mid { background: #6366f1; border-color: #4338ca; color: #fff; }
+  .fcell.mid .fi { color: #c7d2fe; }
+  .fcell.found { background: #22c55e; border-color: #16a34a; color: #fff; }
+  .fcell.found .fi { color: #dcfce7; }
+  .ptrs { display: inline-flex; gap: 6px; min-width: max-content; margin-top: 6px; }
+  .ptrslot { width: 46px; height: 18px; text-align: center; font: 800 10px "SF Mono", Menlo, monospace; color: transparent; }
+  .ptrslot.show-l { color: #0284c7; }
+  .ptrslot.show-m { color: #4f46e5; }
+  .ptrslot.show-r { color: #ea580c; }
+  .ptrslot.show-lm { color: #4f46e5; }
+  .ptrslot.show-lr { color: #7c3aed; }
+  .ptrslot.show-mr { color: #4f46e5; }
+  .ptrslot.show-lmr { color: #4f46e5; }
+
+  .vars { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 14px 2px 0; font-size: 13px; color: #4b5563; font-family: "SF Mono", Menlo, monospace; }
+  .vars .box { padding: 4px 10px; border-radius: 7px; background: #f8fafc; border: 1px solid #eef0f4; }
+  .vl { color: #0284c7; font-weight: 700; }
+  .vm { color: #4f46e5; font-weight: 700; }
+  .vr { color: #ea580c; font-weight: 700; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #6b7280; margin-top: 14px; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -2px; border: 1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top: 16px; }
+  .status { background: #111827; color: #e5e7eb; border-radius: 10px; padding: 14px 16px; font-size: 14px; min-height: 50px; }
+  .status b { color: #fcd34d; }
+  .status .op { color: #86efac; font-weight: 700; }
+  .status .no { color: #fca5a5; font-weight: 700; }
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor: pointer; font-weight: 600; font-size: 14px; color: #4f46e5; }
+  .code-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 10px; }
+  .code-tab { font-size: 13px; padding: 5px 12px; border-radius: 999px; cursor: pointer; background: #f1f2f4; border: 1px solid #e5e7eb; color: #374151; }
+  .code-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow: auto; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .cmt { color: #7dd3fc; }
+
+  @media (max-width: 620px) {
+    body { padding: 16px 12px; }
+    .card { padding: 14px; }
+    .progress { width: 100%; margin-left: 0; }
+  }
+  .star-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 0 0 16px; padding: 12px 16px; border: 1px solid #e0e7ff; border-radius: 12px; background: linear-gradient(180deg, #f8faff 0%, #fff 100%); }
+  .star-banner-copy { flex: 1; min-width: 180px; }
+  .star-banner-title { font-size: 14px; font-weight: 700; color: #1d2129; }
+  .star-banner-sub { margin-top: 2px; font-size: 12px; color: #6b7280; }
+  .star-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid #c7d2fe; border-radius: 8px; background: #fff; color: #312e81; text-decoration: none; font-size: 13px; font-weight: 700; box-shadow: 0 1px 0 rgba(99,102,241,.08); flex-shrink: 0; }
+  .star-cta:hover { border-color: #818cf8; background: #eef2ff; }
+  .star-cta svg { width: 14px; height: 14px; fill: currentColor; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/search-a-2d-matrix/" target="_blank" rel="noopener">LeetCode 74</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>74. 搜索二维矩阵 · 展平二分动画</h1>
+  <div class="sub">每行从左到右有序，且<b>下一行开头大于上一行末尾</b>，所以整张表其实是一条有序数组。把下标 <code>i</code> 映射成 <code>(i // n, i % n)</code>，一次二分即可，时间 <code>O(log(mn))</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">思路要点</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 全局有序</div>本题比 240 更强：行与行之间也衔接有序，可以当成长度为 <code>m·n</code> 的一维数组。</div>
+      <div class="idea-item"><div class="no">② 下标映射</div><code>mid</code> → 行 <code>mid // n</code>、列 <code>mid % n</code>。不必真的拷贝成一维数组。</div>
+      <div class="idea-item"><div class="no">③ 标准二分</div>当前值偏小就丢掉左半 <code>left = mid + 1</code>；偏大丢掉右半 <code>right = mid - 1</code>。</div>
+      <div class="idea-item"><div class="no">④ 找到即返</div>相等直接 <code>return true</code>；区间空了就是 <code>false</code>。空间 <code>O(1)</code>。</div>
+    </div>
+    <div class="key-note"><b>和 240 的区别：</b>240 只保证「行升序、列升序」，不能展平后二分，要从右上角阶梯走。74 多了「下一行开头 &gt; 上一行末尾」，所以整表单调，一次二分就够。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">matrix =</span><input type="text" id="input" value="1 3 5 7; 10 11 16 20; 23 30 34 60" spellcheck="false" placeholder="行用 ; 隔开，如 1 3 5 7; 10 11 16 20"></label>
+      <label class="field" style="flex:none"><span class="lab">target =</span><input type="text" id="target" class="tgt" value="3" spellcheck="false"></label>
+      <button type="button" id="loadBtn">搜索</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-m="1 3 5 7; 10 11 16 20; 23 30 34 60" data-t="3">找 3（存在）</span>
+      <span class="chip" data-m="1 3 5 7; 10 11 16 20; 23 30 34 60" data-t="13">找 13（不存在）</span>
+      <span class="chip" data-m="1 3 5 7; 10 11 16 20; 23 30 34 60" data-t="60">找 60（末尾）</span>
+      <span class="chip" data-m="1 2 3 4 5" data-t="4">单行找 4</span>
+      <span class="chip" data-m="1; 3; 5; 7" data-t="6">单列找 6</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">需满足每行升序，且下一行开头大于上一行末尾；行列各 ≤ 6（动画清晰度上限）。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="panel-title">二维矩阵（角标 = 展平下标）</div>
+    <div class="stage">
+      <div class="matrix-shell">
+        <div></div>
+        <div class="col-labels" id="colLabels"></div>
+        <div class="row-labels" id="rowLabels"></div>
+        <div class="matrix-grid" id="matrixGrid"></div>
+      </div>
+    </div>
+    <div class="formula" id="formula">mid → (mid // n, mid % n)</div>
+
+    <div class="panel-title flat-title">一维视角 · left / mid / right</div>
+    <div class="flat-stage">
+      <div>
+        <div class="flat-row" id="flatRow"></div>
+        <div class="ptrs" id="ptrs"></div>
+      </div>
+    </div>
+
+    <div class="vars" id="vars"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>当前搜索区间 [L, R]</span>
+      <span><span class="dot" style="background:#6366f1"></span>mid</span>
+      <span><span class="dot" style="background:#22c55e"></span>命中</span>
+      <span><span class="dot" style="background:#f1f5f9"></span>已排除</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「搜索」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function (root) {
+  'use strict';
+  function parseMatrix(value) {
+    if (typeof value !== 'string') return { mat: null, err: '空输入' };
+    var rows = value.trim().split(/[;\n]+/).map(function (r) { return r.trim(); }).filter(Boolean);
+    if (!rows.length) return { mat: null, err: '空输入' };
+    var mat = [], width = null;
+    for (var i = 0; i < rows.length; i++) {
+      var cells = rows[i].split(/[,\s]+/).filter(Boolean);
+      var nums = [];
+      for (var k = 0; k < cells.length; k++) {
+        if (!/^-?\d+$/.test(cells[k])) return { mat: null, err: '含非整数：' + cells[k] };
+        nums.push(parseInt(cells[k], 10));
+      }
+      if (!nums.length) return { mat: null, err: '有空行' };
+      if (width === null) width = nums.length;
+      else if (nums.length !== width) return { mat: null, err: '不是矩形矩阵' };
+      mat.push(nums);
+    }
+    var m = mat.length, n = width;
+    if (m > 6 || n > 6) return { mat: null, err: '行列请各 ≤ 6（动画清晰度上限）' };
+    for (var r = 0; r < m; r++) {
+      for (var c = 0; c < n - 1; c++) {
+        if (mat[r][c] > mat[r][c + 1]) return { mat: null, err: '第 ' + r + ' 行不是升序' };
+      }
+      if (r > 0 && mat[r][0] <= mat[r - 1][n - 1]) {
+        return { mat: null, err: '第 ' + r + ' 行开头必须大于上一行末尾（本题才能展平二分）' };
+      }
+    }
+    return { mat: mat, err: null };
+  }
+
+  function brute(mat, target) {
+    for (var i = 0; i < mat.length; i++)
+      for (var j = 0; j < mat[0].length; j++)
+        if (mat[i][j] === target) return true;
+    return false;
+  }
+
+  function searchResult(mat, target) {
+    var m = mat.length, n = mat[0].length, left = 0, right = m * n - 1;
+    while (left <= right) {
+      var mid = Math.floor((left + right) / 2);
+      var val = mat[Math.floor(mid / n)][mid % n];
+      if (val === target) return true;
+      if (val < target) left = mid + 1;
+      else right = mid - 1;
+    }
+    return false;
+  }
+
+  function buildSteps(mat, target) {
+    var m = mat.length, n = mat[0].length;
+    var left = 0, right = m * n - 1, steps = [];
+    function snap(o) {
+      steps.push({
+        left: left, right: right,
+        mid: o.mid === undefined ? null : o.mid,
+        r: o.r === undefined ? null : o.r,
+        c: o.c === undefined ? null : o.c,
+        found: !!o.found, done: !!o.done,
+        result: o.result === undefined ? null : o.result,
+        msg: o.msg, formula: o.formula || ''
+      });
+    }
+    snap({
+      msg: '把 <b>' + m + '×' + n + '</b> 矩阵看成长度为 <b>' + (m * n) + '</b> 的有序数组。left=0，right=' + (m * n - 1) + '。',
+      formula: '下标 i 对应 matrix[i // ' + n + '][i % ' + n + ']'
+    });
+    var guard = 0;
+    while (left <= right && guard++ < 80) {
+      var mid = Math.floor((left + right) / 2);
+      var r = Math.floor(mid / n), c = mid % n;
+      var val = mat[r][c];
+      var map = 'mid=<span class="hi">' + mid + '</span> = (' + left + '+' + right + ')//2 → (' + r + ', ' + c + ')';
+      if (val === target) {
+        snap({
+          mid: mid, r: r, c: c, found: true, done: true, result: true,
+          msg: 'matrix[' + r + '][' + c + '] = <b>' + val + '</b> == target ✅ 找到，返回 <span class="op">true</span>。',
+          formula: map + ' = <span class="ok">' + val + '</span> == target'
+        });
+        return steps;
+      }
+      if (val < target) {
+        snap({
+          mid: mid, r: r, c: c,
+          msg: 'matrix[' + r + '][' + c + '] = <b>' + val + '</b> &lt; target=' + target + '：目标在右半 → <b>left = mid + 1</b> = ' + (mid + 1) + '。',
+          formula: map + ' = ' + val + ' &lt; target → left = ' + (mid + 1)
+        });
+        left = mid + 1;
+      } else {
+        snap({
+          mid: mid, r: r, c: c,
+          msg: 'matrix[' + r + '][' + c + '] = <b>' + val + '</b> &gt; target=' + target + '：目标在左半 → <b>right = mid - 1</b> = ' + (mid - 1) + '。',
+          formula: map + ' = ' + val + ' &gt; target → right = ' + (mid - 1)
+        });
+        right = mid - 1;
+      }
+    }
+    snap({
+      done: true, result: false,
+      msg: 'left=' + left + ' &gt; right=' + right + '，区间为空 ❌ 不存在 target=' + target + '，返回 <span class="no">false</span>。',
+      formula: 'left=' + left + ' &gt; right=' + right
+    });
+    return steps;
+  }
+
+  root.SM74 = { parseMatrix: parseMatrix, brute: brute, searchResult: searchResult, buildSteps: buildSteps };
+}(window));
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var SM = window.SM74;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), targetIn = $('target'), errEl = $('err');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var colLabels = $('colLabels'), rowLabels = $('rowLabels'), matrixGrid = $('matrixGrid');
+  var flatRow = $('flatRow'), ptrs = $('ptrs'), varsEl = $('vars'), formulaEl = $('formula');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var matrix = null, target = 0, steps = [], stepIdx = 0, playTimer = null, cellEls = [], flatEls = [];
+
+  function buildGrid() {
+    var m = matrix.length, n = matrix[0].length;
+    colLabels.innerHTML = '';
+    rowLabels.innerHTML = '';
+    matrixGrid.innerHTML = '';
+    colLabels.style.gridTemplateColumns = 'repeat(' + n + ', 54px)';
+    matrixGrid.style.gridTemplateColumns = 'repeat(' + n + ', 54px)';
+    rowLabels.style.gridTemplateRows = 'repeat(' + m + ', 50px)';
+    for (var c = 0; c < n; c++) {
+      var cl = document.createElement('div');
+      cl.className = 'axis-label';
+      cl.textContent = 'c' + c;
+      colLabels.appendChild(cl);
+    }
+    cellEls = [];
+    for (var r = 0; r < m; r++) {
+      var rl = document.createElement('div');
+      rl.className = 'axis-label';
+      rl.textContent = 'r' + r;
+      rowLabels.appendChild(rl);
+      var row = [];
+      for (var c2 = 0; c2 < n; c2++) {
+        var d = document.createElement('div');
+        d.className = 'gcell';
+        var idx = document.createElement('span');
+        idx.className = 'idx';
+        idx.textContent = r * n + c2;
+        var val = document.createElement('span');
+        val.textContent = matrix[r][c2];
+        d.appendChild(idx);
+        d.appendChild(val);
+        matrixGrid.appendChild(d);
+        row.push(d);
+      }
+      cellEls.push(row);
+    }
+
+    flatRow.innerHTML = '';
+    ptrs.innerHTML = '';
+    flatEls = [];
+    for (var i = 0; i < m * n; i++) {
+      var rr = Math.floor(i / n), cc = i % n;
+      var f = document.createElement('div');
+      f.className = 'fcell';
+      f.innerHTML = '<span>' + matrix[rr][cc] + '</span><span class="fi">' + i + '</span>';
+      flatRow.appendChild(f);
+      flatEls.push(f);
+      var p = document.createElement('div');
+      p.className = 'ptrslot';
+      p.id = 'ptr-' + i;
+      ptrs.appendChild(p);
+    }
+  }
+
+  function ptrClass(i, L, M, R) {
+    var Lok = L === i, Mok = M !== null && M === i, Rok = R === i;
+    if (Lok && Mok && Rok) return 'ptrslot show-lmr';
+    if (Lok && Mok) return 'ptrslot show-lm';
+    if (Lok && Rok) return 'ptrslot show-lr';
+    if (Mok && Rok) return 'ptrslot show-mr';
+    if (Lok) return 'ptrslot show-l';
+    if (Mok) return 'ptrslot show-m';
+    if (Rok) return 'ptrslot show-r';
+    return 'ptrslot';
+  }
+
+  function ptrText(i, L, M, R) {
+    var parts = [];
+    if (L === i) parts.push('L');
+    if (M !== null && M === i) parts.push('M');
+    if (R === i) parts.push('R');
+    return parts.join('/');
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    var m = matrix.length, n = matrix[0].length;
+    var L = step.left, R = step.right, M = step.mid;
+    for (var r = 0; r < m; r++) {
+      for (var c = 0; c < n; c++) {
+        var i = r * n + c;
+        var cls = 'gcell';
+        if (step.found && M === i) cls += ' found';
+        else if (M === i) cls += ' mid';
+        else if (i < L || i > R) cls += ' excluded';
+        else cls += ' inrange';
+        if (!step.found && L === i && M !== i) cls += ' leftp';
+        if (!step.found && R === i && M !== i) cls += ' rightp';
+        cellEls[r][c].className = cls;
+      }
+    }
+    for (var j = 0; j < m * n; j++) {
+      var fcls = 'fcell';
+      if (step.found && M === j) fcls += ' found';
+      else if (M === j) fcls += ' mid';
+      else if (j < L || j > R) fcls += ' excluded';
+      else fcls += ' inrange';
+      flatEls[j].className = fcls;
+      var slot = $('ptr-' + j);
+      slot.className = ptrClass(j, L, M, R);
+      slot.textContent = ptrText(j, L, M, R);
+    }
+
+    var cur = (M !== null) ? matrix[Math.floor(M / n)][M % n] : '—';
+    varsEl.innerHTML =
+      '<span class="box"><span class="vl">left</span> = <b>' + L + '</b></span>' +
+      '<span class="box"><span class="vm">mid</span> = <b>' + (M === null ? '—' : M) + '</b></span>' +
+      '<span class="box"><span class="vr">right</span> = <b>' + R + '</b></span>' +
+      '<span class="box">当前值 = <b>' + cur + '</b></span>' +
+      '<span class="box">target = <b>' + target + '</b></span>';
+    formulaEl.innerHTML = step.formula || 'mid → (mid // n, mid % n)';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIdx === 0;
+    nextBtn.disabled = stepIdx === steps.length - 1;
+  }
+
+  function renderStats() {
+    var m = matrix.length, n = matrix[0].length;
+    statsEl.innerHTML =
+      '<div class="stat">矩阵<b>' + m + ' × ' + n + '</b></div>' +
+      '<div class="stat">展平长度<b>' + (m * n) + '</b></div>' +
+      '<div class="stat">target<b>' + target + '</b></div>' +
+      '<div class="stat">时间<b>O(log(mn))</b></div>' +
+      '<div class="stat">空间<b>O(1)</b></div>';
+  }
+
+  function load() {
+    var res = SM.parseMatrix(input.value);
+    if (res.mat === null) {
+      errEl.textContent = '矩阵有误：' + res.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    var t = parseInt((targetIn.value || '').trim(), 10);
+    if (isNaN(t)) {
+      errEl.textContent = 'target 需要是整数。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    matrix = res.mat;
+    target = t;
+    if (SM.searchResult(matrix, target) !== SM.brute(matrix, target)) {
+      errEl.textContent = '内部校验失败：二分结果与暴力不一致。';
+      errEl.classList.add('show');
+      return;
+    }
+    steps = SM.buildSteps(matrix, target);
+    stepIdx = 0;
+    renderStats();
+    buildGrid();
+    render();
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 720);
+  }
+
+  $('nextBtn').onclick = function () { stopPlay(); next(); };
+  $('prevBtn').onclick = function () { stopPlay(); prev(); };
+  $('playBtn').onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  targetIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.dataset.m; targetIn.value = ch.dataset.t; load(); };
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># Python · 展平二分 · 时间 O(log(mn)) 空间 O(1)</span>\n' +
+'class Solution:\n' +
+'    def searchMatrix(self, matrix: List[List[int]], target: int) -&gt; bool:\n' +
+'        m, n = len(matrix), len(matrix[0])\n' +
+'        left, right = 0, m * n - 1\n' +
+'        while left &lt;= right:\n' +
+'            mid = (left + right) // 2\n' +
+'            val = matrix[mid // n][mid % n]\n' +
+'            if val == target:\n' +
+'                return True\n' +
+'            if val &lt; target:\n' +
+'                left = mid + 1\n' +
+'            else:\n' +
+'                right = mid - 1\n' +
+'        return False',
+    java:
+'<span class="cmt">// Java · 展平二分 · 时间 O(log(mn)) 空间 O(1)</span>\n' +
+'class Solution {\n' +
+'    public boolean searchMatrix(int[][] matrix, int target) {\n' +
+'        int m = matrix.length, n = matrix[0].length;\n' +
+'        int left = 0, right = m * n - 1;\n' +
+'        while (left &lt;= right) {\n' +
+'            int mid = (left + right) / 2;\n' +
+'            int val = matrix[mid / n][mid % n];\n' +
+'            if (val == target) return true;\n' +
+'            if (val &lt; target) left = mid + 1;\n' +
+'            else right = mid - 1;\n' +
+'        }\n' +
+'        return false;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      codeBlock.innerHTML = codes[t.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
