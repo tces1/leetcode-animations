@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 二分查找 · 旋转数组 · O(log n)">
+<title>153. 寻找旋转排序数组中的最小值 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; line-height: 1.5;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .navbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .difftag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; }
+  .link { font-size: 12px; color: #6b7280; }
+  .link a { color: #6366f1; text-decoration: none; }
+  .link a:hover { text-decoration: underline; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color: #1d2129; }
+  code { background: #eef0f4; padding: 1px 5px; border-radius: 5px; font: 12px "SF Mono", Menlo, monospace; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+  .idea { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .idea-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #4b5563; background: #f8fafc; }
+  .idea-item .no { font-size: 11px; font-weight: 700; letter-spacing: .05em; color: #6366f1; }
+  .idea-item b { color: #1d2129; }
+  .key-note { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #f5f3ff; border: 1px solid #ddd6fe; color: #5b21b6; font-size: 13px; }
+  .key-note code { background: #ede9fe; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 220px; }
+  .field .lab { font-size: 12px; color: #6b7280; font-weight: 600; white-space: nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 120px; padding: 9px 12px; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .examples .lab { font-size: 12px; color: #9ca3af; }
+  .chip {
+    font: 12px "SF Mono", Menlo, monospace; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+  .err.show { display: block; }
+  .hint { font-size: 12px; color: #9ca3af; margin-top: 8px; }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 14px; }
+  .stat { background: #f8fafc; border: 1px solid #eef0f4; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #6b7280; }
+  .stat b { display: block; font-size: 15px; color: #1d2129; font-family: "SF Mono", Menlo, monospace; }
+  .progress { font-size: 12px; color: #9ca3af; margin-left: auto; }
+
+  .phase { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 700; }
+  .phase-pill {
+    padding: 4px 10px; border-radius: 999px; font-size: 12px;
+    background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe;
+  }
+  .phase-pill.left { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .phase-pill.right { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+  .phase-pill.done { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+  .stage { overflow: auto; border: 1px solid #eef0f4; border-radius: 12px; background: linear-gradient(#fafbff, #fff); padding: 22px 16px 12px; text-align: center; }
+  .arr { display: inline-flex; gap: 6px; min-width: max-content; }
+  .gcell {
+    position: relative; width: 54px; height: 58px; border-radius: 9px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font: 800 17px "SF Mono", Menlo, monospace; color: #334155;
+    background: #fff; border: 2px solid #e2e8f0;
+    transition: background .18s, border-color .18s, box-shadow .18s, transform .18s, opacity .18s;
+  }
+  .gcell .idx { font: 700 9px "SF Mono", Menlo, monospace; color: #94a3b8; margin-top: 2px; }
+  .gcell.inrange { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .gcell.excluded { background: #f1f5f9; border-color: #eef0f4; color: #cbd5e1; opacity: .45; }
+  .gcell.sorted { background: #dcfce7; border-color: #86efac; color: #166534; }
+  .gcell.discard { background: #fee2e2; border-color: #fca5a5; color: #991b1b; opacity: .72; }
+  .gcell.mid { background: #6366f1; border-color: #4338ca; color: #fff; box-shadow: 0 0 0 4px rgba(99,102,241,.28); transform: scale(1.08); z-index: 2; }
+  .gcell.mid .idx { color: #c7d2fe; }
+  .gcell.answer { background: #22c55e; border-color: #16a34a; color: #fff; box-shadow: 0 0 0 3px rgba(34,197,94,.22); z-index: 3; }
+  .gcell.answer .idx { color: #dcfce7; }
+  .ptrs { display: inline-flex; gap: 6px; min-width: max-content; margin-top: 6px; }
+  .ptrslot { width: 54px; height: 18px; text-align: center; font: 800 10px "SF Mono", Menlo, monospace; color: transparent; }
+  .ptrslot.show-l { color: #0284c7; }
+  .ptrslot.show-m { color: #4f46e5; }
+  .ptrslot.show-r { color: #ea580c; }
+  .ptrslot.show-lm, .ptrslot.show-mr, .ptrslot.show-lr, .ptrslot.show-lmr { color: #4f46e5; }
+
+  .formula {
+    margin: 14px 0 0; border-radius: 10px; background: #0f172a; color: #e2e8f0;
+    padding: 11px 14px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+    font: 14px "SF Mono", Menlo, monospace; text-align: center;
+  }
+  .formula .ok { color: #86efac; font-weight: 800; }
+  .formula .no { color: #fca5a5; font-weight: 800; }
+
+  .vars { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 14px 2px 0; font-size: 13px; color: #4b5563; font-family: "SF Mono", Menlo, monospace; }
+  .vars .box { padding: 4px 10px; border-radius: 7px; background: #f8fafc; border: 1px solid #eef0f4; }
+  .vl { color: #0284c7; font-weight: 700; }
+  .vm { color: #4f46e5; font-weight: 700; }
+  .vr { color: #ea580c; font-weight: 700; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #6b7280; margin-top: 14px; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -2px; border: 1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top: 16px; }
+  .status { background: #111827; color: #e5e7eb; border-radius: 10px; padding: 14px 16px; font-size: 14px; min-height: 50px; }
+  .status b { color: #fcd34d; }
+  .status .op { color: #86efac; font-weight: 700; }
+  .status .no { color: #fca5a5; font-weight: 700; }
+  .status code { background: #1f2937; color: #93c5fd; }
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor: pointer; font-weight: 600; font-size: 14px; color: #4f46e5; }
+  .code-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 10px; }
+  .code-tab { font-size: 13px; padding: 5px 12px; border-radius: 999px; cursor: pointer; background: #f1f2f4; border: 1px solid #e5e7eb; color: #374151; }
+  .code-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow: auto; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .cmt { color: #7dd3fc; }
+
+  @media (max-width: 620px) {
+    body { padding: 16px 12px; }
+    .card { padding: 14px; }
+    .progress { width: 100%; margin-left: 0; }
+  }
+  .star-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 0 0 16px; padding: 12px 16px; border: 1px solid #e0e7ff; border-radius: 12px; background: linear-gradient(180deg, #f8faff 0%, #fff 100%); }
+  .star-banner-copy { flex: 1; min-width: 180px; }
+  .star-banner-title { font-size: 14px; font-weight: 700; color: #1d2129; }
+  .star-banner-sub { margin-top: 2px; font-size: 12px; color: #6b7280; }
+  .star-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid #c7d2fe; border-radius: 8px; background: #fff; color: #312e81; text-decoration: none; font-size: 13px; font-weight: 700; box-shadow: 0 1px 0 rgba(99,102,241,.08); flex-shrink: 0; }
+  .star-cta:hover { border-color: #818cf8; background: #eef2ff; }
+  .star-cta svg { width: 14px; height: 14px; fill: currentColor; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array/" target="_blank" rel="noopener">LeetCode 153</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>153. 寻找旋转排序数组中的最小值 · 二分动画</h1>
+  <div class="sub">升序数组在某个下标处被旋转一次，元素互不相同。最小值就是旋转点。当前区间若 <code>nums[l] &lt;= nums[r]</code> 已经有序，直接返回 <code>nums[l]</code>；否则看左半是否有序：有序就丢掉左半（最小值在无序那一侧），无序则收成 <code>r = m</code>（<code>m</code> 可能就是最小值）。时间 <code>O(log n)</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">思路要点</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 已有序</div><code>nums[l] &lt;= nums[r]</code> → 区间 <code>[l, r]</code> 没有旋转点，最小值就是左端 <code>nums[l]</code>。</div>
+      <div class="idea-item"><div class="no">② 左半有序</div><code>nums[l] &lt;= nums[m]</code> 且整体无序 → 旋转点在右半，<code>l = m + 1</code>，连 <code>m</code> 一起丢掉。</div>
+      <div class="idea-item"><div class="no">③ 左半无序</div><code>nums[l] &gt; nums[m]</code> → 旋转点在 <code>[l, m]</code>，<b>r = m</b>。不能写成 <code>m - 1</code>。</div>
+      <div class="idea-item"><div class="no">④ 收缩</div>每轮丢掉确定不含最小值的一半。闭区间 <code>while l &lt;= r</code>，直到某一轮区间变有序。</div>
+    </div>
+    <div class="key-note"><b>和 33 题同一套旋转数组性质。</b>任意切一刀，至少有一半有序。有序半区里所有值都比无序半区大（旋转后左段是较大的那截），所以最小值永远在无序那一侧。<code>r = m</code> 是因为 <code>m</code> 自己可能就是谷底。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">nums =</span><input type="text" id="input" value="3 4 5 1 2" spellcheck="false" placeholder="旋转后的升序数组，空格或逗号分隔"></label>
+      <button type="button" id="loadBtn">查找最小值</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-n="3 4 5 1 2">3 4 5 1 2 → 1</span>
+      <span class="chip" data-n="4 5 6 7 0 1 2">4 5 6 7 0 1 2 → 0</span>
+      <span class="chip" data-n="11 13 15 17">无旋转 → 11</span>
+      <span class="chip" data-n="2 1">2 1 → 1</span>
+      <span class="chip" data-n="3 1 2">3 1 2 → 1</span>
+      <span class="chip" data-n="1">单元素</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">需为「升序数组旋转一次」且元素互不相同；长度 1～14（动画清晰度上限）。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="phase">
+      <span class="phase-pill" id="phasePill">初始化</span>
+      <span id="phaseHint" style="font-weight:600;color:#6b7280">闭区间 [l, r]</span>
+    </div>
+
+    <div class="panel-title">数组（下标 + l / m / r）</div>
+    <div class="stage">
+      <div>
+        <div class="arr" id="arr"></div>
+        <div class="ptrs" id="ptrs"></div>
+      </div>
+    </div>
+    <div class="formula" id="formula">l, r = 0, n - 1</div>
+    <div class="vars" id="vars"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>当前区间 [l, r]</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>已确认有序</span>
+      <span><span class="dot" style="background:#6366f1"></span>m</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#fca5a5"></span>本轮丢掉</span>
+      <span><span class="dot" style="background:#22c55e"></span>最小值</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「查找最小值」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function (root) {
+  'use strict';
+
+  function parseNums(value) {
+    if (typeof value !== 'string') return { nums: null, err: '空输入' };
+    var raw = value.trim();
+    if (!raw) return { nums: null, err: '数组不能为空' };
+    var parts = raw.split(/[,\s]+/).filter(Boolean);
+    var nums = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { nums: null, err: '含非整数：' + parts[i] };
+      nums.push(parseInt(parts[i], 10));
+    }
+    if (nums.length < 1 || nums.length > 14) return { nums: null, err: '长度请在 1～14（动画清晰度上限）' };
+    var seen = {};
+    for (var j = 0; j < nums.length; j++) {
+      if (seen[nums[j]]) return { nums: null, err: '本题保证元素互不相同，发现重复 ' + nums[j] };
+      seen[nums[j]] = true;
+    }
+    var drops = 0;
+    for (var k = 1; k < nums.length; k++) {
+      if (nums[k] < nums[k - 1]) drops++;
+    }
+    if (drops > 1) return { nums: null, err: '不是「升序数组旋转一次」：下降超过一次' };
+    if (drops === 1 && nums[nums.length - 1] > nums[0]) {
+      return { nums: null, err: '不是旋转后的升序数组（下降点后应接到更小的前缀）' };
+    }
+    return { nums: nums, err: null };
+  }
+
+  function brute(nums) {
+    var min = nums[0];
+    for (var i = 1; i < nums.length; i++) if (nums[i] < min) min = nums[i];
+    return min;
+  }
+
+  function findMin(nums) {
+    var l = 0, r = nums.length - 1;
+    while (l <= r) {
+      var m = Math.floor((l + r) / 2);
+      if (nums[l] <= nums[r]) return nums[l];
+      if (nums[l] <= nums[m]) l = m + 1;
+      else r = m;
+    }
+    return nums[l];
+  }
+
+  function buildSteps(nums) {
+    var n = nums.length, steps = [];
+    var l = 0, r = n - 1;
+
+    function snap(o) {
+      steps.push({
+        phase: o.phase,
+        l: l,
+        r: r,
+        m: o.m === undefined ? null : o.m,
+        keep: o.keep || null,
+        sortedHalf: o.sortedHalf || null,
+        done: !!o.done,
+        result: o.result === undefined ? null : o.result,
+        ansIdx: o.ansIdx === undefined ? null : o.ansIdx,
+        msg: o.msg,
+        formula: o.formula || ''
+      });
+    }
+
+    snap({
+      phase: 'start',
+      msg: '闭区间二分：<code>l = 0</code>，<code>r = ' + (n - 1) + '</code>。每轮先看 <code>[l, r]</code> 是否已经有序；无序再判断左半是否有序，丢掉不含最小值的一半。',
+      formula: 'l, r = 0, ' + (n - 1) + ' · while l &lt;= r'
+    });
+
+    var guard = 0;
+    while (l <= r && guard++ < 80) {
+      var m = Math.floor((l + r) / 2);
+      var lv = nums[l], mv = nums[m], rv = nums[r];
+
+      if (lv <= rv) {
+        snap({
+          phase: 'sorted', m: m, done: true, result: lv, ansIdx: l, sortedHalf: 'all',
+          msg: '<code>nums[l]=' + lv + ' &lt;= nums[r]=' + rv + '</code>，当前区间已经有序，最小值就是左端。<span class="op">返回 ' + lv + '</span>。',
+          formula: 'nums[' + l + '] &lt;= nums[' + r + '] → return ' + lv
+        });
+        return steps;
+      }
+
+      if (lv <= mv) {
+        snap({
+          phase: 'drop-left', m: m, keep: 'right', sortedHalf: 'left',
+          msg: '整体无序，但左半有序 <code>nums[l]=' + lv + ' &lt;= nums[m]=' + mv + '</code>。旋转点在右半，左半（含 m）都比右半大 → <b>l = m + 1 = ' + (m + 1) + '</b>。',
+          formula: 'nums[l]&lt;=nums[m] 且区间无序 → l = ' + (m + 1)
+        });
+        l = m + 1;
+      } else {
+        snap({
+          phase: 'drop-right', m: m, keep: 'left',
+          msg: '左半无序 <code>nums[l]=' + lv + ' &gt; nums[m]=' + mv + '</code>。最小值在 <code>[l, m]</code> 里，m 自己也可能是谷底 → <b>r = m = ' + m + '</b>。',
+          formula: 'nums[l]&gt;nums[m] → r = ' + m + '  <span class="ok">// 不能 r = m-1</span>'
+        });
+        r = m;
+      }
+    }
+
+    snap({
+      phase: 'sorted', done: true, result: nums[l], ansIdx: l, sortedHalf: 'all',
+      msg: '区间收成单点，<span class="op">返回 nums[' + l + '] = ' + nums[l] + '</span>。',
+      formula: 'return ' + nums[l]
+    });
+    return steps;
+  }
+
+  root.SM153 = { parseNums: parseNums, brute: brute, findMin: findMin, buildSteps: buildSteps };
+}(window));
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var SM = window.SM153;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), errEl = $('err');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var arrEl = $('arr'), ptrsEl = $('ptrs'), varsEl = $('vars'), formulaEl = $('formula');
+  var phasePill = $('phasePill'), phaseHint = $('phaseHint');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], steps = [], stepIdx = 0, playTimer = null, cellEls = [];
+
+  function buildGrid() {
+    arrEl.innerHTML = '';
+    ptrsEl.innerHTML = '';
+    cellEls = [];
+    for (var i = 0; i < nums.length; i++) {
+      var d = document.createElement('div');
+      d.className = 'gcell';
+      d.innerHTML = '<span>' + nums[i] + '</span><span class="idx">' + i + '</span>';
+      arrEl.appendChild(d);
+      cellEls.push(d);
+      var p = document.createElement('div');
+      p.className = 'ptrslot';
+      p.id = 'ptr-' + i;
+      ptrsEl.appendChild(p);
+    }
+  }
+
+  function ptrClass(i, L, M, R) {
+    var Lok = L === i, Mok = M !== null && M === i, Rok = R === i;
+    if (Lok && Mok && Rok) return 'ptrslot show-lmr';
+    if (Lok && Mok) return 'ptrslot show-lm';
+    if (Lok && Rok) return 'ptrslot show-lr';
+    if (Mok && Rok) return 'ptrslot show-mr';
+    if (Lok) return 'ptrslot show-l';
+    if (Mok) return 'ptrslot show-m';
+    if (Rok) return 'ptrslot show-r';
+    return 'ptrslot';
+  }
+
+  function ptrText(i, L, M, R) {
+    var parts = [];
+    if (L === i) parts.push('l');
+    if (M !== null && M === i) parts.push('m');
+    if (R === i) parts.push('r');
+    return parts.join('/');
+  }
+
+  function discarded(step, i) {
+    if (!step.keep || step.m === null) return false;
+    if (step.keep === 'right') return i >= step.l && i <= step.m;
+    return i > step.m && i <= step.r;
+  }
+
+  function inSorted(step, i) {
+    if (step.sortedHalf === 'all') return i >= step.l && i <= step.r;
+    if (step.sortedHalf === 'left' && step.m !== null) return i >= step.l && i <= step.m;
+    return false;
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    var n = nums.length;
+    var L = step.l, R = step.r, M = step.m;
+    var searching = !step.done;
+
+    for (var i = 0; i < n; i++) {
+      var cls = 'gcell';
+      if (step.ansIdx === i) cls += ' answer';
+      else if (M === i) cls += ' mid';
+      else if (searching && discarded(step, i)) cls += ' discard';
+      else if (inSorted(step, i) && step.ansIdx !== i) cls += ' sorted';
+      else if (i < L || i > R) cls += ' excluded';
+      else if (searching) cls += ' inrange';
+      cellEls[i].className = cls;
+
+      var slot = $('ptr-' + i);
+      slot.className = ptrClass(i, L, M, R);
+      slot.textContent = ptrText(i, L, M, R);
+    }
+
+    if (step.phase === 'start') {
+      phasePill.className = 'phase-pill';
+      phasePill.textContent = '初始化';
+      phaseHint.textContent = '闭区间 [l, r]';
+    } else if (step.phase === 'drop-left') {
+      phasePill.className = 'phase-pill left';
+      phasePill.textContent = '左半有序';
+      phaseHint.textContent = '丢掉 [l, m]，去右半找旋转点';
+    } else if (step.phase === 'drop-right') {
+      phasePill.className = 'phase-pill right';
+      phasePill.textContent = '左半无序';
+      phaseHint.textContent = '最小值在 [l, m]，r = m';
+    } else {
+      phasePill.className = 'phase-pill done';
+      phasePill.textContent = '区间有序';
+      phaseHint.textContent = '返回 nums[l] = ' + step.result;
+    }
+
+    var cur = (M !== null && n) ? nums[M] : '—';
+    varsEl.innerHTML =
+      '<span class="box"><span class="vl">l</span> = <b>' + L + '</b></span>' +
+      '<span class="box"><span class="vm">m</span> = <b>' + (M === null ? '—' : M) + '</b></span>' +
+      '<span class="box"><span class="vr">r</span> = <b>' + R + '</b></span>' +
+      '<span class="box">nums[l] = <b>' + nums[L] + '</b></span>' +
+      '<span class="box">nums[m] = <b>' + cur + '</b></span>' +
+      '<span class="box">nums[r] = <b>' + nums[R] + '</b></span>' +
+      (step.result !== null ? '<span class="box">最小值 = <b>' + step.result + '</b></span>' : '');
+    formulaEl.innerHTML = step.formula || '';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIdx === 0;
+    nextBtn.disabled = stepIdx === steps.length - 1;
+  }
+
+  function renderStats() {
+    var ans = SM.findMin(nums);
+    statsEl.innerHTML =
+      '<div class="stat">长度<b>' + nums.length + '</b></div>' +
+      '<div class="stat">最小值<b>' + ans + '</b></div>' +
+      '<div class="stat">时间<b>O(log n)</b></div>' +
+      '<div class="stat">空间<b>O(1)</b></div>';
+  }
+
+  function load() {
+    var res = SM.parseNums(input.value);
+    if (res.nums === null) {
+      errEl.textContent = '输入有误：' + res.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    nums = res.nums;
+    if (SM.findMin(nums) !== SM.brute(nums)) {
+      errEl.textContent = '内部校验失败：二分结果与暴力不一致。';
+      errEl.classList.add('show');
+      return;
+    }
+    steps = SM.buildSteps(nums);
+    stepIdx = 0;
+    renderStats();
+    buildGrid();
+    render();
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 720);
+  }
+
+  $('nextBtn').onclick = function () { stopPlay(); next(); };
+  $('prevBtn').onclick = function () { stopPlay(); prev(); };
+  $('playBtn').onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.dataset.n; load(); };
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># Python · 区间有序则取左端，否则丢掉不含最小值的一半</span>\n' +
+'class Solution:\n' +
+'    def findMin(self, nums: list[int]) -&gt; int:\n' +
+'        l, r = 0, len(nums) - 1\n' +
+'        while l &lt;= r:\n' +
+'            m = (l + r) // 2\n' +
+'            if nums[l] &lt;= nums[r]:          <span class="cmt"># [l, r] 已有序</span>\n' +
+'                return nums[l]\n' +
+'            if nums[l] &lt;= nums[m]:          <span class="cmt"># 左半有序，最小值在右</span>\n' +
+'                l = m + 1\n' +
+'            else:                            <span class="cmt"># 左半无序，m 可能是最小值</span>\n' +
+'                r = m',
+    java:
+'<span class="cmt">// Java · 区间有序则取左端，否则丢掉不含最小值的一半</span>\n' +
+'class Solution {\n' +
+'    public int findMin(int[] nums) {\n' +
+'        int l = 0, r = nums.length - 1;\n' +
+'        while (l &lt;= r) {\n' +
+'            int m = (l + r) / 2;\n' +
+'            if (nums[l] &lt;= nums[r]) return nums[l];  <span class="cmt">// [l, r] 已有序</span>\n' +
+'            if (nums[l] &lt;= nums[m]) l = m + 1;       <span class="cmt">// 左半有序</span>\n' +
+'            else r = m;                              <span class="cmt">// m 可能是最小值</span>\n' +
+'        }\n' +
+'        return nums[l];\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      codeBlock.innerHTML = codes[t.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
