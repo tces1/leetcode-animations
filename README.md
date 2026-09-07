@@ -86,6 +86,7 @@ leetcode-animations/
 | 31 | [下一个排列](https://tces1.github.io/leetcode-animations/problems/31-next-permutation.html) | 中等 | 数组 · 双指针 · 字典序 · O(n) |
 | 32 | [最长有效括号](https://tces1.github.io/leetcode-animations/problems/32-longest-valid-parentheses.html) | 困难 | 栈 · 下标哨兵 · 字符串 |
 | 33 | [搜索旋转排序数组](https://tces1.github.io/leetcode-animations/problems/33-search-in-rotated-sorted-array.html) | 中等 | 数组 · 二分查找 · 旋转数组 · O(log n) |
+| 34 | [在排序数组中查找元素的第一个和最后一个位置](https://tces1.github.io/leetcode-animations/problems/34-find-first-and-last-position-of-element-in-sorted-array.html) | 中等 | 数组 · 二分查找 · 左右边界 · O(log n) |
 | 39 | [组合总和](https://tces1.github.io/leetcode-animations/problems/39-combination-sum.html) | 中等 | 回溯 · DFS · 组合总和 · 可重复选取 |
 | 41 | [缺失的第一个正数](https://tces1.github.io/leetcode-animations/problems/41-first-missing-positive.html) | 困难 | 数组 · 原地哈希 · 交换归位 · O(1) 空间 |
 | 42 | [接雨水](https://tces1.github.io/leetcode-animations/problems/42-trapping-rain-water.html) | 困难 | 数组 · 双指针 · 前后缀最大值 · 空间优化 |
