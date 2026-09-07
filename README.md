@@ -126,6 +126,7 @@ leetcode-animations/
 | 146 | [LRU 缓存](https://tces1.github.io/leetcode-animations/problems/146-lru-cache.html) | 中等 | 哈希表 · 双向链表 · LRU · dummy head tail · 设计 · O(1) |
 | 148 | [排序链表](https://tces1.github.io/leetcode-animations/problems/148-sort-list.html) | 中等 | 链表 · 归并排序 · 快慢指针 · 递归 · 自底向上 · 稳定排序 · O(1) 空间 |
 | 152 | [乘积最大子数组](https://tces1.github.io/leetcode-animations/problems/152-maximum-product-subarray.html) | 中等 | 动态规划 · 同时维护最大/最小 · 数组 |
+| 153 | [寻找旋转排序数组中的最小值](https://tces1.github.io/leetcode-animations/problems/153-find-minimum-in-rotated-sorted-array.html) | 中等 | 数组 · 二分查找 · 旋转数组 · O(log n) |
 | 160 | [相交链表](https://tces1.github.io/leetcode-animations/problems/160-intersection-of-two-linked-lists.html) | 简单 | 链表 · 双指针 · 路程对齐 · O(1) 空间 |
 | 189 | [轮转数组](https://tces1.github.io/leetcode-animations/problems/189-rotate-array.html) | 中等 | 数组 · 数学 · 双指针 · 三次反转 · O(1) 空间 |
 | 199 | [二叉树的右视图](https://tces1.github.io/leetcode-animations/problems/199-binary-tree-right-side-view.html) | 中等 | 二叉树 · 右视图 · 深度优先搜索 · 广度优先搜索 · 递归 · 队列 · O(n) |
