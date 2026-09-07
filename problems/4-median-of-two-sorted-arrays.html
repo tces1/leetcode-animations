@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 二分查找 · 划分 · 切组 · O(log(m+n))">
+<title>4. 寻找两个正序数组的中位数 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; line-height: 1.5;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .navbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .difftag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #fee2e2; color: #991b1b; }
+  .link { font-size: 12px; color: #6b7280; }
+  .link a { color: #6366f1; text-decoration: none; }
+  .link a:hover { text-decoration: underline; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color: #1d2129; }
+  code { background: #eef0f4; padding: 1px 5px; border-radius: 5px; font: 12px "SF Mono", Menlo, monospace; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+  .idea { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .idea-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #4b5563; background: #f8fafc; }
+  .idea-item .no { font-size: 11px; font-weight: 700; letter-spacing: .05em; color: #6366f1; }
+  .idea-item b { color: #1d2129; }
+  .key-note { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #f5f3ff; border: 1px solid #ddd6fe; color: #5b21b6; font-size: 13px; }
+  .key-note code { background: #ede9fe; }
+
+  .input-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field .lab { font-size: 12px; color: #6b7280; font-weight: 700; }
+  input[type=text] {
+    width: 100%; min-width: 0; padding: 9px 11px; font: 13px "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .examples .lab, .hint { font-size: 12px; color: #9ca3af; }
+  .chip {
+    font: 12px "SF Mono", Menlo, monospace; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+  .err.show { display: block; }
+  .hint { margin-top: 8px; }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 14px; }
+  .stat { background: #f8fafc; border: 1px solid #eef0f4; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #6b7280; }
+  .stat b { display: block; font: 800 15px "SF Mono", Menlo, monospace; color: #1d2129; }
+  .progress { margin-left: auto; font-size: 12px; color: #9ca3af; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .controls-spaced { margin-bottom: 14px; }
+
+  .phase { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 700; }
+  .phase-pill {
+    padding: 4px 10px; border-radius: 999px; font-size: 12px;
+    background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe;
+  }
+  .phase-pill.cut { background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe; }
+  .phase-pill.bad { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+  .phase-pill.ok { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .phase-pill.done { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+  .stage { overflow: auto; border: 1px solid #eef0f4; border-radius: 12px; background: linear-gradient(#fafbff, #fff); padding: 18px 16px 14px; }
+  .lane { display: grid; grid-template-columns: 92px minmax(max-content, 1fr); gap: 10px; align-items: center; }
+  .lane + .lane { margin-top: 16px; padding-top: 16px; border-top: 1px dashed #e5e7eb; }
+  .lane-name { font-size: 11px; font-weight: 800; color: #64748b; line-height: 1.35; }
+  .lane-name small { display: block; font-weight: 600; color: #94a3b8; margin-top: 2px; }
+  .track { display: inline-flex; align-items: stretch; min-width: max-content; }
+  .gcell {
+    position: relative; width: 54px; min-height: 58px; border-radius: 9px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font: 800 17px "SF Mono", Menlo, monospace; color: #334155;
+    background: #fff; border: 2px solid #e2e8f0;
+    transition: background .18s, border-color .18s, box-shadow .18s, transform .18s, opacity .18s;
+  }
+  .gcell .idx { font: 700 9px "SF Mono", Menlo, monospace; color: #94a3b8; margin-top: 2px; }
+  .gcell .tag { position: absolute; top: -11px; font: 800 9px "SF Mono", Menlo, monospace; padding: 1px 5px; border-radius: 999px; color: #fff; }
+  .gcell.left { background: #dcfce7; border-color: #86efac; color: #166534; }
+  .gcell.right { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+  .gcell.ml .tag, .gcell.nl .tag { background: #16a34a; }
+  .gcell.mr .tag, .gcell.nr .tag { background: #ea580c; }
+  .gcell.pick { box-shadow: 0 0 0 4px rgba(234,179,8,.35); transform: scale(1.06); z-index: 2; }
+  .gcell.empty { width: auto; min-width: 54px; padding: 0 10px; background: #f8fafc; border-style: dashed; color: #94a3b8; font-size: 12px; }
+
+  .cutslot {
+    width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    position: relative; z-index: 3;
+  }
+  .cutslot .blade {
+    width: 3px; flex: 1; min-height: 52px; border-radius: 2px; background: #e2e8f0;
+    transition: background .18s, box-shadow .18s, width .18s;
+  }
+  .cutslot .cutlab {
+    font: 800 8px "SF Mono", Menlo, monospace; color: transparent; height: 14px; line-height: 14px; white-space: nowrap;
+  }
+  .cutslot.cand .blade { background: #c4b5fd; }
+  .cutslot.hot .blade { width: 4px; background: #7c3aed; box-shadow: 0 0 0 4px rgba(124,58,237,.2); }
+  .cutslot.hot .cutlab { color: #6d28d9; }
+  .cutslot.dim { opacity: .35; }
+
+  .groups { display: grid; grid-template-columns: 1fr 18px 1fr; gap: 8px; margin-top: 16px; align-items: stretch; }
+  .group {
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc; min-height: 78px;
+  }
+  .group.leftg { background: #f0fdf4; border-color: #bbf7d0; }
+  .group.rightg { background: #fff7ed; border-color: #fed7aa; }
+  .group h4 { margin: 0 0 8px; font-size: 12px; color: #64748b; }
+  .group h4 b { color: #1d2129; font-family: "SF Mono", Menlo, monospace; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bit {
+    min-width: 32px; padding: 4px 8px; border-radius: 8px; text-align: center;
+    font: 800 13px "SF Mono", Menlo, monospace; border: 1px solid transparent;
+  }
+  .bit.a { background: #dcfce7; border-color: #86efac; color: #166534; }
+  .bit.b { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+  .bit.ghost { background: #f1f5f9; border-color: #e2e8f0; color: #94a3b8; font-weight: 700; }
+  .bit.pick { box-shadow: 0 0 0 3px rgba(234,179,8,.35); }
+  .cut-mid { display: flex; align-items: center; justify-content: center; color: #7c3aed; font-weight: 800; font-size: 18px; }
+
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .cmp-card {
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc;
+    font: 13px "SF Mono", Menlo, monospace; color: #334155;
+  }
+  .cmp-card.ok { background: #ecfdf5; border-color: #86efac; }
+  .cmp-card.no { background: #fef2f2; border-color: #fca5a5; }
+  .cmp-card .k { font-size: 11px; color: #64748b; font-family: inherit; margin-bottom: 4px; }
+  .cmp-card b { font-size: 16px; }
+  .cmp-card .res { margin-top: 4px; font-weight: 800; }
+  .cmp-card.ok .res { color: #15803d; }
+  .cmp-card.no .res { color: #b91c1c; }
+
+  .formula {
+    margin: 14px 0 0; border-radius: 10px; background: #0f172a; color: #e2e8f0;
+    padding: 11px 14px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+    font: 14px "SF Mono", Menlo, monospace; text-align: center;
+  }
+  .formula .hi { color: #fdba74; font-weight: 800; }
+  .formula .ok { color: #86efac; font-weight: 800; }
+  .formula .no { color: #fca5a5; font-weight: 800; }
+
+  .vars { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 14px 2px 0; font-size: 13px; color: #4b5563; font-family: "SF Mono", Menlo, monospace; }
+  .vars .box { padding: 4px 10px; border-radius: 7px; background: #f8fafc; border: 1px solid #eef0f4; }
+  .vl { color: #0284c7; font-weight: 700; }
+  .vm { color: #7c3aed; font-weight: 700; }
+  .vr { color: #ea580c; font-weight: 700; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #6b7280; margin-top: 14px; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -2px; border: 1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top: 16px; }
+  .status { background: #111827; color: #e5e7eb; border-radius: 10px; padding: 14px 16px; font-size: 14px; min-height: 50px; }
+  .status b { color: #fcd34d; }
+  .status .op { color: #86efac; font-weight: 700; }
+  .status .no { color: #fca5a5; font-weight: 700; }
+  .status code { background: #1f2937; color: #93c5fd; }
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor: pointer; font-weight: 600; font-size: 14px; color: #4f46e5; }
+  .code-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 10px; }
+  .code-tab { font-size: 13px; padding: 5px 12px; border-radius: 999px; cursor: pointer; background: #f1f2f4; border: 1px solid #e5e7eb; color: #374151; }
+  .code-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow: auto; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .cmt { color: #7dd3fc; }
+
+  @media (max-width: 720px) {
+    body { padding: 16px 12px; }
+    .card { padding: 14px; }
+    .input-grid, .cmp, .groups { grid-template-columns: 1fr; }
+    .cut-mid { display: none; }
+    .lane { grid-template-columns: 1fr; }
+    .progress { width: 100%; margin-left: 0; }
+  }
+  .star-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 0 0 16px; padding: 12px 16px; border: 1px solid #e0e7ff; border-radius: 12px; background: linear-gradient(180deg, #f8faff 0%, #fff 100%); }
+  .star-banner-copy { flex: 1; min-width: 180px; }
+  .star-banner-title { font-size: 14px; font-weight: 700; color: #1d2129; }
+  .star-banner-sub { margin-top: 2px; font-size: 12px; color: #6b7280; }
+  .star-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid #c7d2fe; border-radius: 8px; background: #fff; color: #312e81; text-decoration: none; font-size: 13px; font-weight: 700; box-shadow: 0 1px 0 rgba(99,102,241,.08); flex-shrink: 0; }
+  .star-cta:hover { border-color: #818cf8; background: #eef2ff; }
+  .star-cta svg { width: 14px; height: 14px; fill: currentColor; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">困难</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/median-of-two-sorted-arrays/" target="_blank" rel="noopener">LeetCode 4</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>4. 寻找两个正序数组的中位数 · 切组划分</h1>
+  <div class="sub">不合并数组。在两个有序数组上各<b>切一刀</b>，让左组刚好 <code>ts = (m+n)//2</code> 个，且左组都能 ≤ 右组。只在<b>较短数组</b>上二分刀口 <code>m_idx</code>，另一刀 <code>n_idx</code> 用公式算出来。时间 <code>O(log(min(m,n)))</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">切组要点</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 左组个数</div>左半固定拿 <code>ts = s//2</code> 个。奇数中位数是<b>右组最小</b>；偶数是 <code>(左最大 + 右最小) / 2</code>。</div>
+      <div class="idea-item"><div class="no">② 刀口下标</div><code>m_idx</code> 是 nums1 左组最后一个下标，可以为 <code>-1</code>（一个都不拿）。<code>n_idx = ts - (m_idx+1) - 1</code>。</div>
+      <div class="idea-item"><div class="no">③ 合法切</div>交叉比较：<code>m_l &lt;= n_r</code> 且 <code>n_l &lt;= m_r</code>。越界用 <code>±∞</code> 当哨兵。</div>
+      <div class="idea-item"><div class="no">④ 怎么挪刀</div><code>n_l &gt; m_r</code> → nums1 多拿，<code>l = m_idx+1</code>；否则 nums1 少拿，<code>r = m_idx-1</code>。</div>
+    </div>
+    <div class="key-note"><b>二分区间：</b><code>l = max(-1, ts-n-1)</code>，<code>r = min(m-1, ts-1)</code>。既允许空左半，又保证 <code>n_idx</code> 落在 <code>[-1, n-1]</code>。nums1 更长时先交换，保证在短数组上二分。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">nums1（非递减，可空）</span><input id="input1" type="text" value="1 3" spellcheck="false" placeholder="如 1 3"></label>
+      <label class="field"><span class="lab">nums2（非递减，可空）</span><input id="input2" type="text" value="2" spellcheck="false" placeholder="如 2"></label>
+      <button type="button" id="loadBtn">切组</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-a="1 3" data-b="2">奇数 · 需交换</span>
+      <span class="chip" data-a="1 2" data-b="3 4">偶数经典</span>
+      <span class="chip" data-a="3 4" data-b="1 2 5">nums1 取 0 个</span>
+      <span class="chip" data-a="1" data-b="">一侧为空</span>
+      <span class="chip" data-a="1 1" data-b="1 1">全相等</span>
+      <span class="chip" data-a="2 2 4 4" data-b="2 2 4 4">重复交错</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">每边最多 8 个整数，至少一个非空；必须非递减。动画按交换后的短数组叫 nums1。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls controls-spaced">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="phase">
+      <span class="phase-pill" id="phasePill">预处理</span>
+      <span id="phaseHint" style="font-weight:600;color:#6b7280">先保证在短数组上二分</span>
+    </div>
+
+    <div class="panel-title">两行数组 · 紫色竖线是刀口（m_idx / n_idx 是左组最后一格）</div>
+    <div class="stage">
+      <div class="lane">
+        <div class="lane-name">短数组 nums1<small id="lab1">二分这一行</small></div>
+        <div class="track" id="track1"></div>
+      </div>
+      <div class="lane">
+        <div class="lane-name">长数组 nums2<small id="lab2">刀口由公式算出</small></div>
+        <div class="track" id="track2"></div>
+      </div>
+      <div class="groups">
+        <div class="group leftg">
+          <h4>左组 · 共 <b id="leftCnt">ts</b> 个 · 左最大 <b id="leftMax">—</b></h4>
+          <div class="chips" id="leftChips"></div>
+        </div>
+        <div class="cut-mid">✂</div>
+        <div class="group rightg">
+          <h4>右组 · 右最小 <b id="rightMin">—</b></h4>
+          <div class="chips" id="rightChips"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp" id="cmp"></div>
+    <div class="formula" id="formula">n_idx = ts − (m_idx + 1) − 1</div>
+    <div class="vars" id="vars"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>左组</span>
+      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>右组</span>
+      <span><span class="dot" style="background:#7c3aed"></span>当前刀口</span>
+      <span><span class="dot" style="background:#c4b5fd"></span>二分还可能切的位置</span>
+      <span><span class="dot" style="background:#facc15"></span>计入中位数的边界</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「切组」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function (root) {
+  'use strict';
+  var NINF = Number.NEGATIVE_INFINITY;
+  var PINF = Number.POSITIVE_INFINITY;
+
+  function parseNums(value, name) {
+    if (typeof value !== 'string') return { nums: null, err: name + ' 输入无效' };
+    var raw = value.trim();
+    if (!raw) return { nums: [], err: null };
+    var parts = raw.split(/[,\s]+/).filter(Boolean);
+    if (parts.length > 8) return { nums: null, err: name + ' 长度请不超过 8（动画清晰度上限）' };
+    var nums = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { nums: null, err: name + ' 含非整数：' + parts[i] };
+      var v = parseInt(parts[i], 10);
+      if (v < -99 || v > 999) return { nums: null, err: name + ' 取值请在 -99～999' };
+      if (i && v < nums[i - 1]) return { nums: null, err: name + ' 必须非递减有序' };
+      nums.push(v);
+    }
+    return { nums: nums, err: null };
+  }
+
+  function fmt(v) {
+    if (v === NINF) return '−∞';
+    if (v === PINF) return '+∞';
+    return String(v);
+  }
+
+  function fmtAns(v) {
+    if (!isFinite(v)) return fmt(v);
+    if (Math.abs(v - Math.round(v)) < 1e-9) return String(Math.round(v));
+    return String(Math.round(v * 2) / 2);
+  }
+
+  function readBound(arr, idx, isRight) {
+    var n = arr.length;
+    if (isRight) {
+      if (idx >= 0 && idx < n) return arr[idx];
+      if (idx < 0) return NINF;
+      return PINF;
+    }
+    if (idx >= 0 && idx < n) return arr[idx];
+    if (idx < 0) return NINF;
+    return PINF;
+  }
+
+  function findMedian(nums1, nums2) {
+    if (nums1.length > nums2.length) {
+      var tmp = nums1; nums1 = nums2; nums2 = tmp;
+    }
+    var m = nums1.length, n = nums2.length;
+    var s = m + n, ts = Math.floor(s / 2);
+    var l = Math.max(-1, ts - n - 1);
+    var r = Math.min(m - 1, ts - 1);
+    var mL = NINF, mR = PINF, nL = NINF, nR = PINF;
+    var guard = 0;
+    while (l <= r && guard++ < 80) {
+      var mIdx = Math.floor((l + r) / 2);
+      var nIdx = ts - (mIdx + 1) - 1;
+      mL = readBound(nums1, mIdx, false);
+      mR = readBound(nums1, mIdx + 1, true);
+      nL = readBound(nums2, nIdx, false);
+      nR = readBound(nums2, nIdx + 1, true);
+      if (mL <= nR && nL <= mR) break;
+      if (nL > mR) l = mIdx + 1;
+      else r = mIdx - 1;
+    }
+    if (s % 2 === 1) return Math.min(mR, nR);
+    return (Math.max(mL, nL) + Math.min(mR, nR)) / 2;
+  }
+
+  function brute(a, b) {
+    var c = a.concat(b).slice().sort(function (x, y) { return x - y; });
+    var s = c.length;
+    if (s % 2 === 1) return c[(s / 2) | 0];
+    return (c[s / 2 - 1] + c[s / 2]) / 2;
+  }
+
+  function buildSteps(orig1, orig2) {
+    var steps = [];
+    var swapped = orig1.length > orig2.length;
+    var nums1 = orig1.slice(), nums2 = orig2.slice();
+    if (swapped) { var t = nums1; nums1 = nums2; nums2 = t; }
+    var m = nums1.length, n = nums2.length;
+    var s = m + n, ts = Math.floor(s / 2);
+    var l = Math.max(-1, ts - n - 1);
+    var r = Math.min(m - 1, ts - 1);
+    var odd = s % 2 === 1;
+
+    function snap(o) {
+      steps.push({
+        nums1: nums1, nums2: nums2, swapped: swapped,
+        m: m, n: n, s: s, ts: ts, odd: odd,
+        l: o.l, r: o.r,
+        mIdx: o.mIdx, nIdx: o.nIdx,
+        mL: o.mL, mR: o.mR, nL: o.nL, nR: o.nR,
+        phase: o.phase,
+        valid: o.valid,
+        pickL: o.pickL || null,
+        pickR: o.pickR || null,
+        ans: o.ans,
+        msg: o.msg,
+        formula: o.formula || ''
+      });
+    }
+
+    snap({
+      phase: 'init', l: l, r: r, mIdx: null, nIdx: null,
+      mL: null, mR: null, nL: null, nR: null,
+      msg: (swapped
+        ? '原 nums1 更长，<b>先交换</b>，保证在短数组上二分。'
+        : 'nums1 已经不比 nums2 长，直接在 nums1 上二分刀口。') +
+        ' s=' + s + '，左组要拿 <b>ts = ' + ts + '</b> 个。二分区间 <code>l=' + l + '</code>，<code>r=' + r + '</code>' +
+        (l === -1 ? '（含 m_idx=-1，允许 nums1 一个都不拿）' : '') + '。',
+      formula: 'l = max(-1, ts-n-1) = ' + l + '　r = min(m-1, ts-1) = ' + r
+    });
+
+    var mL, mR, nL, nR, mIdx, nIdx;
+    var guard = 0;
+    while (l <= r && guard++ < 80) {
+      mIdx = Math.floor((l + r) / 2);
+      nIdx = ts - (mIdx + 1) - 1;
+      if (mIdx >= 0 && mIdx < m) mL = nums1[mIdx];
+      else if (mIdx < 0) mL = NINF;
+      else mL = PINF;
+      if (mIdx + 1 >= 0 && mIdx + 1 < m) mR = nums1[mIdx + 1];
+      else if (mIdx + 1 < 0) mR = NINF;
+      else mR = PINF;
+      if (nIdx >= 0 && nIdx < n) nL = nums2[nIdx];
+      else if (nIdx < 0) nL = NINF;
+      else nL = PINF;
+      if (nIdx + 1 >= 0 && nIdx + 1 < n) nR = nums2[nIdx + 1];
+      else if (nIdx + 1 < 0) nR = NINF;
+      else nR = PINF;
+
+      var cross1 = mL <= nR, cross2 = nL <= mR, ok = cross1 && cross2;
+      var msg;
+      if (ok) {
+        msg = '这刀合法：<code>m_l=' + fmt(mL) + ' ≤ n_r=' + fmt(nR) + '</code> 且 <code>n_l=' + fmt(nL) + ' ≤ m_r=' + fmt(mR) + '</code>。左组凑齐 <b>' + ts + '</b> 个。';
+      } else if (nL > mR) {
+        msg = '<span class="no">n_l &gt; m_r</span>（' + fmt(nL) + ' &gt; ' + fmt(mR) + '）：nums2 左组太大，nums1 应<b>多拿</b> → <code>l = m_idx + 1 = ' + (mIdx + 1) + '</code>。';
+      } else {
+        msg = '<span class="no">m_l &gt; n_r</span>（' + fmt(mL) + ' &gt; ' + fmt(nR) + '）：nums1 左组太大，应<b>少拿</b> → <code>r = m_idx - 1 = ' + (mIdx - 1) + '</code>。';
+      }
+
+      snap({
+        phase: ok ? 'ok' : 'cut', l: l, r: r, mIdx: mIdx, nIdx: nIdx,
+        mL: mL, mR: mR, nL: nL, nR: nR, valid: ok,
+        msg: msg,
+        formula: 'm_idx=' + mIdx + '　n_idx = ts-(m_idx+1)-1 = ' + nIdx +
+          (ok ? '　<span class="ok">合法</span>' : '　<span class="no">不合法</span>')
+      });
+
+      if (ok) break;
+      if (nL > mR) l = mIdx + 1;
+      else r = mIdx - 1;
+    }
+
+    var ans, pickL = null, pickR = null, formula, harvest;
+    if (odd) {
+      ans = Math.min(mR, nR);
+      pickR = mR <= nR ? 'mR' : 'nR';
+      formula = 's 为奇数 → min(m_r, n_r) = min(' + fmt(mR) + ', ' + fmt(nR) + ') = ' + fmtAns(ans);
+      harvest = '奇数个：中位数就是<b>右组最小值</b> <span class="op">' + fmtAns(ans) + '</span>。';
+    } else {
+      var leftMax = Math.max(mL, nL);
+      var rightMin = Math.min(mR, nR);
+      ans = (leftMax + rightMin) / 2;
+      pickL = mL >= nL ? 'mL' : 'nL';
+      pickR = mR <= nR ? 'mR' : 'nR';
+      formula = 's 为偶数 → (max(m_l,n_l)+min(m_r,n_r))/2 = (' + fmt(leftMax) + '+' + fmt(rightMin) + ')/2 = ' + fmtAns(ans);
+      harvest = '偶数个：中位数 = (<b>左最大</b> ' + fmt(leftMax) + ' + <b>右最小</b> ' + fmt(rightMin) + ') / 2 = <span class="op">' + fmtAns(ans) + '</span>。';
+    }
+    snap({
+      phase: 'done', l: l, r: r, mIdx: mIdx, nIdx: nIdx,
+      mL: mL, mR: mR, nL: nL, nR: nR, valid: true,
+      pickL: pickL, pickR: pickR, ans: ans,
+      msg: harvest,
+      formula: formula
+    });
+    return steps;
+  }
+
+  root.SM4 = { parseNums: parseNums, findMedian: findMedian, brute: brute, buildSteps: buildSteps, fmt: fmt, fmtAns: fmtAns };
+}(window));
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var SM = window.SM4;
+  var $ = function (id) { return document.getElementById(id); };
+  var orig1 = [], orig2 = [], steps = [], stepIdx = 0, playTimer = null;
+
+  function bit(v, cls, pick) {
+    return '<span class="bit ' + cls + (pick ? ' pick' : '') + '">' + SM.fmt(v) + '</span>';
+  }
+
+  function renderTrack(el, arr, cutIdx, lo, hi, which, pickL, pickR, showCut) {
+    el.innerHTML = '';
+    var n = arr.length;
+    if (!n) {
+      var empty = document.createElement('div');
+      empty.className = 'gcell empty';
+      empty.textContent = '[] 空';
+      el.appendChild(empty);
+    }
+    var i;
+    for (i = 0; i <= n; i++) {
+      var cand = i - 1;
+      var slot = document.createElement('div');
+      var cls = 'cutslot';
+      if (showCut && cutIdx !== null && cand === cutIdx) cls += ' hot';
+      else if (which === 1 && lo !== null && cand >= lo && cand <= hi) cls += ' cand';
+      else if (which === 1 && lo !== null) cls += ' dim';
+      slot.className = cls;
+      slot.innerHTML = '<div class="blade"></div><div class="cutlab">' +
+        (showCut && cutIdx !== null && cand === cutIdx ? (which === 1 ? 'm_idx' : 'n_idx') : '') + '</div>';
+      el.appendChild(slot);
+      if (i === n) break;
+      var d = document.createElement('div');
+      var side = (showCut && cutIdx !== null) ? (i <= cutIdx ? ' left' : ' right') : '';
+      var extra = '';
+      var tag = '';
+      if (showCut && cutIdx !== null) {
+        if (which === 1 && i === cutIdx) { extra = ' ml'; tag = 'm_l'; }
+        if (which === 1 && i === cutIdx + 1) { extra = ' mr'; tag = 'm_r'; }
+        if (which === 2 && i === cutIdx) { extra = ' nl'; tag = 'n_l'; }
+        if (which === 2 && i === cutIdx + 1) { extra = ' nr'; tag = 'n_r'; }
+      }
+      var picked = false;
+      if (which === 1 && extra.indexOf('ml') >= 0 && pickL === 'mL') picked = true;
+      if (which === 1 && extra.indexOf('mr') >= 0 && pickR === 'mR') picked = true;
+      if (which === 2 && extra.indexOf('nl') >= 0 && pickL === 'nL') picked = true;
+      if (which === 2 && extra.indexOf('nr') >= 0 && pickR === 'nR') picked = true;
+      d.className = 'gcell' + side + extra + (picked ? ' pick' : '');
+      d.innerHTML = (tag ? '<span class="tag">' + tag + '</span>' : '') + '<span>' + arr[i] + '</span><span class="idx">' + i + '</span>';
+      el.appendChild(d);
+    }
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+    var showCut = st.mIdx !== null;
+    $('lab1').textContent = st.swapped ? '原 nums2 · 现在较短' : '二分这一行';
+    $('lab2').textContent = st.swapped ? '原 nums1 · 刀口由公式算出' : '刀口由公式算出';
+    renderTrack($('track1'), st.nums1, st.mIdx, st.l, st.r, 1, st.pickL, st.pickR, showCut);
+    renderTrack($('track2'), st.nums2, st.nIdx, null, null, 2, st.pickL, st.pickR, showCut);
+
+    var leftBits = [], rightBits = [];
+    var i;
+    if (showCut) {
+      for (i = 0; i < st.nums1.length; i++) {
+        if (i <= st.mIdx) leftBits.push(bit(st.nums1[i], 'a', st.pickL === 'mL' && i === st.mIdx));
+        else rightBits.push(bit(st.nums1[i], 'a', st.pickR === 'mR' && i === st.mIdx + 1));
+      }
+      for (i = 0; i < st.nums2.length; i++) {
+        if (i <= st.nIdx) leftBits.push(bit(st.nums2[i], 'b', st.pickL === 'nL' && i === st.nIdx));
+        else rightBits.push(bit(st.nums2[i], 'b', st.pickR === 'nR' && i === st.nIdx + 1));
+      }
+      if (!leftBits.length) leftBits.push('<span class="bit ghost">空 · −∞</span>');
+      if (!rightBits.length) rightBits.push('<span class="bit ghost">空 · +∞</span>');
+    }
+    $('leftCnt').textContent = showCut ? String(st.ts) : 'ts';
+    $('leftMax').textContent = showCut ? SM.fmt(Math.max(st.mL, st.nL)) : '—';
+    $('rightMin').textContent = showCut ? SM.fmt(Math.min(st.mR, st.nR)) : '—';
+    $('leftChips').innerHTML = showCut ? leftBits.join('') : '<span class="bit ghost">先定区间，再下刀</span>';
+    $('rightChips').innerHTML = showCut ? rightBits.join('') : '<span class="bit ghost">—</span>';
+
+    var cmp = '';
+    if (showCut) {
+      var c1 = st.mL <= st.nR, c2 = st.nL <= st.mR;
+      cmp =
+        '<div class="cmp-card ' + (c1 ? 'ok' : 'no') + '"><div class="k">交叉 1 · 短数组左最大 vs 长数组右最小</div>' +
+        '<div><b>m_l</b> (' + SM.fmt(st.mL) + ')　≤　<b>n_r</b> (' + SM.fmt(st.nR) + ')</div>' +
+        '<div class="res">' + (c1 ? '成立' : '不成立') + '</div></div>' +
+        '<div class="cmp-card ' + (c2 ? 'ok' : 'no') + '"><div class="k">交叉 2 · 长数组左最大 vs 短数组右最小</div>' +
+        '<div><b>n_l</b> (' + SM.fmt(st.nL) + ')　≤　<b>m_r</b> (' + SM.fmt(st.mR) + ')</div>' +
+        '<div class="res">' + (c2 ? '成立' : '不成立') + '</div></div>';
+    }
+    $('cmp').innerHTML = cmp;
+
+    if (st.phase === 'init') {
+      $('phasePill').className = 'phase-pill';
+      $('phasePill').textContent = '预处理';
+      $('phaseHint').textContent = '交换短数组 + 定 l / r';
+    } else if (st.phase === 'cut') {
+      $('phasePill').className = 'phase-pill bad';
+      $('phasePill').textContent = '这刀不合法';
+      $('phaseHint').textContent = '收缩二分区间再切';
+    } else if (st.phase === 'ok') {
+      $('phasePill').className = 'phase-pill ok';
+      $('phasePill').textContent = '切组合法';
+      $('phaseHint').textContent = '左组刚好 ts 个，且左 ≤ 右';
+    } else {
+      $('phasePill').className = 'phase-pill done';
+      $('phasePill').textContent = '中位数';
+      $('phaseHint').textContent = '答案 ' + SM.fmtAns(st.ans);
+    }
+
+    $('vars').innerHTML =
+      '<span class="box"><span class="vl">l</span> = <b>' + st.l + '</b></span>' +
+      '<span class="box"><span class="vm">m_idx</span> = <b>' + (st.mIdx === null ? '—' : st.mIdx) + '</b></span>' +
+      '<span class="box"><span class="vr">r</span> = <b>' + st.r + '</b></span>' +
+      '<span class="box"><span class="vm">n_idx</span> = <b>' + (st.nIdx === null ? '—' : st.nIdx) + '</b></span>' +
+      '<span class="box">ts = <b>' + st.ts + '</b></span>' +
+      '<span class="box">s = <b>' + st.s + (st.odd ? ' 奇' : ' 偶') + '</b></span>';
+    $('formula').innerHTML = st.formula;
+    $('status').innerHTML = st.msg;
+    $('progress').textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    $('prevBtn').disabled = stepIdx === 0;
+    $('nextBtn').disabled = stepIdx === steps.length - 1;
+  }
+
+  function renderStats() {
+    var a = orig1.slice(), b = orig2.slice();
+    if (a.length > b.length) { var t = a; a = b; b = t; }
+    var ans = SM.findMedian(orig1, orig2);
+    $('stats').innerHTML =
+      '<div class="stat">短 m<b>' + a.length + '</b></div>' +
+      '<div class="stat">长 n<b>' + b.length + '</b></div>' +
+      '<div class="stat">总数 s<b>' + (orig1.length + orig2.length) + '</b></div>' +
+      '<div class="stat">左组 ts<b>' + Math.floor((orig1.length + orig2.length) / 2) + '</b></div>' +
+      '<div class="stat">中位数<b>' + SM.fmtAns(ans) + '</b></div>' +
+      '<div class="stat">时间<b>O(log min(m,n))</b></div>';
+  }
+
+  function load() {
+    var p1 = SM.parseNums($('input1').value, 'nums1');
+    var p2 = SM.parseNums($('input2').value, 'nums2');
+    var err = $('err');
+    if (p1.nums === null) { err.textContent = '输入有误：' + p1.err + '。'; err.classList.add('show'); return; }
+    if (p2.nums === null) { err.textContent = '输入有误：' + p2.err + '。'; err.classList.add('show'); return; }
+    if (!p1.nums.length && !p2.nums.length) { err.textContent = '至少要有一个数字。'; err.classList.add('show'); return; }
+    err.classList.remove('show');
+    stopPlay();
+    orig1 = p1.nums; orig2 = p2.nums;
+    if (Math.abs(SM.findMedian(orig1, orig2) - SM.brute(orig1, orig2)) > 1e-9) {
+      err.textContent = '内部校验失败：切组结果与合并后中位数不一致。';
+      err.classList.add('show');
+      return;
+    }
+    steps = SM.buildSteps(orig1, orig2);
+    stepIdx = 0;
+    renderStats();
+    render();
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; $('playBtn').textContent = '▶ 自动播放'; }
+  }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    $('playBtn').textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 900);
+  }
+
+  $('nextBtn').onclick = function () { stopPlay(); next(); };
+  $('prevBtn').onclick = function () { stopPlay(); prev(); };
+  $('playBtn').onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = load;
+  $('input1').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  $('input2').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { $('input1').value = ch.dataset.a; $('input2').value = ch.dataset.b; load(); };
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># Python · 切组划分 · 与动画逐步执行一致</span>\n' +
+'from math import inf\n' +
+'from typing import List\n' +
+'\n' +
+'class Solution:\n' +
+'    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -&gt; float:\n' +
+'        if len(nums1) &gt; len(nums2):\n' +
+'            nums1, nums2 = nums2, nums1\n' +
+'        m, n = len(nums1), len(nums2)\n' +
+'        s = m + n\n' +
+'        ts = s // 2\n' +
+'        l = max(-1, ts - n - 1)\n' +
+'        r = min(m - 1, ts - 1)\n' +
+'\n' +
+'        while l &lt;= r:\n' +
+'            m_idx = (l + r) // 2\n' +
+'            n_idx = ts - (m_idx + 1) - 1\n' +
+'\n' +
+'            if 0 &lt;= m_idx &lt; m: m_l = nums1[m_idx]\n' +
+'            elif m_idx &lt; 0: m_l = -inf\n' +
+'            else: m_l = inf\n' +
+'\n' +
+'            if 0 &lt;= m_idx + 1 &lt; m: m_r = nums1[m_idx + 1]\n' +
+'            elif m_idx + 1 &lt; 0: m_r = -inf\n' +
+'            else: m_r = inf\n' +
+'\n' +
+'            if 0 &lt;= n_idx &lt; n: n_l = nums2[n_idx]\n' +
+'            elif n_idx &lt; 0: n_l = -inf\n' +
+'            else: n_l = inf\n' +
+'\n' +
+'            if 0 &lt;= n_idx + 1 &lt; n: n_r = nums2[n_idx + 1]\n' +
+'            elif n_idx + 1 &lt; 0: n_r = -inf\n' +
+'            else: n_r = inf\n' +
+'\n' +
+'            if m_l &lt;= n_r and n_l &lt;= m_r:\n' +
+'                break\n' +
+'            elif n_l &gt; m_r:\n' +
+'                l = m_idx + 1\n' +
+'            else:\n' +
+'                r = m_idx - 1\n' +
+'\n' +
+'        if s % 2 == 1:\n' +
+'            return min(m_r, n_r)\n' +
+'        return (max(m_l, n_l) + min(m_r, n_r)) / 2',
+    java:
+'<span class="cmt">// Java · 切组划分 · 时间 O(log min(m, n))</span>\n' +
+'class Solution {\n' +
+'    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n' +
+'        if (nums1.length &gt; nums2.length) {\n' +
+'            int[] t = nums1; nums1 = nums2; nums2 = t;\n' +
+'        }\n' +
+'        int m = nums1.length, n = nums2.length;\n' +
+'        int s = m + n, ts = s / 2;\n' +
+'        int l = Math.max(-1, ts - n - 1);\n' +
+'        int r = Math.min(m - 1, ts - 1);\n' +
+'        double mL = Double.NEGATIVE_INFINITY, mR = Double.POSITIVE_INFINITY;\n' +
+'        double nL = Double.NEGATIVE_INFINITY, nR = Double.POSITIVE_INFINITY;\n' +
+'        while (l &lt;= r) {\n' +
+'            int mIdx = (l + r) / 2;\n' +
+'            int nIdx = ts - (mIdx + 1) - 1;\n' +
+'            mL = bound(nums1, mIdx, false);\n' +
+'            mR = bound(nums1, mIdx + 1, true);\n' +
+'            nL = bound(nums2, nIdx, false);\n' +
+'            nR = bound(nums2, nIdx + 1, true);\n' +
+'            if (mL &lt;= nR &amp;&amp; nL &lt;= mR) break;\n' +
+'            else if (nL &gt; mR) l = mIdx + 1;\n' +
+'            else r = mIdx - 1;\n' +
+'        }\n' +
+'        if (s % 2 == 1) return Math.min(mR, nR);\n' +
+'        return (Math.max(mL, nL) + Math.min(mR, nR)) / 2.0;\n' +
+'    }\n' +
+'    double bound(int[] a, int idx, boolean right) {\n' +
+'        if (idx &gt;= 0 &amp;&amp; idx &lt; a.length) return a[idx];\n' +
+'        if (idx &lt; 0) return Double.NEGATIVE_INFINITY;\n' +
+'        return Double.POSITIVE_INFINITY;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  load();
+})();
+</script>
+</body>
+</html>
