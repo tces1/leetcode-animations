@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="数组 · 二分查找 · 左右边界 · O(log n)">
+<title>34. 在排序数组中查找元素的第一个和最后一个位置 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; line-height: 1.5;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .navbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .difftag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; }
+  .link { font-size: 12px; color: #6b7280; }
+  .link a { color: #6366f1; text-decoration: none; }
+  .link a:hover { text-decoration: underline; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color: #1d2129; }
+  code { background: #eef0f4; padding: 1px 5px; border-radius: 5px; font: 12px "SF Mono", Menlo, monospace; }
+
+  .card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+  .idea { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .idea-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #4b5563; background: #f8fafc; }
+  .idea-item .no { font-size: 11px; font-weight: 700; letter-spacing: .05em; color: #6366f1; }
+  .idea-item b { color: #1d2129; }
+  .key-note { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #f5f3ff; border: 1px solid #ddd6fe; color: #5b21b6; font-size: 13px; }
+  .key-note code { background: #ede9fe; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .field { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 220px; }
+  .field .lab { font-size: 12px; color: #6b7280; font-weight: 600; white-space: nowrap; }
+  input[type=text] {
+    flex: 1; min-width: 120px; padding: 9px 12px; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  input.tgt { max-width: 110px; flex: none; }
+  button {
+    padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
+    cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
+  }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .examples .lab { font-size: 12px; color: #9ca3af; }
+  .chip {
+    font: 12px "SF Mono", Menlo, monospace; padding: 5px 10px;
+    background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
+  }
+  .chip:hover { background: #e6e8ec; }
+  .err { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+  .err.show { display: block; }
+  .hint { font-size: 12px; color: #9ca3af; margin-top: 8px; }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 14px; }
+  .stat { background: #f8fafc; border: 1px solid #eef0f4; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #6b7280; }
+  .stat b { display: block; font-size: 15px; color: #1d2129; font-family: "SF Mono", Menlo, monospace; }
+  .progress { font-size: 12px; color: #9ca3af; margin-left: auto; }
+
+  .phase {
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    font-size: 13px; font-weight: 700;
+  }
+  .phase-pill {
+    padding: 4px 10px; border-radius: 999px; font-size: 12px;
+    background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe;
+  }
+  .phase-pill.right { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+  .phase-pill.done { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .phase-pill.miss { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+  .stage { overflow: auto; border: 1px solid #eef0f4; border-radius: 12px; background: linear-gradient(#fafbff, #fff); padding: 22px 16px 12px; text-align: center; }
+  .arr { display: inline-flex; gap: 6px; min-width: max-content; }
+  .gcell {
+    position: relative; width: 54px; height: 58px; border-radius: 9px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font: 800 17px "SF Mono", Menlo, monospace; color: #334155;
+    background: #fff; border: 2px solid #e2e8f0;
+    transition: background .18s, border-color .18s, box-shadow .18s, transform .18s, opacity .18s;
+  }
+  .gcell .idx { font: 700 9px "SF Mono", Menlo, monospace; color: #94a3b8; margin-top: 2px; }
+  .gcell.inrange { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .gcell.excluded { background: #f1f5f9; border-color: #eef0f4; color: #cbd5e1; opacity: .45; }
+  .gcell.mid { background: #6366f1; border-color: #4338ca; color: #fff; box-shadow: 0 0 0 4px rgba(99,102,241,.28); transform: scale(1.08); z-index: 2; }
+  .gcell.mid .idx { color: #c7d2fe; }
+  .gcell.answer { background: #dcfce7; border-color: #86efac; color: #166534; }
+  .gcell.lo { background: #22c55e; border-color: #16a34a; color: #fff; box-shadow: 0 0 0 3px rgba(34,197,94,.22); z-index: 3; }
+  .gcell.lo .idx { color: #dcfce7; }
+  .gcell.hi { background: #f97316; border-color: #ea580c; color: #fff; box-shadow: 0 0 0 3px rgba(249,115,22,.25); z-index: 3; }
+  .gcell.hi .idx { color: #ffedd5; }
+  .gcell.lohi { background: linear-gradient(90deg, #22c55e 50%, #f97316 50%); border-color: #16a34a; color: #fff; z-index: 4; }
+  .gcell.lohi .idx { color: #fff; }
+  .ptrs { display: inline-flex; gap: 6px; min-width: max-content; margin-top: 6px; }
+  .ptrslot { width: 54px; height: 18px; text-align: center; font: 800 10px "SF Mono", Menlo, monospace; color: transparent; }
+  .ptrslot.show-l { color: #0284c7; }
+  .ptrslot.show-m { color: #4f46e5; }
+  .ptrslot.show-r { color: #ea580c; }
+  .ptrslot.show-lm, .ptrslot.show-mr, .ptrslot.show-lr, .ptrslot.show-lmr { color: #4f46e5; }
+
+  .formula {
+    margin: 14px 0 0; border-radius: 10px; background: #0f172a; color: #e2e8f0;
+    padding: 11px 14px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+    font: 14px "SF Mono", Menlo, monospace; text-align: center;
+  }
+  .formula .hi { color: #fdba74; font-weight: 800; }
+  .formula .ok { color: #86efac; font-weight: 800; }
+  .formula .no { color: #fca5a5; font-weight: 800; }
+
+  .vars { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 14px 2px 0; font-size: 13px; color: #4b5563; font-family: "SF Mono", Menlo, monospace; }
+  .vars .box { padding: 4px 10px; border-radius: 7px; background: #f8fafc; border: 1px solid #eef0f4; }
+  .vl { color: #0284c7; font-weight: 700; }
+  .vm { color: #4f46e5; font-weight: 700; }
+  .vr { color: #ea580c; font-weight: 700; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #6b7280; margin-top: 14px; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -2px; border: 1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top: 16px; }
+  .status { background: #111827; color: #e5e7eb; border-radius: 10px; padding: 14px 16px; font-size: 14px; min-height: 50px; }
+  .status b { color: #fcd34d; }
+  .status .op { color: #86efac; font-weight: 700; }
+  .status .no { color: #fca5a5; font-weight: 700; }
+
+  details.code { margin-top: 4px; }
+  details.code summary { cursor: pointer; font-weight: 600; font-size: 14px; color: #4f46e5; }
+  .code-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 10px; }
+  .code-tab { font-size: 13px; padding: 5px 12px; border-radius: 999px; cursor: pointer; background: #f1f2f4; border: 1px solid #e5e7eb; color: #374151; }
+  .code-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow: auto; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .cmt { color: #7dd3fc; }
+
+  @media (max-width: 620px) {
+    body { padding: 16px 12px; }
+    .card { padding: 14px; }
+    .progress { width: 100%; margin-left: 0; }
+  }
+  .star-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 0 0 16px; padding: 12px 16px; border: 1px solid #e0e7ff; border-radius: 12px; background: linear-gradient(180deg, #f8faff 0%, #fff 100%); }
+  .star-banner-copy { flex: 1; min-width: 180px; }
+  .star-banner-title { font-size: 14px; font-weight: 700; color: #1d2129; }
+  .star-banner-sub { margin-top: 2px; font-size: 12px; color: #6b7280; }
+  .star-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid #c7d2fe; border-radius: 8px; background: #fff; color: #312e81; text-decoration: none; font-size: 13px; font-weight: 700; box-shadow: 0 1px 0 rgba(99,102,241,.08); flex-shrink: 0; }
+  .star-cta:hover { border-color: #818cf8; background: #eef2ff; }
+  .star-cta svg { width: 14px; height: 14px; fill: currentColor; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/" target="_blank" rel="noopener">LeetCode 34</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+
+  <h1>34. 在排序数组中查找元素的第一个和最后一个位置 · 左右边界二分</h1>
+  <div class="sub">有序数组里可能有一段连续的 <code>target</code>。普通二分只能落到其中某一个，所以要<b>搜两次</b>：等于时往左收得到左端，等于时往右扩得到右端。时间 <code>O(log n)</code>。</div>
+
+  <div class="card">
+    <div class="panel-title">思路要点</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 左边界</div>碰到 <code>target</code> 也 <code>right = mid - 1</code>，继续往左。结束时 <code>left</code> 是第一个等于它的下标。</div>
+      <div class="idea-item"><div class="no">② 不存在</div>第一趟全程没碰到 <code>target</code>，直接返回 <code>[-1, -1]</code>。</div>
+      <div class="idea-item"><div class="no">③ 右边界</div>从左端开始再二分，碰到 <code>target</code> 就 <code>left = mid + 1</code>。结束时 <code>left - 1</code> 是最后一个。</div>
+      <div class="idea-item"><div class="no">④ 答案</div><code>[左边界, 右边界]</code>。不要写成两次「随便命中」再线性扩，那样最坏是 O(n)。</div>
+    </div>
+    <div class="key-note"><b>和普通二分的唯一差别：</b>相等时不要立刻返回。找左端「等于也往左」，找右端「等于也往右」。这就是 lower_bound / upper_bound。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="field"><span class="lab">nums =</span><input type="text" id="input" value="5 7 7 8 8 10" spellcheck="false" placeholder="有序整数，空格或逗号分隔"></label>
+      <label class="field" style="flex:none"><span class="lab">target =</span><input type="text" id="target" class="tgt" value="8" spellcheck="false"></label>
+      <button type="button" id="loadBtn">搜索</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-n="5 7 7 8 8 10" data-t="8">找 8 → [3,4]</span>
+      <span class="chip" data-n="5 7 7 8 8 10" data-t="6">找 6 → [-1,-1]</span>
+      <span class="chip" data-n="2 2 2 2 2" data-t="2">全是 2</span>
+      <span class="chip" data-n="1" data-t="1">单元素命中</span>
+      <span class="chip" data-n="1 2 3 4 5" data-t="3">无重复</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">nums 需非递减；长度 0～14（动画清晰度上限）。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls" style="margin-bottom:14px;">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="phase">
+      <span class="phase-pill" id="phasePill">① 找左边界</span>
+      <span id="phaseHint" style="font-weight:600;color:#6b7280">等于也往左收</span>
+    </div>
+
+    <div class="panel-title">数组（下标 + L / M / R）</div>
+    <div class="stage">
+      <div>
+        <div class="arr" id="arr"></div>
+        <div class="ptrs" id="ptrs"></div>
+      </div>
+    </div>
+    <div class="formula" id="formula">第一趟：等于 target → right = mid - 1</div>
+    <div class="vars" id="vars"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>当前搜索区间 [L, R]</span>
+      <span><span class="dot" style="background:#6366f1"></span>mid</span>
+      <span><span class="dot" style="background:#22c55e"></span>左边界</span>
+      <span><span class="dot" style="background:#f97316"></span>右边界</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>答案区间</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「搜索」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+        <span class="code-tab" data-lang="you">你的写法</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function (root) {
+  'use strict';
+  function parseNums(value) {
+    if (typeof value !== 'string') return { nums: null, err: '空输入' };
+    var raw = value.trim();
+    if (!raw) return { nums: [], err: null };
+    var parts = raw.split(/[,\s]+/).filter(Boolean);
+    var nums = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { nums: null, err: '含非整数：' + parts[i] };
+      nums.push(parseInt(parts[i], 10));
+    }
+    if (nums.length > 14) return { nums: null, err: '长度请不超过 14（动画清晰度上限）' };
+    for (var j = 1; j < nums.length; j++) {
+      if (nums[j] < nums[j - 1]) return { nums: null, err: '数组必须非递减有序' };
+    }
+    return { nums: nums, err: null };
+  }
+
+  function brute(nums, target) {
+    var lo = -1, hi = -1;
+    for (var i = 0; i < nums.length; i++) {
+      if (nums[i] === target) {
+        if (lo < 0) lo = i;
+        hi = i;
+      }
+    }
+    return [lo, hi];
+  }
+
+  function searchRange(nums, target) {
+    var n = nums.length, left = 0, right = n - 1, found = false;
+    while (left <= right) {
+      var mid = Math.floor((left + right) / 2);
+      if (nums[mid] === target) { found = true; right = mid - 1; }
+      else if (nums[mid] < target) left = mid + 1;
+      else right = mid - 1;
+    }
+    if (!found) return [-1, -1];
+    var x = left;
+    right = n - 1;
+    while (left <= right) {
+      var mid2 = Math.floor((left + right) / 2);
+      if (nums[mid2] <= target) left = mid2 + 1;
+      else right = mid2 - 1;
+    }
+    return [x, left - 1];
+  }
+
+  function buildSteps(nums, target) {
+    var n = nums.length, steps = [];
+    var left = 0, right = n - 1, found = false;
+
+    function snap(o) {
+      steps.push({
+        phase: o.phase,
+        left: left,
+        right: right,
+        mid: o.mid === undefined ? null : o.mid,
+        lo: o.lo === undefined ? null : o.lo,
+        hi: o.hi === undefined ? null : o.hi,
+        done: !!o.done,
+        result: o.result || null,
+        msg: o.msg,
+        formula: o.formula || ''
+      });
+    }
+
+    snap({
+      phase: 'left', lo: null, hi: null,
+      msg: '第一趟找<b>左边界</b>：left=0，right=' + (n - 1) + '。碰到 target 也往左收，不要立刻返回。',
+      formula: '等于 target → right = mid - 1'
+    });
+
+    if (n === 0) {
+      snap({
+        phase: 'miss', done: true, result: [-1, -1], lo: null, hi: null,
+        msg: '数组为空，返回 <span class="no">[-1, -1]</span>。',
+        formula: 'n = 0'
+      });
+      return steps;
+    }
+
+    var guard = 0;
+    while (left <= right && guard++ < 80) {
+      var mid = Math.floor((left + right) / 2);
+      var v = nums[mid];
+      if (v === target) {
+        found = true;
+        snap({
+          phase: 'left', mid: mid, lo: null, hi: null,
+          msg: 'nums[' + mid + '] = <b>' + v + '</b> == target：左边可能还有 → <b>right = mid - 1</b> = ' + (mid - 1) + '。',
+          formula: '等于也往左 · right = ' + (mid - 1)
+        });
+        right = mid - 1;
+      } else if (v < target) {
+        snap({
+          phase: 'left', mid: mid, lo: null, hi: null,
+          msg: 'nums[' + mid + '] = <b>' + v + '</b> &lt; target=' + target + ' → <b>left = mid + 1</b> = ' + (mid + 1) + '。',
+          formula: '偏小 · left = ' + (mid + 1)
+        });
+        left = mid + 1;
+      } else {
+        snap({
+          phase: 'left', mid: mid, lo: null, hi: null,
+          msg: 'nums[' + mid + '] = <b>' + v + '</b> &gt; target=' + target + ' → <b>right = mid - 1</b> = ' + (mid - 1) + '。',
+          formula: '偏大 · right = ' + (mid - 1)
+        });
+        right = mid - 1;
+      }
+    }
+
+    if (!found) {
+      snap({
+        phase: 'miss', done: true, result: [-1, -1], lo: null, hi: null,
+        msg: '全程没碰到 target=' + target + '，返回 <span class="no">[-1, -1]</span>。',
+        formula: 'is_left_found = false'
+      });
+      return steps;
+    }
+
+    var x = left;
+    snap({
+      phase: 'right', lo: x, hi: null, mid: null,
+      msg: '左边界锁定 <b>x = ' + x + '</b>。第二趟从这里开始找<b>右边界</b>：等于也往右扩。',
+      formula: 'x = left = ' + x + '；right 重置为 ' + (n - 1)
+    });
+
+    right = n - 1;
+    while (left <= right && guard++ < 160) {
+      var mid2 = Math.floor((left + right) / 2);
+      var v2 = nums[mid2];
+      if (v2 === target) {
+        snap({
+          phase: 'right', mid: mid2, lo: x, hi: null,
+          msg: 'nums[' + mid2 + '] = <b>' + v2 + '</b> == target：右边可能还有 → <b>left = mid + 1</b> = ' + (mid2 + 1) + '。',
+          formula: '等于也往右 · left = ' + (mid2 + 1)
+        });
+        left = mid2 + 1;
+      } else if (v2 < target) {
+        snap({
+          phase: 'right', mid: mid2, lo: x, hi: null,
+          msg: 'nums[' + mid2 + '] = <b>' + v2 + '</b> &lt; target → <b>left = mid + 1</b> = ' + (mid2 + 1) + '。',
+          formula: '偏小 · left = ' + (mid2 + 1)
+        });
+        left = mid2 + 1;
+      } else {
+        snap({
+          phase: 'right', mid: mid2, lo: x, hi: null,
+          msg: 'nums[' + mid2 + '] = <b>' + v2 + '</b> &gt; target → <b>right = mid - 1</b> = ' + (mid2 - 1) + '。',
+          formula: '偏大 · right = ' + (mid2 - 1)
+        });
+        right = mid2 - 1;
+      }
+    }
+
+    snap({
+      phase: 'done', done: true, result: [x, left - 1], lo: x, hi: left - 1, mid: null,
+      msg: '右边界 = left - 1 = <b>' + (left - 1) + '</b>。答案 <span class="op">[' + x + ', ' + (left - 1) + ']</span>。',
+      formula: 'return [' + x + ', ' + (left - 1) + ']'
+    });
+    return steps;
+  }
+
+  root.SM34 = { parseNums: parseNums, brute: brute, searchRange: searchRange, buildSteps: buildSteps };
+}(window));
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var SM = window.SM34;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), targetIn = $('target'), errEl = $('err');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var arrEl = $('arr'), ptrsEl = $('ptrs'), varsEl = $('vars'), formulaEl = $('formula');
+  var phasePill = $('phasePill'), phaseHint = $('phaseHint');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], target = 0, steps = [], stepIdx = 0, playTimer = null, cellEls = [];
+
+  function same(a, b) { return a[0] === b[0] && a[1] === b[1]; }
+
+  function buildGrid() {
+    arrEl.innerHTML = '';
+    ptrsEl.innerHTML = '';
+    cellEls = [];
+    for (var i = 0; i < nums.length; i++) {
+      var d = document.createElement('div');
+      d.className = 'gcell';
+      d.innerHTML = '<span>' + nums[i] + '</span><span class="idx">' + i + '</span>';
+      arrEl.appendChild(d);
+      cellEls.push(d);
+      var p = document.createElement('div');
+      p.className = 'ptrslot';
+      p.id = 'ptr-' + i;
+      ptrsEl.appendChild(p);
+    }
+    if (!nums.length) {
+      arrEl.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:8px 0">空数组 []</div>';
+    }
+  }
+
+  function ptrClass(i, L, M, R) {
+    var Lok = L === i, Mok = M !== null && M === i, Rok = R === i;
+    if (Lok && Mok && Rok) return 'ptrslot show-lmr';
+    if (Lok && Mok) return 'ptrslot show-lm';
+    if (Lok && Rok) return 'ptrslot show-lr';
+    if (Mok && Rok) return 'ptrslot show-mr';
+    if (Lok) return 'ptrslot show-l';
+    if (Mok) return 'ptrslot show-m';
+    if (Rok) return 'ptrslot show-r';
+    return 'ptrslot';
+  }
+
+  function ptrText(i, L, M, R) {
+    var parts = [];
+    if (L === i) parts.push('L');
+    if (M !== null && M === i) parts.push('M');
+    if (R === i) parts.push('R');
+    return parts.join('/');
+  }
+
+  function render() {
+    var step = steps[stepIdx];
+    var n = nums.length;
+    var L = step.left, R = step.right, M = step.mid;
+    var searching = step.phase === 'left' || step.phase === 'right';
+
+    for (var i = 0; i < n; i++) {
+      var cls = 'gcell';
+      if (step.lo !== null && step.hi !== null && i === step.lo && i === step.hi) cls += ' lohi';
+      else if (step.lo !== null && i === step.lo) cls += ' lo';
+      else if (step.hi !== null && i === step.hi) cls += ' hi';
+      else if (step.lo !== null && step.hi !== null && i > step.lo && i < step.hi) cls += ' answer';
+      else if (M === i) cls += ' mid';
+      else if (searching && (i < L || i > R)) cls += ' excluded';
+      else if (searching) cls += ' inrange';
+      cellEls[i].className = cls;
+
+      var slot = $('ptr-' + i);
+      if (searching) {
+        slot.className = ptrClass(i, L, M, R);
+        slot.textContent = ptrText(i, L, M, R);
+      } else {
+        slot.className = 'ptrslot';
+        slot.textContent = '';
+      }
+    }
+
+    if (step.phase === 'left') {
+      phasePill.className = 'phase-pill';
+      phasePill.textContent = '① 找左边界';
+      phaseHint.textContent = '等于也往左收';
+    } else if (step.phase === 'right') {
+      phasePill.className = 'phase-pill right';
+      phasePill.textContent = '② 找右边界';
+      phaseHint.textContent = '等于也往右扩';
+    } else if (step.phase === 'miss') {
+      phasePill.className = 'phase-pill miss';
+      phasePill.textContent = '未找到';
+      phaseHint.textContent = '返回 [-1, -1]';
+    } else {
+      phasePill.className = 'phase-pill done';
+      phasePill.textContent = '完成';
+      phaseHint.textContent = step.result ? ('答案 [' + step.result[0] + ', ' + step.result[1] + ']') : '';
+    }
+
+    var cur = (M !== null && n) ? nums[M] : '—';
+    varsEl.innerHTML =
+      '<span class="box"><span class="vl">left</span> = <b>' + L + '</b></span>' +
+      '<span class="box"><span class="vm">mid</span> = <b>' + (M === null ? '—' : M) + '</b></span>' +
+      '<span class="box"><span class="vr">right</span> = <b>' + R + '</b></span>' +
+      '<span class="box">当前值 = <b>' + cur + '</b></span>' +
+      '<span class="box">target = <b>' + target + '</b></span>' +
+      (step.lo !== null ? '<span class="box">左边界 = <b>' + step.lo + '</b></span>' : '') +
+      (step.hi !== null ? '<span class="box">右边界 = <b>' + step.hi + '</b></span>' : '');
+    formulaEl.innerHTML = step.formula || '';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIdx === 0;
+    nextBtn.disabled = stepIdx === steps.length - 1;
+  }
+
+  function renderStats() {
+    var ans = SM.searchRange(nums, target);
+    statsEl.innerHTML =
+      '<div class="stat">长度<b>' + nums.length + '</b></div>' +
+      '<div class="stat">target<b>' + target + '</b></div>' +
+      '<div class="stat">答案<b>[' + ans[0] + ', ' + ans[1] + ']</b></div>' +
+      '<div class="stat">时间<b>O(log n)</b></div>' +
+      '<div class="stat">空间<b>O(1)</b></div>';
+  }
+
+  function load() {
+    var res = SM.parseNums(input.value);
+    if (res.nums === null) {
+      errEl.textContent = '输入有误：' + res.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    var t = parseInt((targetIn.value || '').trim(), 10);
+    if (isNaN(t)) {
+      errEl.textContent = 'target 需要是整数。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    nums = res.nums;
+    target = t;
+    if (!same(SM.searchRange(nums, target), SM.brute(nums, target))) {
+      errEl.textContent = '内部校验失败：二分结果与暴力不一致。';
+      errEl.classList.add('show');
+      return;
+    }
+    steps = SM.buildSteps(nums, target);
+    stepIdx = 0;
+    renderStats();
+    buildGrid();
+    render();
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 720);
+  }
+
+  $('nextBtn').onclick = function () { stopPlay(); next(); };
+  $('prevBtn').onclick = function () { stopPlay(); prev(); };
+  $('playBtn').onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  $('loadBtn').onclick = load;
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  targetIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.dataset.n; targetIn.value = ch.dataset.t; load(); };
+  });
+
+  var codes = {
+    py:
+'<span class="cmt"># Python · 两次二分 · 时间 O(log n)</span>\n' +
+'class Solution:\n' +
+'    def searchRange(self, nums: List[int], target: int) -&gt; List[int]:\n' +
+'        n = len(nums)\n' +
+'        def bound(find_left: bool) -&gt; int:\n' +
+'            left, right = 0, n - 1\n' +
+'            ans = n\n' +
+'            while left &lt;= right:\n' +
+'                mid = (left + right) // 2\n' +
+'                if nums[mid] &gt; target or (find_left and nums[mid] == target):\n' +
+'                    ans = mid\n' +
+'                    right = mid - 1\n' +
+'                else:\n' +
+'                    left = mid + 1\n' +
+'            return ans\n' +
+'        lo = bound(True)\n' +
+'        if lo == n or nums[lo] != target:\n' +
+'            return [-1, -1]\n' +
+'        return [lo, bound(False) - 1]',
+    java:
+'<span class="cmt">// Java · 两次二分 · 时间 O(log n)</span>\n' +
+'class Solution {\n' +
+'    public int[] searchRange(int[] nums, int target) {\n' +
+'        int lo = bound(nums, target, true);\n' +
+'        if (lo == nums.length || nums[lo] != target) return new int[]{-1, -1};\n' +
+'        return new int[]{lo, bound(nums, target, false) - 1};\n' +
+'    }\n' +
+'    int bound(int[] nums, int target, boolean findLeft) {\n' +
+'        int left = 0, right = nums.length - 1, ans = nums.length;\n' +
+'        while (left &lt;= right) {\n' +
+'            int mid = (left + right) / 2;\n' +
+'            if (nums[mid] &gt; target || (findLeft &amp;&amp; nums[mid] == target)) {\n' +
+'                ans = mid;\n' +
+'                right = mid - 1;\n' +
+'            } else left = mid + 1;\n' +
+'        }\n' +
+'        return ans;\n' +
+'    }\n' +
+'}',
+    you:
+'<span class="cmt"># 你的写法（与动画逐步执行一致）</span>\n' +
+'class Solution:\n' +
+'    def searchRange(self, nums: List[int], target: int) -&gt; List[int]:\n' +
+'        left, right = 0, len(nums) - 1\n' +
+'        is_left_found = False\n' +
+'        while left &lt;= right:                  <span class="cmt"># 左边界</span>\n' +
+'            mid = (left + right) // 2\n' +
+'            if nums[mid] == target:\n' +
+'                is_left_found = True\n' +
+'                right = mid - 1              <span class="cmt"># 等于也往左</span>\n' +
+'            elif nums[mid] &lt; target:\n' +
+'                left = mid + 1\n' +
+'            else:\n' +
+'                right = mid - 1\n' +
+'        if not is_left_found:\n' +
+'            return [-1, -1]\n' +
+'        x = left\n' +
+'        right = len(nums) - 1\n' +
+'        while left &lt;= right:                  <span class="cmt"># 右边界</span>\n' +
+'            mid = (left + right) // 2\n' +
+'            if nums[mid] &lt;= target:\n' +
+'                left = mid + 1               <span class="cmt"># 等于也往右</span>\n' +
+'            else:\n' +
+'                right = mid - 1\n' +
+'        return [x, left - 1]'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      codeBlock.innerHTML = codes[t.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+
+  load();
+})();
+</script>
+</body>
+</html>
