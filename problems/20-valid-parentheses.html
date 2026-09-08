@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="栈 · 字符串 · 括号匹配 · O(n)">
+<meta name="description" content="LeetCode 20 有效的括号：用栈逐帧演示左括号入栈、右括号与栈顶配对，以及栈空、类型不匹配、扫完仍有剩余三种失败。">
+<title>20. 有效的括号 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; line-height: 1.5;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .navbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .difftag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #dcfce7; color: #166534; }
+  .link { font-size: 12px; color: #6b7280; }
+  .link a { color: #6366f1; text-decoration: none; }
+  .link a:hover { text-decoration: underline; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color: #1d2129; }
+  code { background: #eef0f4; padding: 1px 5px; border-radius: 5px; font: 12px "SF Mono", Menlo, monospace; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+  .idea { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+  .idea-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; background: #f8fafc; font-size: 13px; color: #4b5563; }
+  .idea-item .no { font-size: 11px; font-weight: 700; color: #6366f1; }
+  .key-note { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; font-size: 13px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .play-controls { margin-bottom: 14px; }
+  input[type=text] {
+    flex: 1; min-width: 200px; padding: 9px 12px; font: 15px "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button { padding: 9px 16px; font-size: 14px; font-weight: 600; border: 0; border-radius: 8px; cursor: pointer; background: #6366f1; color: #fff; }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .lab, .hint { font-size: 12px; color: #9ca3af; }
+  .chip { font: 13px "SF Mono", Menlo, monospace; padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151; }
+  .chip:hover { background: #e6e8ec; }
+  .hint { margin-top: 8px; }
+  .err { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+  .err.show { display: block; }
+  .pairs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .pair { padding: 5px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #e5e7eb; font: 700 13px "SF Mono", Menlo, monospace; color: #334155; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 14px; }
+  .stat { background: #f8fafc; border: 1px solid #eef0f4; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #6b7280; }
+  .stat b { display: block; font: 800 15px "SF Mono", Menlo, monospace; color: #1d2129; }
+  .progress { margin-left: auto; font-size: 12px; color: #9ca3af; }
+  .arr-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 70px; }
+  .cell { width: 48px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .cell .idx { font-size: 11px; color: #9ca3af; font-family: "SF Mono", Menlo, monospace; }
+  .box {
+    width: 100%; height: 46px; display: flex; align-items: center; justify-content: center;
+    font: 800 20px "SF Mono", Menlo, monospace; border-radius: 8px; background: #f1f2f4; color: #4b5563;
+    border: 2px solid transparent; transition: .2s;
+  }
+  .box.active { background: #6366f1; color: #fff; border-color: #4338ca; transform: translateY(-4px); box-shadow: 0 6px 12px rgba(99,102,241,.35); }
+  .box.instk { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+  .box.matched { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .box.bad { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .box.unread { opacity: .45; }
+  .grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 14px; }
+  .stack { display: flex; flex-direction: column-reverse; gap: 6px; min-height: 160px; }
+  .stack-item {
+    padding: 8px 10px; border-radius: 8px; font: 600 14px "SF Mono", Menlo, monospace; text-align: center;
+    background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; animation: pop .25s ease;
+  }
+  .stack-item.top { outline: 2px solid #6366f1; outline-offset: 1px; }
+  .stack-item.leftover { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+  .empty-hint { color: #b8bcc4; font-size: 13px; font-style: italic; }
+  @keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .cmp-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc; font-size: 13px; color: #4b5563; }
+  .cmp-card .k { font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+  .cmp-card b { font-family: "SF Mono", Menlo, monospace; color: #1d2129; }
+  .cmp-card.ok { background: #ecfdf5; border-color: #86efac; color: #166534; }
+  .cmp-card.no { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+  .cmp-card.wait { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .verdict {
+    margin-top: 12px; padding: 10px 12px; border-radius: 10px; text-align: center;
+    font: 800 16px "SF Mono", Menlo, monospace; background: #f8fafc; color: #64748b; border: 1px solid #e5e7eb;
+  }
+  .verdict.yes { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .verdict.no { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .status { background: #111827; color: #e5e7eb; border-radius: 10px; padding: 14px 16px; font-size: 14px; min-height: 48px; }
+  .status b { color: #fcd34d; }
+  .status .op { color: #86efac; font-weight: 700; }
+  .status .bad { color: #fca5a5; font-weight: 700; }
+  .status .idx { color: #93c5fd; font-weight: 700; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #6b7280; margin-top: 10px; }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.08); }
+  details.code summary { cursor: pointer; font-weight: 600; font-size: 14px; color: #4f46e5; }
+  .code-tabs { display: flex; gap: 8px; margin: 12px 0 10px; }
+  .code-tab { font-size: 13px; padding: 5px 12px; border-radius: 999px; cursor: pointer; border: 1px solid #e5e7eb; background: #f1f2f4; color: #374151; }
+  .code-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow: auto; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .cmt { color: #7dd3fc; }
+  @media (max-width: 760px) {
+    body { padding: 16px 12px; } .card { padding: 14px; }
+    .grid, .cmp { grid-template-columns: 1fr; }
+    .progress { width: 100%; margin-left: 0; }
+  }
+  .star-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 0 0 16px; padding: 12px 16px; border: 1px solid #e0e7ff; border-radius: 12px; background: linear-gradient(180deg, #f8faff 0%, #fff 100%); }
+  .star-banner-copy { flex: 1; min-width: 180px; }
+  .star-banner-title { font-size: 14px; font-weight: 700; color: #1d2129; }
+  .star-banner-sub { margin-top: 2px; font-size: 12px; color: #6b7280; }
+  .star-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid #c7d2fe; border-radius: 8px; background: #fff; color: #312e81; text-decoration: none; font-size: 13px; font-weight: 700; box-shadow: 0 1px 0 rgba(99,102,241,.08); flex-shrink: 0; }
+  .star-cta:hover { border-color: #818cf8; background: #eef2ff; }
+  .star-cta svg { width: 14px; height: 14px; fill: currentColor; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/valid-parentheses/" target="_blank" rel="noopener">LeetCode 20</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>20. 有效的括号 · 栈匹配动画</h1>
+  <div class="sub">栈顶永远是「最近还没配上的左括号」。遇左括号就压栈；遇右括号必须和栈顶正好是一对，否则立即失败。扫完栈必须为空。</div>
+
+  <div class="card">
+    <div class="panel-title">判定规则</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 左括号</div><code>( [ {</code> 直接入栈，等待将来的右括号。</div>
+      <div class="idea-item"><div class="no">② 右括号</div>弹出栈顶，必须与 <code>) ] }</code> 配成一对。</div>
+      <div class="idea-item"><div class="no">③ 栈空来右</div>没有左括号可配 → 非法。</div>
+      <div class="idea-item"><div class="no">④ 类型不对</div>例如栈顶是 <code>(</code> 却来了 <code>]</code> → 非法。</div>
+      <div class="idea-item"><div class="no">⑤ 扫完仍有剩余</div>栈里还剩左括号，说明没配完 → 非法。</div>
+    </div>
+    <div class="key-note"><b>为什么用栈：</b>最近出现的左括号必须最先被匹配（后进先出）。嵌套 <code>{[]}</code> 合法，交叉 <code>([)]</code> 不合法，差别就在栈顶对不对得上。</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="input" value="()[]{}" spellcheck="false" placeholder="只输入 ()[]{}，例如 {[]}">
+      <button type="button" id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip">()</span>
+      <span class="chip">()[]{}</span>
+      <span class="chip">{[]}</span>
+      <span class="chip">(]</span>
+      <span class="chip">([)]</span>
+      <span class="chip">((</span>
+      <span class="chip">())</span>
+      <span class="chip">{[()]}</span>
+    </div>
+    <div class="pairs">
+      <span class="pair">( ↔ )</span>
+      <span class="pair">[ ↔ ]</span>
+      <span class="pair">{ ↔ }</span>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span>当前字符</span>
+      <span><span class="dot" style="background:#dbeafe;border-color:#93c5fd"></span>下标在栈中</span>
+      <span><span class="dot" style="background:#dcfce7;border-color:#86efac"></span>已配对</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#fca5a5"></span>失配 / 多余</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">只接受 <code>()[]{}</code>，长度 1～32。空格会忽略。题目保证字符只来自这六种。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">s（括号字符串）</div>
+    <div class="arr-row" id="strRow"></div>
+    <div class="grid" style="margin-top:16px;">
+      <div>
+        <div class="panel-title">当前比较</div>
+        <div class="cmp">
+          <div class="cmp-card" id="cmpTop"><div class="k">栈顶（最近未配左括号）</div><b id="topVal">（空）</b></div>
+          <div class="cmp-card" id="cmpNeed"><div class="k">当前字符需要的左括号</div><b id="needVal">—</b></div>
+        </div>
+        <div class="verdict" id="verdict">尚未判定</div>
+      </div>
+      <div>
+        <div class="panel-title">stack（存左括号，底 → 顶）</div>
+        <div class="stack" id="stack"></div>
+      </div>
+    </div>
+    <div class="panel-title" style="margin-top:16px;">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function () {
+  var PAIRS = { ')': '(', ']': '[', '}': '{' };
+  var OPENS = { '(': 1, '[': 1, '{': 1 };
+  var input = document.getElementById('input');
+  var strRow = document.getElementById('strRow');
+  var stackEl = document.getElementById('stack');
+  var statusEl = document.getElementById('status');
+  var progressEl = document.getElementById('progress');
+  var errEl = document.getElementById('err');
+  var playBtn = document.getElementById('playBtn');
+  var s = '';
+  var steps = [];
+  var stepIdx = 0;
+  var playTimer = null;
+
+  function esc(t) {
+    return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function buildSteps(str) {
+    var out = [];
+    var stack = [];
+    var matched = {};
+    var answer = null;
+
+    function snap(extra) {
+      out.push({
+        i: extra.i,
+        stack: stack.map(function (x) { return { ch: x.ch, i: x.i }; }),
+        matched: Object.assign({}, matched),
+        bad: extra.bad === undefined ? -1 : extra.bad,
+        leftover: extra.leftover || false,
+        phase: extra.phase,
+        top: extra.top,
+        need: extra.need,
+        cmp: extra.cmp || '',
+        answer: extra.answer === undefined ? answer : extra.answer,
+        msg: extra.msg
+      });
+    }
+
+    snap({
+      i: -1, phase: 'start', top: null, need: null,
+      msg: '初始化：栈为空。从左往右扫描，左括号入栈，右括号必须配上栈顶。'
+    });
+
+    for (var i = 0; i < str.length; i++) {
+      var c = str.charAt(i);
+      if (OPENS[c]) {
+        stack.push({ ch: c, i: i });
+        snap({
+          i: i, phase: 'push', top: c, need: null, cmp: 'wait',
+          msg: '第 <span class="idx">' + i + '</span> 位是左括号 <b>' + esc(c) + '</b> → 入栈，等待配对。栈顶变成它。'
+        });
+      } else {
+        var need = PAIRS[c];
+        if (!stack.length) {
+          answer = false;
+          snap({
+            i: i, phase: 'empty', bad: i, top: null, need: need, cmp: 'no', answer: false,
+            msg: '第 <span class="idx">' + i + '</span> 位是 <b>' + esc(c) + '</b>，但栈已经空了，没有左括号可配。<span class="bad">返回 false</span>。'
+          });
+          return out;
+        }
+        var top = stack[stack.length - 1];
+        if (top.ch !== need) {
+          answer = false;
+          snap({
+            i: i, phase: 'mismatch', bad: i, top: top.ch, need: need, cmp: 'no', answer: false,
+            msg: '第 <span class="idx">' + i + '</span> 位是 <b>' + esc(c) + '</b>，需要栈顶为 <b>' + esc(need) + '</b>，实际却是 <b>' + esc(top.ch) + '</b>（下标 ' + top.i + '）。<span class="bad">类型不匹配，返回 false</span>。'
+          });
+          return out;
+        }
+        stack.pop();
+        matched[top.i] = true;
+        matched[i] = true;
+        snap({
+          i: i, phase: 'match', top: top.ch, need: need, cmp: 'ok',
+          msg: '第 <span class="idx">' + i + '</span> 位是 <b>' + esc(c) + '</b> → 栈顶 <b>' + esc(top.ch) + '</b>（下标 ' + top.i + '）正好配对，<span class="op">弹栈</span>。'
+        });
+      }
+    }
+
+    if (stack.length) {
+      answer = false;
+      snap({
+        i: -1, phase: 'leftover', leftover: true, top: stack[stack.length - 1].ch, need: null, cmp: 'no', answer: false,
+        msg: '扫描结束，栈里还剩 <b>' + stack.length + '</b> 个左括号没有配上。<span class="bad">返回 false</span>。'
+      });
+    } else {
+      answer = true;
+      snap({
+        i: -1, phase: 'done', top: null, need: null, cmp: 'ok', answer: true,
+        msg: '扫描结束，栈为空，每个右括号都找到了对应的左括号。<span class="op">返回 true</span>。'
+      });
+    }
+    return out;
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+    var inStack = {};
+    st.stack.forEach(function (x) { inStack[x.i] = true; });
+
+    Array.prototype.forEach.call(strRow.children, function (cell) {
+      var box = cell.querySelector('.box');
+      var idx = +box.dataset.idx;
+      box.className = 'box';
+      if (idx === st.i) box.classList.add('active');
+      else if (st.bad === idx) box.classList.add('bad');
+      else if (st.matched[idx]) box.classList.add('matched');
+      else if (st.leftover && inStack[idx]) box.classList.add('bad');
+      else if (inStack[idx]) box.classList.add('instk');
+      else if (st.i >= 0 && idx > st.i) box.classList.add('unread');
+    });
+
+    stackEl.innerHTML = '';
+    if (!st.stack.length) {
+      stackEl.innerHTML = '<div class="empty-hint">（空）</div>';
+    } else {
+      st.stack.forEach(function (item, pos) {
+        var el = document.createElement('div');
+        el.className = 'stack-item' + (pos === st.stack.length - 1 ? ' top' : '') + (st.leftover ? ' leftover' : '');
+        el.textContent = item.ch + '  #' + item.i;
+        stackEl.appendChild(el);
+      });
+    }
+
+    var cmpTop = document.getElementById('cmpTop');
+    var cmpNeed = document.getElementById('cmpNeed');
+    document.getElementById('topVal').textContent = st.top == null ? '（空）' : st.top;
+    document.getElementById('needVal').textContent = st.need == null ? (st.phase === 'push' ? '左括号，无需配对' : '—') : st.need;
+    cmpTop.className = 'cmp-card' + (st.cmp === 'ok' ? ' ok' : st.cmp === 'no' ? ' no' : st.cmp === 'wait' ? ' wait' : '');
+    cmpNeed.className = cmpTop.className;
+
+    var verdict = document.getElementById('verdict');
+    if (st.answer === true) { verdict.className = 'verdict yes'; verdict.textContent = 'true'; }
+    else if (st.answer === false) { verdict.className = 'verdict no'; verdict.textContent = 'false'; }
+    else { verdict.className = 'verdict'; verdict.textContent = '尚未判定'; }
+
+    var matchedCount = Object.keys(st.matched).length;
+    document.getElementById('stats').innerHTML =
+      '<div class="stat">当前下标<b>' + (st.i < 0 ? '—' : st.i) + '</b></div>' +
+      '<div class="stat">栈大小<b>' + st.stack.length + '</b></div>' +
+      '<div class="stat">已配对数<b>' + (matchedCount / 2) + '</b></div>' +
+      '<div class="stat">时间 / 空间<b>O(n)</b></div>';
+
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = stepIdx === 0;
+    document.getElementById('nextBtn').disabled = stepIdx === steps.length - 1;
+  }
+
+  function buildStrRow() {
+    strRow.innerHTML = '';
+    for (var i = 0; i < s.length; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.innerHTML = '<div class="idx">' + i + '</div><div class="box" data-idx="' + i + '">' + esc(s.charAt(i)) + '</div>';
+      strRow.appendChild(cell);
+    }
+  }
+
+  function load(raw) {
+    stopPlay();
+    var str = String(raw || '').replace(/\s+/g, '');
+    if (!str.length) {
+      errEl.textContent = '字符串不能为空。当前动画保持不变。';
+      errEl.classList.add('show');
+      return false;
+    }
+    if (!/^[()\[\]{}]+$/.test(str)) {
+      errEl.textContent = '只能包含 ()[]{} 六种字符。当前动画保持不变。';
+      errEl.classList.add('show');
+      return false;
+    }
+    if (str.length > 32) {
+      errEl.textContent = '为了动画清晰，请控制在 32 个字符以内。当前动画保持不变。';
+      errEl.classList.add('show');
+      return false;
+    }
+    errEl.classList.remove('show');
+    s = str;
+    steps = buildSteps(s);
+    stepIdx = 0;
+    buildStrRow();
+    render();
+    return true;
+  }
+
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () {
+      if (stepIdx >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 800);
+  }
+
+  document.getElementById('nextBtn').onclick = function () { stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function () { stopPlay(); prev(); };
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  document.getElementById('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === input) return;
+    if (e.key === 'ArrowRight') document.getElementById('nextBtn').click();
+    if (e.key === 'ArrowLeft') document.getElementById('prevBtn').click();
+  });
+
+  var codes = {
+    py: '<span class="cmt"># 栈匹配，时间 O(n) 空间 O(n)</span>\n' +
+      'class Solution:\n' +
+      '    def isValid(self, s: str) -&gt; bool:\n' +
+      '        pairs = {\')\': \'(\', \']\': \'[\', \'}\': \'{\'}\n' +
+      '        stack = []\n' +
+      '        for c in s:\n' +
+      '            if c in \'([{\':\n' +
+      '                stack.append(c)          <span class="cmt"># 左括号入栈</span>\n' +
+      '            else:\n' +
+      '                if not stack or stack[-1] != pairs[c]:\n' +
+      '                    return False         <span class="cmt"># 栈空或类型不对</span>\n' +
+      '                stack.pop()\n' +
+      '        return not stack                <span class="cmt"># 必须配完</span>',
+    java: '<span class="cmt">// 栈匹配，时间 O(n) 空间 O(n)</span>\n' +
+      'class Solution {\n' +
+      '    public boolean isValid(String s) {\n' +
+      '        Deque&lt;Character&gt; stack = new ArrayDeque&lt;&gt;();\n' +
+      '        for (char c : s.toCharArray()) {\n' +
+      '            if (c == \'(\' || c == \'[\' || c == \'{\') {\n' +
+      '                stack.push(c);\n' +
+      '            } else {\n' +
+      '                if (stack.isEmpty()) return false;\n' +
+      '                char t = stack.pop();\n' +
+      '                if (c == \')\' &amp;&amp; t != \'(\') return false;\n' +
+      '                if (c == \']\' &amp;&amp; t != \'[\') return false;\n' +
+      '                if (c == \'}\' &amp;&amp; t != \'{\') return false;\n' +
+      '            }\n' +
+      '        }\n' +
+      '        return stack.isEmpty();\n' +
+      '    }\n' +
+      '}'
+  };
+  function showCode(lang) { document.getElementById('codeBlock').innerHTML = codes[lang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      showCode(t.dataset.lang);
+    };
+  });
+  showCode('py');
+  load(input.value);
+})();
+</script>
+</body>
+</html>

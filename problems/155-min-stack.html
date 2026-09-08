@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="栈 · 设计 · 辅助栈 · 链表 · 差值 · O(1)">
+<meta name="description" content="LeetCode 155 最小栈：双栈普通解法、链表实现、存储差值法（额外 O(1)）。">
+<title>155. 最小栈 — 动画演示</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f7f9; color: #1d2129; line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .navbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .difftag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #dcfce7; color: #166534; }
+  .link { font-size: 12px; color: #6b7280; }
+  .link a { color: #6366f1; text-decoration: none; }
+  .link a:hover { text-decoration: underline; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  code { background: #eef0f4; padding: 1px 5px; border-radius: 5px; font: 12px "SF Mono", Menlo, monospace; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+  .panel-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+  .method-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .method-tab {
+    padding: 8px 14px; border: 1px solid #e5e7eb; border-radius: 999px; background: #f8fafc;
+    color: #374151; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .method-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  .idea { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; }
+  .idea-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; background: #f8fafc; font-size: 13px; color: #4b5563; }
+  .idea-item .no { font-size: 11px; font-weight: 700; color: #6366f1; }
+  .key-note { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; font-size: 13px; }
+  .key-note.warn { background: #fffbeb; border-color: #fde68a; color: #78350f; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .play-controls { margin-bottom: 14px; }
+  textarea {
+    width: 100%; min-width: 0; padding: 9px 12px; font: 13px "SF Mono", Menlo, monospace;
+    border: 1px solid #d1d5db; border-radius: 8px; outline: none; resize: vertical; min-height: 64px;
+  }
+  textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+  button { padding: 9px 16px; font-size: 14px; font-weight: 600; border: 0; border-radius: 8px; cursor: pointer; background: #6366f1; color: #fff; }
+  button:hover { background: #4f46e5; }
+  button.ghost { background: #eef0f4; color: #374151; }
+  button.ghost:hover { background: #e2e5eb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .input-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .lab, .hint { font-size: 12px; color: #9ca3af; }
+  .chip { font: 11px "SF Mono", Menlo, monospace; padding: 5px 10px; background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip:hover { background: #e6e8ec; }
+  .hint { margin-top: 8px; }
+  .err { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+  .err.show { display: block; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 14px; }
+  .stat { background: #f8fafc; border: 1px solid #eef0f4; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #6b7280; }
+  .stat b { display: block; font: 800 14px "SF Mono", Menlo, monospace; color: #1d2129; }
+  .progress { margin-left: auto; font-size: 12px; color: #9ca3af; }
+  .ops { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; }
+  .op { padding: 6px 10px; border-radius: 8px; border: 1px solid #e5e7eb; background: #f8fafc; font: 700 12px "SF Mono", Menlo, monospace; color: #64748b; }
+  .op.done { background: #eef2ff; border-color: #c7d2fe; color: #4338ca; }
+  .op.curr { background: #6366f1; border-color: #4338ca; color: #fff; box-shadow: 0 4px 10px rgba(99,102,241,.28); }
+  .phase-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .phase { border: 1px solid #e5e7eb; border-radius: 10px; padding: 9px 11px; background: #f8fafc; font-size: 13px; color: #4b5563; }
+  .phase .no { font-size: 11px; font-weight: 700; color: #6366f1; }
+  .phase.active { background: #eef2ff; border-color: #818cf8; color: #3730a3; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+  .workbench { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .stack-box, .list-box { border: 1px solid #eef0f4; border-radius: 12px; background: linear-gradient(#fafbff, #fff); padding: 14px; min-height: 220px; }
+  .stack-head { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: #64748b; font-weight: 800; margin-bottom: 10px; }
+  .stack { display: flex; flex-direction: column-reverse; gap: 6px; min-height: 150px; }
+  .stack-item { padding: 9px 10px; border-radius: 8px; text-align: center; font: 700 14px "SF Mono", Menlo, monospace; }
+  .data-item { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+  .min-item { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .diff-item { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+  .diff-item.neg { background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe; }
+  .stack-item.top { outline: 2px solid #6366f1; outline-offset: 1px; }
+  .stack-item.fresh { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .stack-item.gone { background: #fee2e2; color: #991b1b; border-color: #fca5a5; outline-color: #ef4444; }
+  .stack-item.look { background: #fff7ed; color: #9a3412; border-color: #fdba74; outline-color: #f59e0b; }
+  .stack-item .tiny { display: block; margin-top: 3px; font-size: 10px; font-weight: 700; opacity: .85; }
+  .empty-hint { color: #b8bcc4; font-size: 13px; font-style: italic; }
+  .min-box { padding: 16px 12px; border-radius: 12px; border: 2px solid #fde68a; background: #fffbeb; text-align: center; color: #92400e; }
+  .min-box .k { font-size: 11px; font-weight: 800; letter-spacing: .04em; }
+  .min-box .v { margin-top: 6px; font: 800 28px "SF Mono", Menlo, monospace; }
+  .min-box.look { box-shadow: 0 0 0 4px rgba(245,158,11,.18); }
+  .formula { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #0f172a; color: #fcd34d; font: 13px "SF Mono", Menlo, monospace; min-height: 44px; display: flex; align-items: center; }
+  .chain-labels { display: flex; justify-content: space-between; color: #64748b; font-size: 11px; font-weight: 800; margin-bottom: 8px; }
+  .chain { display: inline-flex; align-items: center; min-width: max-content; padding: 22px 4px 8px; }
+  .lnode { position: relative; width: 118px; border: 2px solid #cbd5e1; border-radius: 12px; background: #fff; overflow: hidden; color: #1e40af; }
+  .lnode .fld { display: flex; justify-content: space-between; gap: 6px; padding: 7px 9px; font: 700 13px "SF Mono", Menlo, monospace; }
+  .lnode .fld + .fld { border-top: 1px solid #e5e7eb; }
+  .lnode .fld .k { color: #94a3b8; font-size: 10px; font-weight: 800; }
+  .lnode .fld.mn { background: #fffbeb; color: #92400e; }
+  .lnode .role { position: absolute; bottom: 100%; left: 0; margin-bottom: 4px; color: #4338ca; font: 800 10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; white-space: nowrap; }
+  .lnode.head { border-color: #6366f1; background: #eef2ff; }
+  .lnode.fresh { border-color: #22c55e; background: #ecfdf5; }
+  .lnode.gone { border-color: #ef4444; background: #fef2f2; }
+  .lnode.look { border-color: #f59e0b; background: #fffbeb; }
+  .arrow { width: 42px; text-align: center; color: #64748b; font: 800 16px "SF Mono", Menlo, monospace; }
+  .null-tail { color: #94a3b8; font: 700 12px "SF Mono", Menlo, monospace; padding: 0 6px; }
+  .dashboard { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin-top: 12px; }
+  .box { border: 1px solid #e5e7eb; border-radius: 10px; padding: 8px; background: #f8fafc; color: #64748b; text-align: center; font-size: 11px; }
+  .box b { display: block; min-height: 22px; font: 800 15px "SF Mono", Menlo, monospace; color: #334155; }
+  .status { background: #111827; color: #e5e7eb; border-radius: 10px; padding: 14px 16px; font-size: 14px; min-height: 50px; margin-top: 14px; }
+  .status b { color: #fcd34d; }
+  .status .ok { color: #86efac; font-weight: 700; }
+  .status code { background: #1f2937; color: #93c5fd; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #6b7280; margin-top: 12px; }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.1); }
+  details.code summary { cursor: pointer; font-weight: 600; font-size: 14px; color: #4f46e5; }
+  .code-tabs { display: flex; gap: 8px; margin: 12px 0 10px; flex-wrap: wrap; }
+  .code-tab { font-size: 13px; padding: 5px 12px; border-radius: 999px; cursor: pointer; border: 1px solid #e5e7eb; background: #f1f2f4; color: #374151; }
+  .code-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow: auto; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .cmt { color: #7dd3fc; }
+  .hidden { display: none !important; }
+  @media (max-width: 760px) {
+    body { padding: 16px 12px; } .card { padding: 14px; }
+    .input-row, .workbench, .phase-strip, .dashboard { grid-template-columns: 1fr 1fr; }
+    .progress { width: 100%; margin-left: 0; }
+  }
+  @media (max-width: 520px) { .workbench, .dashboard { grid-template-columns: 1fr; } }
+  .star-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 0 0 16px; padding: 12px 16px; border: 1px solid #e0e7ff; border-radius: 12px; background: linear-gradient(180deg, #f8faff 0%, #fff 100%); }
+  .star-banner-copy { flex: 1; min-width: 180px; }
+  .star-banner-title { font-size: 14px; font-weight: 700; color: #1d2129; }
+  .star-banner-sub { margin-top: 2px; font-size: 12px; color: #6b7280; }
+  .star-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid #c7d2fe; border-radius: 8px; background: #fff; color: #312e81; text-decoration: none; font-size: 13px; font-weight: 700; box-shadow: 0 1px 0 rgba(99,102,241,.08); flex-shrink: 0; }
+  .star-cta:hover { border-color: #818cf8; background: #eef2ff; }
+  .star-cta svg { width: 14px; height: 14px; fill: currentColor; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">简单</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/min-stack/" target="_blank" rel="noopener">LeetCode 155</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>155. 最小栈 · 三种写法</h1>
+  <div class="sub">① 数据栈 + 最小栈；② 链表节点同时记下 value 和 min；③ 栈里只存差值，额外只要一个 min，空间 O(1)。</div>
+
+  <div class="card">
+    <div class="method-tabs">
+      <button type="button" class="method-tab active" data-method="array">① 普通解法 · 双栈</button>
+      <button type="button" class="method-tab" data-method="list">② 链表实现</button>
+      <button type="button" class="method-tab" data-method="diff">③ 存储差值法实现(额外O(1))</button>
+    </div>
+    <div id="ideaBox"></div>
+  </div>
+
+  <div class="card">
+    <div class="input-row">
+      <label style="display:flex;flex-direction:column;gap:5px;min-width:0;">
+        <span class="lab" style="font-weight:700;color:#6b7280;">操作序列（用分号分隔）</span>
+        <textarea id="input" spellcheck="false">push(-2); push(0); push(-3); getMin(); pop(); top(); getMin()</textarea>
+      </label>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip">push(-2); push(0); push(-3); getMin(); pop(); top(); getMin()</span>
+      <span class="chip">push(-2); push(-2); getMin(); pop(); getMin()</span>
+      <span class="chip">push(1); push(2); top(); getMin(); pop(); getMin()</span>
+      <span class="chip">push(0); push(1); push(0); getMin(); pop(); getMin()</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">接受 1～20 个 <code>push(x)</code> / <code>pop()</code> / <code>top()</code> / <code>getMin()</code>；<code>x</code> 为 −1,000,000～1,000,000 的整数。题目保证不会对空栈 <code>pop / top / getMin</code>。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="phase-strip" id="phaseStrip"></div>
+    <div class="panel-title">操作序列</div>
+    <div class="ops" id="ops"></div>
+
+    <div id="viewArray" class="workbench" style="margin-top:14px;">
+      <div class="stack-box">
+        <div class="stack-head"><span>stack 数据栈（底 → 顶）</span><span>top()</span></div>
+        <div class="stack" id="dataStack"></div>
+      </div>
+      <div class="stack-box">
+        <div class="stack-head"><span>min_stack（底 → 顶）</span><span>当时最小值</span></div>
+        <div class="stack" id="minStack"></div>
+      </div>
+    </div>
+
+    <div id="viewList" class="list-box hidden" style="margin-top:14px;">
+      <div class="chain-labels"><span>self.head = 栈顶</span><span>next 指向更早压入的节点</span></div>
+      <div class="chain" id="chain"></div>
+    </div>
+
+    <div id="viewDiff" class="workbench hidden" style="margin-top:14px;">
+      <div class="stack-box">
+        <div class="stack-head"><span>stack 里存的差值（底 → 顶）</span><span>diff = value − 当时 min</span></div>
+        <div class="stack" id="diffStack"></div>
+      </div>
+      <div class="stack-box">
+        <div class="min-box" id="diffMinBox">
+          <div class="k">self.min</div>
+          <div class="v" id="diffMinVal">inf</div>
+        </div>
+        <div class="formula" id="diffFormula">尚未计算差值。</div>
+      </div>
+    </div>
+
+    <div class="dashboard">
+      <div class="box"><span id="minLabel">self.min</span><b id="minVarVal">inf</b></div>
+      <div class="box">top<b id="topVal">—</b></div>
+      <div class="box">getMin<b id="minVal">—</b></div>
+      <div class="box">本步返回<b id="retVal">—</b></div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与当前解法一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function () {
+  var INF = Infinity;
+  var input = document.getElementById('input');
+  var errEl = document.getElementById('err');
+  var playBtn = document.getElementById('playBtn');
+  var ops = [], steps = [], stepIdx = 0, playTimer = null;
+  var method = 'array', codeLang = 'py';
+
+  var META = {
+    array: {
+      space: 'O(n)',
+      phases: [['push', '两栈写入，更新 min'], ['pop', '两栈弹出，min 回退'], ['top', '返回 stack[-1]'], ['getMin', '返回 self.min']],
+      legend: [['#dbeafe', '#93c5fd', '数据栈'], ['#fef3c7', '#fde68a', 'min_stack'], ['#dcfce7', '#86efac', '本步新压入'], ['#fee2e2', '#fca5a5', '本步弹出']],
+      idea: '<div class="idea">' +
+        '<div class="idea-item"><div class="no">① stack</div>照常存所有元素，<code>top</code> 看栈顶。</div>' +
+        '<div class="idea-item"><div class="no">② min_stack</div>每一层记下「压到这里为止的最小值」，和数据栈等高。</div>' +
+        '<div class="idea-item"><div class="no">③ self.min</div>缓存当前最小值。<code>getMin</code> 直接返回它。</div>' +
+        '<div class="idea-item"><div class="no">④ push</div><code>min = min(min, value)</code>，再把这个 min 压进 <code>min_stack</code>。</div>' +
+        '<div class="idea-item"><div class="no">⑤ pop</div>两栈一起弹，然后 <code>min = min_stack[-1]</code>；弹空则回到 <code>inf</code>。</div>' +
+        '</div><div class="key-note">重复最小值也会各记一次，连续两个 <code>-2</code> 弹一次后 min 仍是 <code>-2</code>。额外空间 O(n)。</div>'
+    },
+    list: {
+      space: 'O(n)',
+      phases: [['push', '头插节点，写入 value/min'], ['pop', 'head 移到 next'], ['top', '返回 head.value'], ['getMin', '返回 head.min']],
+      legend: [['#eef2ff', '#6366f1', 'self.head / 栈顶'], ['#fffbeb', '#f59e0b', '本步读取'], ['#ecfdf5', '#22c55e', '本步新建'], ['#fef2f2', '#ef4444', '即将摘掉']],
+      idea: '<div class="idea">' +
+        '<div class="idea-item"><div class="no">① 节点</div>三个字段：<code>value</code>、<code>min</code>（到此为止的最小值）、<code>next</code>。</div>' +
+        '<div class="idea-item"><div class="no">② push</div>头插。空链 min = value；否则 min = min(value, 旧 head.min)。</div>' +
+        '<div class="idea-item"><div class="no">③ pop</div><code>head = head.next</code>，上一层的 min 自动回来。</div>' +
+        '<div class="idea-item"><div class="no">④ 查询</div><code>top</code> 读 <code>head.value</code>，<code>getMin</code> 读 <code>head.min</code>。</div>' +
+        '</div><div class="key-note"><b>和双栈的关系：</b><code>value</code> 相当于数据栈顶，<code>min</code> 相当于最小栈顶，焊在同一个节点里。空间仍是 O(n)。</div>'
+    },
+    diff: {
+      space: 'O(1) 额外',
+      phases: [['push', '压入 value − min'], ['pop', '差值为负则还原 min'], ['top', '差值为负则返回 min'], ['getMin', '直接返回 min']],
+      legend: [['#dbeafe', '#93c5fd', '差值 ≥ 0（真实值 = min + diff）'], ['#f5f3ff', '#ddd6fe', '差值 &lt; 0（真实值就是 min）'], ['#dcfce7', '#86efac', '本步写入'], ['#fee2e2', '#fca5a5', '本步弹出']],
+      idea: '<div class="idea">' +
+        '<div class="idea-item"><div class="no">① 只留一个栈</div>栈里不存原值，只存 <code>diff = value − 当时的 min</code>，另外一个 <code>self.min</code>。</div>' +
+        '<div class="idea-item"><div class="no">② 空栈 push</div>压入 0（自己减自己），<code>min = value</code>。</div>' +
+        '<div class="idea-item"><div class="no">③ 普通 push</div><code>diff ≥ 0</code> 说明没刷新最小值，min 不变。</div>' +
+        '<div class="idea-item"><div class="no">④ 新最小值</div><code>diff &lt; 0</code>，把 min 改成 value。之后可用负数差值识别「这一层就是 min」。</div>' +
+        '<div class="idea-item"><div class="no">⑤ pop / top</div>差值为负：真实 top 是 min，弹出时 <code>min = min − diff</code> 还原旧最小值。</div>' +
+        '</div><div class="key-note warn"><b>为什么能还原：</b>新最小值 x 压入时 diff = x − oldMin &lt; 0，min 改成 x。弹出：oldMin = min − diff = x − (x − oldMin)。Java 里差值建议用 <code>long</code>，避免 <code>value − min</code> 溢出。</div>'
+    }
+  };
+
+  function fmtOp(op) { return op.type === 'push' ? 'push(' + op.val + ')' : op.type + '()'; }
+  function fmtMin(v) { return v === INF ? 'inf' : String(v); }
+
+  function parseInput(raw) {
+    if (typeof raw !== 'string') return { error: '输入无效。' };
+    var parts = raw.split(';').map(function (s) { return s.trim(); }).filter(function (s) { return s.length; });
+    if (!parts.length) return { error: '至少需要 1 个操作。' };
+    if (parts.length > 20) return { error: '为了动画清晰，最多 20 个操作。' };
+    var out = [], size = 0;
+    for (var i = 0; i < parts.length; i++) {
+      var push = /^push\(\s*(-?\d+)\s*\)$/.exec(parts[i]);
+      var other = /^(pop|top|getMin)\(\s*\)$/.exec(parts[i]);
+      if (push) {
+        var n = Number(push[1]);
+        if (!/^-?\d+$/.test(push[1]) || n < -1000000 || n > 1000000) return { error: 'push 的参数必须是 −1,000,000～1,000,000 的整数。' };
+        out.push({ type: 'push', val: n }); size++;
+      } else if (other) {
+        if (!size) return { error: '第 ' + (i + 1) + ' 个操作 ' + other[1] + '() 时栈为空。题目保证不会对空栈调用。' };
+        out.push({ type: other[1] });
+        if (other[1] === 'pop') size--;
+      } else return { error: '无法解析「' + parts[i] + '」。只接受 push(x) / pop() / top() / getMin()。' };
+    }
+    return { ops: out };
+  }
+
+  function actualTop(st) {
+    if (!st.size) return null;
+    if (method === 'list') return st.nodes[0].val;
+    if (method === 'diff') {
+      var d = st.diffs[st.diffs.length - 1];
+      return d < 0 ? st.minVar : st.minVar + d;
+    }
+    return st.data[st.data.length - 1];
+  }
+
+  function buildSteps(list) {
+    var data = [], mins = [], diffs = [], nodes = [];
+    var minVar = INF, out = [];
+    function snap(extra) {
+      out.push({
+        data: data.slice(), mins: mins.slice(), diffs: diffs.slice(),
+        nodes: nodes.map(function (n) { return { val: n.val, min: n.min }; }),
+        minVar: minVar,
+        size: method === 'list' ? nodes.length : (method === 'diff' ? diffs.length : data.length),
+        opIndex: extra.opIndex, completed: extra.completed, phase: extra.phase,
+        highlight: extra.highlight || '', formula: extra.formula || '',
+        ret: extra.ret === undefined ? null : extra.ret, msg: extra.msg
+      });
+    }
+    var startMsg = {
+      array: '初始化：<code>stack</code> / <code>min_stack</code> 为空，<code>self.min = inf</code>。',
+      list: '初始化：<code>self.head = None</code>。之后每次 push 都在头部插入节点。',
+      diff: '初始化：栈为空，<code>self.min = inf</code>。栈里将只存差值 <code>value − min</code>。'
+    };
+    snap({ opIndex: -1, completed: 0, phase: 'start', msg: startMsg[method] });
+
+    list.forEach(function (op, idx) {
+      if (op.type === 'push') {
+        if (method === 'array') {
+          data.push(op.val);
+          minVar = Math.min(minVar, op.val);
+          mins.push(minVar);
+          snap({
+            opIndex: idx, completed: idx + 1, phase: 'push', highlight: 'fresh',
+            msg: '执行 <b>push(' + op.val + ')</b>：stack 压入 ' + op.val + '；<code>self.min = min(' + fmtMin(mins.length > 1 ? mins[mins.length - 2] : INF) + ', ' + op.val + ') = <span class="ok">' + minVar + '</span></code>；min_stack 同步压入这个 min。'
+          });
+        } else if (method === 'list') {
+          var newMin = nodes.length ? Math.min(op.val, nodes[0].min) : op.val;
+          minVar = newMin;
+          nodes.unshift({ val: op.val, min: newMin });
+          snap({
+            opIndex: idx, completed: idx + 1, phase: 'push', highlight: 'fresh',
+            msg: nodes.length === 1
+              ? '执行 <b>push(' + op.val + ')</b>：空链表，新 head 的 value = min = <span class="ok">' + op.val + '</span>。'
+              : '执行 <b>push(' + op.val + ')</b>：头插。value = ' + op.val + '，min = min(' + op.val + ', 旧 head.min) = <span class="ok">' + newMin + '</span>。'
+          });
+        } else {
+          if (!diffs.length) {
+            diffs.push(0); minVar = op.val;
+            snap({
+              opIndex: idx, completed: idx + 1, phase: 'push', highlight: 'fresh',
+              formula: '空栈：压入 0，min = ' + op.val,
+              msg: '执行 <b>push(' + op.val + ')</b>：空栈，压入差值 0，<code>self.min = <span class="ok">' + op.val + '</span></code>。'
+            });
+          } else {
+            var old = minVar, d = op.val - minVar;
+            diffs.push(d);
+            if (d < 0) minVar = op.val;
+            snap({
+              opIndex: idx, completed: idx + 1, phase: 'push', highlight: 'fresh',
+              formula: 'diff = ' + op.val + ' − (' + old + ') = ' + d + (d < 0 ? '  < 0，min 改成 ' + op.val : '  ≥ 0，min 不变'),
+              msg: d < 0
+                ? '执行 <b>push(' + op.val + ')</b>：<code>diff = ' + op.val + ' − (' + old + ') = <span class="ok">' + d + '</span></code> &lt; 0，刷新 <code>self.min = ' + op.val + '</code>。'
+                : '执行 <b>push(' + op.val + ')</b>：<code>diff = ' + op.val + ' − (' + old + ') = <span class="ok">' + d + '</span></code> ≥ 0，min 仍是 ' + old + '。'
+            });
+          }
+        }
+      } else if (op.type === 'pop') {
+        if (method === 'array') {
+          snap({ opIndex: idx, completed: idx, phase: 'pop', highlight: 'gone', msg: '执行 <b>pop()</b>：即将弹出 stack 的 ' + data[data.length - 1] + ' 和 min_stack 的 ' + mins[mins.length - 1] + '。' });
+          data.pop(); mins.pop();
+          minVar = mins.length ? mins[mins.length - 1] : INF;
+          snap({ opIndex: idx, completed: idx + 1, phase: 'pop', highlight: '', msg: '弹出完成。<code>self.min = ' + fmtMin(minVar) + '</code>' + (data.length ? '，top = ' + data[data.length - 1] + '。' : '，两栈已空。') });
+        } else if (method === 'list') {
+          snap({ opIndex: idx, completed: idx, phase: 'pop', highlight: 'gone', msg: '执行 <b>pop()</b>：即将丢掉 head（value = ' + nodes[0].val + '，min = ' + nodes[0].min + '），<code>head = head.next</code>。' });
+          nodes.shift();
+          minVar = nodes.length ? nodes[0].min : INF;
+          snap({ opIndex: idx, completed: idx + 1, phase: 'pop', highlight: '', msg: nodes.length ? 'head 已后移。现在 top = ' + nodes[0].val + '，getMin = ' + nodes[0].min + '。' : '链表已空，head = None。' });
+        } else {
+          var y = diffs[diffs.length - 1], curMin = minVar;
+          snap({
+            opIndex: idx, completed: idx, phase: 'pop', highlight: 'gone',
+            formula: y < 0 ? y + ' < 0，真实 top 是 min，即将还原旧 min' : y + ' ≥ 0，真实值 = min + diff，min 不变',
+            msg: y < 0
+              ? '执行 <b>pop()</b>：栈顶差值 ' + y + ' &lt; 0，真实 top 是当前 min ' + curMin + '。'
+              : '执行 <b>pop()</b>：栈顶差值 ' + y + ' ≥ 0，真实 top = ' + curMin + ' + ' + y + ' = ' + (curMin + y) + '，min 不变。'
+          });
+          diffs.pop();
+          if (!diffs.length) minVar = INF;
+          else if (y < 0) minVar = curMin - y;
+          snap({
+            opIndex: idx, completed: idx + 1, phase: 'pop', highlight: '',
+            formula: y < 0 ? 'oldMin = min − diff = ' + curMin + ' − (' + y + ') = ' + (curMin - y) : (diffs.length ? 'min 保持 ' + curMin : '栈空，min = inf'),
+            msg: !diffs.length
+              ? '弹出完成，栈空，<code>self.min = inf</code>。'
+              : (y < 0
+                ? '还原：<code>oldMin = ' + curMin + ' − (' + y + ') = <span class="ok">' + (curMin - y) + '</span></code>。现在 min = ' + (curMin - y) + '。'
+                : '弹出完成。min 仍是 <span class="ok">' + curMin + '</span>。')
+          });
+        }
+      } else if (op.type === 'top') {
+        var t = actualTop({ size: 1, nodes: nodes, diffs: diffs, data: data, minVar: minVar });
+        var topMsg = method === 'diff' && diffs[diffs.length - 1] < 0
+          ? '执行 <b>top()</b>：栈顶差值 &lt; 0，真实 top 就是 <code>self.min = <span class="ok">' + minVar + '</span></code>。'
+          : method === 'diff'
+            ? '执行 <b>top()</b>：真实值 = min + diff = ' + minVar + ' + ' + diffs[diffs.length - 1] + ' = <span class="ok">' + t + '</span>。'
+            : method === 'list'
+              ? '执行 <b>top()</b>：返回 <code>head.value = <span class="ok">' + t + '</span></code>。'
+              : '执行 <b>top()</b>：返回 <span class="ok">' + t + '</span>。';
+        snap({ opIndex: idx, completed: idx + 1, phase: 'top', highlight: 'look', ret: t, formula: method === 'diff' ? (diffs[diffs.length - 1] < 0 ? 'diff < 0 ⇒ top = min' : 'top = min + diff') : '', msg: topMsg });
+      } else {
+        var m = method === 'list' ? nodes[0].min : minVar;
+        snap({
+          opIndex: idx, completed: idx + 1, phase: 'getMin', highlight: 'look-min', ret: m,
+          msg: method === 'list'
+            ? '执行 <b>getMin()</b>：返回 <code>head.min = <span class="ok">' + m + '</span></code>。'
+            : '执行 <b>getMin()</b>：直接返回 <code>self.min = <span class="ok">' + m + '</span></code>。'
+        });
+      }
+    });
+    snap({
+      opIndex: -1, completed: list.length, phase: 'done',
+      msg: method === 'diff'
+        ? '全部操作完成。栈本身仍要 O(n) 存差值，但<strong>额外</strong>只要一个 min，额外空间 O(1)。'
+        : '全部操作完成。每个操作都是 O(1)，额外空间 O(n)。'
+    });
+    return out;
+  }
+
+  function renderStack(el, values, kind, highlight) {
+    el.innerHTML = '';
+    if (!values.length) { el.innerHTML = '<div class="empty-hint">（空）</div>'; return; }
+    values.forEach(function (v, pos) {
+      var item = document.createElement('div');
+      var isTop = pos === values.length - 1;
+      item.className = 'stack-item ' + (kind === 'min' ? 'min-item' : kind === 'diff' ? 'diff-item' : 'data-item');
+      if (kind === 'diff' && v < 0) item.classList.add('neg');
+      if (isTop) item.classList.add('top');
+      if (isTop && highlight === 'fresh') item.classList.add('fresh');
+      if (isTop && highlight === 'gone') item.classList.add('gone');
+      if (isTop && (highlight === 'look' || (highlight === 'look-min' && kind === 'min'))) item.classList.add('look');
+      if (kind === 'diff') {
+        item.innerHTML = v + '<span class="tiny">' + (v < 0 ? '真实 top = min' : '真实 top = min + diff') + '</span>';
+      } else item.textContent = v;
+      el.appendChild(item);
+    });
+  }
+
+  function renderList(st) {
+    var el = document.getElementById('chain');
+    el.innerHTML = '';
+    if (!st.nodes.length) { el.innerHTML = '<div class="empty-hint">self.head = None</div>'; return; }
+    st.nodes.forEach(function (n, i) {
+      var node = document.createElement('div');
+      node.className = 'lnode' + (i === 0 ? ' head' : '');
+      if (i === 0 && st.highlight === 'fresh') node.classList.add('fresh');
+      if (i === 0 && st.highlight === 'gone') node.classList.add('gone');
+      if (i === 0 && (st.highlight === 'look' || st.highlight === 'look-min')) node.classList.add('look');
+      node.innerHTML = (i === 0 ? '<div class="role">self.head · 栈顶</div>' : '') +
+        '<div class="fld"><span class="k">value</span>' + n.val + '</div>' +
+        '<div class="fld mn"><span class="k">min</span>' + n.min + '</div>';
+      el.appendChild(node);
+      var ar = document.createElement('div'); ar.className = 'arrow'; ar.textContent = 'next →';
+      el.appendChild(ar);
+    });
+    var tail = document.createElement('div'); tail.className = 'null-tail'; tail.textContent = 'None';
+    el.appendChild(tail);
+  }
+
+  function renderMeta() {
+    var meta = META[method];
+    document.getElementById('ideaBox').innerHTML = meta.idea;
+    document.getElementById('phaseStrip').innerHTML = meta.phases.map(function (p) {
+      return '<div class="phase" data-phase="' + p[0] + '"><div class="no">' + p[0] + '</div><b>' + p[1] + '</b></div>';
+    }).join('');
+    document.getElementById('legend').innerHTML = meta.legend.map(function (d) {
+      return '<span><span class="dot" style="background:' + d[0] + ';border-color:' + d[1] + '"></span>' + d[2] + '</span>';
+    }).join('');
+    document.getElementById('viewArray').classList.toggle('hidden', method !== 'array');
+    document.getElementById('viewList').classList.toggle('hidden', method !== 'list');
+    document.getElementById('viewDiff').classList.toggle('hidden', method !== 'diff');
+  }
+
+  function render() {
+    var st = steps[stepIdx];
+    if (method === 'array') {
+      renderStack(document.getElementById('dataStack'), st.data, 'data', st.highlight);
+      renderStack(document.getElementById('minStack'), st.mins, 'min', st.highlight);
+    } else if (method === 'list') {
+      renderList(st);
+    } else {
+      renderStack(document.getElementById('diffStack'), st.diffs, 'diff', st.highlight);
+      document.getElementById('diffMinVal').textContent = fmtMin(st.minVar);
+      document.getElementById('diffMinBox').classList.toggle('look', st.highlight === 'look-min' || st.highlight === 'look');
+      document.getElementById('diffFormula').textContent = st.formula || '本步没有差值运算。';
+    }
+    var opsEl = document.getElementById('ops');
+    opsEl.innerHTML = '';
+    ops.forEach(function (op, i) {
+      var d = document.createElement('div');
+      d.className = 'op' + (i === st.opIndex ? ' curr' : (st.opIndex > i || st.phase === 'done' ? ' done' : ''));
+      d.textContent = fmtOp(op);
+      opsEl.appendChild(d);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#phaseStrip .phase'), function (el) {
+      el.classList.toggle('active', el.getAttribute('data-phase') === st.phase);
+    });
+    var top = actualTop(st);
+    document.getElementById('minLabel').textContent = method === 'list' ? 'head.min' : 'self.min';
+    document.getElementById('minVarVal').textContent = method === 'list' ? (st.nodes.length ? String(st.nodes[0].min) : 'None') : fmtMin(st.minVar);
+    document.getElementById('topVal').textContent = top === null ? '—' : top;
+    document.getElementById('minVal').textContent = st.size ? (method === 'list' ? String(st.nodes[0].min) : fmtMin(st.minVar)) : '—';
+    document.getElementById('retVal').textContent = st.ret === null || st.ret === undefined ? '—' : st.ret;
+    document.getElementById('stats').innerHTML =
+      '<div class="stat">当前操作<b>' + (st.opIndex < 0 ? '—' : fmtOp(ops[st.opIndex])) + '</b></div>' +
+      '<div class="stat">已完成<b>' + st.completed + ' / ' + ops.length + '</b></div>' +
+      '<div class="stat">单次时间<b>O(1)</b></div>' +
+      '<div class="stat">额外空间<b>' + META[method].space + '</b></div>';
+    document.getElementById('status').innerHTML = st.msg;
+    document.getElementById('progress').textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
+    document.getElementById('prevBtn').disabled = stepIdx === 0;
+    document.getElementById('nextBtn').disabled = stepIdx === steps.length - 1;
+  }
+
+  function load(raw) {
+    var parsed = parseInput(raw);
+    if (parsed.error) { errEl.textContent = parsed.error + ' 当前动画保持不变。'; errEl.classList.add('show'); return false; }
+    errEl.classList.remove('show');
+    stopPlay(); ops = parsed.ops; steps = buildSteps(ops); stepIdx = 0; render(); return true;
+  }
+  function next() { if (stepIdx < steps.length - 1) { stepIdx++; render(); } }
+  function prev() { if (stepIdx > 0) { stepIdx--; render(); } }
+  function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; playBtn.textContent = '▶ 自动播放'; } }
+  function togglePlay() {
+    if (playTimer) { stopPlay(); return; }
+    if (stepIdx >= steps.length - 1) { stepIdx = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    playTimer = setInterval(function () { if (stepIdx >= steps.length - 1) { stopPlay(); return; } next(); }, 850);
+  }
+
+  document.getElementById('nextBtn').onclick = function () { stopPlay(); next(); };
+  document.getElementById('prevBtn').onclick = function () { stopPlay(); prev(); };
+  document.getElementById('playBtn').onclick = togglePlay;
+  document.getElementById('resetBtn').onclick = function () { stopPlay(); stepIdx = 0; render(); };
+  document.getElementById('loadBtn').onclick = function () { load(input.value); };
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (ch) {
+    ch.onclick = function () { input.value = ch.textContent; load(ch.textContent); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      method = tab.getAttribute('data-method');
+      renderMeta(); showCode();
+      if (ops.length) { stopPlay(); steps = buildSteps(ops); stepIdx = 0; render(); }
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === input) return;
+    if (e.key === 'ArrowRight') document.getElementById('nextBtn').click();
+    if (e.key === 'ArrowLeft') document.getElementById('prevBtn').click();
+  });
+
+  var codes = {
+    array: {
+      py: '<span class="cmt"># 普通解法：数据栈 + 同步最小栈 + self.min</span>\nfrom math import inf\n\nclass MinStack:\n    def __init__(self):\n        self.stack = []\n        self.min_stack = []\n        self.min = inf\n\n    def push(self, value: int) -&gt; None:\n        self.stack.append(value)\n        self.min = min(self.min, value)\n        self.min_stack.append(self.min)\n\n    def pop(self) -&gt; None:\n        self.stack.pop()\n        self.min_stack.pop()\n        self.min = inf if not self.min_stack else self.min_stack[-1]\n\n    def top(self) -&gt; int:\n        return self.stack[-1] if self.stack else None\n\n    def getMin(self) -&gt; int:\n        return self.min if self.min != inf else None',
+      java: '<span class="cmt">// 普通解法：数据栈 + 同步最小栈 + min 缓存</span>\nclass MinStack {\n    private final Deque&lt;Integer&gt; stack = new ArrayDeque&lt;&gt;();\n    private final Deque&lt;Integer&gt; minStack = new ArrayDeque&lt;&gt;();\n    private int min = Integer.MAX_VALUE;\n    public void push(int value) {\n        stack.push(value);\n        min = Math.min(min, value);\n        minStack.push(min);\n    }\n    public void pop() {\n        stack.pop();\n        minStack.pop();\n        min = minStack.isEmpty() ? Integer.MAX_VALUE : minStack.peek();\n    }\n    public int top() { return stack.peek(); }\n    public int getMin() { return min; }\n}'
+    },
+    list: {
+      py: '<span class="cmt"># 链表实现：每个节点存 value + 到此为止的 min</span>\nclass Node:\n    def __init__(self, value, min_val, next=None):\n        self.value = value\n        self.min = min_val\n        self.next = next\n\nclass MinStack:\n    def __init__(self):\n        self.head = None\n\n    def push(self, value: int) -&gt; None:\n        if not self.head:\n            self.head = Node(value, value)\n        else:\n            self.head = Node(value, min(self.head.min, value), self.head)\n\n    def pop(self) -&gt; None:\n        self.head = self.head.next\n\n    def top(self) -&gt; int:\n        return self.head.value if self.head else None\n\n    def getMin(self) -&gt; int:\n        return self.head.min if self.head else None',
+      java: '<span class="cmt">// 链表实现</span>\nclass Node {\n    int value, min;\n    Node next;\n    Node(int value, int min, Node next) {\n        this.value = value; this.min = min; this.next = next;\n    }\n}\nclass MinStack {\n    private Node head;\n    public void push(int value) {\n        if (head == null) head = new Node(value, value, null);\n        else head = new Node(value, Math.min(value, head.min), head);\n    }\n    public void pop() { head = head.next; }\n    public int top() { return head.value; }\n    public int getMin() { return head.min; }\n}'
+    },
+    diff: {
+      py: '<span class="cmt"># 存储差值法：栈里只存 value - min，额外 O(1)</span>\nfrom math import inf\n\nclass MinStack:\n    def __init__(self):\n        self.stack = []\n        self.min = inf\n\n    def push(self, value: int) -&gt; None:\n        if not self.stack:\n            self.stack.append(0)\n            self.min = value\n        else:\n            diff = value - self.min\n            self.stack.append(diff)\n            if diff &lt; 0:\n                self.min = value\n\n    def pop(self) -&gt; None:\n        diff = self.stack.pop()\n        if diff &lt; 0:\n            self.min = self.min - diff   <span class="cmt"># 还原旧最小值</span>\n        if not self.stack:\n            self.min = inf\n\n    def top(self) -&gt; int:\n        diff = self.stack[-1]\n        return self.min if diff &lt; 0 else self.min + diff\n\n    def getMin(self) -&gt; int:\n        return self.min if self.min != inf else None',
+      java: '<span class="cmt">// 存储差值法：用 long 避免 value - min 溢出</span>\nclass MinStack {\n    private final Deque&lt;Long&gt; stack = new ArrayDeque&lt;&gt;();\n    private long min;\n    public void push(int value) {\n        long x = value;\n        if (stack.isEmpty()) { stack.push(0L); min = x; }\n        else {\n            long diff = x - min;\n            stack.push(diff);\n            if (diff &lt; 0) min = x;\n        }\n    }\n    public void pop() {\n        long diff = stack.pop();\n        if (diff &lt; 0) min = min - diff;\n    }\n    public int top() {\n        long diff = stack.peek();\n        return (int) (diff &lt; 0 ? min : min + diff);\n    }\n    public int getMin() { return (int) min; }\n}'
+    }
+  };
+  function showCode() { document.getElementById('codeBlock').innerHTML = codes[method][codeLang]; }
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (t) {
+    t.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) { x.classList.remove('active'); });
+      t.classList.add('active'); codeLang = t.dataset.lang; showCode();
+    };
+  });
+  renderMeta(); showCode(); load(input.value);
+})();
+</script>
+</body>
+</html>
