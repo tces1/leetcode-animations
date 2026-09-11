@@ -9,32 +9,41 @@
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
+    margin: 0; padding: 24px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
+    background: #f6f7f9; color: #1d2129; line-height: 1.5;
   }
-  .wrap { max-width: 920px; margin: 0 auto; }
-  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  .navbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .difftag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; }
+  .link { font-size: 12px; color: #6b7280; }
+  .link a { color: #6366f1; text-decoration: none; }
+  .link a:hover { text-decoration: underline; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
-  .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+  .sub b { color: #1d2129; }
+  code { background: #eef0f4; padding: 1px 5px; border-radius: 5px; font: 12px "SF Mono", Menlo, monospace; }
 
   .card {
     background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
     padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
   }
-  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  input[type=text] {
-    flex: 1; min-width: 180px; padding: 9px 12px; font-size: 15px;
-    font-family: "SF Mono", Menlo, monospace; border: 1px solid #d1d5db; border-radius: 8px; outline: none;
-  }
-  input[type=number] {
-    width: 72px; padding: 9px 10px; font-size: 15px; font-family: "SF Mono", Menlo, monospace;
+  .panel-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+  .idea { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .idea-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #4b5563; background: #f8fafc; }
+  .idea-item .no { font-size: 11px; font-weight: 700; letter-spacing: .05em; color: #6366f1; }
+  .idea-item b { color: #1d2129; }
+  .key-note { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; font-size: 13px; }
+  .key-note code { background: #dbeafe; }
+
+  .input-grid { display: grid; grid-template-columns: minmax(0, 1fr) 120px auto auto; gap: 10px; align-items: end; }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field .lab { font-size: 12px; color: #6b7280; font-weight: 700; }
+  input[type=text], input[type=number] {
+    width: 100%; min-width: 0; padding: 9px 11px; font: 13px "SF Mono", Menlo, monospace;
     border: 1px solid #d1d5db; border-radius: 8px; outline: none;
   }
   input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
-  label { font-size: 14px; color:#374151; font-weight:600; }
   button {
     padding: 9px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 8px;
     cursor: pointer; background: #6366f1; color: #fff; transition: background .15s;
@@ -43,167 +52,342 @@
   button.ghost { background: #eef0f4; color: #374151; }
   button.ghost:hover { background: #e2e5eb; }
   button:disabled { opacity: .45; cursor: not-allowed; }
-  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .examples .lab, .hint { font-size: 12px; color: #9ca3af; }
   .chip {
-    font-family: "SF Mono", Menlo, monospace; font-size: 13px; padding: 5px 10px;
+    font: 12px "SF Mono", Menlo, monospace; padding: 5px 10px;
     background: #f1f2f4; border: 1px solid #e5e7eb; border-radius: 999px; cursor: pointer; color: #374151;
   }
   .chip:hover { background: #e6e8ec; }
-  .target-info { margin-top:12px; font-size:13px; color:#4b5563; }
-  .target-info b { font-family:"SF Mono",Menlo,monospace; color:#4338ca; }
+  .err { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+  .err.show { display: block; }
+  .hint { margin-top: 8px; }
 
-  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
-  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
-  .cell { width: 54px; display:flex; flex-direction:column; align-items:center; gap:3px; }
-  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
-  .box {
-    width: 100%; height: 46px; display:flex; align-items:center; justify-content:center;
-    font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700;
-    border-radius:8px; background:#f8fafc; color:#334155; border:2px solid #e2e8f0; transition: all .18s;
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 14px; }
+  .stat { background: #f8fafc; border: 1px solid #eef0f4; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #6b7280; }
+  .stat b { display: block; font: 800 15px "SF Mono", Menlo, monospace; color: #1d2129; }
+  .progress { margin-left: auto; font-size: 12px; color: #9ca3af; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .controls-spaced { margin-bottom: 14px; }
+
+  .phases { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .phase {
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 9px 10px;
+    font-size: 12px; color: #6b7280; background: #f8fafc; transition: .18s;
   }
-  .box.unknown  { background:#f8fafc; color:#334155; border-color:#e2e8f0; }      /* 待处理 */
-  .box.less     { background:#dbeafe; color:#1e40af; border-color:#bfdbfe; }      /* 小于区 */
-  .box.equal    { background:#ede9fe; color:#6d28d9; border-color:#c4b5fd; }      /* 等于区(基准) */
-  .box.greater  { background:#ffedd5; color:#c2410c; border-color:#fed7aa; }      /* 大于区 */
-  .box.out      { background:#f1f2f4; color:#c7cbd1; border-color:#eceef1; }      /* 已排除 */
-  .box.swap     { background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }      /* 交换中 */
-  .box.answer   { background:#22c55e; color:#fff; border-color:#16a34a; box-shadow:0 6px 14px rgba(34,197,94,.4); }
-  .ptr-cell { width:54px; min-height:20px; display:flex; align-items:center; justify-content:center; gap:3px; flex-wrap:wrap; }
-  .ptr { font-family:"SF Mono",Menlo,monospace; font-size:11px; font-weight:700; padding:0 5px; border-radius:5px; }
-  .ptr.lt { background:#dbeafe; color:#1d4ed8; }
-  .ptr.i  { background:#e0e7ff; color:#4338ca; }
-  .ptr.gt { background:#ffedd5; color:#c2410c; }
+  .phase .no { display: block; font-size: 10px; font-weight: 800; letter-spacing: .04em; color: #94a3b8; margin-bottom: 2px; }
+  .phase.active { background: #eef2ff; border-color: #818cf8; color: #3730a3; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+  .phase.active .no { color: #6366f1; }
+  .phase.done { background: #ecfdf5; border-color: #86efac; color: #166534; }
+  .phase.done .no { color: #16a34a; }
 
-  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
-  .status b { color:#fca5a5; } .status .op { color:#86efac; font-weight:700; } .status .hl { color:#fcd34d; font-weight:700; }
-  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
-  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:12px;}
-  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+  .stage {
+    overflow: auto; border: 1px solid #eef0f4; border-radius: 12px;
+    background: linear-gradient(#fafbff, #fff); padding: 18px 16px 12px; text-align: center;
+  }
+  .board { display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: max-content; margin: 0 auto; }
+  .pin, .tick, .cell, .ptr { width: 56px; }
+  .pin-row, .ruler, .array, .ptr-row { display: grid; gap: 7px; min-width: max-content; }
+  .pin {
+    height: 20px; display: flex; align-items: flex-end; justify-content: center;
+    font: 800 9px "SF Mono", Menlo, monospace; color: transparent;
+  }
+  .pin mark {
+    background: #fef3c7; color: #b45309; border: 1px solid #f59e0b;
+    border-radius: 999px; padding: 0 6px; line-height: 16px;
+  }
+  .pin.answer mark { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .tick { height: 6px; border-radius: 3px; background: #e5e7eb; }
+  .tick.on { background: #a5b4fc; }
+  .tick.target { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,.28); }
+  .tick.out { background: #eef0f4; }
+
+  .cell {
+    position: relative; height: 58px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font: 800 18px "SF Mono", Menlo, monospace; color: #334155;
+    background: #fff; border: 2px solid #e2e8f0;
+    transition: background .18s, border-color .18s, box-shadow .18s, transform .18s, opacity .18s;
+  }
+  .cell .idx { position: absolute; top: 3px; left: 6px; font-size: 9px; font-weight: 700; color: #94a3b8; }
+  .cell .badge {
+    position: absolute; top: 3px; right: 4px; font-size: 8px; font-weight: 800;
+    color: #6d28d9; letter-spacing: .02em;
+  }
+  .cell.less { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+  .cell.equal { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+  .cell.greater { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+  .cell.unknown { background: #fff; border-color: #e2e8f0; color: #334155; }
+  .cell.out { background: #f1f5f9; border-color: #e2e8f0; color: #cbd5e1; opacity: .7; }
+  .cell.current { background: #fef3c7; border-color: #f59e0b; color: #92400e; box-shadow: 0 0 0 4px rgba(245,158,11,.2); transform: translateY(-2px); z-index: 2; }
+  .cell.swap { background: #fee2e2; border-color: #ef4444; color: #991b1b; box-shadow: 0 0 0 4px rgba(239,68,68,.18); transform: scale(1.06); z-index: 3; }
+  .cell.answer { background: #22c55e; border-color: #16a34a; color: #fff; box-shadow: 0 0 0 4px rgba(34,197,94,.22); transform: translateY(-2px); }
+  .cell.answer .idx, .cell.answer .badge { color: #dcfce7; }
+  .cell.target-ring { box-shadow: 0 0 0 3px rgba(245,158,11,.28); }
+  .cell.unknown.target-ring { background: #fffbeb; border-color: #fbbf24; }
+  .cell.answer.target-ring { box-shadow: 0 0 0 4px rgba(34,197,94,.22); }
+
+  .ptr {
+    min-height: 22px; display: flex; align-items: flex-start; justify-content: center;
+    font: 800 10px "SF Mono", Menlo, monospace; flex-wrap: wrap; gap: 2px;
+  }
+  .pl { color: #1d4ed8; } .pi { color: #4f46e5; } .pg { color: #c2410c; }
+
+  .visual { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .95fr); gap: 14px; align-items: stretch; margin-bottom: 4px; }
+  .pane {
+    border: 1px solid #e5e7eb; border-radius: 12px; background: #fafbff;
+    padding: 12px 14px 14px; min-width: 0; display: flex; flex-direction: column;
+  }
+  .pane-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; }
+  .pane-head .panel-title { margin-bottom: 0; }
+  .pane-sub { font-size: 12px; color: #94a3b8; }
+  .pane .stage { flex: 1; background: linear-gradient(#fff, #f8fafc); }
+
+  .ptree { display: flex; flex-direction: column; align-items: center; padding: 4px 0 8px; }
+  .ptree-root {
+    min-width: 108px; padding: 8px 16px; border-radius: 12px; text-align: center;
+    background: #ede9fe; border: 2px solid #c4b5fd; color: #5b21b6;
+    box-shadow: 0 4px 10px rgba(109, 40, 217, .08);
+  }
+  .ptree-root.idle { background: #f8fafc; border-color: #e2e8f0; color: #94a3b8; box-shadow: none; }
+  .ptree-root.hit { background: #dcfce7; border-color: #22c55e; color: #166534; }
+  .ptree-root .k { display: block; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+  .ptree-root b { display: block; font: 800 22px "SF Mono", Menlo, monospace; line-height: 1.15; }
+  .ptree-root small { display: block; margin-top: 2px; font: 700 11px "SF Mono", Menlo, monospace; opacity: .75; }
+  .ptree-fork {
+    width: min(86%, 280px); height: 22px; margin-top: 6px; position: relative;
+    border-top: 2px solid #cbd5e1; border-left: 2px solid #93c5fd; border-right: 2px solid #fdba74;
+    border-radius: 10px 10px 0 0;
+  }
+  .ptree-fork::after {
+    content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
+    background: #c4b5fd; transform: translateX(-50%);
+  }
+  .ptree-kids { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 100%; }
+  .reg { position: relative; }
+  .reg.active { box-shadow: 0 0 0 3px rgba(99,102,241,.16); }
+  .reg.hit { background: #ecfdf5; border-color: #86efac; box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+  .reg.drop { opacity: .42; }
+  .reg .star {
+    position: absolute; top: -8px; right: 8px; font: 800 9px "SF Mono", Menlo, monospace;
+    background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; border-radius: 999px; padding: 0 6px; line-height: 16px;
+  }
+  .pending-row {
+    margin-top: 10px; min-height: 40px; border: 1px dashed #dbe1ea; border-radius: 10px;
+    padding: 8px 10px; background: #fff; color: #64748b; font-size: 12px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  }
+  .pending-row .lab { font-weight: 700; margin-right: 6px; color: #94a3b8; }
+  .hist { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .hist-item {
+    font: 12px "SF Mono", Menlo, monospace; color: #475569;
+    border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 10px; background: #fff;
+  }
+  .hist-item b { color: #1d2129; }
+  .hist-item .go { font-weight: 800; }
+  .hist-item .go.less { color: #1d4ed8; }
+  .hist-item .go.eq { color: #6d28d9; }
+  .hist-item .go.greater { color: #c2410c; }
+
+  .dash { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .box { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc; color: #64748b; text-align: center; font-size: 12px; }
+  .box b { display: block; min-height: 27px; color: #334155; font: 800 16px "SF Mono", Menlo, monospace; margin-top: 2px; }
+  .box.cmp-lt b { color: #1d4ed8; }
+  .box.cmp-eq b { color: #6d28d9; }
+  .box.cmp-gt b { color: #c2410c; }
+  .box.cmp-hit b { color: #15803d; }
+
+  .regions { margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .reg { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc; min-height: 74px; }
+  .reg.less { background: #eff6ff; border-color: #bfdbfe; }
+  .reg.eq { background: #f5f3ff; border-color: #ddd6fe; }
+  .reg.greater { background: #fff7ed; border-color: #fed7aa; }
+  .reg h4 { margin: 0 0 8px; font-size: 12px; color: #64748b; }
+  .reg h4 b { color: #1d2129; font-family: "SF Mono", Menlo, monospace; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bit {
+    min-width: 32px; padding: 4px 8px; border-radius: 8px; text-align: center;
+    font: 800 13px "SF Mono", Menlo, monospace; border: 1px solid transparent;
+  }
+  .bit.less { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+  .bit.eq { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+  .bit.greater { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+  .bit.pending { background: #fff; border-color: #e2e8f0; color: #64748b; }
+  .ghost { font-size: 12px; color: #9ca3af; }
+
+  .rule {
+    margin-top: 10px; border-radius: 10px; background: #0f172a; color: #e2e8f0;
+    padding: 11px 14px; min-height: 45px; display: flex; align-items: center; justify-content: center;
+    font: 14px "SF Mono", Menlo, monospace; text-align: center;
+  }
+  .rule .yes { color: #86efac; font-weight: 800; }
+  .rule .no { color: #fca5a5; font-weight: 800; }
+  .rule .accent { color: #fcd34d; font-weight: 800; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #6b7280; margin-top: 14px; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -2px; border: 1px solid rgba(0,0,0,.08); }
+  .status-title { margin-top: 16px; }
+  .status { background: #111827; color: #e5e7eb; border-radius: 10px; padding: 14px 16px; font-size: 14px; min-height: 50px; }
+  .status b { color: #fcd34d; }
+  .status .op { color: #86efac; font-weight: 700; }
+  .status .hl { color: #86efac; font-weight: 800; }
+  .status code { background: #1f2937; color: #93c5fd; }
 
   details.code { margin-top: 4px; }
-  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
-  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
-  pre .cmt { color:#7dd3fc; }
-  .err { color:#b91c1c; font-size:13px; margin-top:8px; }
-  .star-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; margin:0 0 16px; padding:12px 16px; border:1px solid #e0e7ff; border-radius:12px; background:linear-gradient(180deg,#f8faff 0%,#fff 100%); }
-  .star-banner-copy { flex:1; min-width:180px; }
-  .star-banner-title { font-size:14px; font-weight:700; color:#1d2129; }
-  .star-banner-sub { margin-top:2px; font-size:12px; color:#6b7280; }
-  .star-cta { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid #c7d2fe; border-radius:8px; background:#fff; color:#312e81; text-decoration:none; font-size:13px; font-weight:700; box-shadow:0 1px 0 rgba(99,102,241,.08); flex-shrink:0; }
-  .star-cta:hover { border-color:#818cf8; background:#eef2ff; }
-  .star-cta svg { width:14px; height:14px; fill:currentColor; }
+  details.code summary { cursor: pointer; font-weight: 600; font-size: 14px; color: #4f46e5; }
+  .code-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 10px; }
+  .code-tab { font-size: 13px; padding: 5px 12px; border-radius: 999px; cursor: pointer; background: #f1f2f4; border: 1px solid #e5e7eb; color: #374151; }
+  .code-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow: auto; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .cmt { color: #7dd3fc; }
+
+  .star-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 0 0 16px; padding: 12px 16px; border: 1px solid #e0e7ff; border-radius: 12px; background: linear-gradient(180deg, #f8faff 0%, #fff 100%); }
+  .star-banner-copy { flex: 1; min-width: 180px; }
+  .star-banner-title { font-size: 14px; font-weight: 700; color: #1d2129; }
+  .star-banner-sub { margin-top: 2px; font-size: 12px; color: #6b7280; }
+  .star-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid #c7d2fe; border-radius: 8px; background: #fff; color: #312e81; text-decoration: none; font-size: 13px; font-weight: 700; box-shadow: 0 1px 0 rgba(99,102,241,.08); flex-shrink: 0; }
+  .star-cta:hover { border-color: #818cf8; background: #eef2ff; }
+  .star-cta svg { width: 14px; height: 14px; fill: currentColor; }
+
+  @media (max-width: 900px) {
+    .visual { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    body { padding: 16px 12px; }
+    .card { padding: 14px; }
+    .input-grid, .dash, .phases { grid-template-columns: 1fr 1fr; }
+    .input-grid .field:first-child { grid-column: 1 / -1; }
+    .ptree-kids { grid-template-columns: 1fr; }
+    .progress { width: 100%; margin-left: 0; }
+    .cell, .pin, .tick, .ptr { width: 50px; }
+    .cell { height: 50px; font-size: 16px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="navbar">
     <span class="difftag">中等</span>
-    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/kth-largest-element-in-an-array/" target="_blank" rel="noopener">LeetCode 215</a></span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/kth-largest-element-in-an-array/" target="_blank" rel="noopener">LeetCode 215</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
   </div>
 
-  <h1>215. 数组中的第 K 个最大元素 · 快速选择（三路划分）动画</h1>
-  <div class="sub">升序下第 K 大在下标 <code>n − k</code>。<strong>随机基准 + 三路划分</strong>把区间切成「小于 / 等于 / 大于」三块，只往含目标的一侧继续。三路划分让大量重复元素也能一次归位，期望 O(n)（这也是能通过 LeetCode 全部用例的关键）。</div>
+  <h1>215. 数组中的第 K 个最大元素 · 快速选择动画</h1>
+  <div class="sub">全排序当然能做：排完取下标 <code>n − k</code> 就是第 K 大，但是 <code>O(n log n)</code>。本题只要这一个名次，所以金色钉钉的是<b>排好后会坐在这里的位置</b>，不是某个原始元素。三路划分后只走进含这个下标的一侧，左右内部不必再排，期望 <code>O(n)</code>。</div>
 
   <div class="card">
-    <div class="controls">
-      <input type="text" id="input" value="3,2,3,1,2,4,5,5,6" spellcheck="false" placeholder="数组，逗号分隔">
-      <label>k =</label>
-      <input type="number" id="kInput" value="4" min="1">
-      <button id="loadBtn">载入</button>
+    <div class="panel-title">快速选择四步</div>
+    <div class="idea">
+      <div class="idea-item"><div class="no">① 只要这个名次</div>全排序会把每个位置都排好。这里只关心升序下标 <code>target = n − k</code>：它一旦落进等于区，答案就是 pivot，左边更小、右边更大即可，不必继续排。</div>
+      <div class="idea-item"><div class="no">② 随机基准</div>在 <code>[lo, hi]</code> 里随机抽一个值，换到区间左端当 pivot。避免有序输入总选到最值，退化成 <code>O(n²)</code>。</div>
+      <div class="idea-item"><div class="no">③ 三路划分</div><code>lt / i / gt</code> 三指针一次扫描：<b>&lt; pivot</b> 换到左边，<b>&gt; pivot</b> 换到右边，<b>相等</b>就让 i 右移。</div>
+      <div class="idea-item"><div class="no">④ 丢掉另一侧</div><code>target &lt; lt</code> 丢掉右边；<code>target &gt; gt</code> 丢掉左边。被丢掉的那一段永远不会再排——这就是比全排序省的原因。</div>
+    </div>
+    <div class="key-note"><b>为什么不直接 sort？</b>排序要确定全部名次，所以是 <code>O(n log n)</code>。快速选择每趟只递归<b>含 target 的一侧</b>，规模大约 <code>n + n/2 + n/4 + … ≈ 2n</code>，期望 <code>O(n)</code>。金色钉始终标着这个名次下标，方便对照「答案会坐在哪」；格子里的值会在交换中换进来。<br><b>为什么必须三路？</b>若只按 &lt; / ≥ 两路切，全相等数组几乎不缩小区间，LeetCode 会超时。三路把所有等于基准的元素一次归位，这种输入也是线性。</div>
+  </div>
+
+  <div class="card">
+    <div class="input-grid">
+      <label class="field"><span class="lab">nums</span><input id="input" type="text" value="3 2 3 1 2 4 5 5 6" spellcheck="false" placeholder="空格或逗号分隔"></label>
+      <label class="field"><span class="lab">k</span><input id="kInput" type="number" value="4" min="1"></label>
+      <button type="button" id="loadBtn">演示</button>
+      <button type="button" id="reshuffleBtn" class="ghost">换一组随机基准</button>
     </div>
     <div class="examples">
-      <span class="chip" data-nums="3,2,1,5,6,4" data-k="2">[3,2,1,5,6,4] k=2</span>
-      <span class="chip" data-nums="3,2,3,1,2,4,5,5,6" data-k="4">[3,2,3,1,2,4,5,5,6] k=4</span>
-      <span class="chip" data-nums="2,2,2,2,2,2" data-k="3">[2,2,2,2,2,2] k=3（全重复）</span>
-      <span class="chip" data-nums="7,6,5,4,3,2,1" data-k="5">[7,6,5,4,3,2,1] k=5</span>
+      <span class="lab">示例：</span>
+      <span class="chip" data-nums="3 2 1 5 6 4" data-k="2">经典 k=2</span>
+      <span class="chip" data-nums="3 2 3 1 2 4 5 5 6" data-k="4">大量重复 k=4</span>
+      <span class="chip" data-nums="2 2 2 2 2 2" data-k="3">全相等</span>
+      <span class="chip" data-nums="7 6 5 4 3 2 1" data-k="5">逆序</span>
+      <span class="chip" data-nums="1 2 3 4 5" data-k="1">已有序 · 最大值</span>
+      <span class="chip" data-nums="4 1 7 3" data-k="1">短数组 k=1</span>
     </div>
-    <div class="target-info" id="targetInfo"></div>
-    <div class="err" id="err" style="display:none;"></div>
+    <div class="err" id="err"></div>
+    <div class="hint">1～16 个整数，空格或逗号分隔，范围 −999～999。同一输入固定种子，路径可复现；「换一组随机基准」会换一条划分路径。</div>
   </div>
 
   <div class="card">
-    <div class="panel-title">nums（当前数组）</div>
-    <div class="arr-row" id="arrRow"></div>
-    <div class="arr-row" id="ptrRow" style="margin-top:2px;"></div>
-  </div>
-
-  <div class="card">
-    <div class="controls" style="margin-bottom:14px;">
-      <button id="prevBtn" class="ghost">◀ 上一步</button>
-      <button id="nextBtn">下一步 ▶</button>
-      <button id="playBtn" class="ghost">▶ 自动播放</button>
-      <button id="resetBtn" class="ghost">↺ 重置</button>
+    <div class="stats" id="stats"></div>
+    <div class="controls controls-spaced">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
       <span class="progress" id="progress"></span>
     </div>
-    <div class="status" id="status">点击「下一步」开始。</div>
-    <div class="legend">
-      <span><span class="dot" style="background:#dbeafe;border:1px solid #bfdbfe"></span>小于区 (&lt; 基准)</span>
-      <span><span class="dot" style="background:#ede9fe;border:1px solid #c4b5fd"></span>等于区 (= 基准)</span>
-      <span><span class="dot" style="background:#ffedd5;border:1px solid #fed7aa"></span>大于区 (&gt; 基准)</span>
-      <span><span class="dot" style="background:#f8fafc;border:1px solid #e2e8f0"></span>待处理</span>
-      <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>交换中</span>
-      <span><span class="dot" style="background:#f1f2f4;border:1px solid #eceef1"></span>已排除</span>
-      <span><span class="dot" style="background:#22c55e"></span>答案</span>
+
+    <div class="phases" id="phases">
+      <div class="phase" data-key="start"><span class="no">① 名次</span>只要第 k 大</div>
+      <div class="phase" data-key="pick"><span class="no">② 基准</span>随机抽 pivot</div>
+      <div class="phase" data-key="scan"><span class="no">③ 划分</span>荷兰国旗</div>
+      <div class="phase" data-key="done"><span class="no">④ 下落</span>看落在哪段</div>
+      <div class="phase" data-key="found"><span class="no">⑤ 命中</span>等于区归位</div>
     </div>
+
+    <div class="visual">
+      <section class="pane">
+        <div class="pane-head">
+          <div class="panel-title">数组 nums</div>
+          <div class="pane-sub">原地交换 · 金色钉 = 第 k 大最终坐的下标</div>
+        </div>
+        <div class="stage">
+          <div class="board">
+            <div class="pin-row" id="pinRow"></div>
+            <div class="ruler" id="ruler"></div>
+            <div class="array" id="array"></div>
+            <div class="ptr-row" id="ptrRow"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pane">
+        <div class="pane-head">
+          <div class="panel-title">三路分区树</div>
+          <div class="pane-sub" id="treeCaption">pivot 把当前区间切成三叉，只走含 target 的一侧</div>
+        </div>
+        <div class="ptree">
+          <div class="ptree-root idle" id="treeRoot"><span class="k">pivot</span><b>?</b><small>等待选基准</small></div>
+          <div class="ptree-fork" aria-hidden="true"></div>
+          <div class="ptree-kids">
+            <div class="reg less" id="regLessBox"><span class="star" id="starLess" hidden>target</span><h4>小于 &lt; <b id="pLess">pivot</b></h4><div class="chips" id="regLess"></div></div>
+            <div class="reg eq" id="regEqBox"><span class="star" id="starEq" hidden>target</span><h4>等于 = <b id="pEq">pivot</b></h4><div class="chips" id="regEq"></div></div>
+            <div class="reg greater" id="regGreaterBox"><span class="star" id="starGreater" hidden>target</span><h4>大于 &gt; <b id="pGreater">pivot</b></h4><div class="chips" id="regGreater"></div></div>
+          </div>
+        </div>
+        <div class="pending-row" id="pendingRow"><span class="lab">待处理</span><span class="ghost">尚未开始扫描</span></div>
+        <div class="dash">
+          <div class="box">本轮基准<b id="dPivot">—</b></div>
+          <div class="box">正在看<b id="dCur">—</b></div>
+          <div class="box" id="dCmpBox">比较<b id="dCmp">—</b></div>
+          <div class="box">lt · i · gt<b id="dPtr">—</b></div>
+        </div>
+        <div class="rule" id="rule">target = n − k，只把这个下标归位</div>
+        <div class="hist" id="hist"></div>
+      </section>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#dbeafe;border-color:#93c5fd"></span>小于区</span>
+      <span><span class="dot" style="background:#ede9fe;border-color:#c4b5fd"></span>等于区 / 基准</span>
+      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>大于区</span>
+      <span><span class="dot" style="background:#fff;border-color:#e2e8f0"></span>待处理</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>正在比较</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>交换中</span>
+      <span><span class="dot" style="background:#f1f5f9;border-color:#e2e8f0"></span>已排除</span>
+      <span><span class="dot" style="background:#22c55e;border-color:#16a34a"></span>答案</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
   </div>
 
   <div class="card">
     <details class="code">
-      <summary>查看参考代码（Java / Python）</summary>
-      <pre><code>// Java · 随机基准 + 三路划分 · 期望 O(N)
-import java.util.Random;
-class Solution {
-    private final Random rnd = new Random();
-    public int findKthLargest(int[] a, int k) {
-        int n = a.length, target = n - k;    <span class="cmt">// 升序第 target 个 = 第 k 大</span>
-        int lo = 0, hi = n - 1;
-        while (true) {
-            if (lo == hi) return a[lo];
-            swap(a, lo, lo + rnd.nextInt(hi - lo + 1)); <span class="cmt">// 随机基准放到区间首</span>
-            int pivot = a[lo], lt = lo, gt = hi, i = lo + 1;
-            while (i &lt;= gt) {                <span class="cmt">// 荷兰国旗三路划分</span>
-                if (a[i] &lt; pivot)      swap(a, lt++, i++);
-                else if (a[i] &gt; pivot) swap(a, i, gt--);
-                else                   i++;
-            }
-            <span class="cmt">// [lo,lt-1] &lt; pivot；[lt,gt] = pivot；[gt+1,hi] &gt; pivot</span>
-            if (target &lt; lt)      hi = lt - 1;   <span class="cmt">// 目标在小于区</span>
-            else if (target &gt; gt) lo = gt + 1;   <span class="cmt">// 目标在大于区</span>
-            else return pivot;                   <span class="cmt">// 目标落在等于区</span>
-        }
-    }
-    private void swap(int[] a, int x, int y){ int t=a[x]; a[x]=a[y]; a[y]=t; }
-}</code></pre>
-      <pre><code><span class="cmt"># Python · 随机基准 + 三路划分</span>
-import random
-class Solution:
-    def findKthLargest(self, a: List[int], k: int) -&gt; int:
-        target, lo, hi = len(a) - k, 0, len(a) - 1
-        while True:
-            if lo == hi: return a[lo]
-            r = random.randint(lo, hi)
-            a[lo], a[r] = a[r], a[lo]                 <span class="cmt"># 随机基准</span>
-            pivot, lt, gt, i = a[lo], lo, hi, lo + 1
-            while i &lt;= gt:                            <span class="cmt"># 三路划分</span>
-                if a[i] &lt; pivot:
-                    a[lt], a[i] = a[i], a[lt]; lt += 1; i += 1
-                elif a[i] &gt; pivot:
-                    a[i], a[gt] = a[gt], a[i]; gt -= 1
-                else:
-                    i += 1
-            if target &lt; lt:   hi = lt - 1
-            elif target &gt; gt: lo = gt + 1
-            else: return pivot</code></pre>
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
     </details>
-  </div>
-
-  <div class="card">
-    <div style="font-size:14px;font-weight:700;color:#4f46e5;margin-bottom:8px;">⏱ 复杂度说明</div>
-    <div style="font-size:13px;color:#4b5563;line-height:1.8;">
-      快速选择每趟只递归<strong>一侧</strong>，若基准把区间大致对半分，规模按 <code>n + n/2 + n/4 + … ≈ 2n</code> 收缩，得到<strong>期望 O(n)</strong>。<br>
-      两个关键优化缺一不可：<strong>①随机基准</strong>——固定取端点遇到有序输入会退化成 <code>O(n²)</code>；<strong>②三路划分</strong>——把 = 基准的元素一次性全部归位。若只用两路（&lt; / ≥）分区，遇到<strong>大量重复元素</strong>（如全相等数组）仍是 <code>O(n²)</code>，会在 LeetCode 超时；三路划分把这种情况也降到线性。<br>
-      <span style="color:#6b7280;">空间 O(1)（原地分区）。严格<strong>最坏 O(n)</strong> 需「中位数的中位数（BFPRT）」，但常数大，实践中随机基准 + 三路划分足矣。</span>
-    </div>
   </div>
   <div class="star-banner">
     <div class="star-banner-copy">
@@ -219,190 +403,610 @@ class Solution:
 
 <script>
 (function () {
-  var input = document.getElementById('input');
-  var kInput = document.getElementById('kInput');
-  var arrRow = document.getElementById('arrRow');
-  var ptrRow = document.getElementById('ptrRow');
-  var statusEl = document.getElementById('status');
-  var progressEl = document.getElementById('progress');
-  var targetInfo = document.getElementById('targetInfo');
-  var errEl = document.getElementById('err');
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), kInput = $('kInput'), errEl = $('err');
+  var pinRow = $('pinRow'), ruler = $('ruler'), arrayEl = $('array'), ptrRow = $('ptrRow');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress'), ruleEl = $('rule');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], k = 4, seed = 21501, steps = [], stepIndex = 0, timer = null, pendingHash = location.hash;
+  var cells = [], pins = [], ticks = [], ptrs = [];
 
-  var vals0 = [];
-  var steps = [];
-  var stepIdx = 0;
-  var playTimer = null;
-
-  function parseNums(s) {
-    return s.split(/[,\s]+/).map(function(x){return x.trim();})
-            .filter(function(x){return x.length;})
-            .map(Number).filter(function(x){return !isNaN(x);});
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
   }
 
-  function buildSteps(a0, k) {
-    var a = a0.slice();
-    var n = a.length;
-    var target = n - k;
-    var snaps = [];
+  function hashSeed(arr, kk) {
+    var h = 215 + kk * 17;
+    for (var i = 0; i < arr.length; i++) h = Math.imul(h, 31) + arr[i] | 0;
+    return (h >>> 0) % 90000 + 10000;
+  }
 
+  function parseInput(text, kText) {
+    if (typeof text !== 'string' || !text.trim()) return { err: '请输入至少一个整数' };
+    var raw = text.trim();
+    if (!/^-?\d+(?:(?:\s*,\s*|\s+)-?\d+)*$/.test(raw)) {
+      return { err: '格式无效，请只输入由空格或单个逗号分隔的整数' };
+    }
+    var parts = raw.match(/-?\d+/g) || [];
+    if (parts.length > 16) return { err: '长度请不超过 16，方便看清三路划分' };
+    var arr = [];
+    for (var i = 0; i < parts.length; i++) {
+      var number = Number(parts[i]);
+      if (!Number.isSafeInteger(number) || number < -999 || number > 999) {
+        return { err: '整数须在 −999～999：' + parts[i] };
+      }
+      arr.push(number);
+    }
+    var kk = Number(kText);
+    if (!Number.isInteger(kk) || kk < 1 || kk > arr.length) {
+      return { err: 'k 须是 1 到 ' + arr.length + ' 的整数' };
+    }
+    return { arr: arr, k: kk };
+  }
+
+  function buildSteps(a0, kk, rand) {
+    var a = a0.slice(), n = a.length, target = n - kk, snaps = [], round = 0, guard = 0, hist = [];
     function snap(o) {
       snaps.push({
         vals: a.slice(),
         lo: o.lo, hi: o.hi,
-        lt: (o.lt === undefined ? -1 : o.lt),
-        gt: (o.gt === undefined ? -1 : o.gt),
-        i:  (o.i  === undefined ? -1 : o.i),
+        rlo: o.rlo == null ? o.lo : o.rlo,
+        rhi: o.rhi == null ? o.hi : o.rhi,
+        lt: o.lt == null ? -1 : o.lt,
+        gt: o.gt == null ? -1 : o.gt,
+        i: o.i == null ? -1 : o.i,
+        pivot: o.pivot == null ? null : o.pivot,
+        pick: o.pick == null ? -1 : o.pick,
         swap: o.swap || null,
-        ansLo: (o.ansLo === undefined ? -1 : o.ansLo),
-        ansHi: (o.ansHi === undefined ? -1 : o.ansHi),
-        msg: o.msg, phase: o.phase, target: target
+        focus: o.focus == null ? -1 : o.focus,
+        ansLo: o.ansLo == null ? -1 : o.ansLo,
+        ansHi: o.ansHi == null ? -1 : o.ansHi,
+        cmp: o.cmp || '',
+        cmpVal: o.cmpVal == null ? null : o.cmpVal,
+        phase: o.phase,
+        round: o.round == null ? round : o.round,
+        side: o.side || '',
+        hist: hist.slice(),
+        target: target,
+        msg: o.msg
       });
     }
 
-    snap({ lo: 0, hi: n - 1, msg: '目标:第 <b>' + k + '</b> 大 = 升序下标 <b>target = n − k = ' + n + ' − ' + k + ' = ' + target + '</b>。用三路划分把这个下标归位。', phase: 'start' });
+    snap({
+      lo: 0, hi: n - 1, phase: 'start', round: 0, focus: target,
+      msg: '求第 <b>' + kk + '</b> 大。不必把数组排完：只要让升序下标 <b>target = n − k = ' + target + '</b> 归位（金色钉标的是这个<b>名次位置</b>，不是某个原始元素）。左右内部不必再排。'
+    });
 
     var lo = 0, hi = n - 1;
     while (true) {
+      if (++guard > 64) break;
+      round++;
       if (lo === hi) {
-        snap({ lo: lo, hi: hi, ansLo: lo, ansHi: lo, msg: '区间只剩下标 ' + lo + ' 一个元素 → 它就是答案:第 ' + k + ' 大 = <span class="hl">' + a[lo] + '</span>。', phase: 'found' });
+        snap({
+          lo: lo, hi: hi, ansLo: lo, ansHi: lo, phase: 'found', round: round, focus: lo,
+          msg: '区间只剩一个元素，下标 ' + lo + ' 就是 target。第 ' + kk + ' 大 = <span class="hl">' + a[lo] + '</span>。'
+        });
         break;
       }
-      var r = lo + Math.floor(Math.random() * (hi - lo + 1));
-      var sw0 = null;
-      if (r !== lo) { var tr = a[lo]; a[lo] = a[r]; a[r] = tr; sw0 = [lo, r]; }
-      var pivot = a[lo];
-      snap({ lo: lo, hi: hi, lt: lo, gt: hi, i: lo + 1, swap: sw0,
-        msg: '区间 [' + lo + ', ' + hi + ']:<span class="op">随机</span>选下标 ' + r + ' 的 <b>' + pivot + '</b> 作基准(换到区间首)。三指针 lt=' + lo + ', i=' + (lo+1) + ', gt=' + hi + '。', phase: 'pivot' });
 
-      var lt = lo, gt = hi, i = lo + 1;
+      var r = lo + Math.floor(rand() * (hi - lo + 1));
+      var rlo = lo, rhi = hi;
+      snap({
+        lo: lo, hi: hi, rlo: rlo, rhi: rhi, phase: 'pick', pick: r, focus: r, round: round,
+        msg: '第 <b>' + round + '</b> 轮，在区间 [' + lo + ', ' + hi + '] 中<span class="op">随机</span>抽到下标 <b>' + r + '</b>，值 <b>' + a[r] + '</b> 作为基准。'
+      });
+      if (r !== lo) {
+        var tmp = a[lo]; a[lo] = a[r]; a[r] = tmp;
+        snap({
+          lo: lo, hi: hi, rlo: rlo, rhi: rhi, phase: 'pivot', pick: r, swap: [lo, r], focus: lo, round: round, pivot: a[lo],
+          msg: '把基准 <b>' + a[lo] + '</b> 换到区间左端 lo = ' + lo + '，等于区从这里开始生长。'
+        });
+      } else {
+        snap({
+          lo: lo, hi: hi, rlo: rlo, rhi: rhi, phase: 'pivot', pick: r, focus: lo, round: round, pivot: a[lo],
+          msg: '基准 <b>' + a[lo] + '</b> 已经在左端，无需交换。'
+        });
+      }
+
+      var pivot = a[lo], lt = lo, gt = hi, i = lo + 1;
+      snap({
+        lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'scan', round: round,
+        msg: '三指针就位：lt = <b>' + lt + '</b>，i = <b>' + i + '</b>，gt = <b>' + gt + '</b>。不变量：[<span class="op">lo, lt</span>) &lt; pivot，[lt, i) = pivot，(gt, hi] &gt; pivot。'
+      });
+
       while (i <= gt) {
-        if (a[i] < pivot) {
-          var s1 = null; if (i !== lt) { var x = a[lt]; a[lt] = a[i]; a[i] = x; s1 = [lt, i]; }
-          snap({ lo: lo, hi: hi, lt: lt, gt: gt, i: i, swap: s1,
-            msg: 'a[i] = ' + a[lt] + ' &lt; 基准 ' + pivot + ' → 归入<span class="op">小于区</span>' + (s1 ? '(与 lt 交换)' : '') + ',lt、i 同时右移。', phase: 'lt' });
+        var cur = a[i];
+        if (cur < pivot) {
+          snap({
+            lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'scan',
+            focus: i, cmp: 'lt', cmpVal: cur, round: round,
+            msg: 'nums[i] = <b>' + cur + '</b> &lt; 基准 ' + pivot + ' → 划入<span class="op">小于区</span>' +
+              (i !== lt ? '，与 lt = ' + lt + ' 交换。' : '。i 与 lt 重合，无需交换。')
+          });
+          var oldLt = lt, oldI = i;
+          if (i !== lt) { var x = a[lt]; a[lt] = a[i]; a[i] = x; }
           lt++; i++;
-        } else if (a[i] > pivot) {
-          var s2 = null; if (i !== gt) { var y = a[i]; a[i] = a[gt]; a[gt] = y; s2 = [i, gt]; }
-          snap({ lo: lo, hi: hi, lt: lt, gt: gt, i: i, swap: s2,
-            msg: 'a[i] = ' + a[gt] + ' &gt; 基准 ' + pivot + ' → 归入<span class="op">大于区</span>' + (s2 ? '(与 gt 交换)' : '') + ',gt 左移;i 不动(换来的值还没看)。', phase: 'gt' });
+          if (oldI !== oldLt) {
+            snap({
+              lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'swap',
+              swap: [oldLt, oldI], focus: oldLt, cmp: 'lt', cmpVal: cur, round: round,
+              msg: '交换完成：<b>' + cur + '</b> 已落到小于区（下标 ' + oldLt + '）。lt、i 同时右移。'
+            });
+          }
+        } else if (cur > pivot) {
+          snap({
+            lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'scan',
+            focus: i, cmp: 'gt', cmpVal: cur, round: round,
+            msg: 'nums[i] = <b>' + cur + '</b> &gt; 基准 ' + pivot + ' → 划入<span class="op">大于区</span>' +
+              (i !== gt ? '，与 gt = ' + gt + ' 交换；<b>i 不动</b>，换来的值还没看过。' : '。i 与 gt 重合，无需交换。')
+          });
+          var oldGt = gt, oldI2 = i;
+          if (i !== gt) { var y = a[i]; a[i] = a[gt]; a[gt] = y; }
           gt--;
+          if (oldI2 !== oldGt) {
+            snap({
+              lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'swap',
+              swap: [oldI2, oldGt], focus: oldGt, cmp: 'gt', cmpVal: cur, round: round,
+              msg: '交换完成：<b>' + cur + '</b> 已落到大于区（下标 ' + oldGt + '）。gt 左移，i 仍停在 ' + i + ' 看换来的值。'
+            });
+          }
         } else {
-          snap({ lo: lo, hi: hi, lt: lt, gt: gt, i: i,
-            msg: 'a[i] = ' + a[i] + ' = 基准 ' + pivot + ' → 已在<span class="op">等于区</span>,i 右移。', phase: 'eq' });
+          snap({
+            lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'scan',
+            focus: i, cmp: 'eq', cmpVal: cur, round: round,
+            msg: 'nums[i] = <b>' + cur + '</b> 等于基准 → 已在<span class="op">等于区</span>，只需 <span class="op">i++</span>。'
+          });
           i++;
         }
       }
-      snap({ lo: lo, hi: hi, lt: lt, gt: gt, i: i,
-        msg: '分区完成:[' + lo + ', ' + (lt-1) + '] &lt; ' + pivot + ' ｜ [' + lt + ', ' + gt + '] = ' + pivot + '(已归位) ｜ [' + (gt+1) + ', ' + hi + '] &gt; ' + pivot + '。', phase: 'done' });
+
+      var lessTxt = lt - 1 >= lo ? '[' + lo + ', ' + (lt - 1) + ']' : '∅';
+      var eqTxt = gt >= lt ? '[' + lt + ', ' + gt + ']' : '∅';
+      var greTxt = gt + 1 <= hi ? '[' + (gt + 1) + ', ' + hi + ']' : '∅';
+      var side = target < lt ? 'less' : target > gt ? 'greater' : 'eq';
+      hist.push({ round: round, lo: rlo, hi: rhi, pivot: pivot, lt: lt, gt: gt, side: side });
+      snap({
+        lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot,
+        phase: 'done', round: round, side: side,
+        msg: '划分完成：' + lessTxt + ' &lt; <b>' + pivot + '</b> ｜ ' + eqTxt + ' = ' + pivot + '（已归位）｜ ' + greTxt + ' &gt; ' + pivot + '。看 target = <b>' + target + '</b> 落在哪一段。'
+      });
 
       if (target < lt) {
         var oh = hi; hi = lt - 1;
-        snap({ lo: lo, hi: hi, msg: 'target = ' + target + ' &lt; lt = ' + lt + ' → 目标在<span class="op">小于区</span>,舍弃 [' + lt + ', ' + oh + '],继续 [' + lo + ', ' + hi + ']。', phase: 'narrow' });
+        snap({
+          lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, pivot: pivot,
+          phase: 'narrow', round: round, side: 'less',
+          msg: 'target = ' + target + ' &lt; lt = ' + lt + ' → 落在<span class="op">小于区</span>。丢掉 [' + lt + ', ' + oh + ']，下一轮只处理 [' + lo + ', ' + hi + ']。'
+        });
       } else if (target > gt) {
         var ol = lo; lo = gt + 1;
-        snap({ lo: lo, hi: hi, msg: 'target = ' + target + ' &gt; gt = ' + gt + ' → 目标在<span class="op">大于区</span>,舍弃 [' + ol + ', ' + gt + '],继续 [' + lo + ', ' + hi + ']。', phase: 'narrow' });
+        snap({
+          lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, pivot: pivot,
+          phase: 'narrow', round: round, side: 'greater',
+          msg: 'target = ' + target + ' &gt; gt = ' + gt + ' → 落在<span class="op">大于区</span>。丢掉 [' + ol + ', ' + gt + ']，下一轮只处理 [' + lo + ', ' + hi + ']。'
+        });
       } else {
-        snap({ lo: lo, hi: hi, lt: lt, gt: gt, ansLo: lt, ansHi: gt,
-          msg: 'lt = ' + lt + ' ≤ target = ' + target + ' ≤ gt = ' + gt + ' → 目标就落在<span class="op">等于区</span>!第 ' + k + ' 大 = <span class="hl">' + pivot + '</span>。', phase: 'found' });
+        snap({
+          lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, pivot: pivot, ansLo: lt, ansHi: gt,
+          phase: 'found', round: round, focus: target, side: 'eq',
+          msg: 'lt = ' + lt + ' ≤ target = ' + target + ' ≤ gt = ' + gt + ' → target 落在<span class="op">等于区</span>。第 ' + kk + ' 大 = <span class="hl">' + pivot + '</span>。'
+        });
         break;
       }
     }
     return snaps;
   }
 
-  function load() {
-    errEl.style.display = 'none';
-    var a = parseNums(input.value);
-    var k = parseInt(kInput.value, 10);
-    if (!a.length) { showErr('请输入至少一个数字。'); return; }
-    if (isNaN(k) || k < 1 || k > a.length) { showErr('k 需在 1 到 ' + a.length + ' 之间。'); return; }
-    vals0 = a;
-    kInput.max = a.length;
-    targetInfo.innerHTML = '数组长度 n = <b>' + a.length + '</b>，求第 <b>' + k + '</b> 大 → 升序目标下标 target = n − k = <b>' + (a.length - k) + '</b>。';
-    steps = buildSteps(a, k);
-    stepIdx = 0;
-    renderSkeleton();
-    render();
-  }
+  function cellWidth() { return window.innerWidth <= 760 ? 50 : 56; }
 
-  function showErr(m) { errEl.textContent = m; errEl.style.display = 'block'; }
-
-  function renderSkeleton() {
-    arrRow.innerHTML = ''; ptrRow.innerHTML = '';
-    for (var i = 0; i < vals0.length; i++) {
+  function buildBoard() {
+    pinRow.innerHTML = ''; ruler.innerHTML = ''; arrayEl.innerHTML = ''; ptrRow.innerHTML = '';
+    cells = []; pins = []; ticks = []; ptrs = [];
+    var cols = 'repeat(' + nums.length + ', ' + cellWidth() + 'px)';
+    pinRow.style.gridTemplateColumns = cols;
+    ruler.style.gridTemplateColumns = cols;
+    arrayEl.style.gridTemplateColumns = cols;
+    ptrRow.style.gridTemplateColumns = cols;
+    for (var i = 0; i < nums.length; i++) {
+      var pin = document.createElement('div'); pin.className = 'pin';
+      pinRow.appendChild(pin); pins.push(pin);
+      var tick = document.createElement('div'); tick.className = 'tick';
+      ruler.appendChild(tick); ticks.push(tick);
       var cell = document.createElement('div'); cell.className = 'cell';
-      var idx = document.createElement('div'); idx.className = 'idx'; idx.textContent = i;
-      var box = document.createElement('div'); box.className = 'box unknown'; box.dataset.idx = i;
-      cell.appendChild(idx); cell.appendChild(box); arrRow.appendChild(cell);
-      var pc = document.createElement('div'); pc.className = 'ptr-cell'; pc.dataset.idx = i; ptrRow.appendChild(pc);
+      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = i;
+      var val = document.createElement('span');
+      var badge = document.createElement('span'); badge.className = 'badge';
+      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(badge);
+      arrayEl.appendChild(cell); cells.push({ el: cell, val: val, badge: badge });
+      var p = document.createElement('div'); p.className = 'ptr';
+      ptrRow.appendChild(p); ptrs.push(p);
     }
   }
 
-  function render() {
-    var st = steps[stepIdx];
+  function fillChips(el, values, cls) {
+    el.innerHTML = '';
+    if (!values.length) { el.innerHTML = '<span class="ghost">空</span>'; return; }
+    values.forEach(function (v) {
+      var bit = document.createElement('span'); bit.className = 'bit ' + cls; bit.textContent = v;
+      el.appendChild(bit);
+    });
+  }
+
+  function regionValues(st) {
+    var less = [], eq = [], greater = [], pending = [];
+    var left = st.rlo == null ? st.lo : st.rlo;
+    var right = st.rhi == null ? st.hi : st.rhi;
+    if (st.lt < 0) return { less: less, eq: eq, greater: greater, pending: pending };
+    var partitioned = st.phase === 'done' || st.phase === 'found' || st.phase === 'narrow';
+    for (var i = left; i <= right; i++) {
+      if (i < st.lt) less.push(st.vals[i]);
+      else if (partitioned) {
+        if (i <= st.gt) eq.push(st.vals[i]);
+        else greater.push(st.vals[i]);
+      } else if (i < st.i) eq.push(st.vals[i]);
+      else if (i > st.gt) greater.push(st.vals[i]);
+      else pending.push(st.vals[i]);
+    }
+    return { less: less, eq: eq, greater: greater, pending: pending };
+  }
+
+  function targetBranch(st) {
+    if (st.lt < 0) return '';
+    var t = st.target;
+    if (t < st.lt) return 'less';
+    var partitioned = st.phase === 'done' || st.phase === 'found' || st.phase === 'narrow';
+    if (partitioned) return t <= st.gt ? 'eq' : 'greater';
+    if (t < st.i) return 'eq';
+    if (t <= st.gt) return 'pending';
+    return 'greater';
+  }
+
+  function sideLabel(side) {
+    if (side === 'less') return '走小于区';
+    if (side === 'greater') return '走大于区';
+    if (side === 'eq') return '命中等于区';
+    return '';
+  }
+
+  function phaseKey(phase) {
+    if (phase === 'start') return 'start';
+    if (phase === 'pick' || phase === 'pivot') return 'pick';
+    if (phase === 'scan' || phase === 'swap') return 'scan';
+    if (phase === 'done' || phase === 'narrow') return 'done';
+    return 'found';
+  }
+
+  function renderPhases(st) {
+    var order = ['start', 'pick', 'scan', 'done', 'found'];
+    var cur = phaseKey(st.phase);
+    var rank = order.indexOf(cur);
+    Array.prototype.forEach.call(document.querySelectorAll('#phases .phase'), function (el) {
+      var key = el.getAttribute('data-key');
+      var i = order.indexOf(key);
+      el.className = 'phase' + (i < rank ? ' done' : i === rank ? ' active' : '');
+    });
+  }
+
+  function renderRule(st) {
+    if (st.phase === 'start') {
+      ruleEl.innerHTML = 'target = n − k = <span class="accent">' + st.target + '</span>，只把这个下标归位';
+    } else if (st.phase === 'pick') {
+      ruleEl.innerHTML = 'pivot = nums[<span class="accent">' + st.pick + '</span>]，再换到 lo';
+    } else if (st.phase === 'pivot') {
+      ruleEl.innerHTML = 'swap(lo, r) → 基准在左端，等于区从这里长';
+    } else if (st.cmp === 'lt') {
+      ruleEl.innerHTML = 'nums[i] &lt; pivot → <span class="yes">swap(lt, i); lt++; i++</span>';
+    } else if (st.cmp === 'gt') {
+      ruleEl.innerHTML = 'nums[i] &gt; pivot → <span class="yes">swap(i, gt); gt--</span>（i 不动）';
+    } else if (st.cmp === 'eq') {
+      ruleEl.innerHTML = 'nums[i] == pivot → <span class="accent">i++</span>';
+    } else if (st.phase === 'done') {
+      var hit = st.lt <= st.target && st.target <= st.gt;
+      var side = st.target < st.lt ? 'target &lt; lt → 走小于区' : st.target > st.gt ? 'target &gt; gt → 走大于区' : '落在等于区';
+      ruleEl.innerHTML = '比较 target 与 [lt, gt] → <span class="' + (hit ? 'yes' : 'accent') + '">' + side + '</span>';
+    } else if (st.phase === 'narrow') {
+      ruleEl.innerHTML = '<span class="no">丢掉不含 target 的一侧</span>，只递归剩下的 [lo, hi]';
+    } else if (st.phase === 'found') {
+      ruleEl.innerHTML = '<span class="yes">命中 · 第 k 大 = ' + (st.ansLo >= 0 ? st.vals[st.ansLo] : '—') + '</span>';
+    } else {
+      ruleEl.textContent = 'lt / i / gt 维护三路不变量';
+    }
+  }
+
+  function zoneClass(idx, st) {
     var swapSet = {};
     if (st.swap) { swapSet[st.swap[0]] = true; swapSet[st.swap[1]] = true; }
-    var hasAns = st.ansLo >= 0;
-    var active = st.lt >= 0;   // 是否处于分区过程/结果
+    if (st.ansLo >= 0 && idx >= st.ansLo && idx <= st.ansHi) return 'answer';
+    if (swapSet[idx]) return 'swap';
+    if (st.focus === idx && (st.phase === 'scan' || st.phase === 'pick' || st.phase === 'pivot')) return 'current';
+    if (idx < st.lo || idx > st.hi) return 'out';
+    if (st.lt < 0) return 'unknown';
+    if (idx < st.lt) return 'less';
+    if (idx < st.i || ((st.phase === 'done' || st.phase === 'found' || st.phase === 'narrow') && idx <= st.gt)) return 'equal';
+    if (idx <= st.gt) return 'unknown';
+    return 'greater';
+  }
 
-    Array.prototype.forEach.call(arrRow.children, function(cell){
-      var box = cell.querySelector('.box');
-      var idx = +box.dataset.idx;
-      box.textContent = st.vals[idx];
-      box.className = 'box';
-      if (hasAns && idx >= st.ansLo && idx <= st.ansHi) { box.classList.add('answer'); return; }
-      if (swapSet[idx]) { box.classList.add('swap'); return; }
-      if (idx < st.lo || idx > st.hi) { box.classList.add('out'); return; }
-      if (active) {
-        if (idx < st.lt) box.classList.add('less');
-        else if (idx < st.i) box.classList.add('equal');
-        else if (idx <= st.gt) box.classList.add('unknown');
-        else box.classList.add('greater');
-      } else {
-        box.classList.add('unknown');
-      }
+  function render() {
+    var st = steps[stepIndex];
+    var showI = st.i >= 0 && st.phase !== 'done' && st.phase !== 'found' && st.phase !== 'narrow' && st.i <= Math.max(st.gt, st.lo);
+    cells.forEach(function (ref, idx) {
+      var cls = 'cell ' + zoneClass(idx, st);
+      if (idx === st.target && st.ansLo < 0) cls += ' target-ring';
+      ref.el.className = cls;
+      ref.val.textContent = st.vals[idx];
+      var showP = st.pivot != null && st.vals[idx] === st.pivot && (
+        (st.lt >= 0 && idx === st.lt) ||
+        (st.lt < 0 && st.phase === 'pivot' && idx === st.lo)
+      );
+      ref.badge.textContent = showP ? 'P' : '';
+    });
+    pins.forEach(function (el, idx) {
+      el.className = 'pin' + (st.ansLo >= 0 && idx >= st.ansLo && idx <= st.ansHi ? ' answer' : '');
+      el.innerHTML = idx === st.target ? '<mark>' + (st.ansLo >= 0 ? '答案' : 'target') + '</mark>' : '';
+    });
+    ticks.forEach(function (el, idx) {
+      var cls = 'tick';
+      if (idx < st.lo || idx > st.hi) cls += ' out';
+      else cls += ' on';
+      if (idx === st.target) cls += ' target';
+      el.className = cls;
+    });
+    ptrs.forEach(function (el, idx) {
+      var labels = [];
+      if (st.lt === idx && st.lt >= 0 && st.phase !== 'narrow') labels.push('<span class="pl">lt</span>');
+      if (showI && st.i === idx) labels.push('<span class="pi">i</span>');
+      if (st.gt === idx && st.gt >= 0 && st.phase !== 'narrow') labels.push('<span class="pg">gt</span>');
+      el.innerHTML = labels.join(' · ');
     });
 
-    Array.prototype.forEach.call(ptrRow.children, function(pc){
-      var idx = +pc.dataset.idx;
-      pc.innerHTML = '';
-      if (idx === st.lt) pc.appendChild(mkPtr('lt', 'lt'));
-      if (idx === st.i)  pc.appendChild(mkPtr('i', 'i'));
-      if (idx === st.gt) pc.appendChild(mkPtr('gt', 'gt'));
+    $('dPivot').textContent = st.pivot == null ? '—' : st.pivot;
+    if (st.phase === 'start') {
+      $('dCur').textContent = 'target=' + st.target;
+    } else if (st.phase === 'pick' && st.pick >= 0) {
+      $('dCur').textContent = '下标 ' + st.pick + ' → ' + st.vals[st.pick];
+    } else if (st.phase === 'swap' && st.swap) {
+      $('dCur').textContent = st.swap[0] + ' ↔ ' + st.swap[1];
+    } else if (st.focus >= 0 && (st.phase === 'scan' || st.phase === 'pivot')) {
+      $('dCur').textContent = (st.phase === 'pivot' ? 'lo=' : 'i=') + st.focus + ' → ' + st.vals[st.focus];
+    } else {
+      $('dCur').textContent = '—';
+    }
+    var looking = st.cmpVal != null ? st.cmpVal : (st.focus >= 0 ? st.vals[st.focus] : null);
+    var cmpBox = $('dCmpBox');
+    cmpBox.className = 'box';
+    if (st.cmp === 'lt') { cmpBox.classList.add('cmp-lt'); $('dCmp').textContent = looking + ' < ' + st.pivot; }
+    else if (st.cmp === 'eq') { cmpBox.classList.add('cmp-eq'); $('dCmp').textContent = looking + ' = ' + st.pivot; }
+    else if (st.cmp === 'gt') { cmpBox.classList.add('cmp-gt'); $('dCmp').textContent = looking + ' > ' + st.pivot; }
+    else if (st.phase === 'found') { cmpBox.classList.add('cmp-hit'); $('dCmp').textContent = '命中'; }
+    else if (st.phase === 'done') { $('dCmp').textContent = '看 target 落点'; }
+    else { $('dCmp').textContent = '—'; }
+    $('dPtr').textContent = (st.lt < 0 ? '—' : st.lt) + ' · ' + (showI ? st.i : '—') + ' · ' + (st.gt < 0 ? '—' : st.gt);
+
+    var pivotLabel = st.pivot == null ? 'pivot' : String(st.pivot);
+    $('pLess').textContent = pivotLabel;
+    $('pEq').textContent = pivotLabel;
+    $('pGreater').textContent = pivotLabel;
+    var regs = regionValues(st);
+    var branch = targetBranch(st);
+    var decided = st.phase === 'done' || st.phase === 'narrow' || st.phase === 'found';
+    [['regLessBox', 'less', 'starLess'], ['regEqBox', 'eq', 'starEq'], ['regGreaterBox', 'greater', 'starGreater']].forEach(function (item) {
+      var el = $(item[0]), key = item[1], star = $(item[2]);
+      el.className = 'reg ' + key;
+      if (decided && st.side === key) el.classList.add(st.phase === 'found' && key === 'eq' ? 'hit' : 'active');
+      if (decided && st.side && st.side !== key) el.classList.add('drop');
+      if (st.phase === 'found' && key === 'eq') { el.classList.remove('drop'); el.classList.add('hit'); }
+      star.hidden = branch !== key;
+    });
+    if (st.lt < 0) {
+      $('regLess').innerHTML = $('regEq').innerHTML = $('regGreater').innerHTML = '<span class="ghost">尚未划分</span>';
+    } else {
+      fillChips($('regLess'), regs.less, 'less');
+      fillChips($('regEq'), regs.eq, 'eq');
+      fillChips($('regGreater'), regs.greater, 'greater');
+    }
+
+    var root = $('treeRoot');
+    if (st.pivot == null) {
+      root.className = 'ptree-root idle';
+      root.innerHTML = '<span class="k">pivot</span><b>?</b><small>等待选基准</small>';
+      $('treeCaption').textContent = 'pivot 把当前区间切成三叉，只走含 target 的一侧';
+    } else {
+      root.className = 'ptree-root' + (st.phase === 'found' ? ' hit' : '');
+      root.innerHTML = '<span class="k">pivot</span><b>' + st.pivot + '</b><small>[' + st.rlo + ', ' + st.rhi + ']</small>';
+      var cap = '第 ' + st.round + ' 轮 · [' + st.rlo + ', ' + st.rhi + ']';
+      if (decided && st.side) cap += ' · ' + sideLabel(st.side);
+      else cap += ' · 三路划分中';
+      $('treeCaption').textContent = cap;
+    }
+
+    var pendingEl = $('pendingRow');
+    if (st.lt < 0) {
+      pendingEl.innerHTML = '<span class="lab">待处理</span><span class="ghost">尚未开始扫描</span>';
+    } else if (regs.pending && regs.pending.length) {
+      pendingEl.innerHTML = '<span class="lab">待处理 i…gt</span>';
+      regs.pending.forEach(function (v) {
+        var bit = document.createElement('span'); bit.className = 'bit pending'; bit.textContent = v;
+        pendingEl.appendChild(bit);
+      });
+    } else {
+      pendingEl.innerHTML = '<span class="lab">待处理</span><span class="ghost">本轮已扫完</span>';
+    }
+
+    var histEl = $('hist');
+    histEl.innerHTML = '';
+    (st.hist || []).forEach(function (h) {
+      var row = document.createElement('div');
+      row.className = 'hist-item';
+      row.innerHTML = '第 ' + h.round + ' 轮 <b>[' + h.lo + ', ' + h.hi + ']</b> pivot=' + h.pivot +
+        ' → <span class="go ' + h.side + '">' + sideLabel(h.side) + '</span>';
+      histEl.appendChild(row);
     });
 
+    renderRule(st);
+    renderPhases(st);
     statusEl.innerHTML = st.msg;
-    progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
-    document.getElementById('prevBtn').disabled = (stepIdx === 0);
-    document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+    renderStats(st);
   }
 
-  function mkPtr(cls, text) {
-    var e = document.createElement('span'); e.className = 'ptr ' + cls; e.textContent = text; return e;
+  function renderStats(st) {
+    var found = st && st.phase === 'found' && st.ansLo >= 0;
+    statsEl.innerHTML =
+      '<div class="stat">n / k<b>' + nums.length + ' / ' + k + '</b></div>' +
+      '<div class="stat">target = n − k<b>' + (nums.length - k) + '</b></div>' +
+      '<div class="stat">本轮区间<b>[' + (st ? st.lo + ', ' + st.hi : '—') + ']</b></div>' +
+      '<div class="stat">第 k 大<b>' + (found ? st.vals[st.ansLo] : '…') + '</b></div>' +
+      '<div class="stat">随机种子<b>' + seed + '</b></div>' +
+      '<div class="stat">期望时间 / 空间<b>O(n) / O(1)</b></div>';
   }
 
-  function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
-  function prev(){ if (stepIdx > 0){ stepIdx--; render(); } }
-  function reset(){ stopPlay(); stepIdx = 0; render(); }
-  function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; document.getElementById('playBtn').textContent = '▶ 自动播放'; } }
-  function togglePlay(){
-    if (playTimer){ stopPlay(); return; }
-    document.getElementById('playBtn').textContent = '⏸ 暂停';
-    playTimer = setInterval(function(){ if (stepIdx >= steps.length - 1){ stopPlay(); return; } next(); }, 800);
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 900);
   }
 
-  document.getElementById('nextBtn').onclick = function(){ stopPlay(); next(); };
-  document.getElementById('prevBtn').onclick = function(){ stopPlay(); prev(); };
-  document.getElementById('resetBtn').onclick = reset;
-  document.getElementById('playBtn').onclick = togglePlay;
-  document.getElementById('loadBtn').onclick = load;
-  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(); });
-  kInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(); });
-  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
-    ch.onclick = function(){ input.value = ch.dataset.nums; kInput.value = ch.dataset.k; load(); };
+  function apply(parsed, nextSeed) {
+    errEl.classList.remove('show');
+    stopPlay();
+    nums = parsed.arr; k = parsed.k;
+    seed = nextSeed;
+    steps = buildSteps(nums, k, mulberry32(seed));
+    stepIndex = 0;
+    buildBoard();
+    if (pendingHash) {
+      var m = /^#step=(\d+)$/.exec(pendingHash);
+      if (m) stepIndex = Math.max(0, Math.min(steps.length - 1, parseInt(m[1], 10) - 1));
+      pendingHash = '';
+    }
+    render();
+  }
+
+  function load(reshuffle) {
+    var parsed = parseInput(input.value, kInput.value);
+    if (!parsed.arr) { errEl.textContent = '输入有误：' + parsed.err + '。'; errEl.classList.add('show'); return; }
+    var nextSeed = reshuffle ? (Math.floor(Math.random() * 90000) + 10000) : hashSeed(parsed.arr, parsed.k);
+    apply(parsed, nextSeed);
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = function () { load(false); };
+  $('reshuffleBtn').onclick = function () { load(true); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(false); });
+  kInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(false); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      input.value = chip.dataset.nums;
+      kInput.value = chip.dataset.k;
+      load(false);
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === input || document.activeElement === kInput) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+  window.addEventListener('resize', function () {
+    if (!nums.length) return;
+    var w = cellWidth() + 'px';
+    var cols = 'repeat(' + nums.length + ', ' + w + ')';
+    pinRow.style.gridTemplateColumns = cols;
+    ruler.style.gridTemplateColumns = cols;
+    arrayEl.style.gridTemplateColumns = cols;
+    ptrRow.style.gridTemplateColumns = cols;
   });
 
-  load();
+  var codes = {
+    py:
+'<span class="cmt"># 随机基准 + 荷兰国旗三路划分 · 期望 O(n) · 原地 O(1)</span>\n' +
+'import random\n' +
+'from typing import List\n' +
+'\n' +
+'class Solution:\n' +
+'    def findKthLargest(self, a: List[int], k: int) -&gt; int:\n' +
+'        target, lo, hi = len(a) - k, 0, len(a) - 1\n' +
+'        while True:\n' +
+'            if lo == hi:\n' +
+'                return a[lo]\n' +
+'            r = random.randint(lo, hi)\n' +
+'            a[lo], a[r] = a[r], a[lo]          <span class="cmt"># 基准换到左端</span>\n' +
+'            pivot, lt, gt, i = a[lo], lo, hi, lo + 1\n' +
+'            while i &lt;= gt:                     <span class="cmt"># [lo,lt) &lt; = [lt,i) = (gt,hi] &gt;</span>\n' +
+'                if a[i] &lt; pivot:\n' +
+'                    a[lt], a[i] = a[i], a[lt]\n' +
+'                    lt += 1; i += 1\n' +
+'                elif a[i] &gt; pivot:\n' +
+'                    a[i], a[gt] = a[gt], a[i]\n' +
+'                    gt -= 1                    <span class="cmt"># i 不动</span>\n' +
+'                else:\n' +
+'                    i += 1\n' +
+'            if target &lt; lt:   hi = lt - 1      <span class="cmt"># 走小于区</span>\n' +
+'            elif target &gt; gt: lo = gt + 1      <span class="cmt"># 走大于区</span>\n' +
+'            else: return pivot                 <span class="cmt"># 落在等于区</span>',
+    java:
+'<span class="cmt">// 随机基准 + 荷兰国旗三路划分 · 期望 O(n) · 原地 O(1)</span>\n' +
+'import java.util.Random;\n' +
+'\n' +
+'class Solution {\n' +
+'    private final Random rnd = new Random();\n' +
+'    public int findKthLargest(int[] a, int k) {\n' +
+'        int n = a.length, target = n - k;\n' +
+'        int lo = 0, hi = n - 1;\n' +
+'        while (true) {\n' +
+'            if (lo == hi) return a[lo];\n' +
+'            swap(a, lo, lo + rnd.nextInt(hi - lo + 1)); <span class="cmt">// 基准换到左端</span>\n' +
+'            int pivot = a[lo], lt = lo, gt = hi, i = lo + 1;\n' +
+'            while (i &lt;= gt) {                  <span class="cmt">// 三路划分</span>\n' +
+'                if (a[i] &lt; pivot)      swap(a, lt++, i++);\n' +
+'                else if (a[i] &gt; pivot) swap(a, i, gt--); <span class="cmt">// i 不动</span>\n' +
+'                else                   i++;\n' +
+'            }\n' +
+'            if (target &lt; lt)      hi = lt - 1; <span class="cmt">// 走小于区</span>\n' +
+'            else if (target &gt; gt) lo = gt + 1; <span class="cmt">// 走大于区</span>\n' +
+'            else return pivot;                 <span class="cmt">// 落在等于区</span>\n' +
+'        }\n' +
+'    }\n' +
+'    private void swap(int[] a, int x, int y) {\n' +
+'        int t = a[x]; a[x] = a[y]; a[y] = t;\n' +
+'    }\n' +
+'}'
+  };
+  var codeBlock = $('codeBlock');
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
+      tab.classList.add('active');
+      codeBlock.innerHTML = codes[tab.dataset.lang];
+    };
+  });
+  codeBlock.innerHTML = codes.py;
+  try {
+    var q = new URLSearchParams(location.search);
+    if (q.get('nums')) input.value = q.get('nums');
+    if (q.get('k')) kInput.value = q.get('k');
+  } catch (err) {}
+  load(false);
 })();
 </script>
 </body>
