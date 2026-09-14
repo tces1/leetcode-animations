@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="tags" content="快速选择 · 三路划分 · 原地 · 递归 · 数组">
+<meta name="tags" content="快速选择 · Lomuto · Dijkstra · 三路划分 · 数组">
 <title>215. 数组中的第K个最大元素 — 动画演示</title>
 <style>
   :root { color-scheme: light; }
@@ -15,6 +15,15 @@
   }
   .wrap { max-width: 1200px; margin: 0 auto; }
   .navbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .compare-item {
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px;
+    font-size: 13px; color: #4b5563; background: #f8fafc;
+  }
+  .compare-item .no { font-size: 11px; font-weight: 800; letter-spacing: .04em; color: #6366f1; margin-bottom: 4px; }
+  .compare-item b { color: #1d2129; }
+  .compare-item.on { background: #eef2ff; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+  .compare-item code { font-size: 11px; }
   .method-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
   .method-tab {
     padding: 8px 14px; border: 1px solid #e5e7eb; border-radius: 999px; background: #f8fafc;
@@ -140,6 +149,7 @@
     font: 800 10px "SF Mono", Menlo, monospace; flex-wrap: wrap; gap: 2px;
   }
   .plo { color: #1d4ed8; } .phi { color: #c2410c; } .pi { color: #4f46e5; } .pj { color: #7c3aed; } .pk { color: #b45309; }
+  .plt { color: #4f46e5; } .pp { color: #b45309; } .pgt { color: #c2410c; }
 
   .visual { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .95fr); gap: 14px; align-items: stretch; margin-bottom: 4px; }
   .pane {
@@ -303,7 +313,7 @@
     .card { padding: 14px; }
     .input-grid, .dash, .phases { grid-template-columns: 1fr 1fr; }
     .input-grid .field:first-child { grid-column: 1 / -1; }
-    .ptree-kids { grid-template-columns: 1fr; }
+    .compare { grid-template-columns: 1fr; }
     .ptree-fork::after { display: none; }
     .progress { width: 100%; margin-left: 0; }
     .cell, .pin, .tick, .ptr, .list-ptr span { width: 50px; }
@@ -324,19 +334,42 @@
 
   <div class="card">
     <div class="method-tabs">
-      <button type="button" class="method-tab active" data-method="inplace">① 原地三路 · [lo, hi]</button>
-      <button type="button" class="method-tab" data-method="lists">② 开数组递归 · left / mid / right</button>
+      <button type="button" class="method-tab active" data-method="inplace">① Lomuto 三路 · 单向扫</button>
+      <button type="button" class="method-tab" data-method="dijkstra">② Dijkstra 三路 · 两端夹</button>
+      <button type="button" class="method-tab" data-method="lists">③ 开数组递归</button>
+    </div>
+
+    <div class="compare" id="compareCut">
+      <div class="compare-item on" id="cmpLomuto">
+        <div class="no">Lomuto · 从左往右</div>
+        pivot <b>藏在 hi</b>，扫描指针 <code>k</code> 只往右走。<code>&gt; pivot</code> 先不动，等后面的小数来挤。切完再 <code>swap(j, hi)</code> 归位。
+      </div>
+      <div class="compare-item" id="cmpDijkstra">
+        <div class="no">Dijkstra · 荷兰国旗</div>
+        pivot <b>只取值</b>，不必藏到末尾。<code>p</code> 遇到大的立刻和右边 <code>gt</code> 换，<code>gt--</code>，换来的还没看所以 <code>p</code> 不动。
+      </div>
     </div>
 
     <div id="ideaInplace">
-      <div class="panel-title">每轮四步</div>
+      <div class="panel-title">Lomuto 每轮四步</div>
       <div class="idea">
-        <div class="idea-item"><div class="no">① 取出 [lo, hi]</div>外面的格子本轮不看。第 k 大对应升序下标 <code>target = n − k</code>，只要这个下标落进等于段。</div>
-        <div class="idea-item"><div class="no">② 藏起 pivot</div>在区间里随机抽一个下标 <code>r</code>，和 <code>hi</code> 交换。代码里的 <code>privot</code> 就是这个基准，扫描时先不去动它。</div>
-        <div class="idea-item"><div class="no">③ 三路划分</div>扫描下标 <code>k</code> 从 <code>lo</code> 走到 <code>hi − 1</code>。<code>&lt;</code> 就经 <code>j</code> 转到 <code>i</code> 并 <code>i++, j++</code>；<code>==</code> 只进 <code>j</code>；<code>&gt;</code> 留下。</div>
-        <div class="idea-item"><div class="no">④ 归位并对账</div>把 <code>hi</code> 上的基准换到 <code>j</code>。若 <code>i ≤ target ≤ j</code> 就返回；<code>j &lt; target</code> 则 <code>lo = j + 1</code>，否则 <code>hi = j − 1</code>。</div>
+        <div class="idea-item"><div class="no">① 取出 [lo, hi]</div>第 k 大对应升序下标 <code>target = n − k</code>。外面的格子本轮不看。</div>
+        <div class="idea-item"><div class="no">② 藏起 pivot</div>随机下标 <code>r</code> 和 <code>hi</code> 交换。基准躲在最右边，扫描 <code>[lo, hi)</code> 时不去动它。</div>
+        <div class="idea-item"><div class="no">③ 单向三路</div><code>k</code> 从左扫到 <code>hi−1</code>。<code>&lt;</code>：经 <code>j</code> 转到 <code>i</code>；<code>==</code> 只进 <code>j</code>；<code>&gt;</code> <b>留下不动</b>。</div>
+        <div class="idea-item"><div class="no">④ 归位并对账</div><code>swap(j, hi)</code>。等于段 <code>[i, j]</code> 命中就停；<code>j &lt; target</code> 则 <code>lo = j + 1</code>；否则 <code>hi = i − 1</code>（等于段整段丢掉）。循环变量 <code>k</code> 和题目的 k 同名。</div>
       </div>
-      <div class="key-note"><b>为什么不直接 sort？</b>全排序要确定每个名次，<code>O(n log n)</code>。这里每轮只处理取出的 <code>[lo, hi]</code>，等于段可以一次吃掉所有重复基准，期望 <code>O(n)</code>。<b>扫描中的不变量：</b><code>[lo, i)</code> 都 <code>&lt; pivot</code>，<code>[i, j)</code> 都 <code>== pivot</code>，<code>[j, k)</code> 都 <code>&gt; pivot</code>，<code>hi</code> 藏着基准。循环变量 <code>k</code> 和题目的 <code>k</code> 同名，动画里扫描指针标成 <code>k</code>，第 k 大仍看输入框。</div>
+      <div class="key-note"><b>和 Dijkstra 差在哪？</b>两边都是三路快选，期望 <code>O(n)</code>。Lomuto 只往右扫，大于段堆在扫描指针左边、等着被换走；切完必须把藏在 <code>hi</code> 的基准搬回来。重复值多时也能丢掉等于段，但大于元素的搬运更绕。</div>
+    </div>
+
+    <div id="ideaDijkstra" class="hidden">
+      <div class="panel-title">Dijkstra 每轮四步</div>
+      <div class="idea">
+        <div class="idea-item"><div class="no">① 取出 [lo, hi]</div>同样盯升序 <code>target = n − k</code>。本轮只动这一段。</div>
+        <div class="idea-item"><div class="no">② 只抽 pivot 的值</div><code>pivot = nums[random(lo, hi)]</code>。不换到 <code>hi</code>，三个指针 <code>lt / p / gt</code> 直接在区间上工作。</div>
+        <div class="idea-item"><div class="no">③ 两端夹</div><code>p</code> 看当前格：小的和 <code>lt</code> 换然后两边都 <code>++</code>；大的和 <code>gt</code> 换，只 <code>gt--</code>；相等只 <code>p++</code>。直到 <code>p &gt; gt</code>。</div>
+        <div class="idea-item"><div class="no">④ 对账</div>等于段是 <code>[lt, gt]</code>。命中则返回；<code>target &lt; lt</code> 则 <code>hi = lt − 1</code>（整段等于都丢掉）；否则 <code>lo = gt + 1</code>。</div>
+      </div>
+      <div class="key-note"><b>和 Lomuto 差在哪？</b>不变量改成：<code>[lo, lt) &lt;</code>，<code>[lt, p) ==</code>，<code>(gt, hi] &gt;</code>，<code>[p, gt]</code> 还没看。大的马上扔到右端，所以不需要最后的 <code>swap(j, hi)</code>。左边两边都丢掉等于段：Lomuto 用 <code>hi = i − 1</code>，这里用 <code>hi = lt − 1</code>。</div>
     </div>
 
     <div id="ideaLists" class="hidden">
@@ -347,7 +380,7 @@
         <div class="idea-item"><div class="no">③ 开三个数组</div>扫一遍：<code>&gt; pivot</code> 进 <code>left</code>（更大，降序靠前），<code>==</code> 进 <code>mid</code>，<code>&lt;</code> 进 <code>right</code>（更小，降序靠后）。</div>
         <div class="idea-item"><div class="no">④ 对账后递归</div><code>idx &lt; len(left)</code> 则只看 left；落在 mid 就返回 pivot；否则看 right，并把 <code>left_num</code> 加上 left+mid 的长度。</div>
       </div>
-      <div class="key-note"><b>和方案①差在哪？</b>两边都是三路快选，期望都是 <code>O(n)</code>，不是更快的渐近复杂度。差别主要是：①按<b>升序下标</b> <code>n−k</code> 在原数组里交换；②按<b>降序名次</b> <code>k−1</code> 每轮 <code>append</code> 出新列表再递归。Python 里列表 append 走 C 实现，比一堆下标交换更吃香，所以提交往往更快；代价是额外 <code>O(n)</code> 空间。Java 里频繁 new ArrayList 就不一定更快。</div>
+      <div class="key-note"><b>这不是 Dijkstra。</b>开数组只是把三路结果 <code>append</code> 到新列表，扫描仍然从左到右、没有 <code>gt</code> 对进。Python 里往往比手写交换快，但切法和 Lomuto 一样是单向的，空间是 <code>O(n)</code>。</div>
     </div>
   </div>
 
@@ -384,9 +417,17 @@
     <div id="phasesInplace" class="phases">
       <div class="phase" data-key="extract"><span class="no">① 取出</span>[lo, hi]</div>
       <div class="phase" data-key="hide"><span class="no">② 藏起</span>pivot → hi</div>
-      <div class="phase" data-key="scan"><span class="no">③ 划分</span>i / j / k</div>
-      <div class="phase" data-key="place"><span class="no">④ 归位</span>换到 j</div>
+      <div class="phase" data-key="scan"><span class="no">③ 划分</span>i / j / k · 单向</div>
+      <div class="phase" data-key="place"><span class="no">④ 归位</span>swap(j, hi)</div>
       <div class="phase" data-key="found"><span class="no">⑤ 对账</span>i ≤ target ≤ j</div>
+    </div>
+
+    <div id="phasesDijkstra" class="phases hidden">
+      <div class="phase" data-key="extract"><span class="no">① 取出</span>[lo, hi]</div>
+      <div class="phase" data-key="pick"><span class="no">② 抽基准</span>只取值</div>
+      <div class="phase" data-key="scan"><span class="no">③ 划分</span>lt / p / gt · 两端夹</div>
+      <div class="phase" data-key="place"><span class="no">④ 切完</span>等于 [lt, gt]</div>
+      <div class="phase" data-key="found"><span class="no">⑤ 对账</span>命中或 lt−1 / gt+1</div>
     </div>
 
     <div id="phasesLists" class="phases hidden">
@@ -436,7 +477,7 @@
           <div class="box">取出 [lo, hi]<b id="dRange">—</b></div>
           <div class="box">本轮基准<b id="dPivot">—</b></div>
           <div class="box" id="dCmpBox">比较<b id="dCmp">—</b></div>
-          <div class="box">i · j · k<b id="dPtr">—</b></div>
+          <div class="box"><span id="dPtrLab">i · j · k</span><b id="dPtr">—</b></div>
         </div>
         <div class="rule" id="rule">while lo ≤ hi：取出 [lo, hi]</div>
         <div class="hist" id="hist"></div>
@@ -488,10 +529,20 @@
     <div class="legend" id="legendInplace">
       <span><span class="dot" style="background:#dbeafe;border-color:#93c5fd"></span>&lt; pivot（[lo, i)）</span>
       <span><span class="dot" style="background:#f3e8ff;border-color:#d8b4fe"></span>== pivot（[i, j]）</span>
-      <span><span class="dot" style="background:#ede9fe;border-color:#c4b5fd"></span>藏起 / 归位的 pivot</span>
-      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>&gt; pivot</span>
+      <span><span class="dot" style="background:#ede9fe;border-color:#c4b5fd"></span>藏在 hi / 归位</span>
+      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>&gt; pivot（先不动）</span>
       <span><span class="dot" style="background:#fff;border-color:#e2e8f0"></span>待扫描</span>
       <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>k 正在看</span>
+      <span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>交换中</span>
+      <span><span class="dot" style="background:#f1f5f9;border-color:#e2e8f0"></span>本轮未取出</span>
+      <span><span class="dot" style="background:#22c55e;border-color:#16a34a"></span>答案</span>
+    </div>
+    <div class="legend hidden" id="legendDijkstra">
+      <span><span class="dot" style="background:#dbeafe;border-color:#93c5fd"></span>&lt; pivot（[lo, lt)）</span>
+      <span><span class="dot" style="background:#f3e8ff;border-color:#d8b4fe"></span>== pivot（[lt, gt]）</span>
+      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>&gt; pivot（立刻换到 gt）</span>
+      <span><span class="dot" style="background:#fff;border-color:#e2e8f0"></span>[p, gt] 还没看</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>p 正在看</span>
       <span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>交换中</span>
       <span><span class="dot" style="background:#f1f5f9;border-color:#e2e8f0"></span>本轮未取出</span>
       <span><span class="dot" style="background:#22c55e;border-color:#16a34a"></span>答案</span>
@@ -542,9 +593,11 @@
   var cells = [], pins = [], ticks = [], ptrs = [];
   var method = 'inplace';
   var SUB = {
-    inplace: '每轮先<b>取出</b>当前区间 <code>[lo, hi]</code>，把随机基准<b>藏到右端 hi</b>，再用 <code>i / j / k</code> 做三路划分。归位后若 <code>i ≤ target ≤ j</code> 就停；否则丢掉没有 target 的一侧，下一轮再取出新的 <code>[lo, hi]</code>。',
-    lists: '按<b>降序</b>找第 k 名。每轮把当前 <code>_nums</code> 拆成 <code>left(&gt;pivot) / mid / right(&lt;pivot)</code> 三个新数组，用 <code>idx = k − 1 − left_num</code> 决定递归哪一段。命中 mid 就返回。'
+    inplace: '<b>Lomuto 三路：</b>每轮取出 <code>[lo, hi]</code>，把 pivot <b>藏到 hi</b>，扫描指针只往右走。<code>&gt; pivot</code> 先不动，最后再 <code>swap(j, hi)</code> 归位。',
+    dijkstra: '<b>Dijkstra 三路（荷兰国旗）：</b>pivot 只取值，不必藏到末尾。<code>p</code> 遇大的立刻和右边 <code>gt</code> 换。<code>[lt, gt]</code> 是等于段，左边用 <code>hi = lt − 1</code> 整段丢掉。',
+    lists: '按<b>降序</b>找第 k 名。每轮把当前 <code>_nums</code> 拆成三个新数组再递归。扫描仍是单向 append，<b>不是</b> Dijkstra 两端夹。'
   };
+  function isDij() { return method === 'dijkstra'; }
 
   function mulberry32(a) {
     return function () {
@@ -588,6 +641,10 @@
     var t = a[x]; a[x] = a[y]; a[y] = t;
   }
 
+  function bandLabel(a, b) {
+    return a > b ? '∅' : '<code>[' + a + ', ' + b + ']</code>';
+  }
+
   function buildSteps(a0, kk, rand) {
     var a = a0.slice(), n = a.length, target = n - kk, snaps = [], round = 0, guard = 0, hist = [];
     function snap(o) {
@@ -612,6 +669,7 @@
         side: o.side || '',
         hist: hist.slice(),
         target: target,
+        scheme: 'lomuto',
         msg: o.msg
       });
     }
@@ -712,7 +770,7 @@
       if (j !== hi) exchange(a, j, hi);
       snap({
         lo: lo, hi: hi, i: i, j: j, pivot: pivot, phase: 'placed', seated: true, round: round, focus: j,
-        msg: '归位完成：<code>[' + lo + ', ' + (i - 1) + ']</code> &lt; pivot，<code>[' + i + ', ' + j + ']</code> == <b>' + pivot + '</b>，<code>[' + (j + 1) + ', ' + hi + ']</code> &gt; pivot。对账 target = <b>' + target + '</b> 是否落在 <code>[' + i + ', ' + j + ']</code>。'
+        msg: '归位完成：' + bandLabel(lo, i - 1) + ' &lt; pivot，' + bandLabel(i, j) + ' == <b>' + pivot + '</b>，' + bandLabel(j + 1, hi) + ' &gt; pivot。对账 target = <b>' + target + '</b> 是否落在 <code>[' + i + ', ' + j + ']</code>。'
       });
 
       if (i <= target && target <= j) {
@@ -735,13 +793,150 @@
         lo = nextLo;
       } else {
         hist.push({ round: round, lo: lo, hi: hi, pivot: pivot, i: i, j: j, side: 'left' });
-        var nextHi = j - 1;
+        var nextHi = i - 1;
         snap({
           lo: lo, hi: nextHi, winLo: lo, winHi: hi, i: i, j: j, pivot: pivot,
           phase: 'narrow', seated: true, round: round, side: 'left',
-          msg: 'target = ' + target + ' &lt; i = ' + i + ' → 答案在小于段。<code>hi = j − 1</code>，<span class="op">下一轮取出 [' + lo + ', ' + nextHi + ']</span>。'
+          msg: 'target = ' + target + ' &lt; i = ' + i + ' → 答案在小于段。<code>hi = i − 1</code>（等于段整段丢掉），<span class="op">下一轮取出 [' + lo + ', ' + nextHi + ']</span>。'
         });
         hi = nextHi;
+      }
+    }
+    return snaps;
+  }
+
+  function buildStepsDijkstra(a0, kk, rand) {
+    var a = a0.slice(), n = a.length, target = n - kk, snaps = [], round = 0, guard = 0, hist = [];
+    function snap(o) {
+      snaps.push({
+        vals: a.slice(),
+        lo: o.lo, hi: o.hi,
+        winLo: o.winLo == null ? o.lo : o.winLo,
+        winHi: o.winHi == null ? o.hi : o.winHi,
+        i: o.i == null ? -1 : o.i,
+        j: o.j == null ? -1 : o.j,
+        scan: o.scan == null ? -1 : o.scan,
+        pivot: o.pivot == null ? null : o.pivot,
+        pick: o.pick == null ? -1 : o.pick,
+        swap: o.swap || null,
+        focus: o.focus == null ? -1 : o.focus,
+        seated: !!o.seated,
+        ans: o.ans == null ? -1 : o.ans,
+        cmp: o.cmp || '',
+        cmpVal: o.cmpVal == null ? null : o.cmpVal,
+        phase: o.phase,
+        round: o.round == null ? round : o.round,
+        side: o.side || '',
+        hist: hist.slice(),
+        target: target,
+        scheme: 'dijkstra',
+        msg: o.msg
+      });
+    }
+
+    snap({
+      lo: 0, hi: n - 1, phase: 'start', round: 0, focus: target,
+      msg: '求第 <b>' + kk + '</b> 大 → 升序 <b>target = ' + target + '</b>。Dijkstra 三路：pivot 只取值，<code>lt / p / gt</code> 两端夹，等于段是 <code>[lt, gt]</code>。'
+    });
+
+    var lo = 0, hi = n - 1;
+    while (lo <= hi) {
+      if (++guard > 64) break;
+      round++;
+      snap({
+        lo: lo, hi: hi, phase: 'extract', round: round,
+        msg: '第 <b>' + round + '</b> 轮取出 <b>[' + lo + ', ' + hi + ']</b> = [' + a.slice(lo, hi + 1).join(', ') + ']。'
+      });
+      var r = lo + Math.floor(rand() * (hi - lo + 1));
+      var pivot = a[r];
+      snap({
+        lo: lo, hi: hi, phase: 'pick', pick: r, focus: r, pivot: pivot, round: round,
+        msg: '抽到下标 <b>' + r + '</b>，<code>pivot = ' + pivot + '</code>。<b>不换到 hi</b>，三个指针直接在区间上工作。'
+      });
+
+      var lt = lo, p = lo, gt = hi;
+      snap({
+        lo: lo, hi: hi, i: lt, j: gt, scan: p, pivot: pivot, pick: r, phase: 'scan', round: round,
+        msg: '<code>lt = p = ' + lo + '</code>，<code>gt = ' + hi + '</code>。小的往 lt 堆，大的往 gt 扔，直到 <code>p &gt; gt</code>。'
+      });
+
+      var inner = 0;
+      while (p <= gt) {
+        if (++inner > 256) break;
+        var cur = a[p];
+        if (cur < pivot) {
+          snap({
+            lo: lo, hi: hi, i: lt, j: gt, scan: p, pivot: pivot, pick: r, phase: 'scan',
+            focus: p, cmp: 'lt', cmpVal: cur, round: round,
+            msg: 'nums[p] = <b>' + cur + '</b> &lt; ' + pivot + ' → <code>swap(lt, p)</code>，然后 <span class="op">lt++, p++</span>。'
+          });
+          if (lt !== p) {
+            exchange(a, lt, p);
+            snap({
+              lo: lo, hi: hi, i: lt, j: gt, scan: p, pivot: pivot, pick: r, phase: 'swap',
+              swap: [lt, p], focus: lt, cmp: 'lt', cmpVal: cur, round: round,
+              msg: '换完：<b>' + cur + '</b> 进入小于段。接着 lt++、p++。'
+            });
+          }
+          lt++;
+          p++;
+        } else if (cur > pivot) {
+          snap({
+            lo: lo, hi: hi, i: lt, j: gt, scan: p, pivot: pivot, pick: r, phase: 'scan',
+            focus: p, cmp: 'gt', cmpVal: cur, round: round,
+            msg: 'nums[p] = <b>' + cur + '</b> &gt; ' + pivot + ' → 立刻 <code>swap(p, gt)</code>，只 <span class="op">gt--</span>，p 不动（换来的还没看）。'
+          });
+          if (p !== gt) {
+            exchange(a, p, gt);
+            snap({
+              lo: lo, hi: hi, i: lt, j: gt, scan: p, pivot: pivot, pick: r, phase: 'swap',
+              swap: [p, gt], focus: gt, cmp: 'gt', cmpVal: cur, round: round,
+              msg: '大的扔到 gt = ' + gt + '。gt-- 后 p 仍停在 ' + p + '。'
+            });
+          }
+          gt--;
+        } else {
+          snap({
+            lo: lo, hi: hi, i: lt, j: gt, scan: p, pivot: pivot, pick: r, phase: 'scan',
+            focus: p, cmp: 'eq', cmpVal: cur, round: round,
+            msg: 'nums[p] = <b>' + cur + '</b> == ' + pivot + ' → 留在等于段，只 <span class="op">p++</span>。'
+          });
+          p++;
+        }
+      }
+
+      snap({
+        lo: lo, hi: hi, i: lt, j: gt, pivot: pivot, pick: r, phase: 'placed', seated: true, round: round, focus: lt,
+        msg: 'p &gt; gt。小于 ' + bandLabel(lo, lt - 1) + '，等于 ' + bandLabel(lt, gt) + '，大于 ' + bandLabel(gt + 1, hi) + '。对账 target = <b>' + target + '</b>。'
+      });
+
+      if (lt <= target && target <= gt) {
+        hist.push({ round: round, lo: lo, hi: hi, pivot: pivot, i: lt, j: gt, side: 'eq' });
+        snap({
+          lo: lo, hi: hi, i: lt, j: gt, pivot: pivot, phase: 'found', seated: true,
+          ans: target, round: round, side: 'eq', focus: target,
+          msg: 'lt = ' + lt + ' ≤ target = ' + target + ' ≤ gt = ' + gt + ' → 第 ' + kk + ' 大 = <span class="hl">' + a[target] + '</span>。'
+        });
+        break;
+      }
+      if (target < lt) {
+        hist.push({ round: round, lo: lo, hi: hi, pivot: pivot, i: lt, j: gt, side: 'left' });
+        var nextHi = lt - 1;
+        snap({
+          lo: lo, hi: nextHi, winLo: lo, winHi: hi, i: lt, j: gt, pivot: pivot,
+          phase: 'narrow', seated: true, round: round, side: 'left',
+          msg: 'target &lt; lt → 答案在小于段。<code>hi = lt − 1 = ' + nextHi + '</code>（等于段整段丢掉）。'
+        });
+        hi = nextHi;
+      } else {
+        hist.push({ round: round, lo: lo, hi: hi, pivot: pivot, i: lt, j: gt, side: 'right' });
+        var nextLo = gt + 1;
+        snap({
+          lo: nextLo, hi: hi, winLo: lo, winHi: hi, i: lt, j: gt, pivot: pivot,
+          phase: 'narrow', seated: true, round: round, side: 'right',
+          msg: 'target &gt; gt → 答案在大于段。<code>lo = gt + 1 = ' + nextLo + '</code>。'
+        });
+        lo = nextLo;
       }
     }
     return snaps;
@@ -886,11 +1081,17 @@
     }
     var from = st.winLo == null ? st.lo : st.winLo;
     var to = st.winHi == null ? st.hi : st.winHi;
+    var dij = st.scheme === 'dijkstra';
     for (var idx = from; idx <= to; idx++) {
       if (st.seated) {
         if (idx < st.i) le.push(st.vals[idx]);
         else if (idx <= st.j) eq.push(st.vals[idx]);
         else gt.push(st.vals[idx]);
+      } else if (dij) {
+        if (st.i >= 0 && idx < st.i) le.push(st.vals[idx]);
+        else if (st.scan >= 0 && idx < st.scan) eq.push(st.vals[idx]);
+        else if (st.j >= 0 && idx > st.j) gt.push(st.vals[idx]);
+        else pending.push(st.vals[idx]);
       } else {
         if (idx === st.hi) continue;
         if (st.i >= 0 && idx < st.i) le.push(st.vals[idx]);
@@ -912,7 +1113,7 @@
   function sideLabel(side) {
     if (side === 'left') return '下一轮取左边';
     if (side === 'right') return '下一轮取右边';
-    if (side === 'eq') return '命中 i ≤ target ≤ j';
+    if (side === 'eq') return isDij() ? '命中 lt ≤ target ≤ gt' : '命中 i ≤ target ≤ j';
     return '';
   }
 
@@ -924,6 +1125,12 @@
       if (phase === 'split' || phase === 'check') return 'split';
       return 'found';
     }
+    if (isDij()) {
+      if (phase === 'pick') return 'pick';
+      if (phase === 'scan' || phase === 'swap') return 'scan';
+      if (phase === 'place' || phase === 'placed') return 'place';
+      return 'found';
+    }
     if (phase === 'pick' || phase === 'hide') return 'hide';
     if (phase === 'scan' || phase === 'swap') return 'scan';
     if (phase === 'place' || phase === 'placed') return 'place';
@@ -933,10 +1140,13 @@
   function renderPhases(st) {
     var order = method === 'lists'
       ? ['extract', 'pick', 'scan', 'split', 'found']
-      : ['extract', 'hide', 'scan', 'place', 'found'];
+      : isDij()
+        ? ['extract', 'pick', 'scan', 'place', 'found']
+        : ['extract', 'hide', 'scan', 'place', 'found'];
+    var box = method === 'lists' ? '#phasesLists' : isDij() ? '#phasesDijkstra' : '#phasesInplace';
     var cur = phaseKey(st.phase);
     var rank = order.indexOf(cur);
-    Array.prototype.forEach.call(document.querySelectorAll((method === 'lists' ? '#phasesLists' : '#phasesInplace') + ' .phase'), function (el) {
+    Array.prototype.forEach.call(document.querySelectorAll(box + ' .phase'), function (el) {
       var key = el.getAttribute('data-key');
       var i = order.indexOf(key);
       el.className = 'phase' + (i < rank ? ' done' : i === rank ? ' active' : '');
@@ -944,6 +1154,30 @@
   }
 
   function renderRule(st) {
+    if (isDij()) {
+      if (st.phase === 'start' || st.phase === 'extract') {
+        ruleEl.innerHTML = '取出 <span class="accent">[' + st.lo + ', ' + st.hi + ']</span>';
+      } else if (st.phase === 'pick') {
+        ruleEl.innerHTML = 'pivot = nums[r] · <span class="accent">不藏到 hi</span>';
+      } else if (st.cmp === 'lt') {
+        ruleEl.innerHTML = 'nums[p] &lt; pivot → <span class="yes">swap(lt,p); lt++; p++</span>';
+      } else if (st.cmp === 'gt') {
+        ruleEl.innerHTML = 'nums[p] &gt; pivot → <span class="yes">swap(p,gt); gt--</span>（p 不动）';
+      } else if (st.cmp === 'eq') {
+        ruleEl.innerHTML = 'nums[p] == pivot → <span class="accent">p++</span>';
+      } else if (st.phase === 'place' || st.phase === 'placed') {
+        ruleEl.innerHTML = 'p &gt; gt → 看 lt ≤ target ≤ gt';
+      } else if (st.phase === 'narrow' && st.side === 'left') {
+        ruleEl.innerHTML = 'target &lt; lt → <span class="accent">hi = lt − 1</span>';
+      } else if (st.phase === 'narrow' && st.side === 'right') {
+        ruleEl.innerHTML = 'target &gt; gt → <span class="accent">lo = gt + 1</span>';
+      } else if (st.phase === 'found') {
+        ruleEl.innerHTML = '<span class="yes">lt ≤ target ≤ gt · 第 k 大 = ' + (st.ans >= 0 ? st.vals[st.ans] : '—') + '</span>';
+      } else {
+        ruleEl.textContent = 'while p ≤ gt：两端夹';
+      }
+      return;
+    }
     if (st.phase === 'start' || st.phase === 'extract') {
       ruleEl.innerHTML = '取出 <span class="accent">[' + st.lo + ', ' + st.hi + ']</span>，其余本轮不看';
     } else if (st.phase === 'pick') {
@@ -961,7 +1195,7 @@
     } else if (st.phase === 'narrow' && st.side === 'right') {
       ruleEl.innerHTML = 'j &lt; target → <span class="accent">lo = j + 1</span>，下一轮取出右边';
     } else if (st.phase === 'narrow' && st.side === 'left') {
-      ruleEl.innerHTML = 'target &lt; i → <span class="accent">hi = j − 1</span>，下一轮取出左边';
+      ruleEl.innerHTML = 'target &lt; i → <span class="accent">hi = i − 1</span>，下一轮取出左边';
     } else if (st.phase === 'found') {
       ruleEl.innerHTML = '<span class="yes">i ≤ target ≤ j · 第 k 大 = ' + (st.ans >= 0 ? st.vals[st.ans] : '—') + '</span>';
     } else {
@@ -973,15 +1207,21 @@
     var swapSet = {};
     if (st.swap) { swapSet[st.swap[0]] = true; swapSet[st.swap[1]] = true; }
     if (st.ans === idx) return 'answer';
+    if (idx < st.lo || idx > st.hi) return 'out';
     if (swapSet[idx]) return 'swap';
     if (st.focus === idx && (st.phase === 'scan' || st.phase === 'pick' || st.phase === 'hide' || st.phase === 'place')) return 'current';
-    if (st.seated && idx === st.j) return 'pivot';
-    if (idx < st.lo || idx > st.hi) return 'out';
+    if (st.seated && idx === (st.scheme === 'dijkstra' ? st.i : st.j)) return 'pivot';
     if (st.phase === 'start' || st.phase === 'extract' || st.phase === 'pick') return 'unknown';
     if (st.seated) {
       if (idx < st.i) return 'le';
       if (idx <= st.j) return 'eq';
       return 'gt';
+    }
+    if (st.scheme === 'dijkstra') {
+      if (st.i >= 0 && idx < st.i) return 'le';
+      if (st.scan >= 0 && idx < st.scan) return 'eq';
+      if (st.j >= 0 && idx > st.j) return 'gt';
+      return 'unknown';
     }
     if (idx === st.hi && st.pivot != null) return 'pivot';
     if (st.i >= 0 && idx < st.i) return 'le';
@@ -992,6 +1232,7 @@
 
   function renderInplace() {
     var st = steps[stepIndex];
+    var dij = st.scheme === 'dijkstra';
     var showI = st.i >= 0 && st.phase !== 'start' && st.phase !== 'extract' && st.phase !== 'pick';
     var showJ = st.j >= 0 && st.phase !== 'start' && st.phase !== 'extract' && st.phase !== 'pick';
     var showK = st.scan >= 0 && (st.phase === 'scan' || st.phase === 'swap' || st.phase === 'place');
@@ -1000,10 +1241,15 @@
       if (idx === st.target && st.ans < 0) cls += ' target-ring';
       ref.el.className = cls;
       ref.val.textContent = st.vals[idx];
-      var showP = st.pivot != null && (
-        (!st.seated && idx === st.hi && st.phase !== 'extract' && st.phase !== 'pick' && st.phase !== 'start') ||
-        (st.seated && idx === st.j)
-      );
+      var showP = false;
+      if (st.pivot != null && idx >= st.lo && idx <= st.hi) {
+        if (dij) {
+          showP = st.seated ? idx === st.i : (st.phase === 'pick' && idx === st.pick);
+        } else {
+          showP = (!st.seated && idx === st.hi && st.phase !== 'extract' && st.phase !== 'pick' && st.phase !== 'start') ||
+            (st.seated && idx === st.j);
+        }
+      }
       ref.badge.textContent = showP ? 'P' : '';
     });
     pins.forEach(function (el, idx) {
@@ -1021,9 +1267,15 @@
       var labels = [];
       if (idx === st.lo) labels.push('<span class="plo">lo</span>');
       if (idx === st.hi) labels.push('<span class="phi">hi</span>');
-      if (showI && idx === st.i) labels.push('<span class="pi">i</span>');
-      if (showJ && idx === st.j && !(st.j === st.hi && !st.seated)) labels.push('<span class="pj">j</span>');
-      if (showK && idx === st.scan && st.scan !== st.hi) labels.push('<span class="pk">k</span>');
+      if (dij) {
+        if (showI && idx === st.i) labels.push('<span class="plt">lt</span>');
+        if (showK && idx === st.scan) labels.push('<span class="pp">p</span>');
+        if (showJ && idx === st.j) labels.push('<span class="pgt">gt</span>');
+      } else {
+        if (showI && idx === st.i) labels.push('<span class="pi">i</span>');
+        if (showJ && idx === st.j && !(st.j === st.hi && !st.seated)) labels.push('<span class="pj">j</span>');
+        if (showK && idx === st.scan && st.scan !== st.hi) labels.push('<span class="pk">k</span>');
+      }
       el.innerHTML = labels.join(' · ');
     });
 
@@ -1035,10 +1287,12 @@
     if (st.cmp === 'lt') { cmpBox.classList.add('cmp-le'); $('dCmp').textContent = looking + ' < ' + st.pivot; }
     else if (st.cmp === 'eq') { cmpBox.classList.add('cmp-eq'); $('dCmp').textContent = looking + ' == ' + st.pivot; }
     else if (st.cmp === 'gt') { cmpBox.classList.add('cmp-gt'); $('dCmp').textContent = looking + ' > ' + st.pivot; }
-    else if (st.phase === 'found') { cmpBox.classList.add('cmp-hit'); $('dCmp').textContent = 'i ≤ target ≤ j'; }
-    else if (st.phase === 'placed' || st.phase === 'place') { $('dCmp').textContent = 'i ≤ ? ≤ j'; }
+    else if (st.phase === 'found') { cmpBox.classList.add('cmp-hit'); $('dCmp').textContent = dij ? 'lt ≤ target ≤ gt' : 'i ≤ target ≤ j'; }
+    else if (st.phase === 'placed' || st.phase === 'place') { $('dCmp').textContent = dij ? 'lt ≤ ? ≤ gt' : 'i ≤ ? ≤ j'; }
     else { $('dCmp').textContent = '—'; }
-    $('dPtr').textContent = (showI ? st.i : '—') + ' · ' + (showJ ? st.j : '—') + ' · ' + (showK ? st.scan : '—');
+    $('dPtr').textContent = dij
+      ? ((showI ? st.i : '—') + ' · ' + (showK ? st.scan : '—') + ' · ' + (showJ ? st.j : '—'))
+      : ((showI ? st.i : '—') + ' · ' + (showJ ? st.j : '—') + ' · ' + (showK ? st.scan : '—'));
 
     var sliceLab = $('sliceLab');
     var sliceRow = $('sliceRow');
@@ -1086,7 +1340,9 @@
       $('treeCaption').textContent = '第 ' + (st.round || 1) + ' 轮 · 取出 [' + st.lo + ', ' + st.hi + ']';
     } else {
       root.className = 'ptree-root' + (st.phase === 'found' ? ' hit' : '');
-      var where = st.seated ? ('归位 j=' + st.j) : ('藏在 hi=' + st.hi);
+      var where = dij
+        ? (st.seated ? ('等于 [' + st.i + ', ' + st.j + ']') : '只取值 · 不藏 hi')
+        : (st.seated ? ('归位 j=' + st.j) : ('藏在 hi=' + st.hi));
       root.innerHTML = '<span class="k">pivot</span><b>' + st.pivot + '</b><small>' + where + '</small>';
       var cap = '第 ' + st.round + ' 轮 · 取出 [' + (st.winLo == null ? st.lo : st.winLo) + ', ' + (st.winHi == null ? st.hi : st.winHi) + ']';
       if (decided && st.side) cap += ' · ' + sideLabel(st.side);
@@ -1095,7 +1351,7 @@
 
     var pendingEl = $('pendingRow');
     if (st.pivot == null || st.phase === 'extract' || st.phase === 'pick') {
-      pendingEl.innerHTML = '<span class="lab">待扫描</span><span class="ghost">藏起 pivot 后开始</span>';
+      pendingEl.innerHTML = '<span class="lab">待扫描</span><span class="ghost">' + (dij ? '抽出 pivot 后 p / gt 对进' : '藏起 pivot 后开始') + '</span>';
     } else if (st.seated) {
       pendingEl.innerHTML = '<span class="lab">待扫描</span><span class="ghost">本轮已扫完</span>';
     } else if (regs.pending.length) {
@@ -1114,7 +1370,7 @@
       var row = document.createElement('div');
       row.className = 'hist-item';
       row.innerHTML = '第 ' + h.round + ' 轮取出 <b>[' + h.lo + ', ' + h.hi + ']</b> pivot=' + h.pivot +
-        ' → [i,j]=[' + h.i + ', ' + h.j + '] → <span class="go ' + h.side + '">' + sideLabel(h.side) + '</span>';
+        ' → ' + (dij ? '[lt,gt]' : '[i,j]') + '=[' + h.i + ', ' + h.j + '] → <span class="go ' + h.side + '">' + sideLabel(h.side) + '</span>';
       histEl.appendChild(row);
     });
 
@@ -1332,7 +1588,7 @@
     seed = nextSeed;
     if (method === 'lists') steps = buildStepsLists(nums, k, mulberry32(seed));
     else {
-      steps = buildSteps(nums, k, mulberry32(seed));
+      steps = isDij() ? buildStepsDijkstra(nums, k, mulberry32(seed)) : buildSteps(nums, k, mulberry32(seed));
       buildBoard();
     }
     stepIndex = 0;
@@ -1410,7 +1666,7 @@
 '            elif j &lt; target:\n' +
 '                lo = j + 1                      <span class="cmt"># 取右边</span>\n' +
 '            else:\n' +
-'                hi = j - 1                      <span class="cmt"># 取左边</span>',
+'                hi = i - 1                      <span class="cmt"># 取左边，等于段整段丢掉</span>',
     java:
 '<span class="cmt">// 随机基准藏到 hi · 三路划分 · 期望 O(n)</span>\n' +
 'import java.util.Random;\n' +
@@ -1438,7 +1694,74 @@
 '            swap(nums, j, hi);                 <span class="cmt">// 归位</span>\n' +
 '            if (i &lt;= target &amp;&amp; target &lt;= j) return nums[i];\n' +
 '            else if (j &lt; target) lo = j + 1;\n' +
-'            else hi = j - 1;\n' +
+'            else hi = i - 1;\n' +
+'        }\n' +
+'        return -1;\n' +
+'    }\n' +
+'    private void swap(int[] a, int x, int y) {\n' +
+'        int t = a[x]; a[x] = a[y]; a[y] = t;\n' +
+'    }\n' +
+'}'
+  };
+
+  var codesDijkstra = {
+    py:
+'<span class="cmt"># Dijkstra 三路（荷兰国旗）· 两端夹 · 期望 O(n)</span>\n' +
+'import random\n' +
+'from typing import List\n' +
+'\n' +
+'class Solution:\n' +
+'    def findKthLargest(self, nums: List[int], k: int) -&gt; int:\n' +
+'        target, lo, hi = len(nums) - k, 0, len(nums) - 1\n' +
+'        while lo &lt;= hi:\n' +
+'            r = random.randint(lo, hi)\n' +
+'            pivot = nums[r]                 <span class="cmt"># 只取值，不藏到 hi</span>\n' +
+'            lt = p = lo\n' +
+'            gt = hi\n' +
+'            while p &lt;= gt:\n' +
+'                if nums[p] &lt; pivot:\n' +
+'                    nums[lt], nums[p] = nums[p], nums[lt]\n' +
+'                    lt += 1\n' +
+'                    p += 1\n' +
+'                elif nums[p] &gt; pivot:\n' +
+'                    nums[p], nums[gt] = nums[gt], nums[p]\n' +
+'                    gt -= 1                 <span class="cmt"># p 不动，换来的还没看</span>\n' +
+'                else:\n' +
+'                    p += 1\n' +
+'            if lt &lt;= target &lt;= gt:\n' +
+'                return nums[target]\n' +
+'            elif target &lt; lt:\n' +
+'                hi = lt - 1                 <span class="cmt"># 等于段整段丢掉</span>\n' +
+'            else:\n' +
+'                lo = gt + 1',
+    java:
+'<span class="cmt">// Dijkstra 三路（荷兰国旗）· 两端夹 · 期望 O(n)</span>\n' +
+'import java.util.Random;\n' +
+'\n' +
+'class Solution {\n' +
+'    private final Random rnd = new Random();\n' +
+'    public int findKthLargest(int[] nums, int k) {\n' +
+'        int target = nums.length - k;\n' +
+'        int lo = 0, hi = nums.length - 1;\n' +
+'        while (lo &lt;= hi) {\n' +
+'            int r = lo + rnd.nextInt(hi - lo + 1);\n' +
+'            int pivot = nums[r];            <span class="cmt">// 只取值</span>\n' +
+'            int lt = lo, p = lo, gt = hi;\n' +
+'            while (p &lt;= gt) {\n' +
+'                if (nums[p] &lt; pivot) {\n' +
+'                    swap(nums, lt, p);\n' +
+'                    lt++;\n' +
+'                    p++;\n' +
+'                } else if (nums[p] &gt; pivot) {\n' +
+'                    swap(nums, p, gt);\n' +
+'                    gt--;                   <span class="cmt">// p 不动</span>\n' +
+'                } else {\n' +
+'                    p++;\n' +
+'                }\n' +
+'            }\n' +
+'            if (lt &lt;= target &amp;&amp; target &lt;= gt) return nums[target];\n' +
+'            else if (target &lt; lt) hi = lt - 1;\n' +
+'            else lo = gt + 1;\n' +
 '        }\n' +
 '        return -1;\n' +
 '    }\n' +
@@ -1507,18 +1830,29 @@
 '}'
   };
 
-  function currentCodes() { return method === 'lists' ? codesLists : codes; }
+  function currentCodes() {
+    if (method === 'lists') return codesLists;
+    if (isDij()) return codesDijkstra;
+    return codes;
+  }
 
   function syncChrome() {
     $('pageSub').innerHTML = SUB[method];
-    $('ideaInplace').classList.toggle('hidden', method === 'lists');
+    $('ideaInplace').classList.toggle('hidden', method !== 'inplace');
+    $('ideaDijkstra').classList.toggle('hidden', method !== 'dijkstra');
     $('ideaLists').classList.toggle('hidden', method !== 'lists');
-    $('phasesInplace').classList.toggle('hidden', method === 'lists');
+    $('phasesInplace').classList.toggle('hidden', method !== 'inplace');
+    $('phasesDijkstra').classList.toggle('hidden', method !== 'dijkstra');
     $('phasesLists').classList.toggle('hidden', method !== 'lists');
     $('viewInplace').classList.toggle('hidden', method === 'lists');
     $('viewLists').classList.toggle('hidden', method !== 'lists');
-    $('legendInplace').classList.toggle('hidden', method === 'lists');
+    $('legendInplace').classList.toggle('hidden', method !== 'inplace');
+    $('legendDijkstra').classList.toggle('hidden', method !== 'dijkstra');
     $('legendLists').classList.toggle('hidden', method !== 'lists');
+    $('compareCut').classList.toggle('hidden', method === 'lists');
+    $('cmpLomuto').classList.toggle('on', method === 'inplace');
+    $('cmpDijkstra').classList.toggle('on', method === 'dijkstra');
+    $('dPtrLab').textContent = isDij() ? 'lt · p · gt' : 'i · j · k';
     Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (tab) {
       tab.classList.toggle('active', tab.getAttribute('data-method') === method);
     });
@@ -1552,9 +1886,19 @@
     if (q.get('nums')) input.value = q.get('nums');
     if (q.get('k')) kInput.value = q.get('k');
     if (q.get('method') === 'lists') method = 'lists';
+    if (q.get('method') === 'dijkstra') method = 'dijkstra';
+    if (q.get('method') === 'inplace') method = 'inplace';
   } catch (err) {}
   syncChrome();
   load(false);
+  window.__kth215 = {
+    parseInput: parseInput,
+    buildSteps: buildSteps,
+    buildStepsDijkstra: buildStepsDijkstra,
+    buildStepsLists: buildStepsLists,
+    mulberry32: mulberry32,
+    hashSeed: hashSeed
+  };
 })();
 </script>
 </body>
