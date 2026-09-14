@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="tags" content="快速选择 · 三路划分 · 数组">
+<meta name="tags" content="快速选择 · 三路划分 · 原地 · 递归 · 数组">
 <title>215. 数组中的第K个最大元素 — 动画演示</title>
 <style>
   :root { color-scheme: light; }
@@ -15,6 +15,13 @@
   }
   .wrap { max-width: 1200px; margin: 0 auto; }
   .navbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .method-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .method-tab {
+    padding: 8px 14px; border: 1px solid #e5e7eb; border-radius: 999px; background: #f8fafc;
+    color: #374151; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .method-tab.active { background: #6366f1; border-color: #4338ca; color: #fff; }
+  .hidden { display: none !important; }
   .difftag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; }
   .link { font-size: 12px; color: #6b7280; }
   .link a { color: #6366f1; text-decoration: none; }
@@ -114,9 +121,10 @@
     position: absolute; top: 3px; right: 4px; font-size: 8px; font-weight: 800;
     color: #6d28d9; letter-spacing: .02em;
   }
-  .cell.less { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
-  .cell.equal { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
-  .cell.greater { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+  .cell.le { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+  .cell.eq { background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; }
+  .cell.pivot { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+  .cell.gt { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
   .cell.unknown { background: #fff; border-color: #e2e8f0; color: #334155; }
   .cell.out { background: #f1f5f9; border-color: #e2e8f0; color: #cbd5e1; opacity: .7; }
   .cell.current { background: #fef3c7; border-color: #f59e0b; color: #92400e; box-shadow: 0 0 0 4px rgba(245,158,11,.2); transform: translateY(-2px); z-index: 2; }
@@ -131,7 +139,7 @@
     min-height: 22px; display: flex; align-items: flex-start; justify-content: center;
     font: 800 10px "SF Mono", Menlo, monospace; flex-wrap: wrap; gap: 2px;
   }
-  .pl { color: #1d4ed8; } .pi { color: #4f46e5; } .pg { color: #c2410c; }
+  .plo { color: #1d4ed8; } .phi { color: #c2410c; } .pi { color: #4f46e5; } .pj { color: #7c3aed; } .pk { color: #b45309; }
 
   .visual { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .95fr); gap: 14px; align-items: stretch; margin-bottom: 4px; }
   .pane {
@@ -142,6 +150,13 @@
   .pane-head .panel-title { margin-bottom: 0; }
   .pane-sub { font-size: 12px; color: #94a3b8; }
   .pane .stage { flex: 1; background: linear-gradient(#fff, #f8fafc); }
+
+  .slice {
+    border: 1px dashed #c7d2fe; border-radius: 10px; background: #fff;
+    padding: 10px 12px; margin-bottom: 12px;
+  }
+  .slice .lab { font-size: 11px; font-weight: 800; color: #6366f1; letter-spacing: .04em; margin-bottom: 8px; }
+  .slice-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 34px; align-items: center; }
 
   .ptree { display: flex; flex-direction: column; align-items: center; padding: 4px 0 8px; }
   .ptree-root {
@@ -155,23 +170,42 @@
   .ptree-root b { display: block; font: 800 22px "SF Mono", Menlo, monospace; line-height: 1.15; }
   .ptree-root small { display: block; margin-top: 2px; font: 700 11px "SF Mono", Menlo, monospace; opacity: .75; }
   .ptree-fork {
-    width: min(86%, 280px); height: 22px; margin-top: 6px; position: relative;
+    width: min(88%, 280px); height: 22px; margin-top: 6px; position: relative;
     border-top: 2px solid #cbd5e1; border-left: 2px solid #93c5fd; border-right: 2px solid #fdba74;
     border-radius: 10px 10px 0 0;
   }
   .ptree-fork::after {
-    content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
-    background: #c4b5fd; transform: translateX(-50%);
+    content: ""; position: absolute; left: 50%; top: 0; height: 22px;
+    border-left: 2px solid #d8b4fe;
   }
   .ptree-kids { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 100%; }
-  .reg { position: relative; }
+  .reg { position: relative; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc; min-height: 74px; }
   .reg.active { box-shadow: 0 0 0 3px rgba(99,102,241,.16); }
   .reg.hit { background: #ecfdf5; border-color: #86efac; box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
   .reg.drop { opacity: .42; }
+  .reg.le { background: #eff6ff; border-color: #bfdbfe; }
+  .reg.eq { background: #faf5ff; border-color: #e9d5ff; }
+  .reg.gt { background: #fff7ed; border-color: #fed7aa; }
+  .reg h4 { margin: 0 0 8px; font-size: 12px; color: #64748b; }
+  .reg h4 b { color: #1d2129; font-family: "SF Mono", Menlo, monospace; }
   .reg .star {
     position: absolute; top: -8px; right: 8px; font: 800 9px "SF Mono", Menlo, monospace;
     background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; border-radius: 999px; padding: 0 6px; line-height: 16px;
   }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bit {
+    min-width: 32px; padding: 4px 8px; border-radius: 8px; text-align: center;
+    font: 800 13px "SF Mono", Menlo, monospace; border: 1px solid transparent;
+  }
+  .bit.le { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+  .bit.eq { background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; }
+  .bit.gt { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+  .bit.pending { background: #fff; border-color: #e2e8f0; color: #64748b; }
+  .bit.pivot { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+  .bit.current { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+  .bit.swap { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+  .ghost { font-size: 12px; color: #9ca3af; }
+
   .pending-row {
     margin-top: 10px; min-height: 40px; border: 1px dashed #dbe1ea; border-radius: 10px;
     padding: 8px 10px; background: #fff; color: #64748b; font-size: 12px;
@@ -185,35 +219,17 @@
   }
   .hist-item b { color: #1d2129; }
   .hist-item .go { font-weight: 800; }
-  .hist-item .go.less { color: #1d4ed8; }
-  .hist-item .go.eq { color: #6d28d9; }
-  .hist-item .go.greater { color: #c2410c; }
+  .hist-item .go.left { color: #1d4ed8; }
+  .hist-item .go.right { color: #c2410c; }
+  .hist-item .go.eq { color: #15803d; }
 
   .dash { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .box { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc; color: #64748b; text-align: center; font-size: 12px; }
   .box b { display: block; min-height: 27px; color: #334155; font: 800 16px "SF Mono", Menlo, monospace; margin-top: 2px; }
-  .box.cmp-lt b { color: #1d4ed8; }
+  .box.cmp-le b { color: #1d4ed8; }
   .box.cmp-eq b { color: #6d28d9; }
   .box.cmp-gt b { color: #c2410c; }
   .box.cmp-hit b { color: #15803d; }
-
-  .regions { margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-  .reg { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc; min-height: 74px; }
-  .reg.less { background: #eff6ff; border-color: #bfdbfe; }
-  .reg.eq { background: #f5f3ff; border-color: #ddd6fe; }
-  .reg.greater { background: #fff7ed; border-color: #fed7aa; }
-  .reg h4 { margin: 0 0 8px; font-size: 12px; color: #64748b; }
-  .reg h4 b { color: #1d2129; font-family: "SF Mono", Menlo, monospace; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .bit {
-    min-width: 32px; padding: 4px 8px; border-radius: 8px; text-align: center;
-    font: 800 13px "SF Mono", Menlo, monospace; border: 1px solid transparent;
-  }
-  .bit.less { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
-  .bit.eq { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
-  .bit.greater { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
-  .bit.pending { background: #fff; border-color: #e2e8f0; color: #64748b; }
-  .ghost { font-size: 12px; color: #9ca3af; }
 
   .rule {
     margin-top: 10px; border-radius: 10px; background: #0f172a; color: #e2e8f0;
@@ -232,6 +248,36 @@
   .status .op { color: #86efac; font-weight: 700; }
   .status .hl { color: #86efac; font-weight: 800; }
   .status code { background: #1f2937; color: #93c5fd; }
+
+  .rank-axis {
+    display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;
+    margin: 0 auto 12px; min-width: max-content;
+  }
+  .rk {
+    width: 36px; height: 42px; border-radius: 8px; border: 1px solid #e2e8f0;
+    background: #f8fafc; color: #94a3b8;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font: 800 11px "SF Mono", Menlo, monospace;
+  }
+  .rk small { font-size: 8px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .rk.big { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+  .rk.cur { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .rk.tiny { background: #eff6ff; border-color: #bfdbfe; color: #93c5fd; }
+  .rk.target { background: #fef3c7; border-color: #f59e0b; color: #b45309; box-shadow: 0 0 0 3px rgba(245,158,11,.22); }
+  .rk.answer { background: #22c55e; border-color: #16a34a; color: #fff; box-shadow: 0 0 0 3px rgba(34,197,94,.22); }
+  .list-stage { overflow: auto; border: 1px solid #eef0f4; border-radius: 12px; background: linear-gradient(#fff, #f8fafc); padding: 14px 12px 10px; }
+  .list-board { display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: max-content; margin: 0 auto; }
+  .list-row, .list-ptr { display: flex; gap: 7px; }
+  .list-ptr span {
+    width: 56px; min-height: 18px; text-align: center;
+    font: 800 10px "SF Mono", Menlo, monospace; color: #b45309;
+  }
+  .concat {
+    margin-top: 10px; border: 1px dashed #ddd6fe; border-radius: 10px; padding: 8px 10px; background: #fff;
+  }
+  .concat .lab { font-size: 11px; font-weight: 800; color: #7c3aed; margin-bottom: 6px; }
+  .concat-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 32px; }
+  .bit.idx { box-shadow: 0 0 0 3px rgba(245,158,11,.28); }
 
   details.code { margin-top: 4px; }
   details.code summary { cursor: pointer; font-weight: 600; font-size: 14px; color: #4f46e5; }
@@ -258,8 +304,9 @@
     .input-grid, .dash, .phases { grid-template-columns: 1fr 1fr; }
     .input-grid .field:first-child { grid-column: 1 / -1; }
     .ptree-kids { grid-template-columns: 1fr; }
+    .ptree-fork::after { display: none; }
     .progress { width: 100%; margin-left: 0; }
-    .cell, .pin, .tick, .ptr { width: 50px; }
+    .cell, .pin, .tick, .ptr, .list-ptr span { width: 50px; }
     .cell { height: 50px; font-size: 16px; }
   }
 </style>
@@ -273,17 +320,35 @@
   </div>
 
   <h1>215. 数组中的第 K 个最大元素 · 快速选择动画</h1>
-  <div class="sub">全排序当然能做：排完取下标 <code>n − k</code> 就是第 K 大，但是 <code>O(n log n)</code>。本题只要这一个名次，所以金色钉钉的是<b>排好后会坐在这里的位置</b>，不是某个原始元素。三路划分后只走进含这个下标的一侧，左右内部不必再排，期望 <code>O(n)</code>。</div>
+  <div class="sub" id="pageSub"></div>
 
   <div class="card">
-    <div class="panel-title">快速选择四步</div>
-    <div class="idea">
-      <div class="idea-item"><div class="no">① 只要这个名次</div>全排序会把每个位置都排好。这里只关心升序下标 <code>target = n − k</code>：它一旦落进等于区，答案就是 pivot，左边更小、右边更大即可，不必继续排。</div>
-      <div class="idea-item"><div class="no">② 随机基准</div>在 <code>[lo, hi]</code> 里随机抽一个值，换到区间左端当 pivot。避免有序输入总选到最值，退化成 <code>O(n²)</code>。</div>
-      <div class="idea-item"><div class="no">③ 三路划分</div><code>lt / i / gt</code> 三指针一次扫描：<b>&lt; pivot</b> 换到左边，<b>&gt; pivot</b> 换到右边，<b>相等</b>就让 i 右移。</div>
-      <div class="idea-item"><div class="no">④ 丢掉另一侧</div><code>target &lt; lt</code> 丢掉右边；<code>target &gt; gt</code> 丢掉左边。被丢掉的那一段永远不会再排——这就是比全排序省的原因。</div>
+    <div class="method-tabs">
+      <button type="button" class="method-tab active" data-method="inplace">① 原地三路 · [lo, hi]</button>
+      <button type="button" class="method-tab" data-method="lists">② 开数组递归 · left / mid / right</button>
     </div>
-    <div class="key-note"><b>为什么不直接 sort？</b>排序要确定全部名次，所以是 <code>O(n log n)</code>。快速选择每趟只递归<b>含 target 的一侧</b>，规模大约 <code>n + n/2 + n/4 + … ≈ 2n</code>，期望 <code>O(n)</code>。金色钉始终标着这个名次下标，方便对照「答案会坐在哪」；格子里的值会在交换中换进来。<br><b>为什么必须三路？</b>若只按 &lt; / ≥ 两路切，全相等数组几乎不缩小区间，LeetCode 会超时。三路把所有等于基准的元素一次归位，这种输入也是线性。</div>
+
+    <div id="ideaInplace">
+      <div class="panel-title">每轮四步</div>
+      <div class="idea">
+        <div class="idea-item"><div class="no">① 取出 [lo, hi]</div>外面的格子本轮不看。第 k 大对应升序下标 <code>target = n − k</code>，只要这个下标落进等于段。</div>
+        <div class="idea-item"><div class="no">② 藏起 pivot</div>在区间里随机抽一个下标 <code>r</code>，和 <code>hi</code> 交换。代码里的 <code>privot</code> 就是这个基准，扫描时先不去动它。</div>
+        <div class="idea-item"><div class="no">③ 三路划分</div>扫描下标 <code>k</code> 从 <code>lo</code> 走到 <code>hi − 1</code>。<code>&lt;</code> 就经 <code>j</code> 转到 <code>i</code> 并 <code>i++, j++</code>；<code>==</code> 只进 <code>j</code>；<code>&gt;</code> 留下。</div>
+        <div class="idea-item"><div class="no">④ 归位并对账</div>把 <code>hi</code> 上的基准换到 <code>j</code>。若 <code>i ≤ target ≤ j</code> 就返回；<code>j &lt; target</code> 则 <code>lo = j + 1</code>，否则 <code>hi = j − 1</code>。</div>
+      </div>
+      <div class="key-note"><b>为什么不直接 sort？</b>全排序要确定每个名次，<code>O(n log n)</code>。这里每轮只处理取出的 <code>[lo, hi]</code>，等于段可以一次吃掉所有重复基准，期望 <code>O(n)</code>。<b>扫描中的不变量：</b><code>[lo, i)</code> 都 <code>&lt; pivot</code>，<code>[i, j)</code> 都 <code>== pivot</code>，<code>[j, k)</code> 都 <code>&gt; pivot</code>，<code>hi</code> 藏着基准。循环变量 <code>k</code> 和题目的 <code>k</code> 同名，动画里扫描指针标成 <code>k</code>，第 k 大仍看输入框。</div>
+    </div>
+
+    <div id="ideaLists" class="hidden">
+      <div class="panel-title">每轮四步</div>
+      <div class="idea">
+        <div class="idea-item"><div class="no">① 当前列表</div>递归处理 <code>_nums</code>。<code>left_num</code> 是已经确定「比当前段更大」的个数。要找的是降序第 <code>k</code> 名，当前段里的下标 <code>idx = k − 1 − left_num</code>。</div>
+        <div class="idea-item"><div class="no">② 抽 pivot</div><code>pivot = random.choice(_nums)</code>，不交换、不藏到末尾，原列表保持不动。</div>
+        <div class="idea-item"><div class="no">③ 开三个数组</div>扫一遍：<code>&gt; pivot</code> 进 <code>left</code>（更大，降序靠前），<code>==</code> 进 <code>mid</code>，<code>&lt;</code> 进 <code>right</code>（更小，降序靠后）。</div>
+        <div class="idea-item"><div class="no">④ 对账后递归</div><code>idx &lt; len(left)</code> 则只看 left；落在 mid 就返回 pivot；否则看 right，并把 <code>left_num</code> 加上 left+mid 的长度。</div>
+      </div>
+      <div class="key-note"><b>和方案①差在哪？</b>两边都是三路快选，期望都是 <code>O(n)</code>，不是更快的渐近复杂度。差别主要是：①按<b>升序下标</b> <code>n−k</code> 在原数组里交换；②按<b>降序名次</b> <code>k−1</code> 每轮 <code>append</code> 出新列表再递归。Python 里列表 append 走 C 实现，比一堆下标交换更吃香，所以提交往往更快；代价是额外 <code>O(n)</code> 空间。Java 里频繁 new ArrayList 就不一定更快。</div>
+    </div>
   </div>
 
   <div class="card">
@@ -303,7 +368,7 @@
       <span class="chip" data-nums="4 1 7 3" data-k="1">短数组 k=1</span>
     </div>
     <div class="err" id="err"></div>
-    <div class="hint">1～16 个整数，空格或逗号分隔，范围 −999～999。同一输入固定种子，路径可复现；「换一组随机基准」会换一条划分路径。</div>
+    <div class="hint">1～16 个整数，空格或逗号分隔，范围 −999～999。同一输入固定种子；「换一组随机基准」会换一条划分路径。</div>
   </div>
 
   <div class="card">
@@ -316,19 +381,27 @@
       <span class="progress" id="progress"></span>
     </div>
 
-    <div class="phases" id="phases">
-      <div class="phase" data-key="start"><span class="no">① 名次</span>只要第 k 大</div>
-      <div class="phase" data-key="pick"><span class="no">② 基准</span>随机抽 pivot</div>
-      <div class="phase" data-key="scan"><span class="no">③ 划分</span>荷兰国旗</div>
-      <div class="phase" data-key="done"><span class="no">④ 下落</span>看落在哪段</div>
-      <div class="phase" data-key="found"><span class="no">⑤ 命中</span>等于区归位</div>
+    <div id="phasesInplace" class="phases">
+      <div class="phase" data-key="extract"><span class="no">① 取出</span>[lo, hi]</div>
+      <div class="phase" data-key="hide"><span class="no">② 藏起</span>pivot → hi</div>
+      <div class="phase" data-key="scan"><span class="no">③ 划分</span>i / j / k</div>
+      <div class="phase" data-key="place"><span class="no">④ 归位</span>换到 j</div>
+      <div class="phase" data-key="found"><span class="no">⑤ 对账</span>i ≤ target ≤ j</div>
     </div>
 
-    <div class="visual">
+    <div id="phasesLists" class="phases hidden">
+      <div class="phase" data-key="extract"><span class="no">① 取出</span>当前 _nums</div>
+      <div class="phase" data-key="pick"><span class="no">② 抽基准</span>random.choice</div>
+      <div class="phase" data-key="scan"><span class="no">③ 分桶</span>left / mid / right</div>
+      <div class="phase" data-key="split"><span class="no">④ 对账</span>idx 落在哪</div>
+      <div class="phase" data-key="found"><span class="no">⑤ 递归</span>或命中 mid</div>
+    </div>
+
+    <div id="viewInplace" class="visual">
       <section class="pane">
         <div class="pane-head">
           <div class="panel-title">数组 nums</div>
-          <div class="pane-sub">原地交换 · 金色钉 = 第 k 大最终坐的下标</div>
+          <div class="pane-sub">本轮只动 [lo, hi] · 金色钉 = target</div>
         </div>
         <div class="stage">
           <div class="board">
@@ -342,37 +415,93 @@
 
       <section class="pane">
         <div class="pane-head">
-          <div class="panel-title">三路分区树</div>
-          <div class="pane-sub" id="treeCaption">pivot 把当前区间切成三叉，只走含 target 的一侧</div>
+          <div class="panel-title">本轮区间</div>
+          <div class="pane-sub" id="treeCaption">每轮取出 [lo, hi]</div>
+        </div>
+        <div class="slice">
+          <div class="lab" id="sliceLab">尚未取出</div>
+          <div class="slice-row" id="sliceRow"><span class="ghost">点击下一步，先取出 [lo, hi]</span></div>
         </div>
         <div class="ptree">
-          <div class="ptree-root idle" id="treeRoot"><span class="k">pivot</span><b>?</b><small>等待选基准</small></div>
+          <div class="ptree-root idle" id="treeRoot"><span class="k">pivot</span><b>?</b><small>先取出区间</small></div>
           <div class="ptree-fork" aria-hidden="true"></div>
           <div class="ptree-kids">
-            <div class="reg less" id="regLessBox"><span class="star" id="starLess" hidden>target</span><h4>小于 &lt; <b id="pLess">pivot</b></h4><div class="chips" id="regLess"></div></div>
-            <div class="reg eq" id="regEqBox"><span class="star" id="starEq" hidden>target</span><h4>等于 = <b id="pEq">pivot</b></h4><div class="chips" id="regEq"></div></div>
-            <div class="reg greater" id="regGreaterBox"><span class="star" id="starGreater" hidden>target</span><h4>大于 &gt; <b id="pGreater">pivot</b></h4><div class="chips" id="regGreater"></div></div>
+            <div class="reg le" id="regLtBox"><span class="star" id="starLt" hidden>target</span><h4>&lt; <b id="pLt">pivot</b></h4><div class="chips" id="regLt"></div></div>
+            <div class="reg eq" id="regEqBox"><span class="star" id="starEq" hidden>target</span><h4>= <b id="pEq">pivot</b></h4><div class="chips" id="regEq"></div></div>
+            <div class="reg gt" id="regGtBox"><span class="star" id="starGt" hidden>target</span><h4>&gt; <b id="pGt">pivot</b></h4><div class="chips" id="regGt"></div></div>
           </div>
         </div>
-        <div class="pending-row" id="pendingRow"><span class="lab">待处理</span><span class="ghost">尚未开始扫描</span></div>
+        <div class="pending-row" id="pendingRow"><span class="lab">待扫描</span><span class="ghost">取出区间后开始</span></div>
         <div class="dash">
+          <div class="box">取出 [lo, hi]<b id="dRange">—</b></div>
           <div class="box">本轮基准<b id="dPivot">—</b></div>
-          <div class="box">正在看<b id="dCur">—</b></div>
           <div class="box" id="dCmpBox">比较<b id="dCmp">—</b></div>
-          <div class="box">lt · i · gt<b id="dPtr">—</b></div>
+          <div class="box">i · j · k<b id="dPtr">—</b></div>
         </div>
-        <div class="rule" id="rule">target = n − k，只把这个下标归位</div>
+        <div class="rule" id="rule">while lo ≤ hi：取出 [lo, hi]</div>
         <div class="hist" id="hist"></div>
       </section>
     </div>
-    <div class="legend">
-      <span><span class="dot" style="background:#dbeafe;border-color:#93c5fd"></span>小于区</span>
-      <span><span class="dot" style="background:#ede9fe;border-color:#c4b5fd"></span>等于区 / 基准</span>
-      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>大于区</span>
-      <span><span class="dot" style="background:#fff;border-color:#e2e8f0"></span>待处理</span>
-      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>正在比较</span>
+
+    <div id="viewLists" class="visual hidden">
+      <section class="pane">
+        <div class="pane-head">
+          <div class="panel-title">降序名次 + 当前 _nums</div>
+          <div class="pane-sub">金色格 = 第 k 名（下标 k−1）</div>
+        </div>
+        <div class="list-stage">
+          <div class="list-board">
+            <div class="rank-axis" id="rankAxis"></div>
+            <div class="list-row" id="listRow"></div>
+            <div class="list-ptr" id="listPtr"></div>
+          </div>
+        </div>
+      </section>
+      <section class="pane">
+        <div class="pane-head">
+          <div class="panel-title">本轮新数组</div>
+          <div class="pane-sub" id="listsCaption">left / mid / right</div>
+        </div>
+        <div class="ptree">
+          <div class="ptree-root idle" id="listsRoot"><span class="k">pivot</span><b>?</b><small>先取出当前列表</small></div>
+          <div class="ptree-fork" aria-hidden="true"></div>
+          <div class="ptree-kids">
+            <div class="reg gt" id="boxLeft"><span class="star" id="starLeft" hidden>idx</span><h4>left · &gt; <b id="lp">pivot</b></h4><div class="chips" id="bLeft"></div></div>
+            <div class="reg eq" id="boxMid"><span class="star" id="starMid" hidden>idx</span><h4>mid · = <b id="mp">pivot</b></h4><div class="chips" id="bMid"></div></div>
+            <div class="reg le" id="boxRight"><span class="star" id="starRight" hidden>idx</span><h4>right · &lt; <b id="rp">pivot</b></h4><div class="chips" id="bRight"></div></div>
+          </div>
+        </div>
+        <div class="concat">
+          <div class="lab" id="concatLab">拼起来看 idx</div>
+          <div class="concat-row" id="concatRow"><span class="ghost">分桶后才会拼成 left + mid + right</span></div>
+        </div>
+        <div class="dash">
+          <div class="box">left_num<b id="dLeftNum">—</b></div>
+          <div class="box">idx = k−1−left_num<b id="dIdx">—</b></div>
+          <div class="box">本轮基准<b id="dPivotL">—</b></div>
+          <div class="box" id="dCmpBoxL">比较<b id="dCmpL">—</b></div>
+        </div>
+        <div class="rule" id="ruleLists">sorr(_nums, left_num)</div>
+        <div class="hist" id="histLists"></div>
+      </section>
+    </div>
+    <div class="legend" id="legendInplace">
+      <span><span class="dot" style="background:#dbeafe;border-color:#93c5fd"></span>&lt; pivot（[lo, i)）</span>
+      <span><span class="dot" style="background:#f3e8ff;border-color:#d8b4fe"></span>== pivot（[i, j]）</span>
+      <span><span class="dot" style="background:#ede9fe;border-color:#c4b5fd"></span>藏起 / 归位的 pivot</span>
+      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>&gt; pivot</span>
+      <span><span class="dot" style="background:#fff;border-color:#e2e8f0"></span>待扫描</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>k 正在看</span>
       <span><span class="dot" style="background:#fee2e2;border-color:#ef4444"></span>交换中</span>
-      <span><span class="dot" style="background:#f1f5f9;border-color:#e2e8f0"></span>已排除</span>
+      <span><span class="dot" style="background:#f1f5f9;border-color:#e2e8f0"></span>本轮未取出</span>
+      <span><span class="dot" style="background:#22c55e;border-color:#16a34a"></span>答案</span>
+    </div>
+    <div class="legend hidden" id="legendLists">
+      <span><span class="dot" style="background:#ffedd5;border-color:#fdba74"></span>left · 更大（&gt; pivot）</span>
+      <span><span class="dot" style="background:#f3e8ff;border-color:#d8b4fe"></span>mid · 等于</span>
+      <span><span class="dot" style="background:#dbeafe;border-color:#93c5fd"></span>right · 更小（&lt; pivot）</span>
+      <span><span class="dot" style="background:#fef3c7;border-color:#f59e0b"></span>正在看 / 第 k 名</span>
+      <span><span class="dot" style="background:#eef2ff;border-color:#c7d2fe"></span>当前段占据的名次</span>
       <span><span class="dot" style="background:#22c55e;border-color:#16a34a"></span>答案</span>
     </div>
     <div class="panel-title status-title">当前状态</div>
@@ -411,6 +540,11 @@
   var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
   var nums = [], k = 4, seed = 21501, steps = [], stepIndex = 0, timer = null, pendingHash = location.hash;
   var cells = [], pins = [], ticks = [], ptrs = [];
+  var method = 'inplace';
+  var SUB = {
+    inplace: '每轮先<b>取出</b>当前区间 <code>[lo, hi]</code>，把随机基准<b>藏到右端 hi</b>，再用 <code>i / j / k</code> 做三路划分。归位后若 <code>i ≤ target ≤ j</code> 就停；否则丢掉没有 target 的一侧，下一轮再取出新的 <code>[lo, hi]</code>。',
+    lists: '按<b>降序</b>找第 k 名。每轮把当前 <code>_nums</code> 拆成 <code>left(&gt;pivot) / mid / right(&lt;pivot)</code> 三个新数组，用 <code>idx = k − 1 − left_num</code> 决定递归哪一段。命中 mid 就返回。'
+  };
 
   function mulberry32(a) {
     return function () {
@@ -434,7 +568,7 @@
       return { err: '格式无效，请只输入由空格或单个逗号分隔的整数' };
     }
     var parts = raw.match(/-?\d+/g) || [];
-    if (parts.length > 16) return { err: '长度请不超过 16，方便看清三路划分' };
+    if (parts.length > 16) return { err: '长度请不超过 16，方便看清划分' };
     var arr = [];
     for (var i = 0; i < parts.length; i++) {
       var number = Number(parts[i]);
@@ -450,23 +584,27 @@
     return { arr: arr, k: kk };
   }
 
+  function exchange(a, x, y) {
+    var t = a[x]; a[x] = a[y]; a[y] = t;
+  }
+
   function buildSteps(a0, kk, rand) {
     var a = a0.slice(), n = a.length, target = n - kk, snaps = [], round = 0, guard = 0, hist = [];
     function snap(o) {
       snaps.push({
         vals: a.slice(),
         lo: o.lo, hi: o.hi,
-        rlo: o.rlo == null ? o.lo : o.rlo,
-        rhi: o.rhi == null ? o.hi : o.rhi,
-        lt: o.lt == null ? -1 : o.lt,
-        gt: o.gt == null ? -1 : o.gt,
+        winLo: o.winLo == null ? o.lo : o.winLo,
+        winHi: o.winHi == null ? o.hi : o.winHi,
         i: o.i == null ? -1 : o.i,
+        j: o.j == null ? -1 : o.j,
+        scan: o.scan == null ? -1 : o.scan,
         pivot: o.pivot == null ? null : o.pivot,
         pick: o.pick == null ? -1 : o.pick,
         swap: o.swap || null,
         focus: o.focus == null ? -1 : o.focus,
-        ansLo: o.ansLo == null ? -1 : o.ansLo,
-        ansHi: o.ansHi == null ? -1 : o.ansHi,
+        seated: !!o.seated,
+        ans: o.ans == null ? -1 : o.ans,
         cmp: o.cmp || '',
         cmpVal: o.cmpVal == null ? null : o.cmpVal,
         phase: o.phase,
@@ -480,126 +618,229 @@
 
     snap({
       lo: 0, hi: n - 1, phase: 'start', round: 0, focus: target,
-      msg: '求第 <b>' + kk + '</b> 大。不必把数组排完：只要让升序下标 <b>target = n − k = ' + target + '</b> 归位（金色钉标的是这个<b>名次位置</b>，不是某个原始元素）。左右内部不必再排。'
+      msg: '求第 <b>' + kk + '</b> 大 → 升序下标 <b>target = n − k = ' + target + '</b>。每轮<b>取出</b> <code>[lo, hi]</code>，三路划分后看 target 是否落在等于段 <code>[i, j]</code>。'
     });
 
     var lo = 0, hi = n - 1;
-    while (true) {
+    while (lo <= hi) {
       if (++guard > 64) break;
       round++;
-      if (lo === hi) {
-        snap({
-          lo: lo, hi: hi, ansLo: lo, ansHi: lo, phase: 'found', round: round, focus: lo,
-          msg: '区间只剩一个元素，下标 ' + lo + ' 就是 target。第 ' + kk + ' 大 = <span class="hl">' + a[lo] + '</span>。'
-        });
-        break;
-      }
+      snap({
+        lo: lo, hi: hi, phase: 'extract', round: round,
+        msg: '第 <b>' + round + '</b> 轮，<span class="op">取出</span>区间 <b>[' + lo + ', ' + hi + ']</b> = [' + a.slice(lo, hi + 1).join(', ') + ']。外面的格子本轮不看。'
+      });
 
       var r = lo + Math.floor(rand() * (hi - lo + 1));
-      var rlo = lo, rhi = hi;
       snap({
-        lo: lo, hi: hi, rlo: rlo, rhi: rhi, phase: 'pick', pick: r, focus: r, round: round,
-        msg: '第 <b>' + round + '</b> 轮，在区间 [' + lo + ', ' + hi + '] 中<span class="op">随机</span>抽到下标 <b>' + r + '</b>，值 <b>' + a[r] + '</b> 作为基准。'
+        lo: lo, hi: hi, phase: 'pick', pick: r, focus: r, round: round,
+        msg: '在取出的 [' + lo + ', ' + hi + '] 里<span class="op">随机</span>抽到下标 <b>' + r + '</b>，值 <b>' + a[r] + '</b>，准备藏到右端 hi = ' + hi + '。'
       });
-      if (r !== lo) {
-        var tmp = a[lo]; a[lo] = a[r]; a[r] = tmp;
+      if (r !== hi) {
+        exchange(a, r, hi);
         snap({
-          lo: lo, hi: hi, rlo: rlo, rhi: rhi, phase: 'pivot', pick: r, swap: [lo, r], focus: lo, round: round, pivot: a[lo],
-          msg: '把基准 <b>' + a[lo] + '</b> 换到区间左端 lo = ' + lo + '，等于区从这里开始生长。'
+          lo: lo, hi: hi, phase: 'hide', pick: r, swap: [r, hi], pivot: a[hi], focus: hi, round: round,
+          msg: '把基准 <b>' + a[hi] + '</b> 换到 <code>hi</code> 藏起来。扫描下标 <code>k</code> 走 <code>[lo, hi)</code> 时先不去动它。'
         });
       } else {
         snap({
-          lo: lo, hi: hi, rlo: rlo, rhi: rhi, phase: 'pivot', pick: r, focus: lo, round: round, pivot: a[lo],
-          msg: '基准 <b>' + a[lo] + '</b> 已经在左端，无需交换。'
+          lo: lo, hi: hi, phase: 'hide', pick: r, pivot: a[hi], focus: hi, round: round,
+          msg: '基准 <b>' + a[hi] + '</b> 已经在 <code>hi</code>，无需交换。'
         });
       }
 
-      var pivot = a[lo], lt = lo, gt = hi, i = lo + 1;
+      var pivot = a[hi], i = lo, j = lo;
       snap({
-        lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'scan', round: round,
-        msg: '三指针就位：lt = <b>' + lt + '</b>，i = <b>' + i + '</b>，gt = <b>' + gt + '</b>。不变量：[<span class="op">lo, lt</span>) &lt; pivot，[lt, i) = pivot，(gt, hi] &gt; pivot。'
+        lo: lo, hi: hi, i: i, j: j, scan: lo, pivot: pivot, phase: 'scan', round: round,
+        msg: '<code>i = j = ' + lo + '</code>。扫描 <code>k</code> 从 ' + lo + ' 走到 ' + (hi - 1) + '：<code>[lo, i)</code> 小于，<code>[i, j)</code> 等于，<code>[j, k)</code> 大于。'
       });
 
-      while (i <= gt) {
-        var cur = a[i];
+      for (var p = lo; p < hi; p++) {
+        var cur = a[p];
         if (cur < pivot) {
           snap({
-            lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'scan',
-            focus: i, cmp: 'lt', cmpVal: cur, round: round,
-            msg: 'nums[i] = <b>' + cur + '</b> &lt; 基准 ' + pivot + ' → 划入<span class="op">小于区</span>' +
-              (i !== lt ? '，与 lt = ' + lt + ' 交换。' : '。i 与 lt 重合，无需交换。')
+            lo: lo, hi: hi, i: i, j: j, scan: p, pivot: pivot, phase: 'scan',
+            focus: p, cmp: 'lt', cmpVal: cur, round: round,
+            msg: 'nums[k] = <b>' + cur + '</b> &lt; 基准 ' + pivot + ' → 先 <code>swap(j, k)</code> 再 <code>swap(i, j)</code>，然后 <span class="op">i++, j++</span>。'
           });
-          var oldLt = lt, oldI = i;
-          if (i !== lt) { var x = a[lt]; a[lt] = a[i]; a[i] = x; }
-          lt++; i++;
-          if (oldI !== oldLt) {
+          if (j !== p) {
+            exchange(a, j, p);
             snap({
-              lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'swap',
-              swap: [oldLt, oldI], focus: oldLt, cmp: 'lt', cmpVal: cur, round: round,
-              msg: '交换完成：<b>' + cur + '</b> 已落到小于区（下标 ' + oldLt + '）。lt、i 同时右移。'
+              lo: lo, hi: hi, i: i, j: j, scan: p, pivot: pivot, phase: 'swap',
+              swap: [j, p], focus: j, cmp: 'lt', cmpVal: cur, round: round,
+              msg: 'swap(j, k)：把 <b>' + cur + '</b> 换到 j = ' + j + '，大于段的头挪到 k。'
             });
           }
-        } else if (cur > pivot) {
+          if (i !== j) {
+            exchange(a, i, j);
+            snap({
+              lo: lo, hi: hi, i: i, j: j, scan: p, pivot: pivot, phase: 'swap',
+              swap: [i, j], focus: i, cmp: 'lt', cmpVal: cur, round: round,
+              msg: 'swap(i, j)：<b>' + cur + '</b> 进入小于段。接着 <span class="op">i++, j++</span>。'
+            });
+          }
+          i++;
+          j++;
+        } else if (cur === pivot) {
           snap({
-            lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'scan',
-            focus: i, cmp: 'gt', cmpVal: cur, round: round,
-            msg: 'nums[i] = <b>' + cur + '</b> &gt; 基准 ' + pivot + ' → 划入<span class="op">大于区</span>' +
-              (i !== gt ? '，与 gt = ' + gt + ' 交换；<b>i 不动</b>，换来的值还没看过。' : '。i 与 gt 重合，无需交换。')
+            lo: lo, hi: hi, i: i, j: j, scan: p, pivot: pivot, phase: 'scan',
+            focus: p, cmp: 'eq', cmpVal: cur, round: round,
+            msg: 'nums[k] = <b>' + cur + '</b> == 基准 ' + pivot + ' → <code>swap(j, k)</code> 后只 <span class="op">j++</span>，i 不动。'
           });
-          var oldGt = gt, oldI2 = i;
-          if (i !== gt) { var y = a[i]; a[i] = a[gt]; a[gt] = y; }
-          gt--;
-          if (oldI2 !== oldGt) {
+          if (j !== p) {
+            exchange(a, j, p);
             snap({
-              lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'swap',
-              swap: [oldI2, oldGt], focus: oldGt, cmp: 'gt', cmpVal: cur, round: round,
-              msg: '交换完成：<b>' + cur + '</b> 已落到大于区（下标 ' + oldGt + '）。gt 左移，i 仍停在 ' + i + ' 看换来的值。'
+              lo: lo, hi: hi, i: i, j: j, scan: p, pivot: pivot, phase: 'swap',
+              swap: [j, p], focus: j, cmp: 'eq', cmpVal: cur, round: round,
+              msg: '交换完成：等于值进入 <code>[i, j]</code>。接着 <span class="op">j++</span>。'
             });
           }
+          j++;
         } else {
           snap({
-            lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot, phase: 'scan',
-            focus: i, cmp: 'eq', cmpVal: cur, round: round,
-            msg: 'nums[i] = <b>' + cur + '</b> 等于基准 → 已在<span class="op">等于区</span>，只需 <span class="op">i++</span>。'
+            lo: lo, hi: hi, i: i, j: j, scan: p, pivot: pivot, phase: 'scan',
+            focus: p, cmp: 'gt', cmpVal: cur, round: round,
+            msg: 'nums[k] = <b>' + cur + '</b> &gt; 基准 ' + pivot + ' → 留在大于段，<b>i、j 都不动</b>。'
           });
-          i++;
         }
       }
 
-      var lessTxt = lt - 1 >= lo ? '[' + lo + ', ' + (lt - 1) + ']' : '∅';
-      var eqTxt = gt >= lt ? '[' + lt + ', ' + gt + ']' : '∅';
-      var greTxt = gt + 1 <= hi ? '[' + (gt + 1) + ', ' + hi + ']' : '∅';
-      var side = target < lt ? 'less' : target > gt ? 'greater' : 'eq';
-      hist.push({ round: round, lo: rlo, hi: rhi, pivot: pivot, lt: lt, gt: gt, side: side });
       snap({
-        lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, i: i, pivot: pivot,
-        phase: 'done', round: round, side: side,
-        msg: '划分完成：' + lessTxt + ' &lt; <b>' + pivot + '</b> ｜ ' + eqTxt + ' = ' + pivot + '（已归位）｜ ' + greTxt + ' &gt; ' + pivot + '。看 target = <b>' + target + '</b> 落在哪一段。'
+        lo: lo, hi: hi, i: i, j: j, scan: hi, pivot: pivot, phase: 'place', round: round,
+        swap: j !== hi ? [j, hi] : null, focus: hi,
+        msg: 'k 扫完。把藏在 hi 的基准换到 j = <b>' + j + '</b> 归位。'
+      });
+      if (j !== hi) exchange(a, j, hi);
+      snap({
+        lo: lo, hi: hi, i: i, j: j, pivot: pivot, phase: 'placed', seated: true, round: round, focus: j,
+        msg: '归位完成：<code>[' + lo + ', ' + (i - 1) + ']</code> &lt; pivot，<code>[' + i + ', ' + j + ']</code> == <b>' + pivot + '</b>，<code>[' + (j + 1) + ', ' + hi + ']</code> &gt; pivot。对账 target = <b>' + target + '</b> 是否落在 <code>[' + i + ', ' + j + ']</code>。'
       });
 
-      if (target < lt) {
-        var oh = hi; hi = lt - 1;
+      if (i <= target && target <= j) {
+        hist.push({ round: round, lo: lo, hi: hi, pivot: pivot, i: i, j: j, side: 'eq' });
         snap({
-          lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, pivot: pivot,
-          phase: 'narrow', round: round, side: 'less',
-          msg: 'target = ' + target + ' &lt; lt = ' + lt + ' → 落在<span class="op">小于区</span>。丢掉 [' + lt + ', ' + oh + ']，下一轮只处理 [' + lo + ', ' + hi + ']。'
-        });
-      } else if (target > gt) {
-        var ol = lo; lo = gt + 1;
-        snap({
-          lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, pivot: pivot,
-          phase: 'narrow', round: round, side: 'greater',
-          msg: 'target = ' + target + ' &gt; gt = ' + gt + ' → 落在<span class="op">大于区</span>。丢掉 [' + ol + ', ' + gt + ']，下一轮只处理 [' + lo + ', ' + hi + ']。'
-        });
-      } else {
-        snap({
-          lo: lo, hi: hi, rlo: rlo, rhi: rhi, lt: lt, gt: gt, pivot: pivot, ansLo: lt, ansHi: gt,
-          phase: 'found', round: round, focus: target, side: 'eq',
-          msg: 'lt = ' + lt + ' ≤ target = ' + target + ' ≤ gt = ' + gt + ' → target 落在<span class="op">等于区</span>。第 ' + kk + ' 大 = <span class="hl">' + pivot + '</span>。'
+          lo: lo, hi: hi, i: i, j: j, pivot: pivot, phase: 'found', seated: true,
+          ans: target, round: round, side: 'eq', focus: target,
+          msg: 'i = ' + i + ' ≤ target = ' + target + ' ≤ j = ' + j + ' → 等于段里都是答案，返回 nums[i] = <span class="hl">' + a[i] + '</span>。'
         });
         break;
       }
+      if (j < target) {
+        hist.push({ round: round, lo: lo, hi: hi, pivot: pivot, i: i, j: j, side: 'right' });
+        var nextLo = j + 1;
+        snap({
+          lo: nextLo, hi: hi, winLo: lo, winHi: hi, i: i, j: j, pivot: pivot,
+          phase: 'narrow', seated: true, round: round, side: 'right',
+          msg: 'j = ' + j + ' &lt; target = ' + target + ' → 答案在大于段。丢掉 j 及左侧，<span class="op">下一轮取出 [' + nextLo + ', ' + hi + ']</span>。'
+        });
+        lo = nextLo;
+      } else {
+        hist.push({ round: round, lo: lo, hi: hi, pivot: pivot, i: i, j: j, side: 'left' });
+        var nextHi = j - 1;
+        snap({
+          lo: lo, hi: nextHi, winLo: lo, winHi: hi, i: i, j: j, pivot: pivot,
+          phase: 'narrow', seated: true, round: round, side: 'left',
+          msg: 'target = ' + target + ' &lt; i = ' + i + ' → 答案在小于段。<code>hi = j − 1</code>，<span class="op">下一轮取出 [' + lo + ', ' + nextHi + ']</span>。'
+        });
+        hi = nextHi;
+      }
     }
+    return snaps;
+  }
+
+  function buildStepsLists(a0, kk, rand) {
+    var N = a0.length, snaps = [], round = 0, hist = [];
+    function snap(o) {
+      snaps.push({
+        kind: 'lists',
+        vals: (o.vals || []).slice(),
+        left: (o.left || []).slice(),
+        mid: (o.mid || []).slice(),
+        right: (o.right || []).slice(),
+        leftNum: o.leftNum == null ? 0 : o.leftNum,
+        idx: o.idx == null ? -1 : o.idx,
+        pivot: o.pivot == null ? null : o.pivot,
+        pick: o.pick == null ? -1 : o.pick,
+        scan: o.scan == null ? -1 : o.scan,
+        cmp: o.cmp || '',
+        cmpVal: o.cmpVal == null ? null : o.cmpVal,
+        phase: o.phase,
+        round: o.round == null ? round : o.round,
+        side: o.side || '',
+        hist: hist.slice(),
+        ans: o.ans == null ? null : o.ans,
+        split: !!o.split,
+        n0: N,
+        msg: o.msg
+      });
+    }
+
+    function sorr(arr, leftNum) {
+      if (++round > 64) return;
+      var idx = kk - 1 - leftNum;
+      snap({
+        vals: arr, leftNum: leftNum, idx: idx, phase: 'extract', round: round,
+        msg: '第 <b>' + round + '</b> 轮取出 <code>_nums = [' + arr.join(', ') + ']</code>。已确定更大的 <code>left_num = ' + leftNum + '</code>，当前要找 <code>idx = k−1−left_num = ' + idx + '</code>。'
+      });
+      var r = Math.floor(rand() * arr.length);
+      var pivot = arr[r];
+      snap({
+        vals: arr, leftNum: leftNum, idx: idx, pivot: pivot, pick: r, scan: r,
+        phase: 'pick', round: round,
+        msg: '<code>pivot = random.choice(_nums)</code> 抽到下标 <b>' + r + '</b>，值 <b>' + pivot + '</b>。不交换，原列表接着整段扫描。'
+      });
+      var left = [], mid = [], right = [];
+      for (var t = 0; t < arr.length; t++) {
+        var num = arr[t];
+        var bucket = num > pivot ? 'left' : num === pivot ? 'mid' : 'right';
+        if (bucket === 'left') left.push(num);
+        else if (bucket === 'mid') mid.push(num);
+        else right.push(num);
+        snap({
+          vals: arr, left: left, mid: mid, right: right, leftNum: leftNum, idx: idx,
+          pivot: pivot, pick: r, scan: t, cmp: bucket, cmpVal: num, phase: 'scan', round: round,
+          msg: '当前值 <b>' + num + '</b> ' +
+            (bucket === 'left' ? '&gt; pivot → <span class="op">left.append</span>（更大，降序靠前）。' :
+              bucket === 'mid' ? '== pivot → <span class="op">mid.append</span>。' :
+              '&lt; pivot → <span class="op">right.append</span>（更小，降序靠后）。')
+        });
+      }
+      snap({
+        vals: arr, left: left, mid: mid, right: right, leftNum: leftNum, idx: idx,
+        pivot: pivot, pick: r, phase: 'split', split: true, round: round,
+        msg: '分完：left(' + left.length + ') + mid(' + mid.length + ') + right(' + right.length + ')。把三段拼起来，看 <code>idx = ' + idx + '</code> 落在哪一段。'
+      });
+      if (idx < left.length) {
+        hist.push({ round: round, pivot: pivot, leftNum: leftNum, idx: idx, side: 'left', n: arr.length });
+        snap({
+          vals: arr, left: left, mid: mid, right: right, leftNum: leftNum, idx: idx,
+          pivot: pivot, phase: 'recurse', split: true, side: 'left', round: round,
+          msg: 'idx = ' + idx + ' &lt; len(left) = ' + left.length + ' → 答案在更大的一边，<span class="op">sorr(left, ' + leftNum + ')</span>。'
+        });
+        sorr(left, leftNum);
+      } else if (idx < left.length + mid.length) {
+        hist.push({ round: round, pivot: pivot, leftNum: leftNum, idx: idx, side: 'eq', n: arr.length });
+        snap({
+          vals: arr, left: left, mid: mid, right: right, leftNum: leftNum, idx: idx,
+          pivot: pivot, phase: 'found', split: true, side: 'eq', ans: pivot, round: round,
+          msg: 'len(left) ≤ idx &lt; len(left)+len(mid) → 第 ' + kk + ' 大就是 mid 里的 <span class="hl">' + pivot + '</span>。'
+        });
+      } else {
+        var nextLeft = leftNum + left.length + mid.length;
+        hist.push({ round: round, pivot: pivot, leftNum: leftNum, idx: idx, side: 'right', n: arr.length });
+        snap({
+          vals: arr, left: left, mid: mid, right: right, leftNum: leftNum, idx: idx,
+          pivot: pivot, phase: 'recurse', split: true, side: 'right', round: round,
+          msg: 'idx = ' + idx + ' ≥ ' + (left.length + mid.length) + ' → 答案在更小的一边，<span class="op">sorr(right, ' + nextLeft + ')</span>。'
+        });
+        sorr(right, nextLeft);
+      }
+    }
+
+    snap({
+      vals: a0.slice(), leftNum: 0, idx: kk - 1, phase: 'start', round: 0,
+      msg: '求第 <b>' + kk + '</b> 大 = 降序下标 <b>k−1 = ' + (kk - 1) + '</b>。从 <code>sorr(nums, left_num=0)</code> 开始，每轮开三个新数组，只递归其中一段。'
+    });
+    sorr(a0.slice(), 0);
     return snaps;
   }
 
@@ -613,16 +854,16 @@
     ruler.style.gridTemplateColumns = cols;
     arrayEl.style.gridTemplateColumns = cols;
     ptrRow.style.gridTemplateColumns = cols;
-    for (var i = 0; i < nums.length; i++) {
+    for (var idx = 0; idx < nums.length; idx++) {
       var pin = document.createElement('div'); pin.className = 'pin';
       pinRow.appendChild(pin); pins.push(pin);
       var tick = document.createElement('div'); tick.className = 'tick';
       ruler.appendChild(tick); ticks.push(tick);
       var cell = document.createElement('div'); cell.className = 'cell';
-      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = i;
+      var idEl = document.createElement('span'); idEl.className = 'idx'; idEl.textContent = idx;
       var val = document.createElement('span');
       var badge = document.createElement('span'); badge.className = 'badge';
-      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(badge);
+      cell.appendChild(idEl); cell.appendChild(val); cell.appendChild(badge);
       arrayEl.appendChild(cell); cells.push({ el: cell, val: val, badge: badge });
       var p = document.createElement('div'); p.className = 'ptr';
       ptrRow.appendChild(p); ptrs.push(p);
@@ -639,54 +880,63 @@
   }
 
   function regionValues(st) {
-    var less = [], eq = [], greater = [], pending = [];
-    var left = st.rlo == null ? st.lo : st.rlo;
-    var right = st.rhi == null ? st.hi : st.rhi;
-    if (st.lt < 0) return { less: less, eq: eq, greater: greater, pending: pending };
-    var partitioned = st.phase === 'done' || st.phase === 'found' || st.phase === 'narrow';
-    for (var i = left; i <= right; i++) {
-      if (i < st.lt) less.push(st.vals[i]);
-      else if (partitioned) {
-        if (i <= st.gt) eq.push(st.vals[i]);
-        else greater.push(st.vals[i]);
-      } else if (i < st.i) eq.push(st.vals[i]);
-      else if (i > st.gt) greater.push(st.vals[i]);
-      else pending.push(st.vals[i]);
+    var le = [], eq = [], gt = [], pending = [];
+    if (st.pivot == null || st.phase === 'extract' || st.phase === 'pick' || st.phase === 'start') {
+      return { le: le, eq: eq, gt: gt, pending: pending };
     }
-    return { less: less, eq: eq, greater: greater, pending: pending };
+    var from = st.winLo == null ? st.lo : st.winLo;
+    var to = st.winHi == null ? st.hi : st.winHi;
+    for (var idx = from; idx <= to; idx++) {
+      if (st.seated) {
+        if (idx < st.i) le.push(st.vals[idx]);
+        else if (idx <= st.j) eq.push(st.vals[idx]);
+        else gt.push(st.vals[idx]);
+      } else {
+        if (idx === st.hi) continue;
+        if (st.i >= 0 && idx < st.i) le.push(st.vals[idx]);
+        else if (st.j >= 0 && idx < st.j) eq.push(st.vals[idx]);
+        else if (st.scan >= 0 && idx < st.scan) gt.push(st.vals[idx]);
+        else pending.push(st.vals[idx]);
+      }
+    }
+    return { le: le, eq: eq, gt: gt, pending: pending };
   }
 
   function targetBranch(st) {
-    if (st.lt < 0) return '';
-    var t = st.target;
-    if (t < st.lt) return 'less';
-    var partitioned = st.phase === 'done' || st.phase === 'found' || st.phase === 'narrow';
-    if (partitioned) return t <= st.gt ? 'eq' : 'greater';
-    if (t < st.i) return 'eq';
-    if (t <= st.gt) return 'pending';
-    return 'greater';
+    if (st.pivot == null || st.i < 0 || st.j < 0) return '';
+    if (st.target < st.i) return 'le';
+    if (st.target > st.j) return 'gt';
+    return 'eq';
   }
 
   function sideLabel(side) {
-    if (side === 'less') return '走小于区';
-    if (side === 'greater') return '走大于区';
-    if (side === 'eq') return '命中等于区';
+    if (side === 'left') return '下一轮取左边';
+    if (side === 'right') return '下一轮取右边';
+    if (side === 'eq') return '命中 i ≤ target ≤ j';
     return '';
   }
 
   function phaseKey(phase) {
-    if (phase === 'start') return 'start';
-    if (phase === 'pick' || phase === 'pivot') return 'pick';
+    if (phase === 'start' || phase === 'extract') return 'extract';
+    if (method === 'lists') {
+      if (phase === 'pick') return 'pick';
+      if (phase === 'scan') return 'scan';
+      if (phase === 'split' || phase === 'check') return 'split';
+      return 'found';
+    }
+    if (phase === 'pick' || phase === 'hide') return 'hide';
     if (phase === 'scan' || phase === 'swap') return 'scan';
-    if (phase === 'done' || phase === 'narrow') return 'done';
+    if (phase === 'place' || phase === 'placed') return 'place';
     return 'found';
   }
 
   function renderPhases(st) {
-    var order = ['start', 'pick', 'scan', 'done', 'found'];
+    var order = method === 'lists'
+      ? ['extract', 'pick', 'scan', 'split', 'found']
+      : ['extract', 'hide', 'scan', 'place', 'found'];
     var cur = phaseKey(st.phase);
     var rank = order.indexOf(cur);
-    Array.prototype.forEach.call(document.querySelectorAll('#phases .phase'), function (el) {
+    Array.prototype.forEach.call(document.querySelectorAll((method === 'lists' ? '#phasesLists' : '#phasesInplace') + ' .phase'), function (el) {
       var key = el.getAttribute('data-key');
       var i = order.indexOf(key);
       el.className = 'phase' + (i < rank ? ' done' : i === rank ? ' active' : '');
@@ -694,62 +944,71 @@
   }
 
   function renderRule(st) {
-    if (st.phase === 'start') {
-      ruleEl.innerHTML = 'target = n − k = <span class="accent">' + st.target + '</span>，只把这个下标归位';
+    if (st.phase === 'start' || st.phase === 'extract') {
+      ruleEl.innerHTML = '取出 <span class="accent">[' + st.lo + ', ' + st.hi + ']</span>，其余本轮不看';
     } else if (st.phase === 'pick') {
-      ruleEl.innerHTML = 'pivot = nums[<span class="accent">' + st.pick + '</span>]，再换到 lo';
-    } else if (st.phase === 'pivot') {
-      ruleEl.innerHTML = 'swap(lo, r) → 基准在左端，等于区从这里长';
+      ruleEl.innerHTML = 'r = random(lo, hi) → 准备藏到 hi';
+    } else if (st.phase === 'hide') {
+      ruleEl.innerHTML = 'swap(r, hi) → pivot 藏在区间末尾';
     } else if (st.cmp === 'lt') {
-      ruleEl.innerHTML = 'nums[i] &lt; pivot → <span class="yes">swap(lt, i); lt++; i++</span>';
-    } else if (st.cmp === 'gt') {
-      ruleEl.innerHTML = 'nums[i] &gt; pivot → <span class="yes">swap(i, gt); gt--</span>（i 不动）';
+      ruleEl.innerHTML = 'nums[k] &lt; pivot → <span class="yes">swap(j,k); swap(i,j); i++; j++</span>';
     } else if (st.cmp === 'eq') {
-      ruleEl.innerHTML = 'nums[i] == pivot → <span class="accent">i++</span>';
-    } else if (st.phase === 'done') {
-      var hit = st.lt <= st.target && st.target <= st.gt;
-      var side = st.target < st.lt ? 'target &lt; lt → 走小于区' : st.target > st.gt ? 'target &gt; gt → 走大于区' : '落在等于区';
-      ruleEl.innerHTML = '比较 target 与 [lt, gt] → <span class="' + (hit ? 'yes' : 'accent') + '">' + side + '</span>';
-    } else if (st.phase === 'narrow') {
-      ruleEl.innerHTML = '<span class="no">丢掉不含 target 的一侧</span>，只递归剩下的 [lo, hi]';
+      ruleEl.innerHTML = 'nums[k] == pivot → <span class="yes">swap(j, k); j++</span>';
+    } else if (st.cmp === 'gt') {
+      ruleEl.innerHTML = 'nums[k] &gt; pivot → <span class="accent">i、j 不动</span>';
+    } else if (st.phase === 'place' || st.phase === 'placed') {
+      ruleEl.innerHTML = 'swap(j, hi) → 基准归位，再看 i ≤ target ≤ j';
+    } else if (st.phase === 'narrow' && st.side === 'right') {
+      ruleEl.innerHTML = 'j &lt; target → <span class="accent">lo = j + 1</span>，下一轮取出右边';
+    } else if (st.phase === 'narrow' && st.side === 'left') {
+      ruleEl.innerHTML = 'target &lt; i → <span class="accent">hi = j − 1</span>，下一轮取出左边';
     } else if (st.phase === 'found') {
-      ruleEl.innerHTML = '<span class="yes">命中 · 第 k 大 = ' + (st.ansLo >= 0 ? st.vals[st.ansLo] : '—') + '</span>';
+      ruleEl.innerHTML = '<span class="yes">i ≤ target ≤ j · 第 k 大 = ' + (st.ans >= 0 ? st.vals[st.ans] : '—') + '</span>';
     } else {
-      ruleEl.textContent = 'lt / i / gt 维护三路不变量';
+      ruleEl.textContent = 'while lo ≤ hi：取出 [lo, hi]';
     }
   }
 
   function zoneClass(idx, st) {
     var swapSet = {};
     if (st.swap) { swapSet[st.swap[0]] = true; swapSet[st.swap[1]] = true; }
-    if (st.ansLo >= 0 && idx >= st.ansLo && idx <= st.ansHi) return 'answer';
+    if (st.ans === idx) return 'answer';
     if (swapSet[idx]) return 'swap';
-    if (st.focus === idx && (st.phase === 'scan' || st.phase === 'pick' || st.phase === 'pivot')) return 'current';
+    if (st.focus === idx && (st.phase === 'scan' || st.phase === 'pick' || st.phase === 'hide' || st.phase === 'place')) return 'current';
+    if (st.seated && idx === st.j) return 'pivot';
     if (idx < st.lo || idx > st.hi) return 'out';
-    if (st.lt < 0) return 'unknown';
-    if (idx < st.lt) return 'less';
-    if (idx < st.i || ((st.phase === 'done' || st.phase === 'found' || st.phase === 'narrow') && idx <= st.gt)) return 'equal';
-    if (idx <= st.gt) return 'unknown';
-    return 'greater';
+    if (st.phase === 'start' || st.phase === 'extract' || st.phase === 'pick') return 'unknown';
+    if (st.seated) {
+      if (idx < st.i) return 'le';
+      if (idx <= st.j) return 'eq';
+      return 'gt';
+    }
+    if (idx === st.hi && st.pivot != null) return 'pivot';
+    if (st.i >= 0 && idx < st.i) return 'le';
+    if (st.j >= 0 && idx < st.j) return 'eq';
+    if (st.scan >= 0 && idx < st.scan) return 'gt';
+    return 'unknown';
   }
 
-  function render() {
+  function renderInplace() {
     var st = steps[stepIndex];
-    var showI = st.i >= 0 && st.phase !== 'done' && st.phase !== 'found' && st.phase !== 'narrow' && st.i <= Math.max(st.gt, st.lo);
+    var showI = st.i >= 0 && st.phase !== 'start' && st.phase !== 'extract' && st.phase !== 'pick';
+    var showJ = st.j >= 0 && st.phase !== 'start' && st.phase !== 'extract' && st.phase !== 'pick';
+    var showK = st.scan >= 0 && (st.phase === 'scan' || st.phase === 'swap' || st.phase === 'place');
     cells.forEach(function (ref, idx) {
       var cls = 'cell ' + zoneClass(idx, st);
-      if (idx === st.target && st.ansLo < 0) cls += ' target-ring';
+      if (idx === st.target && st.ans < 0) cls += ' target-ring';
       ref.el.className = cls;
       ref.val.textContent = st.vals[idx];
-      var showP = st.pivot != null && st.vals[idx] === st.pivot && (
-        (st.lt >= 0 && idx === st.lt) ||
-        (st.lt < 0 && st.phase === 'pivot' && idx === st.lo)
+      var showP = st.pivot != null && (
+        (!st.seated && idx === st.hi && st.phase !== 'extract' && st.phase !== 'pick' && st.phase !== 'start') ||
+        (st.seated && idx === st.j)
       );
       ref.badge.textContent = showP ? 'P' : '';
     });
     pins.forEach(function (el, idx) {
-      el.className = 'pin' + (st.ansLo >= 0 && idx >= st.ansLo && idx <= st.ansHi ? ' answer' : '');
-      el.innerHTML = idx === st.target ? '<mark>' + (st.ansLo >= 0 ? '答案' : 'target') + '</mark>' : '';
+      el.className = 'pin' + (st.ans === idx ? ' answer' : '');
+      el.innerHTML = idx === st.target ? '<mark>' + (st.ans >= 0 ? '答案' : 'target') + '</mark>' : '';
     });
     ticks.forEach(function (el, idx) {
       var cls = 'tick';
@@ -760,83 +1019,93 @@
     });
     ptrs.forEach(function (el, idx) {
       var labels = [];
-      if (st.lt === idx && st.lt >= 0 && st.phase !== 'narrow') labels.push('<span class="pl">lt</span>');
-      if (showI && st.i === idx) labels.push('<span class="pi">i</span>');
-      if (st.gt === idx && st.gt >= 0 && st.phase !== 'narrow') labels.push('<span class="pg">gt</span>');
+      if (idx === st.lo) labels.push('<span class="plo">lo</span>');
+      if (idx === st.hi) labels.push('<span class="phi">hi</span>');
+      if (showI && idx === st.i) labels.push('<span class="pi">i</span>');
+      if (showJ && idx === st.j && !(st.j === st.hi && !st.seated)) labels.push('<span class="pj">j</span>');
+      if (showK && idx === st.scan && st.scan !== st.hi) labels.push('<span class="pk">k</span>');
       el.innerHTML = labels.join(' · ');
     });
 
+    $('dRange').textContent = '[' + st.lo + ', ' + st.hi + ']';
     $('dPivot').textContent = st.pivot == null ? '—' : st.pivot;
-    if (st.phase === 'start') {
-      $('dCur').textContent = 'target=' + st.target;
-    } else if (st.phase === 'pick' && st.pick >= 0) {
-      $('dCur').textContent = '下标 ' + st.pick + ' → ' + st.vals[st.pick];
-    } else if (st.phase === 'swap' && st.swap) {
-      $('dCur').textContent = st.swap[0] + ' ↔ ' + st.swap[1];
-    } else if (st.focus >= 0 && (st.phase === 'scan' || st.phase === 'pivot')) {
-      $('dCur').textContent = (st.phase === 'pivot' ? 'lo=' : 'i=') + st.focus + ' → ' + st.vals[st.focus];
-    } else {
-      $('dCur').textContent = '—';
-    }
-    var looking = st.cmpVal != null ? st.cmpVal : (st.focus >= 0 ? st.vals[st.focus] : null);
+    var looking = st.cmpVal != null ? st.cmpVal : null;
     var cmpBox = $('dCmpBox');
     cmpBox.className = 'box';
-    if (st.cmp === 'lt') { cmpBox.classList.add('cmp-lt'); $('dCmp').textContent = looking + ' < ' + st.pivot; }
-    else if (st.cmp === 'eq') { cmpBox.classList.add('cmp-eq'); $('dCmp').textContent = looking + ' = ' + st.pivot; }
+    if (st.cmp === 'lt') { cmpBox.classList.add('cmp-le'); $('dCmp').textContent = looking + ' < ' + st.pivot; }
+    else if (st.cmp === 'eq') { cmpBox.classList.add('cmp-eq'); $('dCmp').textContent = looking + ' == ' + st.pivot; }
     else if (st.cmp === 'gt') { cmpBox.classList.add('cmp-gt'); $('dCmp').textContent = looking + ' > ' + st.pivot; }
-    else if (st.phase === 'found') { cmpBox.classList.add('cmp-hit'); $('dCmp').textContent = '命中'; }
-    else if (st.phase === 'done') { $('dCmp').textContent = '看 target 落点'; }
+    else if (st.phase === 'found') { cmpBox.classList.add('cmp-hit'); $('dCmp').textContent = 'i ≤ target ≤ j'; }
+    else if (st.phase === 'placed' || st.phase === 'place') { $('dCmp').textContent = 'i ≤ ? ≤ j'; }
     else { $('dCmp').textContent = '—'; }
-    $('dPtr').textContent = (st.lt < 0 ? '—' : st.lt) + ' · ' + (showI ? st.i : '—') + ' · ' + (st.gt < 0 ? '—' : st.gt);
+    $('dPtr').textContent = (showI ? st.i : '—') + ' · ' + (showJ ? st.j : '—') + ' · ' + (showK ? st.scan : '—');
+
+    var sliceLab = $('sliceLab');
+    var sliceRow = $('sliceRow');
+    var sliceFrom = st.phase === 'narrow' ? st.lo : (st.winLo == null ? st.lo : st.winLo);
+    var sliceTo = st.phase === 'narrow' ? st.hi : (st.winHi == null ? st.hi : st.winHi);
+    sliceLab.textContent = (st.phase === 'narrow' ? '下一轮取出 nums[' : '取出 nums[') + sliceFrom + ' … ' + sliceTo + ']';
+    sliceRow.innerHTML = '';
+    for (var s = sliceFrom; s <= sliceTo; s++) {
+      var bit = document.createElement('span');
+      var z = zoneClass(s, st);
+      var chip = z === 'le' ? 'le' : z === 'eq' ? 'eq' : z === 'gt' ? 'gt' : z === 'pivot' || z === 'answer' ? 'pivot' : z === 'current' ? 'current' : z === 'swap' ? 'swap' : 'pending';
+      bit.className = 'bit ' + chip;
+      bit.textContent = st.vals[s];
+      sliceRow.appendChild(bit);
+    }
 
     var pivotLabel = st.pivot == null ? 'pivot' : String(st.pivot);
-    $('pLess').textContent = pivotLabel;
-    $('pEq').textContent = pivotLabel;
-    $('pGreater').textContent = pivotLabel;
+    $('pLt').textContent = $('pEq').textContent = $('pGt').textContent = pivotLabel;
     var regs = regionValues(st);
     var branch = targetBranch(st);
-    var decided = st.phase === 'done' || st.phase === 'narrow' || st.phase === 'found';
-    [['regLessBox', 'less', 'starLess'], ['regEqBox', 'eq', 'starEq'], ['regGreaterBox', 'greater', 'starGreater']].forEach(function (item) {
+    var decided = st.phase === 'placed' || st.phase === 'narrow' || st.phase === 'found';
+    [['regLtBox', 'le', 'starLt'], ['regEqBox', 'eq', 'starEq'], ['regGtBox', 'gt', 'starGt']].forEach(function (item) {
       var el = $(item[0]), key = item[1], star = $(item[2]);
       el.className = 'reg ' + key;
-      if (decided && st.side === key) el.classList.add(st.phase === 'found' && key === 'eq' ? 'hit' : 'active');
-      if (decided && st.side && st.side !== key) el.classList.add('drop');
-      if (st.phase === 'found' && key === 'eq') { el.classList.remove('drop'); el.classList.add('hit'); }
+      if (decided && st.side === 'left' && key === 'le') el.classList.add(st.phase === 'found' ? 'hit' : 'active');
+      if (decided && st.side === 'right' && key === 'gt') el.classList.add(st.phase === 'found' ? 'hit' : 'active');
+      if (decided && st.side === 'eq' && key === 'eq') el.classList.add('hit');
+      if (decided && st.side === 'eq' && key !== 'eq') el.classList.add('drop');
+      else if (decided && st.side === 'left' && key !== 'le') el.classList.add('drop');
+      else if (decided && st.side === 'right' && key !== 'gt') el.classList.add('drop');
       star.hidden = branch !== key;
     });
-    if (st.lt < 0) {
-      $('regLess').innerHTML = $('regEq').innerHTML = $('regGreater').innerHTML = '<span class="ghost">尚未划分</span>';
+    if (st.pivot == null || st.phase === 'extract' || st.phase === 'pick' || st.phase === 'start') {
+      $('regLt').innerHTML = $('regEq').innerHTML = $('regGt').innerHTML = '<span class="ghost">尚未划分</span>';
     } else {
-      fillChips($('regLess'), regs.less, 'less');
+      fillChips($('regLt'), regs.le, 'le');
       fillChips($('regEq'), regs.eq, 'eq');
-      fillChips($('regGreater'), regs.greater, 'greater');
+      fillChips($('regGt'), regs.gt, 'gt');
     }
 
     var root = $('treeRoot');
     if (st.pivot == null) {
       root.className = 'ptree-root idle';
-      root.innerHTML = '<span class="k">pivot</span><b>?</b><small>等待选基准</small>';
-      $('treeCaption').textContent = 'pivot 把当前区间切成三叉，只走含 target 的一侧';
+      root.innerHTML = '<span class="k">pivot</span><b>?</b><small>先取出 [' + st.lo + ', ' + st.hi + ']</small>';
+      $('treeCaption').textContent = '第 ' + (st.round || 1) + ' 轮 · 取出 [' + st.lo + ', ' + st.hi + ']';
     } else {
       root.className = 'ptree-root' + (st.phase === 'found' ? ' hit' : '');
-      root.innerHTML = '<span class="k">pivot</span><b>' + st.pivot + '</b><small>[' + st.rlo + ', ' + st.rhi + ']</small>';
-      var cap = '第 ' + st.round + ' 轮 · [' + st.rlo + ', ' + st.rhi + ']';
+      var where = st.seated ? ('归位 j=' + st.j) : ('藏在 hi=' + st.hi);
+      root.innerHTML = '<span class="k">pivot</span><b>' + st.pivot + '</b><small>' + where + '</small>';
+      var cap = '第 ' + st.round + ' 轮 · 取出 [' + (st.winLo == null ? st.lo : st.winLo) + ', ' + (st.winHi == null ? st.hi : st.winHi) + ']';
       if (decided && st.side) cap += ' · ' + sideLabel(st.side);
-      else cap += ' · 三路划分中';
       $('treeCaption').textContent = cap;
     }
 
     var pendingEl = $('pendingRow');
-    if (st.lt < 0) {
-      pendingEl.innerHTML = '<span class="lab">待处理</span><span class="ghost">尚未开始扫描</span>';
-    } else if (regs.pending && regs.pending.length) {
-      pendingEl.innerHTML = '<span class="lab">待处理 i…gt</span>';
+    if (st.pivot == null || st.phase === 'extract' || st.phase === 'pick') {
+      pendingEl.innerHTML = '<span class="lab">待扫描</span><span class="ghost">藏起 pivot 后开始</span>';
+    } else if (st.seated) {
+      pendingEl.innerHTML = '<span class="lab">待扫描</span><span class="ghost">本轮已扫完</span>';
+    } else if (regs.pending.length) {
+      pendingEl.innerHTML = '<span class="lab">待扫描</span>';
       regs.pending.forEach(function (v) {
-        var bit = document.createElement('span'); bit.className = 'bit pending'; bit.textContent = v;
-        pendingEl.appendChild(bit);
+        var b = document.createElement('span'); b.className = 'bit pending'; b.textContent = v;
+        pendingEl.appendChild(b);
       });
     } else {
-      pendingEl.innerHTML = '<span class="lab">待处理</span><span class="ghost">本轮已扫完</span>';
+      pendingEl.innerHTML = '<span class="lab">待扫描</span><span class="ghost">本轮已扫完</span>';
     }
 
     var histEl = $('hist');
@@ -844,8 +1113,8 @@
     (st.hist || []).forEach(function (h) {
       var row = document.createElement('div');
       row.className = 'hist-item';
-      row.innerHTML = '第 ' + h.round + ' 轮 <b>[' + h.lo + ', ' + h.hi + ']</b> pivot=' + h.pivot +
-        ' → <span class="go ' + h.side + '">' + sideLabel(h.side) + '</span>';
+      row.innerHTML = '第 ' + h.round + ' 轮取出 <b>[' + h.lo + ', ' + h.hi + ']</b> pivot=' + h.pivot +
+        ' → [i,j]=[' + h.i + ', ' + h.j + '] → <span class="go ' + h.side + '">' + sideLabel(h.side) + '</span>';
       histEl.appendChild(row);
     });
 
@@ -858,15 +1127,187 @@
     renderStats(st);
   }
 
+  function listZone(idx, st) {
+    if (st.phase === 'found' && st.vals[idx] === st.ans) return 'answer';
+    if (st.scan === idx && (st.phase === 'scan' || st.phase === 'pick')) return 'current';
+    if (st.pivot == null || st.phase === 'extract' || st.phase === 'start') return 'unknown';
+    if (st.scan >= 0 && idx > st.scan && st.phase === 'scan') return 'unknown';
+    if (st.vals[idx] > st.pivot) return 'gt';
+    if (st.vals[idx] === st.pivot) return st.pick === idx ? 'pivot' : 'eq';
+    return 'le';
+  }
+
+  function listsSideLabel(side) {
+    if (side === 'left') return '递归 left（更大）';
+    if (side === 'right') return '递归 right（更小）';
+    if (side === 'eq') return '命中 mid';
+    return '';
+  }
+
+  function renderLists() {
+    var st = steps[stepIndex];
+    var rankAxis = $('rankAxis'), listRow = $('listRow'), listPtr = $('listPtr');
+    rankAxis.innerHTML = '';
+    var curFrom = st.leftNum, curTo = st.leftNum + st.vals.length - 1;
+    var want = k - 1;
+    for (var r = 0; r < st.n0; r++) {
+      var rk = document.createElement('div');
+      var cls = 'rk';
+      if (st.phase === 'found' && r === want) cls += ' answer';
+      else if (r === want) cls += ' target';
+      else if (r < curFrom) cls += ' big';
+      else if (r > curTo) cls += ' tiny';
+      else cls += ' cur';
+      rk.className = cls;
+      rk.innerHTML = r + '<small>' + (r === want ? (st.phase === 'found' ? '答案' : 'k-1') : r < curFrom ? '更大' : r > curTo ? '更小' : '当前') + '</small>';
+      rankAxis.appendChild(rk);
+    }
+
+    listRow.innerHTML = '';
+    listPtr.innerHTML = '';
+    st.vals.forEach(function (v, idx) {
+      var cell = document.createElement('div');
+      var z = listZone(idx, st);
+      cell.className = 'cell ' + z;
+      cell.innerHTML = '<span class="idx">' + idx + '</span>' + v +
+        (st.pivot != null && idx === st.pick && st.phase !== 'extract' && st.phase !== 'start' ? '<span class="badge">P</span>' : '');
+      listRow.appendChild(cell);
+      var p = document.createElement('span');
+      var labs = [];
+      if (st.scan === idx && (st.phase === 'scan' || st.phase === 'pick')) labs.push('k');
+      if (st.pick === idx && st.phase === 'pick') labs.push('pivot');
+      p.textContent = labs.join(' · ');
+      listPtr.appendChild(p);
+    });
+
+    var pv = st.pivot == null ? 'pivot' : String(st.pivot);
+    $('lp').textContent = $('mp').textContent = $('rp').textContent = pv;
+    fillChips($('bLeft'), st.left, 'gt');
+    fillChips($('bMid'), st.mid, 'eq');
+    fillChips($('bRight'), st.right, 'le');
+
+    var decided = st.phase === 'split' || st.phase === 'recurse' || st.phase === 'found' || st.split;
+    var branch = '';
+    if (st.pivot != null && st.idx >= 0 && decided) {
+      if (st.idx < st.left.length) branch = 'left';
+      else if (st.idx < st.left.length + st.mid.length) branch = 'eq';
+      else branch = 'right';
+    }
+    [['boxLeft', 'left', 'starLeft'], ['boxMid', 'eq', 'starMid'], ['boxRight', 'right', 'starRight']].forEach(function (item) {
+      var el = $(item[0]), key = item[1], star = $(item[2]);
+      el.className = 'reg ' + (key === 'left' ? 'gt' : key === 'right' ? 'le' : 'eq');
+      if (st.phase === 'found' && key === 'eq') el.classList.add('hit');
+      else if (decided && st.side === key) el.classList.add(st.phase === 'found' ? 'hit' : 'active');
+      if (decided && st.side && st.side !== key) el.classList.add('drop');
+      star.hidden = branch !== key;
+    });
+
+    var root = $('listsRoot');
+    if (st.pivot == null) {
+      root.className = 'ptree-root idle';
+      root.innerHTML = '<span class="k">pivot</span><b>?</b><small>left_num=' + st.leftNum + '</small>';
+    } else {
+      root.className = 'ptree-root' + (st.phase === 'found' ? ' hit' : '');
+      root.innerHTML = '<span class="k">pivot</span><b>' + st.pivot + '</b><small>idx=' + st.idx + '</small>';
+    }
+    var cap = '第 ' + (st.round || 1) + ' 轮 · n=' + st.vals.length + ' · left_num=' + st.leftNum;
+    if (st.side) cap += ' · ' + listsSideLabel(st.side);
+    $('listsCaption').textContent = cap;
+
+    var concatRow = $('concatRow');
+    concatRow.innerHTML = '';
+    if (!st.split && st.phase !== 'found' && st.phase !== 'recurse') {
+      $('concatLab').textContent = '拼起来看 idx';
+      concatRow.innerHTML = '<span class="ghost">分桶结束后，按 left + mid + right 排成降序三段</span>';
+    } else {
+      $('concatLab').textContent = 'left + mid + right · idx=' + st.idx;
+      var pos = 0;
+      function addBits(arr, cls) {
+        arr.forEach(function (v) {
+          var bit = document.createElement('span');
+          bit.className = 'bit ' + cls + (pos === st.idx ? ' idx' : '');
+          bit.textContent = v;
+          concatRow.appendChild(bit);
+          pos++;
+        });
+      }
+      addBits(st.left, 'gt');
+      addBits(st.mid, 'eq');
+      addBits(st.right, 'le');
+    }
+
+    $('dLeftNum').textContent = st.leftNum;
+    $('dIdx').textContent = st.idx;
+    $('dPivotL').textContent = st.pivot == null ? '—' : st.pivot;
+    var box = $('dCmpBoxL');
+    box.className = 'box';
+    if (st.cmp === 'left') { box.classList.add('cmp-gt'); $('dCmpL').textContent = st.cmpVal + ' > ' + st.pivot; }
+    else if (st.cmp === 'mid') { box.classList.add('cmp-eq'); $('dCmpL').textContent = st.cmpVal + ' == ' + st.pivot; }
+    else if (st.cmp === 'right') { box.classList.add('cmp-le'); $('dCmpL').textContent = st.cmpVal + ' < ' + st.pivot; }
+    else if (st.phase === 'found') { box.classList.add('cmp-hit'); $('dCmpL').textContent = '命中 mid'; }
+    else { $('dCmpL').textContent = '—'; }
+
+    var rule = $('ruleLists');
+    if (st.phase === 'start' || st.phase === 'extract') {
+      rule.innerHTML = 'idx = k−1−left_num = <span class="accent">' + st.idx + '</span>';
+    } else if (st.phase === 'pick') {
+      rule.innerHTML = 'pivot = random.choice(_nums) → <span class="accent">' + st.pivot + '</span>';
+    } else if (st.cmp === 'left') {
+      rule.innerHTML = 'num &gt; pivot → <span class="yes">left.append(num)</span>';
+    } else if (st.cmp === 'mid') {
+      rule.innerHTML = 'num == pivot → <span class="yes">mid.append(num)</span>';
+    } else if (st.cmp === 'right') {
+      rule.innerHTML = 'num &lt; pivot → <span class="yes">right.append(num)</span>';
+    } else if (st.phase === 'split') {
+      rule.innerHTML = '看 idx 落在 left / mid / right 哪一段';
+    } else if (st.side === 'left') {
+      rule.innerHTML = 'idx &lt; len(left) → <span class="accent">sorr(left, left_num)</span>';
+    } else if (st.side === 'right') {
+      rule.innerHTML = 'idx 在 right → <span class="accent">sorr(right, left_num+len(left)+len(mid))</span>';
+    } else if (st.phase === 'found') {
+      rule.innerHTML = '<span class="yes">命中 mid · 第 k 大 = ' + st.ans + '</span>';
+    } else {
+      rule.textContent = 'sorr(_nums, left_num)';
+    }
+
+    var histEl = $('histLists');
+    histEl.innerHTML = '';
+    (st.hist || []).forEach(function (h) {
+      var row = document.createElement('div');
+      row.className = 'hist-item';
+      row.innerHTML = '第 ' + h.round + ' 轮 n=' + h.n + ' pivot=' + h.pivot +
+        ' idx=' + h.idx + ' → <span class="go ' + (h.side === 'eq' ? 'eq' : h.side === 'left' ? 'right' : 'left') + '">' + listsSideLabel(h.side) + '</span>';
+      histEl.appendChild(row);
+    });
+
+    renderPhases(st);
+    statusEl.innerHTML = st.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+    renderStats(st);
+  }
+
+  function render() {
+    if (method === 'lists') renderLists();
+    else renderInplace();
+  }
+
   function renderStats(st) {
-    var found = st && st.phase === 'found' && st.ansLo >= 0;
+    var found = st && st.phase === 'found' && (method === 'lists' ? st.ans != null : st.ans >= 0);
+    var ansText = '…';
+    if (found) ansText = method === 'lists' ? st.ans : st.vals[st.ans];
+    var extra = method === 'lists'
+      ? '<div class="stat">left_num / idx<b>' + (st ? st.leftNum + ' / ' + st.idx : '—') + '</b></div>'
+      : '<div class="stat">取出 [lo, hi]<b>[' + (st ? st.lo + ', ' + st.hi : '—') + ']</b></div>';
     statsEl.innerHTML =
       '<div class="stat">n / k<b>' + nums.length + ' / ' + k + '</b></div>' +
-      '<div class="stat">target = n − k<b>' + (nums.length - k) + '</b></div>' +
-      '<div class="stat">本轮区间<b>[' + (st ? st.lo + ', ' + st.hi : '—') + ']</b></div>' +
-      '<div class="stat">第 k 大<b>' + (found ? st.vals[st.ansLo] : '…') + '</b></div>' +
+      '<div class="stat">' + (method === 'lists' ? '降序 k−1' : 'target = n − k') + '<b>' +
+        (method === 'lists' ? (k - 1) : (nums.length - k)) + '</b></div>' +
+      extra +
+      '<div class="stat">第 k 大<b>' + ansText + '</b></div>' +
       '<div class="stat">随机种子<b>' + seed + '</b></div>' +
-      '<div class="stat">期望时间 / 空间<b>O(n) / O(1)</b></div>';
+      '<div class="stat">期望时间 / 空间<b>O(n) / ' + (method === 'lists' ? 'O(n)' : 'O(1)') + '</b></div>';
   }
 
   function stopPlay() {
@@ -889,9 +1330,12 @@
     stopPlay();
     nums = parsed.arr; k = parsed.k;
     seed = nextSeed;
-    steps = buildSteps(nums, k, mulberry32(seed));
+    if (method === 'lists') steps = buildStepsLists(nums, k, mulberry32(seed));
+    else {
+      steps = buildSteps(nums, k, mulberry32(seed));
+      buildBoard();
+    }
     stepIndex = 0;
-    buildBoard();
     if (pendingHash) {
       var m = /^#step=(\d+)$/.exec(pendingHash);
       if (m) stepIndex = Math.max(0, Math.min(steps.length - 1, parseInt(m[1], 10) - 1));
@@ -939,73 +1383,177 @@
 
   var codes = {
     py:
-'<span class="cmt"># 随机基准 + 荷兰国旗三路划分 · 期望 O(n) · 原地 O(1)</span>\n' +
+'<span class="cmt"># 随机基准藏到 hi · 三路划分 · 期望 O(n)</span>\n' +
 'import random\n' +
 'from typing import List\n' +
 '\n' +
 'class Solution:\n' +
-'    def findKthLargest(self, a: List[int], k: int) -&gt; int:\n' +
-'        target, lo, hi = len(a) - k, 0, len(a) - 1\n' +
-'        while True:\n' +
-'            if lo == hi:\n' +
-'                return a[lo]\n' +
+'    def findKthLargest(self, nums: List[int], k: int) -&gt; int:\n' +
+'        target, lo, hi = len(nums) - k, 0, len(nums) - 1\n' +
+'        while lo &lt;= hi:\n' +
 '            r = random.randint(lo, hi)\n' +
-'            a[lo], a[r] = a[r], a[lo]          <span class="cmt"># 基准换到左端</span>\n' +
-'            pivot, lt, gt, i = a[lo], lo, hi, lo + 1\n' +
-'            while i &lt;= gt:                     <span class="cmt"># [lo,lt) &lt; = [lt,i) = (gt,hi] &gt;</span>\n' +
-'                if a[i] &lt; pivot:\n' +
-'                    a[lt], a[i] = a[i], a[lt]\n' +
-'                    lt += 1; i += 1\n' +
-'                elif a[i] &gt; pivot:\n' +
-'                    a[i], a[gt] = a[gt], a[i]\n' +
-'                    gt -= 1                    <span class="cmt"># i 不动</span>\n' +
-'                else:\n' +
+'            nums[r], nums[hi] = nums[hi], nums[r]\n' +
+'            pivot = nums[hi]                    <span class="cmt"># 代码里写成 privot</span>\n' +
+'            i = j = lo\n' +
+'            for k in range(lo, hi):             <span class="cmt"># 扫描下标，覆盖参数 k</span>\n' +
+'                if nums[k] &lt; pivot:\n' +
+'                    nums[j], nums[k] = nums[k], nums[j]\n' +
+'                    nums[i], nums[j] = nums[j], nums[i]\n' +
 '                    i += 1\n' +
-'            if target &lt; lt:   hi = lt - 1      <span class="cmt"># 走小于区</span>\n' +
-'            elif target &gt; gt: lo = gt + 1      <span class="cmt"># 走大于区</span>\n' +
-'            else: return pivot                 <span class="cmt"># 落在等于区</span>',
+'                    j += 1\n' +
+'                elif nums[k] == pivot:\n' +
+'                    nums[j], nums[k] = nums[k], nums[j]\n' +
+'                    j += 1\n' +
+'            nums[j], nums[hi] = nums[hi], nums[j]  <span class="cmt"># 归位</span>\n' +
+'            if i &lt;= target &lt;= j:\n' +
+'                return nums[i]\n' +
+'            elif j &lt; target:\n' +
+'                lo = j + 1                      <span class="cmt"># 取右边</span>\n' +
+'            else:\n' +
+'                hi = j - 1                      <span class="cmt"># 取左边</span>',
     java:
-'<span class="cmt">// 随机基准 + 荷兰国旗三路划分 · 期望 O(n) · 原地 O(1)</span>\n' +
+'<span class="cmt">// 随机基准藏到 hi · 三路划分 · 期望 O(n)</span>\n' +
 'import java.util.Random;\n' +
 '\n' +
 'class Solution {\n' +
 '    private final Random rnd = new Random();\n' +
-'    public int findKthLargest(int[] a, int k) {\n' +
-'        int n = a.length, target = n - k;\n' +
-'        int lo = 0, hi = n - 1;\n' +
-'        while (true) {\n' +
-'            if (lo == hi) return a[lo];\n' +
-'            swap(a, lo, lo + rnd.nextInt(hi - lo + 1)); <span class="cmt">// 基准换到左端</span>\n' +
-'            int pivot = a[lo], lt = lo, gt = hi, i = lo + 1;\n' +
-'            while (i &lt;= gt) {                  <span class="cmt">// 三路划分</span>\n' +
-'                if (a[i] &lt; pivot)      swap(a, lt++, i++);\n' +
-'                else if (a[i] &gt; pivot) swap(a, i, gt--); <span class="cmt">// i 不动</span>\n' +
-'                else                   i++;\n' +
+'    public int findKthLargest(int[] nums, int k) {\n' +
+'        int target = nums.length - k;\n' +
+'        int lo = 0, hi = nums.length - 1;\n' +
+'        while (lo &lt;= hi) {\n' +
+'            int r = lo + rnd.nextInt(hi - lo + 1);\n' +
+'            swap(nums, r, hi);\n' +
+'            int pivot = nums[hi], i = lo, j = lo;\n' +
+'            for (int p = lo; p &lt; hi; p++) {   <span class="cmt">// 扫描，避免覆盖参数 k</span>\n' +
+'                if (nums[p] &lt; pivot) {\n' +
+'                    swap(nums, j, p);\n' +
+'                    swap(nums, i, j);\n' +
+'                    i++;\n' +
+'                    j++;\n' +
+'                } else if (nums[p] == pivot) {\n' +
+'                    swap(nums, j, p);\n' +
+'                    j++;\n' +
+'                }\n' +
 '            }\n' +
-'            if (target &lt; lt)      hi = lt - 1; <span class="cmt">// 走小于区</span>\n' +
-'            else if (target &gt; gt) lo = gt + 1; <span class="cmt">// 走大于区</span>\n' +
-'            else return pivot;                 <span class="cmt">// 落在等于区</span>\n' +
+'            swap(nums, j, hi);                 <span class="cmt">// 归位</span>\n' +
+'            if (i &lt;= target &amp;&amp; target &lt;= j) return nums[i];\n' +
+'            else if (j &lt; target) lo = j + 1;\n' +
+'            else hi = j - 1;\n' +
 '        }\n' +
+'        return -1;\n' +
 '    }\n' +
 '    private void swap(int[] a, int x, int y) {\n' +
 '        int t = a[x]; a[x] = a[y]; a[y] = t;\n' +
 '    }\n' +
 '}'
   };
+
+  var codesLists = {
+    py:
+'<span class="cmt"># 开数组三路 · 降序递归 · 期望 O(n) 额外 O(n)</span>\n' +
+'import random\n' +
+'from typing import List\n' +
+'\n' +
+'class Solution:\n' +
+'    def findKthLargest(self, nums: List[int], k: int) -&gt; int:\n' +
+'        def sorr(_nums, left_num):\n' +
+'            pivot = random.choice(_nums)\n' +
+'            left, mid, right = [], [], []\n' +
+'            for num in _nums:\n' +
+'                if num &gt; pivot:\n' +
+'                    left.append(num)            <span class="cmt"># 更大，降序靠前</span>\n' +
+'                elif num == pivot:\n' +
+'                    mid.append(num)\n' +
+'                else:\n' +
+'                    right.append(num)           <span class="cmt"># 更小，降序靠后</span>\n' +
+'            idx = k - 1 - left_num\n' +
+'            if idx &lt; len(left):\n' +
+'                return sorr(left, left_num)\n' +
+'            elif idx &lt; len(left) + len(mid):\n' +
+'                return pivot\n' +
+'            else:\n' +
+'                return sorr(right, left_num + len(left) + len(mid))\n' +
+'        return sorr(nums, 0)',
+    java:
+'<span class="cmt">// 开数组三路 · 降序递归 · 期望 O(n) 额外 O(n)</span>\n' +
+'import java.util.ArrayList;\n' +
+'import java.util.List;\n' +
+'import java.util.Random;\n' +
+'\n' +
+'class Solution {\n' +
+'    private final Random rnd = new Random();\n' +
+'    private int k;\n' +
+'    public int findKthLargest(int[] nums, int k) {\n' +
+'        this.k = k;\n' +
+'        List&lt;Integer&gt; arr = new ArrayList&lt;&gt;();\n' +
+'        for (int x : nums) arr.add(x);\n' +
+'        return sorr(arr, 0);\n' +
+'    }\n' +
+'    private int sorr(List&lt;Integer&gt; nums, int leftNum) {\n' +
+'        int pivot = nums.get(rnd.nextInt(nums.size()));\n' +
+'        List&lt;Integer&gt; left = new ArrayList&lt;&gt;();\n' +
+'        List&lt;Integer&gt; mid = new ArrayList&lt;&gt;();\n' +
+'        List&lt;Integer&gt; right = new ArrayList&lt;&gt;();\n' +
+'        for (int num : nums) {\n' +
+'            if (num &gt; pivot) left.add(num);\n' +
+'            else if (num == pivot) mid.add(num);\n' +
+'            else right.add(num);\n' +
+'        }\n' +
+'        int idx = k - 1 - leftNum;\n' +
+'        if (idx &lt; left.size()) return sorr(left, leftNum);\n' +
+'        if (idx &lt; left.size() + mid.size()) return pivot;\n' +
+'        return sorr(right, leftNum + left.size() + mid.size());\n' +
+'    }\n' +
+'}'
+  };
+
+  function currentCodes() { return method === 'lists' ? codesLists : codes; }
+
+  function syncChrome() {
+    $('pageSub').innerHTML = SUB[method];
+    $('ideaInplace').classList.toggle('hidden', method === 'lists');
+    $('ideaLists').classList.toggle('hidden', method !== 'lists');
+    $('phasesInplace').classList.toggle('hidden', method === 'lists');
+    $('phasesLists').classList.toggle('hidden', method !== 'lists');
+    $('viewInplace').classList.toggle('hidden', method === 'lists');
+    $('viewLists').classList.toggle('hidden', method !== 'lists');
+    $('legendInplace').classList.toggle('hidden', method === 'lists');
+    $('legendLists').classList.toggle('hidden', method !== 'lists');
+    Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (tab) {
+      tab.classList.toggle('active', tab.getAttribute('data-method') === method);
+    });
+    var lang = 'py';
+    Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+      if (tab.classList.contains('active')) lang = tab.dataset.lang;
+    });
+    $('codeBlock').innerHTML = currentCodes()[lang];
+  }
+
+  function setMethod(next) {
+    if (method === next) return;
+    method = next;
+    syncChrome();
+    load(false);
+  }
+
   var codeBlock = $('codeBlock');
   Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
     tab.onclick = function () {
       Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (item) { item.classList.remove('active'); });
       tab.classList.add('active');
-      codeBlock.innerHTML = codes[tab.dataset.lang];
+      codeBlock.innerHTML = currentCodes()[tab.dataset.lang];
     };
   });
-  codeBlock.innerHTML = codes.py;
+  Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (tab) {
+    tab.onclick = function () { setMethod(tab.getAttribute('data-method')); };
+  });
   try {
     var q = new URLSearchParams(location.search);
     if (q.get('nums')) input.value = q.get('nums');
     if (q.get('k')) kInput.value = q.get('k');
+    if (q.get('method') === 'lists') method = 'lists';
   } catch (err) {}
+  syncChrome();
   load(false);
 })();
 </script>
