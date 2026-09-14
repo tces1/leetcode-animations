@@ -138,7 +138,7 @@ leetcode-animations/
 | 206 | [反转链表](https://tces1.github.io/leetcode-animations/problems/206-reverse-linked-list.html) | 简单 | 链表 · 迭代 · 递归 · 双指针 · 调用栈 · 原地修改 |
 | 207 | [课程表](https://tces1.github.io/leetcode-animations/problems/207-course-schedule.html) | 中等 | 图 · 拓扑排序 · Kahn BFS · 入度 · 队列 · O(V+E) |
 | 208 | [实现 Trie（前缀树）](https://tces1.github.io/leetcode-animations/problems/208-implement-trie-prefix-tree.html) | 中等 | Trie · 前缀树 · 字符串 · 哈希映射 |
-| 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · Lomuto · Dijkstra · 三路划分 |
+| 215 | [数组中的第K个最大元素](https://tces1.github.io/leetcode-animations/problems/215-kth-largest-element-in-an-array.html) | 中等 | 快速选择 · Lomuto · Dijkstra · 三路划分 · 数组 |
 | 226 | [翻转二叉树](https://tces1.github.io/leetcode-animations/problems/226-invert-binary-tree.html) | 简单 | 二叉树 · 深度优先搜索 · 递归 · 翻转二叉树 · 调用栈 · O(n) |
 | 230 | [二叉搜索树中第 K 小的元素](https://tces1.github.io/leetcode-animations/problems/230-kth-smallest-element-in-a-bst.html) | 中等 | 二叉搜索树 · 中序遍历 · 栈 · 递归 · 提前停止 · O(h+k) |
 | 234 | [回文链表](https://tces1.github.io/leetcode-animations/problems/234-palindrome-linked-list.html) | 简单 | 链表 · 快慢指针 · 原地反转 · 回文 · O(1) 空间 |
