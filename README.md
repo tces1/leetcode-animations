@@ -152,6 +152,7 @@ leetcode-animations/
 | 295 | [数据流的中位数](https://tces1.github.io/leetcode-animations/problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
 | 300 | [最长递增子序列](https://tces1.github.io/leetcode-animations/problems/300-longest-increasing-subsequence.html) | 中等 | 动态规划 · 填表 + 记忆化递归树双视角 |
 | 322 | [零钱兑换](https://tces1.github.io/leetcode-animations/problems/322-coin-change.html) | 中等 | 动态规划 · 完全背包 · 记忆化搜索 · 递归树 |
+| 347 | [前 K 个高频元素](https://tces1.github.io/leetcode-animations/problems/347-top-k-frequent-elements.html) | 中等 | 哈希表 · 桶排序 · 小顶堆 · 计数 · 前K高频 |
 | 394 | [字符串解码](https://tces1.github.io/leetcode-animations/problems/394-decode-string.html) | 中等 | 栈 · 字符串 · 递归 |
 | 437 | [路径总和 III](https://tces1.github.io/leetcode-animations/problems/437-path-sum-iii.html) | 中等 | 二叉树 · 深度优先搜索 · 前缀和 · 哈希表 · 回溯 · 递归 · O(n) |
 | 438 | [找到字符串中所有字母异位词](https://tces1.github.io/leetcode-animations/problems/438-find-all-anagrams-in-a-string.html) | 中等 | 字符串 · 滑动窗口 · 计数 · 定长窗口 |

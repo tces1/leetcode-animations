@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LeetCode 347 前 K 个高频元素：桶排序、大小为 k 的小顶堆、按频次排序三种解法的逐步动画演示。">
+<meta name="tags" content="哈希表 · 桶排序 · 小顶堆 · 计数 · 前K高频">
+<title>347. 前 K 个高频元素 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f6f7f9; color:#1d2129; line-height:1.5;
+  }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link { font-size:12px; color:#6b7280; }
+  .link a { color:#6366f1; text-decoration:none; }
+  .link a:hover { text-decoration:underline; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+  .sub b { color:#1d2129; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font-family:"SF Mono",Menlo,monospace; font-size:12px; }
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .compare { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:12px; }
+  .compare-item {
+    border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px;
+    font-size:13px; color:#4b5563; background:#f8fafc;
+  }
+  .compare-item.on { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  .compare-item .no { font-size:11px; font-weight:800; letter-spacing:.04em; color:#6366f1; margin-bottom:4px; }
+  .compare-item b { color:#1d2129; }
+  .compare-item code { font-size:11px; }
+  .compare-item { cursor:pointer; }
+  .hidden { display:none !important; }
+  .method-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .method-tab {
+    padding:8px 14px; border:1px solid #e5e7eb; border-radius:999px; background:#f8fafc;
+    color:#374151; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .method-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .key-note code { background:#dbeafe; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .play-controls { margin-bottom:14px; }
+  .fields { display:grid; grid-template-columns:3fr 1fr; gap:10px; flex:1; min-width:300px; }
+  .field { display:flex; align-items:center; gap:8px; }
+  .field .lab { font-size:12px; color:#6b7280; font-weight:700; white-space:nowrap; }
+  input[type=text],input[type=number] {
+    width:100%; min-width:90px; padding:9px 12px; font-size:14px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  button.method-tab {
+    padding:8px 14px; border:1px solid #e5e7eb; border-radius:999px; background:#f8fafc;
+    color:#374151; font-size:13px; font-weight:700; box-shadow:none;
+  }
+  button.method-tab:hover { background:#eef2ff; color:#3730a3; }
+  button.method-tab.active, button.method-tab.active:hover {
+    background:#6366f1; border-color:#4338ca; color:#fff;
+  }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .examples .lab { font-size:12px; color:#9ca3af; }
+  .chip {
+    font:12px "SF Mono",Menlo,monospace; padding:5px 10px;
+    background:#f1f2f4; border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .err { color:#dc2626; font-size:13px; margin-top:10px; display:none; }
+  .err.show { display:block; }
+  .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:14px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+
+  .phases { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:14px; }
+  .phase {
+    border:1px solid #e5e7eb; border-radius:10px; padding:9px 10px;
+    font-size:12px; color:#6b7280; background:#f8fafc; transition:.18s;
+  }
+  .phase .no { display:block; font-size:10px; font-weight:800; letter-spacing:.04em; color:#94a3b8; margin-bottom:2px; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; color:#3730a3; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  .phase.active .no { color:#6366f1; }
+  .phase.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
+  .phase.done .no { color:#16a34a; }
+
+  .array-stage { overflow:auto; border:1px solid #eef0f4; border-radius:12px; background:linear-gradient(#fff,#fbfbfd); padding:28px 16px 38px; }
+  .array-row { display:inline-grid; gap:7px; min-width:max-content; }
+  .array-cell {
+    position:relative; width:54px; height:56px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font:800 17px "SF Mono",Menlo,monospace; color:#334155;
+    background:#f8fafc; border:2px solid #e5e7eb;
+    transition:background .18s,border-color .18s,box-shadow .18s,transform .18s,opacity .18s;
+  }
+  .array-cell.future { opacity:.38; }
+  .array-cell.counted { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+  .array-cell.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.2); transform:translateY(-2px); }
+  .array-cell.placing { background:#dbeafe; border-color:#60a5fa; color:#1d4ed8; box-shadow:0 0 0 3px rgba(37,99,235,.16); }
+  .array-cell.rejected { background:#fee2e2; border-color:#fca5a5; color:#991b1b; }
+  .array-cell.picked { background:#22c55e; border-color:#16a34a; color:#fff; box-shadow:0 0 0 3px rgba(34,197,94,.18); }
+  .array-cell .idx { position:absolute; top:2px; left:5px; font-size:9px; color:#a5b4fc; }
+  .array-cell.picked .idx { color:#dcfce7; }
+  .array-cell .ptr { position:absolute; top:100%; margin-top:7px; font-size:10px; font-weight:800; color:#b45309; white-space:nowrap; }
+
+  .work-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:14px; margin-top:14px; }
+  .freq-box, .rule-box { border:1px solid #e5e7eb; border-radius:11px; background:#f8fafc; padding:12px; min-height:148px; }
+  .freq-title, .bucket-head { display:flex; justify-content:space-between; gap:12px; align-items:baseline; font-size:11px; font-weight:800; color:#64748b; margin-bottom:10px; }
+  .freq-title span:last-child, .bucket-head span:last-child { font-family:"SF Mono",Menlo,monospace; color:#4f46e5; }
+  .freq-grid { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; min-height:72px; }
+  .freq-item {
+    min-width:72px; padding:8px 10px; border-radius:9px; text-align:center;
+    background:#fff; border:2px solid #e5e7eb; color:#334155;
+    font:700 11px "SF Mono",Menlo,monospace;
+    transition:border-color .18s,box-shadow .18s,background .18s,transform .18s;
+  }
+  .freq-item b { display:block; font-size:18px; line-height:1.15; }
+  .freq-item .meta { color:#64748b; margin-top:2px; }
+  .freq-bar { height:4px; border-radius:999px; background:#eef2ff; margin-top:7px; overflow:hidden; }
+  .freq-bar i { display:block; height:100%; background:#818cf8; border-radius:inherit; }
+  .freq-item.current { background:#fef3c7; border-color:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.18); }
+  .freq-item.placing { background:#dbeafe; border-color:#60a5fa; box-shadow:0 0 0 3px rgba(37,99,235,.16); }
+  .freq-item.rejected { background:#fee2e2; border-color:#fca5a5; color:#991b1b; }
+  .freq-item.rejected .meta { color:#b91c1c; }
+  .freq-item.rejected .freq-bar i { background:#f87171; }
+  .freq-item.picked { background:#dcfce7; border-color:#22c55e; color:#166534; }
+  .freq-item.picked .meta { color:#15803d; }
+  .freq-item.picked .freq-bar i { background:#22c55e; }
+  .rule-box { background:#0f172a; color:#e2e8f0; font-size:13px; line-height:1.8; }
+  .rule-box .phase-lab { display:block; font-size:10px; color:#94a3b8; font-weight:800; letter-spacing:.05em; margin-bottom:6px; }
+  .rule-box .hot { color:#fcd34d; font-weight:800; }
+  .rule-box .ok { color:#86efac; font-weight:800; }
+  .rule-box .skip { color:#fca5a5; font-weight:800; }
+  .rule-box code { background:#1f2937; color:#93c5fd; }
+
+  .bucket-panel { margin-top:14px; border:1px solid #e5e7eb; border-radius:12px; background:#f8fafc; padding:12px 14px 10px; }
+  .bucket-stage { overflow:auto; padding:6px 2px 4px; }
+  .bucket-row { display:flex; gap:8px; min-width:max-content; align-items:flex-end; }
+  .bucket {
+    width:62px; min-height:118px; border:1px dashed #dbe1ea; border-radius:10px;
+    background:#fff; padding:8px 6px 6px; display:flex; flex-direction:column;
+    transition:border-color .18s,box-shadow .18s,background .18s,transform .18s,opacity .18s;
+  }
+  .bucket.empty { opacity:.42; }
+  .bucket.current { background:#eef2ff; border-style:solid; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.14); transform:translateY(-2px); opacity:1; }
+  .bucket.collect { background:#ecfdf5; border-style:solid; border-color:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.16); opacity:1; }
+  .bucket.skip { background:#fef2f2; border-style:solid; border-color:#fca5a5; }
+  .bucket-items { flex:1; display:flex; flex-direction:column-reverse; gap:5px; min-height:54px; }
+  .bit {
+    min-height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    font:800 13px "SF Mono",Menlo,monospace; background:#ede9fe; border:1px solid #ddd6fe; color:#5b21b6;
+  }
+  .bit.latest { background:#dbeafe; border-color:#93c5fd; color:#1d4ed8; box-shadow:0 0 0 2px rgba(59,130,246,.18); }
+  .bit.collecting { background:#22c55e; border-color:#16a34a; color:#fff; }
+  .bucket-idx {
+    margin-top:8px; text-align:center; font:800 13px "SF Mono",Menlo,monospace; color:#334155;
+  }
+  .bucket-lab { text-align:center; font-size:9px; font-weight:800; letter-spacing:.04em; color:#94a3b8; text-transform:uppercase; }
+  .empty { font-size:12px; color:#9ca3af; }
+
+  .heap-panel, .rank-panel { margin-top:14px; border:1px solid #e5e7eb; border-radius:12px; background:#f8fafc; padding:12px 14px 10px; }
+  .heap-stage { display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-height:72px; }
+  .hcell {
+    min-width:72px; padding:8px 10px; border-radius:9px; text-align:center;
+    background:#eef2ff; border:2px solid #c7d2fe; color:#3730a3;
+    font:700 11px "SF Mono",Menlo,monospace;
+  }
+  .hcell b { display:block; font-size:18px; line-height:1.15; }
+  .hcell .meta { margin-top:2px; opacity:.8; }
+  .hcell.root { background:#dbeafe; border-color:#60a5fa; color:#1d4ed8; box-shadow:0 0 0 3px rgba(37,99,235,.16); }
+  .hcell.temp { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
+  .hcell.pop { background:#fee2e2; border-color:#ef4444; color:#991b1b; }
+  .hcell .role { display:block; margin-top:3px; font-size:9px; font-weight:800; letter-spacing:.04em; }
+  .reject-row { margin-top:10px; display:flex; flex-wrap:wrap; gap:7px; align-items:center; min-height:28px; }
+  .reject-chip { font:700 12px "SF Mono",Menlo,monospace; padding:5px 9px; border-radius:7px; background:#fee2e2; border:1px solid #fecaca; color:#991b1b; }
+  .rank-row { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; min-height:72px; }
+  .rank-item {
+    min-width:86px; padding:8px 10px; border-radius:9px; text-align:center;
+    background:#fff; border:2px solid #e5e7eb; color:#334155;
+    font:700 11px "SF Mono",Menlo,monospace;
+  }
+  .rank-item .rk { display:block; font-size:9px; font-weight:800; letter-spacing:.04em; color:#94a3b8; margin-bottom:2px; }
+  .rank-item b { display:block; font-size:18px; }
+  .rank-item.unsorted { border-style:dashed; color:#64748b; }
+  .rank-item.topk { background:#dcfce7; border-color:#22c55e; color:#166534; }
+  .rank-item.current { background:#fef3c7; border-color:#f59e0b; color:#92400e; box-shadow:0 0 0 3px rgba(245,158,11,.18); }
+  .rank-item.rest { opacity:.55; }
+
+  .answers { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin-top:12px; min-height:32px; }
+  .answers .label { font-size:12px; color:#64748b; font-weight:700; }
+  .answer-chip { font:800 12px "SF Mono",Menlo,monospace; padding:5px 9px; border-radius:7px; background:#dcfce7; border:1px solid #bbf7d0; color:#166534; }
+  .answer-chip.latest { box-shadow:0 0 0 3px rgba(34,197,94,.18); }
+  .answer-chip.soft { background:#eef2ff; border-color:#c7d2fe; color:#4338ca; }
+  .need-chip { font:700 12px "SF Mono",Menlo,monospace; padding:5px 9px; border-radius:7px; background:#eef2ff; border:1px solid #c7d2fe; color:#4338ca; }
+
+  .summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:12px; }
+  .summary-box { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px 12px; text-align:center; font-size:12px; color:#64748b; }
+  .summary-box b { display:block; margin-top:2px; font:800 17px "SF Mono",Menlo,monospace; color:#334155; }
+  .summary-box.current b { color:#b45309; }
+  .summary-box.freq b { color:#4f46e5; }
+  .summary-box.need b { color:#c2410c; }
+  .summary-box.answer b { color:#16a34a; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:14px; }
+  .dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-2px; border:1px solid rgba(0,0,0,.08); }
+  .dot-counted { background:#ede9fe; border-color:#c4b5fd; }
+  .dot-current { background:#fef3c7; border-color:#f59e0b; }
+  .dot-placing { background:#dbeafe; border-color:#60a5fa; }
+  .dot-picked { background:#22c55e; border-color:#16a34a; }
+  .dot-rejected { background:#fee2e2; border-color:#fca5a5; }
+  .dot-root { background:#dbeafe; border-color:#60a5fa; }
+
+  .status-title { margin-top:16px; }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fcd34d; }
+  .status .ok { color:#86efac; font-weight:700; }
+  .status .no { color:#fca5a5; font-weight:700; }
+  .status code { background:#1f2937; color:#93c5fd; }
+
+  details.code { margin-top:4px; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
+  pre .cmt { color:#7dd3fc; }
+
+  @media (max-width:760px) {
+    body { padding:16px 12px; }
+    .card { padding:14px; }
+    .fields,.work-grid,.compare,.summary-grid,.phases { grid-template-columns:1fr; }
+    .summary-grid { grid-template-columns:1fr 1fr; }
+    .progress { width:100%; margin-left:0; }
+    .freq-title, .bucket-head { flex-direction:column; align-items:flex-start; gap:4px; }
+  }
+  .star-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; margin:0 0 16px; padding:12px 16px; border:1px solid #e0e7ff; border-radius:12px; background:linear-gradient(180deg,#f8faff 0%,#fff 100%); }
+  .star-banner-copy { flex:1; min-width:180px; }
+  .star-banner-title { font-size:14px; font-weight:700; color:#1d2129; }
+  .star-banner-sub { margin-top:2px; font-size:12px; color:#6b7280; }
+  .star-cta { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid #c7d2fe; border-radius:8px; background:#fff; color:#312e81; text-decoration:none; font-size:13px; font-weight:700; box-shadow:0 1px 0 rgba(99,102,241,.08); flex-shrink:0; }
+  .star-cta:hover { border-color:#818cf8; background:#eef2ff; }
+  .star-cta svg { width:14px; height:14px; fill:currentColor; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link">原题：<a href="https://leetcode.cn/problems/top-k-frequent-elements/" target="_blank" rel="noopener">LeetCode 347</a></span>
+    <span class="link">· <a href="../index.html">返回动画列表</a></span>
+  </div>
+  <h1>347. 前 K 个高频元素</h1>
+  <div class="sub" id="pageSub"></div>
+
+  <div class="card">
+    <div class="method-tabs">
+      <button type="button" class="method-tab active" data-method="bucket">① 桶排序 · O(n)</button>
+      <button type="button" class="method-tab" data-method="heap">② 小顶堆 · O(n log k)</button>
+      <button type="button" class="method-tab" data-method="sort">③ 按频次排序 · O(n + m log m)</button>
+    </div>
+
+    <div id="ideaBucket">
+      <div class="panel-title">桶排序三步</div>
+      <div class="idea">
+        <div class="idea-item"><div class="no">① 哈希计数</div>扫描 <code>nums</code>，用 <code>freq[x]++</code> 得到每个数出现了几次。不同元素个数记为 m，这一步 O(n)。</div>
+        <div class="idea-item"><div class="no">② 按频次入桶</div>桶下标就是出现次数：<code>buckets[c].append(x)</code>。越靠右的桶越热门，不必再比较或排序。</div>
+        <div class="idea-item"><div class="no">③ 从右往左收集</div>从 <code>freq = n</code> 扫到 <code>1</code>，依次取出桶里的数字，直到答案长度为 k。</div>
+      </div>
+    </div>
+    <div id="ideaHeap" class="hidden">
+      <div class="panel-title">小顶堆三步</div>
+      <div class="idea">
+        <div class="idea-item"><div class="no">① 哈希计数</div>同样先得到 <code>freq</code>。后面只处理 m 个不同数字，每个带着自己的出现次数。</div>
+        <div class="idea-item"><div class="no">② 维护大小为 k 的小顶堆</div>堆里装的是「当前入选」；<b>堆顶是入选里最不热门的</b>。堆未满就直接放入。</div>
+        <div class="idea-item"><div class="no">③ 更热门才替换堆顶</div>新数字频次 &gt; 堆顶才弹出堆顶并放入；否则直接丢弃。这样堆里始终是目前见到的前 k 热门。</div>
+      </div>
+    </div>
+    <div id="ideaSort" class="hidden">
+      <div class="panel-title">排序三步</div>
+      <div class="idea">
+        <div class="idea-item"><div class="no">① 哈希计数</div>扫描一遍得到每个数的频次，复杂度 O(n)。</div>
+        <div class="idea-item"><div class="no">② 按频次降序排序</div>只对 m 个不同元素排序，不是对整个 nums 排序。时间 O(m log m)。</div>
+        <div class="idea-item"><div class="no">③ 取前 k 个</div>排序后的前 k 名就是答案。写法最直接，但最坏是 O(n log n)，不满足进阶。</div>
+      </div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-item on" id="cmpBucket" data-method="bucket">
+        <div class="no">桶排序</div>
+        频次本身就是 1…n 的整数，直接当桶下标。时间 <b>O(n)</b>，满足进阶。
+      </div>
+      <div class="compare-item" id="cmpHeap" data-method="heap">
+        <div class="no">大小为 k 的小顶堆</div>
+        面试最常见。堆顶始终是当前入选里最不热门的。时间 <b>O(n log k)</b>。
+      </div>
+      <div class="compare-item" id="cmpSort" data-method="sort">
+        <div class="no">按频次排序</div>
+        给 m 个不同元素排序再取前 k。时间 <b>O(n + m log m)</b>，不满足进阶。
+      </div>
+    </div>
+    <div class="key-note" id="keyNote"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <div class="fields">
+        <label class="field"><span class="lab">nums =</span><input type="text" id="numsInput" value="1 1 1 2 2 3" spellcheck="false" placeholder="空格或逗号分隔"></label>
+        <label class="field"><span class="lab">k =</span><input type="number" id="kInput" value="2" min="1" max="16"></label>
+      </div>
+      <button type="button" id="loadBtn">演示</button>
+    </div>
+    <div class="examples">
+      <span class="lab">示例：</span>
+      <span class="chip" data-nums="1 1 1 2 2 3" data-k="2">经典 [1,2]</span>
+      <span class="chip" data-nums="1" data-k="1">单元素</span>
+      <span class="chip" data-nums="4 1 -1 2 -1 2 3" data-k="2">含负数 [-1,2]</span>
+      <span class="chip" data-nums="1 1 1 1" data-k="1">全部相同</span>
+      <span class="chip" data-nums="5 5 5 4 4 3 3 3 3 2" data-k="3">前三热门</span>
+      <span class="chip" data-nums="7 7 7 8 8 9" data-k="1">只要最热</span>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="hint">支持 1～14 个整数（每个值 −99～99）；1 ≤ k ≤ 不同元素个数。题目保证前 k 名作为集合唯一。</div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="controls play-controls">
+      <button type="button" id="prevBtn" class="ghost">◀ 上一步</button>
+      <button type="button" id="nextBtn">下一步 ▶</button>
+      <button type="button" id="playBtn" class="ghost">▶ 自动播放</button>
+      <button type="button" id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <div class="phases" id="phasesBucket">
+      <div class="phase" id="phaseCount"><span class="no">① 计数</span>扫描 nums，哈希表累加频次</div>
+      <div class="phase" id="phaseBucket"><span class="no">② 入桶</span>数字进入 buckets[freq]</div>
+      <div class="phase" id="phaseCollect"><span class="no">③ 收集</span>从高频桶向左取满 k 个</div>
+    </div>
+    <div class="phases hidden" id="phasesHeap">
+      <div class="phase" id="phaseHCount"><span class="no">① 计数</span>扫描 nums，哈希表累加频次</div>
+      <div class="phase" id="phaseHFill"><span class="no">② 入堆</span>堆未满时直接放入</div>
+      <div class="phase" id="phaseHCmp"><span class="no">③ 比较堆顶</span>更热门才替换，否则丢弃</div>
+    </div>
+    <div class="phases hidden" id="phasesSort">
+      <div class="phase" id="phaseSCount"><span class="no">① 计数</span>扫描 nums，哈希表累加频次</div>
+      <div class="phase" id="phaseSSort"><span class="no">② 排序</span>按频次给 m 个不同元素降序排</div>
+      <div class="phase" id="phaseSTake"><span class="no">③ 取前 k</span>截取排序后的前 k 名</div>
+    </div>
+
+    <div class="panel-title">数组 nums</div>
+    <div class="array-stage"><div class="array-row" id="arrayRow"></div></div>
+
+    <div class="work-grid">
+      <div class="freq-box">
+        <div class="freq-title"><span>freq：数值 → 出现次数</span><span id="freqMeta">{}</span></div>
+        <div class="freq-grid" id="freqGrid"></div>
+      </div>
+      <div class="rule-box" id="ruleBox"></div>
+    </div>
+
+    <div class="bucket-panel" id="panelBucket">
+      <div class="bucket-head">
+        <span>buckets · 下标 = 出现次数，越靠右越热门</span>
+        <span id="bucketMeta">从左到右：freq = 1 … n</span>
+      </div>
+      <div class="bucket-stage"><div class="bucket-row" id="bucketRow"></div></div>
+    </div>
+    <div class="heap-panel hidden" id="panelHeap">
+      <div class="bucket-head">
+        <span>小顶堆 · 容量 k，堆顶是当前入选里最不热门的</span>
+        <span id="heapMeta">size = 0 / k</span>
+      </div>
+      <div class="heap-stage" id="heapStage"></div>
+      <div class="reject-row" id="rejectRow"></div>
+    </div>
+    <div class="rank-panel hidden" id="panelSort">
+      <div class="bucket-head">
+        <span>唯一元素 · 按频次降序后取前 k</span>
+        <span id="rankMeta">尚未排序</span>
+      </div>
+      <div class="rank-row" id="rankRow"></div>
+    </div>
+
+    <div class="answers" id="answers"></div>
+    <div class="summary-grid">
+      <div class="summary-box current">当前数字<b id="currentValue">—</b></div>
+      <div class="summary-box freq">当前频次<b id="currentFreq">—</b></div>
+      <div class="summary-box need"><span id="needLab">还需收集</span><b id="needValue">—</b></div>
+      <div class="summary-box answer"><span id="ansLab">已收集</span><b id="answerValue">—</b></div>
+    </div>
+    <div class="legend" id="legendBucket">
+      <span><span class="dot dot-counted"></span>已计入频次</span>
+      <span><span class="dot dot-current"></span>当前扫描元素</span>
+      <span><span class="dot dot-placing"></span>正在入桶</span>
+      <span><span class="dot dot-picked"></span>已进入答案</span>
+    </div>
+    <div class="legend hidden" id="legendHeap">
+      <span><span class="dot dot-current"></span>当前候选</span>
+      <span><span class="dot dot-root"></span>堆顶（最不热门）</span>
+      <span><span class="dot dot-picked"></span>堆中入选</span>
+      <span><span class="dot dot-rejected"></span>被淘汰 / 未入选</span>
+    </div>
+    <div class="legend hidden" id="legendSort">
+      <span><span class="dot dot-counted"></span>未排序</span>
+      <span><span class="dot dot-current"></span>正在截取</span>
+      <span><span class="dot dot-picked"></span>前 k 名</span>
+    </div>
+    <div class="panel-title status-title">当前状态</div>
+    <div class="status" id="status">点击「演示」开始。</div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary>查看参考代码（与本页动画一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre id="codeBlock"></pre>
+    </details>
+  </div>
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+/* ==== 纯逻辑核心：桶排序 / 小顶堆 / 按频次排序 ==== */
+(function (root) {
+  'use strict';
+
+  function parseInputs(numsValue, kValue) {
+    var parts = String(numsValue).trim().split(/[,\s]+/).filter(Boolean);
+    if (!parts.length) return { err:'nums 不能为空' };
+    if (parts.length > 14) return { err:'nums 长度不能超过 14' };
+    var nums = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (!/^-?\d+$/.test(parts[i])) return { err:'nums 含非整数：' + parts[i] };
+      var value = Number(parts[i]);
+      if (!Number.isSafeInteger(value) || value < -99 || value > 99) {
+        return { err:'数组元素须在 −99～99：' + parts[i] };
+      }
+      nums.push(value);
+    }
+    var k = Number(kValue);
+    var unique = new Set(nums).size;
+    if (!Number.isInteger(k) || k < 1 || k > unique) {
+      return { err:'k 须为 1～不同元素个数（当前为 ' + unique + '）的整数' };
+    }
+    return { nums:nums, k:k, err:null };
+  }
+
+  function copyFreq(map) {
+    var entries = [];
+    map.forEach(function (count, value) { entries.push({ value:value, count:count }); });
+    return entries;
+  }
+  function copyBuckets(buckets) {
+    return buckets.map(function (list) { return list.slice(); });
+  }
+  function copyPairs(list) {
+    return (list || []).map(function (item) { return { value:item.value, count:item.count }; });
+  }
+  function emptyBuckets(n) {
+    var buckets = [];
+    for (var i = 0; i <= n; i++) buckets.push([]);
+    return buckets;
+  }
+  function countMap(nums) {
+    var freq = new Map(), order = [];
+    nums.forEach(function (x) {
+      if (!freq.has(x)) order.push(x);
+      freq.set(x, (freq.get(x) || 0) + 1);
+    });
+    return { freq:freq, order:order };
+  }
+
+  function makeSnap(freq, o) {
+    o = o || {};
+    return {
+      phase:o.phase || '',
+      index:o.index === undefined ? -1 : o.index,
+      current:o.current === undefined ? null : o.current,
+      currentCount:o.currentCount === undefined ? null : o.currentCount,
+      scanFreq:o.scanFreq === undefined ? -1 : o.scanFreq,
+      placingValue:o.placingValue === undefined ? null : o.placingValue,
+      collectingValue:o.collectingValue === undefined ? null : o.collectingValue,
+      skipFrom:o.skipFrom === undefined ? -1 : o.skipFrom,
+      skipTo:o.skipTo === undefined ? -1 : o.skipTo,
+      freq:copyFreq(freq),
+      buckets:o.buckets ? copyBuckets(o.buckets) : emptyBuckets(0),
+      heap:copyPairs(o.heap),
+      rejected:copyPairs(o.rejected),
+      ranked:copyPairs(o.ranked),
+      sorted:!!o.sorted,
+      evicted:o.evicted ? { value:o.evicted.value, count:o.evicted.count } : null,
+      answer:(o.answer || []).slice(),
+      msg:o.msg || ''
+    };
+  }
+
+  function appendCountSteps(steps, nums, freq, extra) {
+    extra = extra || function () { return {}; };
+    function snap(o) { steps.push(makeSnap(freq, Object.assign(extra(), o))); }
+    snap({
+      phase:'start',
+      msg:'初始化空哈希表 <code>freq = {}</code>。三种解法都从这一步开始：先统计每个数出现了几次。'
+    });
+    for (var i = 0; i < nums.length; i++) {
+      var x = nums[i];
+      snap({
+        phase:'visit', index:i, current:x, currentCount:freq.get(x) || 0,
+        msg:'扫描 <b>nums[' + i + '] = ' + x + '</b>。接下来执行 <code>freq[' + x + ']++</code>。'
+      });
+      freq.set(x, (freq.get(x) || 0) + 1);
+      snap({
+        phase:'count', index:i, current:x, currentCount:freq.get(x),
+        msg:'写入 <code>freq[' + x + '] = ' + freq.get(x) + '</code>。数值 <b>' + x + '</b> 目前出现了 <b>' + freq.get(x) + '</b> 次。'
+      });
+    }
+  }
+
+  function solveBucket(nums, k) {
+    var counted = countMap(nums), freq = counted.freq, n = nums.length;
+    var buckets = emptyBuckets(n);
+    freq.forEach(function (count, value) { buckets[count].push(value); });
+    var answer = [];
+    for (var c = n; c >= 1 && answer.length < k; c--) {
+      for (var j = 0; j < buckets[c].length && answer.length < k; j++) answer.push(buckets[c][j]);
+    }
+    return answer;
+  }
+  function solveHeap(nums, k) {
+    var counted = countMap(nums), heap = [];
+    counted.order.forEach(function (x) {
+      var item = { value:x, count:counted.freq.get(x) };
+      if (heap.length < k) heapPush(heap, item);
+      else if (item.count > heap[0].count) { heapPop(heap); heapPush(heap, item); }
+    });
+    return heap.map(function (item) { return item.value; });
+  }
+  function solveSort(nums, k) {
+    var counted = countMap(nums);
+    var ranked = counted.order.map(function (x) { return { value:x, count:counted.freq.get(x) }; });
+    ranked.sort(function (a, b) { return b.count - a.count || a.value - b.value; });
+    return ranked.slice(0, k).map(function (item) { return item.value; });
+  }
+  function solve(nums, k, method) {
+    if (method === 'heap') return solveHeap(nums, k);
+    if (method === 'sort') return solveSort(nums, k);
+    return solveBucket(nums, k);
+  }
+
+  function heapLess(a, b) {
+    return a.count < b.count || (a.count === b.count && a.value < b.value);
+  }
+  function siftUp(heap, i) {
+    while (i > 0) {
+      var p = (i - 1) >> 1;
+      if (!heapLess(heap[i], heap[p])) break;
+      var t = heap[i]; heap[i] = heap[p]; heap[p] = t;
+      i = p;
+    }
+  }
+  function siftDown(heap, i) {
+    var n = heap.length;
+    while (true) {
+      var l = i * 2 + 1, r = l + 1, m = i;
+      if (l < n && heapLess(heap[l], heap[m])) m = l;
+      if (r < n && heapLess(heap[r], heap[m])) m = r;
+      if (m === i) break;
+      var t = heap[i]; heap[i] = heap[m]; heap[m] = t;
+      i = m;
+    }
+  }
+  function heapPush(heap, item) {
+    heap.push(item);
+    siftUp(heap, heap.length - 1);
+  }
+  function heapPop(heap) {
+    var top = heap[0];
+    var last = heap.pop();
+    if (heap.length) { heap[0] = last; siftDown(heap, 0); }
+    return top;
+  }
+  function heapValues(heap) {
+    return heap.map(function (item) { return item.value; });
+  }
+
+  function buildBucketSteps(nums, k) {
+    var n = nums.length, freq = new Map(), buckets = emptyBuckets(n), answer = [], steps = [], order = [];
+    function extra() { return { buckets:buckets, answer:answer }; }
+    function snap(o) { steps.push(makeSnap(freq, Object.assign(extra(), o))); }
+    snap({
+      phase:'start',
+      msg:'初始化空哈希表 <code>freq = {}</code>，以及 <b>n+1 = ' + (n + 1) + '</b> 个桶 <code>buckets[0..' + n + ']</code>。频次为 0 的桶不会用到。'
+    });
+    var i, c, j, x, count;
+    for (i = 0; i < n; i++) {
+      x = nums[i];
+      snap({ phase:'visit', index:i, current:x, currentCount:freq.get(x) || 0,
+        msg:'扫描 <b>nums[' + i + '] = ' + x + '</b>。接下来执行 <code>freq[' + x + ']++</code>。' });
+      if (!freq.has(x)) order.push(x);
+      freq.set(x, (freq.get(x) || 0) + 1);
+      snap({ phase:'count', index:i, current:x, currentCount:freq.get(x),
+        msg:'写入 <code>freq[' + x + '] = ' + freq.get(x) + '</code>。数值 <b>' + x + '</b> 目前出现了 <b>' + freq.get(x) + '</b> 次。' });
+    }
+    snap({ phase:'countDone',
+      msg:'计数完成，共 <b>' + freq.size + '</b> 个不同数字。下一步把每个数字放进下标等于其频次的桶：<code>buckets[freq[x]].append(x)</code>。' });
+    for (i = 0; i < order.length; i++) {
+      x = order[i]; count = freq.get(x);
+      snap({ phase:'placeReady', current:x, currentCount:count, placingValue:x, scanFreq:count,
+        msg:'数字 <b>' + x + '</b> 出现了 <b>' + count + '</b> 次，应当进入 <code>buckets[' + count + ']</code>。' });
+      buckets[count].push(x);
+      snap({ phase:'place', current:x, currentCount:count, placingValue:x, scanFreq:count,
+        msg:'放入 <code>buckets[' + count + ']</code>。桶下标已经代表热度，所以后面不必再比较这些数字的大小。' });
+    }
+    var maxFreq = 0;
+    freq.forEach(function (c0) { if (c0 > maxFreq) maxFreq = c0; });
+    snap({ phase:'placeDone',
+      msg:'全部入桶。最大频次是 <b>' + maxFreq + '</b>。从 <code>freq = ' + n + '</code> 向左收集；空桶直接跳过，凑满 k = <b>' + k + '</b> 即停。' });
+    c = n;
+    while (c >= 1 && answer.length < k) {
+      if (!buckets[c].length) {
+        var skipTo = c;
+        while (skipTo >= 1 && !buckets[skipTo].length) skipTo--;
+        snap({ phase:'skip', scanFreq:c, skipFrom:c, skipTo:skipTo,
+          msg: skipTo < 1
+            ? 'freq = <b>' + c + '</b> 及更左的桶都是空的，没有更多数字可取。'
+            : (c === n && skipTo < n
+              ? 'freq = <b>' + n + '</b> … <b>' + (skipTo + 1) + '</b> 都是空桶，直接跳到最大非空桶 <code>buckets[' + skipTo + ']</code>。'
+              : '<span class="no">空桶</span> <code>buckets[' + c + (skipTo + 1 < c ? ' … ' + (skipTo + 1) : '') + ']</code>，继续向左走到 <code>buckets[' + skipTo + ']</code>。') });
+        c = skipTo;
+        continue;
+      }
+      snap({ phase:'scan', scanFreq:c,
+        msg:'查看 <code>buckets[' + c + ']</code>：出现 <b>' + c + '</b> 次的数字是 <b>[' + buckets[c].join(', ') + ']</b>。还需要 <b>' + (k - answer.length) + '</b> 个。' });
+      for (j = 0; j < buckets[c].length && answer.length < k; j++) {
+        var picked = buckets[c][j];
+        answer.push(picked);
+        snap({ phase:'collect', scanFreq:c, current:picked, currentCount:c, collectingValue:picked,
+          msg:'收集 <b>' + picked + '</b>（出现 ' + c + ' 次）。当前答案 <code>[' + answer.join(', ') + ']</code>' +
+            (answer.length === k ? '，长度已等于 k，<span class="ok">停止收集</span>。' : '，还需 <b>' + (k - answer.length) + '</b> 个。') });
+      }
+      c--;
+    }
+    snap({ phase:'done',
+      msg:'完成。前 <b>' + k + '</b> 个高频元素是 <span class="ok">[' + answer.join(', ') + ']</span>。计数、入桶、收集都是线性扫描，总时间 O(n)。' });
+    return steps;
+  }
+
+  function buildHeapSteps(nums, k) {
+    var freq = new Map(), heap = [], rejected = [], steps = [], order = [];
+    function extra() { return { heap:heap, rejected:rejected, answer:heapValues(heap) }; }
+    function snap(o) { steps.push(makeSnap(freq, Object.assign(extra(), o))); }
+    snap({ phase:'start',
+      msg:'初始化空哈希表，以及容量为 <b>k = ' + k + '</b> 的小顶堆。堆顶将始终是当前入选里<b>最不热门</b>的那个。' });
+    var i, x;
+    for (i = 0; i < nums.length; i++) {
+      x = nums[i];
+      snap({ phase:'visit', index:i, current:x, currentCount:freq.get(x) || 0,
+        msg:'扫描 <b>nums[' + i + '] = ' + x + '</b>。接下来执行 <code>freq[' + x + ']++</code>。' });
+      if (!freq.has(x)) order.push(x);
+      freq.set(x, (freq.get(x) || 0) + 1);
+      snap({ phase:'count', index:i, current:x, currentCount:freq.get(x),
+        msg:'写入 <code>freq[' + x + '] = ' + freq.get(x) + '</code>。数值 <b>' + x + '</b> 目前出现了 <b>' + freq.get(x) + '</b> 次。' });
+    }
+    snap({ phase:'countDone',
+      msg:'计数完成。接下来只遍历 <b>' + order.length + '</b> 个不同数字，用大小为 k 的小顶堆筛选前 k 热门。' });
+    for (i = 0; i < order.length; i++) {
+      x = order[i];
+      var count = freq.get(x);
+      var item = { value:x, count:count };
+      snap({ phase:'consider', current:x, currentCount:count, placingValue:x,
+        msg:'考虑 <b>' + x + '</b>（出现 ' + count + ' 次）。当前堆大小 <code>' + heap.length + ' / ' + k + '</code>' +
+          (heap.length ? '，堆顶频次是 <b>' + heap[0].count + '</b>' : '') + '。' });
+      if (heap.length < k) {
+        heapPush(heap, item);
+        snap({ phase:'push', current:x, currentCount:count, placingValue:x,
+          msg:'堆还没满，直接放入 <b>' + x + '</b>。堆顶现在是 <b>' + heap[0].value + '</b>（出现 ' + heap[0].count + ' 次），它是当前入选里最不热门的。' });
+      } else if (count > heap[0].count) {
+        var evicted = heapPop(heap);
+        rejected.push(evicted);
+        snap({ phase:'evict', current:x, currentCount:count, placingValue:x, evicted:evicted,
+          msg:'<b>' + x + '</b> 出现 ' + count + ' 次，比堆顶 <b>' + evicted.value + '</b>（' + evicted.count + ' 次）更热门。<span class="no">弹出堆顶</span> ' + evicted.value + '。' });
+        heapPush(heap, item);
+        snap({ phase:'replace', current:x, currentCount:count, placingValue:x, evicted:evicted,
+          msg:'把 <b>' + x + '</b> 放入堆。堆里仍然是目前见到的前 k 热门，堆顶更新为 <b>' + heap[0].value + '</b>（' + heap[0].count + ' 次）。' });
+      } else {
+        rejected.push(item);
+        snap({ phase:'reject', current:x, currentCount:count, placingValue:x,
+          msg:'<b>' + x + '</b> 只出现 ' + count + ' 次，不大于堆顶的 <b>' + heap[0].count + '</b> 次。<span class="no">直接丢弃</span>，它进不了前 k。' });
+      }
+    }
+    snap({ phase:'done',
+      msg:'完成。堆中剩下的就是前 <b>' + k + '</b> 个高频元素 <span class="ok">[' + heapValues(heap).join(', ') + ']</span>。每个不同元素最多入堆一次，时间 O(n + m log k)。' });
+    return steps;
+  }
+
+  function buildSortSteps(nums, k) {
+    var freq = new Map(), ranked = [], answer = [], steps = [], order = [], sorted = false;
+    function extra() { return { ranked:ranked, sorted:sorted, answer:answer }; }
+    function snap(o) { steps.push(makeSnap(freq, Object.assign(extra(), o))); }
+    snap({ phase:'start',
+      msg:'初始化空哈希表。这个解法最直接：计数之后按频次排序，再取前 k 个。' });
+    var i, x;
+    for (i = 0; i < nums.length; i++) {
+      x = nums[i];
+      snap({ phase:'visit', index:i, current:x, currentCount:freq.get(x) || 0,
+        msg:'扫描 <b>nums[' + i + '] = ' + x + '</b>。接下来执行 <code>freq[' + x + ']++</code>。' });
+      if (!freq.has(x)) order.push(x);
+      freq.set(x, (freq.get(x) || 0) + 1);
+      snap({ phase:'count', index:i, current:x, currentCount:freq.get(x),
+        msg:'写入 <code>freq[' + x + '] = ' + freq.get(x) + '</code>。数值 <b>' + x + '</b> 目前出现了 <b>' + freq.get(x) + '</b> 次。' });
+    }
+    ranked = order.map(function (value) { return { value:value, count:freq.get(value) }; });
+    snap({ phase:'countDone',
+      msg:'计数完成，得到 <b>' + ranked.length + '</b> 个不同数字。下一步按出现次数<b>降序</b>排序。' });
+    ranked.sort(function (a, b) { return b.count - a.count || a.value - b.value; });
+    sorted = true;
+    snap({ phase:'sorted',
+      msg:'排序完成：<code>[' + ranked.map(function (item) { return item.value + '×' + item.count; }).join(', ') + ']</code>。只对 m 个不同元素排序，时间 O(m log m)，最坏仍是 O(n log n)。' });
+    for (i = 0; i < k; i++) {
+      var picked = ranked[i];
+      answer.push(picked.value);
+      snap({ phase:'collect', current:picked.value, currentCount:picked.count, collectingValue:picked.value,
+        msg:'取第 <b>' + (i + 1) + '</b> 名 <b>' + picked.value + '</b>（出现 ' + picked.count + ' 次）。当前答案 <code>[' + answer.join(', ') + ']</code>。' });
+    }
+    snap({ phase:'done',
+      msg:'完成。前 <b>' + k + '</b> 个高频元素是 <span class="ok">[' + answer.join(', ') + ']</span>。写法简单，但不满足「优于 O(n log n)」的进阶要求。' });
+    return steps;
+  }
+
+  function buildSteps(nums, k, method) {
+    if (method === 'heap') return buildHeapSteps(nums, k);
+    if (method === 'sort') return buildSortSteps(nums, k);
+    return buildBucketSteps(nums, k);
+  }
+
+  root.TOP_K_FREQUENT_347 = {
+    parseInputs:parseInputs, solve:solve, buildSteps:buildSteps,
+    buildBucketSteps:buildBucketSteps, buildHeapSteps:buildHeapSteps, buildSortSteps:buildSortSteps
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+/* ==== UI 控制器 ==== */
+(function () {
+  'use strict';
+  var APP = window.TOP_K_FREQUENT_347;
+  var $ = function (id) { return document.getElementById(id); };
+  var numsInput = $('numsInput'), kInput = $('kInput'), errEl = $('err');
+  var arrayRow = $('arrayRow'), freqGrid = $('freqGrid'), bucketRow = $('bucketRow');
+  var heapStage = $('heapStage'), rejectRow = $('rejectRow'), rankRow = $('rankRow');
+  var ruleBox = $('ruleBox'), answersEl = $('answers');
+  var statsEl = $('stats'), statusEl = $('status'), progressEl = $('progress');
+  var prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var nums = [], k = 1, steps = [], stepIndex = 0, timer = null, cells = [];
+  var method = 'bucket';
+  var codeLang = 'py';
+
+  var SUB = {
+    bucket:'先用哈希表统计每个数的出现次数。出现次数最多是 <code>n</code>，所以可以开 <code>n+1</code> 个桶，把数字放进 <code>buckets[freq]</code>。然后从右往左收集，凑满 k 个即可。时间 <code>O(n)</code>。',
+    heap:'先统计频次，再用<b>容量为 k 的小顶堆</b>维护当前入选。堆顶是入选里最不热门的：新数字更热门就换掉堆顶，否则丢弃。时间 <code>O(n log k)</code>，面试最常见。',
+    sort:'计数后把 m 个不同元素按频次降序排序，再取前 k 个。写法最直接，时间 <code>O(n + m log m)</code>，最坏是 O(n log n)，不满足进阶。'
+  };
+  var NOTES = {
+    bucket:'<b>为什么能 O(n)？</b>频次不会超过数组长度，所以「按频次排序」退化成计数排序：桶下标已经排好序，从右往左走就是从热到冷。',
+    heap:'<b>为什么用小顶堆而不是大顶堆？</b>我们只关心「第 k 名的门槛」。小顶堆的堆顶就是当前第 k 热；比它冷的直接丢掉，比它热的才配换进去。',
+    sort:'<b>为什么不满足进阶？</b>题目要求优于 O(n log n)。对 m 个不同元素排序，最坏 m = n，就是 O(n log n)。小顶堆和桶排序都更快。'
+  };
+  var TIME = { bucket:'O(n)', heap:'O(n log k)', sort:'O(n + m log m)' };
+  var CODES = {
+    bucket:{
+      py:
+'<span class="cmt"># 哈希计数 + 按频次入桶，从右往左收集前 k 个</span>\n' +
+'class Solution:\n' +
+'    def topKFrequent(self, nums: list[int], k: int) -&gt; list[int]:\n' +
+'        freq = {}\n' +
+'        for x in nums:\n' +
+'            freq[x] = freq.get(x, 0) + 1\n' +
+'\n' +
+'        n = len(nums)\n' +
+'        buckets = [[] for _ in range(n + 1)]  <span class="cmt"># 下标 = 出现次数</span>\n' +
+'        for x, c in freq.items():\n' +
+'            buckets[c].append(x)\n' +
+'\n' +
+'        ans = []\n' +
+'        for c in range(n, 0, -1):           <span class="cmt"># 从高频到低频</span>\n' +
+'            for x in buckets[c]:\n' +
+'                ans.append(x)\n' +
+'                if len(ans) == k:\n' +
+'                    return ans\n' +
+'        return ans',
+      java:
+'<span class="cmt">// 哈希计数 + 按频次入桶，从右往左收集前 k 个</span>\n' +
+'class Solution {\n' +
+'    public int[] topKFrequent(int[] nums, int k) {\n' +
+'        Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();\n' +
+'        for (int x : nums) freq.put(x, freq.getOrDefault(x, 0) + 1);\n' +
+'\n' +
+'        int n = nums.length;\n' +
+'        List&lt;Integer&gt;[] buckets = new List[n + 1];\n' +
+'        for (int i = 0; i &lt;= n; i++) buckets[i] = new ArrayList&lt;&gt;();\n' +
+'        for (Map.Entry&lt;Integer, Integer&gt; e : freq.entrySet()) {\n' +
+'            buckets[e.getValue()].add(e.getKey());\n' +
+'        }\n' +
+'\n' +
+'        int[] ans = new int[k];\n' +
+'        int idx = 0;\n' +
+'        for (int c = n; c &gt;= 1 &amp;&amp; idx &lt; k; c--) {\n' +
+'            for (int x : buckets[c]) {\n' +
+'                ans[idx++] = x;\n' +
+'                if (idx == k) return ans;\n' +
+'            }\n' +
+'        }\n' +
+'        return ans;\n' +
+'    }\n' +
+'}'
+    },
+    heap:{
+      py:
+'<span class="cmt"># 哈希计数 + 容量为 k 的小顶堆</span>\n' +
+'import heapq\n' +
+'\n' +
+'class Solution:\n' +
+'    def topKFrequent(self, nums: list[int], k: int) -&gt; list[int]:\n' +
+'        freq = {}\n' +
+'        for x in nums:\n' +
+'            freq[x] = freq.get(x, 0) + 1\n' +
+'\n' +
+'        heap = []  <span class="cmt"># (频次, 数值)，堆顶是最不热门的</span>\n' +
+'        for x, c in freq.items():\n' +
+'            if len(heap) &lt; k:\n' +
+'                heapq.heappush(heap, (c, x))\n' +
+'            elif c &gt; heap[0][0]:\n' +
+'                heapq.heapreplace(heap, (c, x))\n' +
+'        return [x for c, x in heap]',
+      java:
+'<span class="cmt">// 哈希计数 + 容量为 k 的小顶堆</span>\n' +
+'class Solution {\n' +
+'    public int[] topKFrequent(int[] nums, int k) {\n' +
+'        Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();\n' +
+'        for (int x : nums) freq.put(x, freq.getOrDefault(x, 0) + 1);\n' +
+'\n' +
+'        PriorityQueue&lt;int[]&gt; heap = new PriorityQueue&lt;&gt;(\n' +
+'            (a, b) -&gt; a[1] - b[1]);  <span class="cmt">// [数值, 频次]，小顶堆</span>\n' +
+'        for (Map.Entry&lt;Integer, Integer&gt; e : freq.entrySet()) {\n' +
+'            int x = e.getKey(), c = e.getValue();\n' +
+'            if (heap.size() &lt; k) heap.offer(new int[]{x, c});\n' +
+'            else if (c &gt; heap.peek()[1]) {\n' +
+'                heap.poll();\n' +
+'                heap.offer(new int[]{x, c});\n' +
+'            }\n' +
+'        }\n' +
+'        int[] ans = new int[k];\n' +
+'        for (int i = 0; i &lt; k; i++) ans[i] = heap.poll()[0];\n' +
+'        return ans;\n' +
+'    }\n' +
+'}'
+    },
+    sort:{
+      py:
+'<span class="cmt"># 哈希计数后按频次降序排序，取前 k 个</span>\n' +
+'class Solution:\n' +
+'    def topKFrequent(self, nums: list[int], k: int) -&gt; list[int]:\n' +
+'        freq = {}\n' +
+'        for x in nums:\n' +
+'            freq[x] = freq.get(x, 0) + 1\n' +
+'        items = sorted(freq.items(), key=lambda kv: kv[1], reverse=True)\n' +
+'        return [x for x, c in items[:k]]',
+      java:
+'<span class="cmt">// 哈希计数后按频次降序排序，取前 k 个</span>\n' +
+'class Solution {\n' +
+'    public int[] topKFrequent(int[] nums, int k) {\n' +
+'        Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();\n' +
+'        for (int x : nums) freq.put(x, freq.getOrDefault(x, 0) + 1);\n' +
+'        List&lt;Map.Entry&lt;Integer, Integer&gt;&gt; items = new ArrayList&lt;&gt;(freq.entrySet());\n' +
+'        items.sort((a, b) -&gt; b.getValue() - a.getValue());\n' +
+'        int[] ans = new int[k];\n' +
+'        for (int i = 0; i &lt; k; i++) ans[i] = items.get(i).getKey();\n' +
+'        return ans;\n' +
+'    }\n' +
+'}'
+    }
+  };
+
+  function escapeText(value) { return String(value); }
+
+  function syncChrome() {
+    $('pageSub').innerHTML = SUB[method];
+    $('keyNote').innerHTML = NOTES[method];
+    $('ideaBucket').classList.toggle('hidden', method !== 'bucket');
+    $('ideaHeap').classList.toggle('hidden', method !== 'heap');
+    $('ideaSort').classList.toggle('hidden', method !== 'sort');
+    $('phasesBucket').classList.toggle('hidden', method !== 'bucket');
+    $('phasesHeap').classList.toggle('hidden', method !== 'heap');
+    $('phasesSort').classList.toggle('hidden', method !== 'sort');
+    $('panelBucket').classList.toggle('hidden', method !== 'bucket');
+    $('panelHeap').classList.toggle('hidden', method !== 'heap');
+    $('panelSort').classList.toggle('hidden', method !== 'sort');
+    $('legendBucket').classList.toggle('hidden', method !== 'bucket');
+    $('legendHeap').classList.toggle('hidden', method !== 'heap');
+    $('legendSort').classList.toggle('hidden', method !== 'sort');
+    $('cmpBucket').classList.toggle('on', method === 'bucket');
+    $('cmpHeap').classList.toggle('on', method === 'heap');
+    $('cmpSort').classList.toggle('on', method === 'sort');
+    Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (tab) {
+      tab.classList.toggle('active', tab.getAttribute('data-method') === method);
+    });
+    $('needLab').textContent = method === 'heap' ? '堆大小' : '还需收集';
+    $('ansLab').textContent = method === 'heap' ? '当前入选' : '已收集';
+    $('codeBlock').innerHTML = CODES[method][codeLang];
+    Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+      tab.classList.toggle('active', tab.dataset.lang === codeLang);
+    });
+  }
+
+  function setMethod(next) {
+    if (!next || next === method) return;
+    method = next;
+    syncChrome();
+    load();
+  }
+
+  function buildArray() {
+    arrayRow.innerHTML = '';
+    arrayRow.style.gridTemplateColumns = 'repeat(' + nums.length + ', 54px)';
+    cells = [];
+    nums.forEach(function (value, index) {
+      var cell = document.createElement('div');
+      cell.className = 'array-cell';
+      var idx = document.createElement('span');
+      idx.className = 'idx'; idx.textContent = index;
+      var val = document.createElement('span');
+      val.textContent = value;
+      var ptr = document.createElement('span');
+      ptr.className = 'ptr';
+      cell.appendChild(idx); cell.appendChild(val); cell.appendChild(ptr);
+      arrayRow.appendChild(cell);
+      cells.push({ cell:cell, ptr:ptr });
+    });
+  }
+
+  function setPhaseGroup(ids, current, done) {
+    var order = Object.keys(ids);
+    order.forEach(function (name, index) {
+      var el = $(ids[name]);
+      if (!el) return;
+      el.className = 'phase';
+      if (name === current && !done) el.className += ' active';
+      else if (order.indexOf(current) > index || done) el.className += ' done';
+    });
+  }
+
+  function renderPhases(step) {
+    var done = step.phase === 'done';
+    if (method === 'heap') {
+      var hMap = { start:'count', visit:'count', count:'count', countDone:'fill', consider:'fill', push:'fill', evict:'cmp', replace:'cmp', reject:'cmp', done:'cmp' };
+      setPhaseGroup({ count:'phaseHCount', fill:'phaseHFill', cmp:'phaseHCmp' }, hMap[step.phase] || 'count', done);
+      return;
+    }
+    if (method === 'sort') {
+      var sMap = { start:'count', visit:'count', count:'count', countDone:'sort', sorted:'sort', collect:'take', done:'take' };
+      setPhaseGroup({ count:'phaseSCount', sort:'phaseSSort', take:'phaseSTake' }, sMap[step.phase] || 'count', done);
+      return;
+    }
+    var bMap = {
+      start:'count', visit:'count', count:'count', countDone:'bucket',
+      placeReady:'bucket', place:'bucket', placeDone:'collect',
+      skip:'collect', scan:'collect', collect:'collect', done:'collect'
+    };
+    setPhaseGroup({ count:'phaseCount', bucket:'phaseBucket', collect:'phaseCollect' }, bMap[step.phase] || 'count', done);
+  }
+
+  function inHeap(step, value) {
+    return (step.heap || []).some(function (item) { return item.value === value; });
+  }
+  function inRejected(step, value) {
+    return (step.rejected || []).some(function (item) { return item.value === value; });
+  }
+
+  function renderArray(step) {
+    var picked = {};
+    step.answer.forEach(function (value) { picked[value] = true; });
+    cells.forEach(function (ref, index) {
+      var value = nums[index];
+      var cls = 'array-cell';
+      if (step.phase === 'visit' || step.phase === 'count') {
+        if (index > step.index) cls += ' future';
+        if (index < step.index) cls += ' counted';
+        if (index === step.index) cls += ' current';
+      } else if (step.phase === 'start') {
+        cls += ' future';
+      } else {
+        cls += ' counted';
+        if (step.placingValue !== null && value === step.placingValue) cls += ' placing';
+        if (inRejected(step, value) && !picked[value]) cls += ' rejected';
+        if (picked[value]) cls += ' picked';
+        if (step.collectingValue !== null && value === step.collectingValue) cls += ' picked';
+      }
+      ref.cell.className = cls;
+      ref.ptr.textContent = index === step.index ? 'i' : '';
+    });
+  }
+
+  function renderFreq(step) {
+    freqGrid.innerHTML = '';
+    if (!step.freq.length) {
+      freqGrid.innerHTML = '<span class="empty">当前为空</span>';
+      $('freqMeta').textContent = '{}';
+      return;
+    }
+    var maxCount = 1;
+    step.freq.forEach(function (item) { if (item.count > maxCount) maxCount = item.count; });
+    step.freq.forEach(function (item) {
+      var tag = document.createElement('div');
+      tag.className = 'freq-item';
+      if (step.current === item.value && (step.phase === 'visit' || step.phase === 'count' || step.phase === 'consider')) tag.className += ' current';
+      if (step.placingValue === item.value) tag.className += ' placing';
+      if (inRejected(step, item.value) && step.answer.indexOf(item.value) < 0) tag.className += ' rejected';
+      if (step.answer.indexOf(item.value) >= 0) tag.className += ' picked';
+      var width = Math.max(12, Math.round(item.count / maxCount * 100));
+      tag.innerHTML = '<b>' + escapeText(item.value) + '</b><div class="meta">× ' + item.count + '</div>' +
+        '<div class="freq-bar"><i style="width:' + width + '%"></i></div>';
+      freqGrid.appendChild(tag);
+    });
+    $('freqMeta').textContent = '{' + step.freq.map(function (item) {
+      return item.value + ':' + item.count;
+    }).join(', ') + '}';
+  }
+
+  function renderBuckets(step) {
+    if (method !== 'bucket') return;
+    bucketRow.innerHTML = '';
+    var n = nums.length;
+    for (var c = 1; c <= n; c++) {
+      var list = (step.buckets && step.buckets[c]) ? step.buckets[c] : [];
+      var col = document.createElement('div');
+      var cls = 'bucket';
+      if (!list.length) cls += ' empty';
+      if (step.scanFreq === c || step.placingValue !== null && step.currentCount === c && (step.phase === 'placeReady' || step.phase === 'place')) {
+        cls += (step.phase === 'collect' ? ' collect' : ' current');
+      }
+      if (step.phase === 'skip' && c <= step.skipFrom && c > step.skipTo) cls += ' skip';
+      col.className = cls;
+      var items = document.createElement('div');
+      items.className = 'bucket-items';
+      if (!list.length) {
+        items.innerHTML = '<span class="empty" style="font-size:10px;text-align:center;">空</span>';
+      } else {
+        list.forEach(function (value) {
+          var bit = document.createElement('div');
+          bit.className = 'bit';
+          if (step.placingValue === value) bit.className += ' latest';
+          if (step.collectingValue === value || step.answer.indexOf(value) >= 0) bit.className += ' collecting';
+          bit.textContent = value;
+          items.appendChild(bit);
+        });
+      }
+      var idx = document.createElement('div');
+      idx.className = 'bucket-idx';
+      idx.textContent = c;
+      var lab = document.createElement('div');
+      lab.className = 'bucket-lab';
+      lab.textContent = 'freq';
+      col.appendChild(items);
+      col.appendChild(idx);
+      col.appendChild(lab);
+      bucketRow.appendChild(col);
+    }
+    $('bucketMeta').textContent = 'n = ' + n + '，共 ' + (n + 1) + ' 个桶（含未使用的 0）';
+  }
+
+  function renderHeap(step) {
+    if (method !== 'heap') return;
+    heapStage.innerHTML = '';
+    if (!step.heap.length) {
+      heapStage.innerHTML = '<span class="empty">堆为空</span>';
+    } else {
+      step.heap.forEach(function (item, index) {
+        var cell = document.createElement('div');
+        var cls = 'hcell';
+        if (index === 0) cls += ' root';
+        if (step.placingValue === item.value && (step.phase === 'push' || step.phase === 'replace' || step.phase === 'consider')) cls += ' temp';
+        if (step.evicted && step.phase === 'evict' && item.value === step.evicted.value) cls += ' pop';
+        cell.className = cls;
+        cell.innerHTML = '<b>' + item.value + '</b><div class="meta">× ' + item.count + '</div><span class="role">' +
+          (index === 0 ? '堆顶' : '入选') + '</span>';
+        heapStage.appendChild(cell);
+      });
+    }
+    $('heapMeta').textContent = 'size = ' + step.heap.length + ' / ' + k;
+    rejectRow.innerHTML = '<span class="label">未入选</span>';
+    if (!step.rejected.length) {
+      rejectRow.innerHTML += '<span class="empty">暂无</span>';
+    } else {
+      step.rejected.forEach(function (item) {
+        var chip = document.createElement('span');
+        chip.className = 'reject-chip';
+        chip.textContent = item.value + ' ×' + item.count;
+        rejectRow.appendChild(chip);
+      });
+    }
+  }
+
+  function renderRank(step) {
+    if (method !== 'sort') return;
+    rankRow.innerHTML = '';
+    if (!step.ranked.length) {
+      rankRow.innerHTML = '<span class="empty">等待计数完成</span>';
+      $('rankMeta').textContent = '尚未排序';
+      return;
+    }
+    step.ranked.forEach(function (item, index) {
+      var card = document.createElement('div');
+      var cls = 'rank-item';
+      if (!step.sorted) cls += ' unsorted';
+      if (step.sorted && index < k) cls += ' topk';
+      if (step.sorted && index >= k) cls += ' rest';
+      if (step.collectingValue === item.value) cls += ' current';
+      card.className = cls;
+      card.innerHTML = '<span class="rk">' + (step.sorted ? ('#' + (index + 1)) : '未排序') + '</span><b>' + item.value + '</b><div>× ' + item.count + '</div>';
+      rankRow.appendChild(card);
+    });
+    $('rankMeta').textContent = step.sorted ? ('已按频次降序，取前 ' + k + ' 名') : '按首次出现顺序排列';
+  }
+
+  function renderRule(step) {
+    var labels = {
+      start:'初始化', visit:'读取元素', count:'累加频次', countDone:'计数完成',
+      placeReady:'准备入桶', place:'写入桶', placeDone:'开始收集',
+      skip:'跳过空桶', scan:'查看当前桶', collect:'收集答案',
+      consider:'考察候选', push:'放入堆中', evict:'弹出堆顶', replace:'替换堆顶', reject:'丢弃',
+      sorted:'频次排序', done:'完成'
+    };
+    var body = step.current === null
+      ? '等待扫描 nums'
+      : 'x = <span class="hot">' + step.current + '</span>' +
+        (step.currentCount !== null ? '<br>freq[x] = <span class="ok">' + step.currentCount + '</span>' : '');
+    if (method === 'bucket' && step.scanFreq >= 0 && (step.phase === 'scan' || step.phase === 'collect' || step.phase === 'skip' || step.phase === 'place' || step.phase === 'placeReady')) {
+      body += '<br>当前桶 <code>buckets[' + (step.phase === 'skip' ? step.skipFrom : step.scanFreq) + ']</code>';
+    }
+    if (method === 'heap' && step.heap.length) {
+      body += '<br>堆顶 <span class="ok">' + step.heap[0].value + ' ×' + step.heap[0].count + '</span>';
+    }
+    ruleBox.innerHTML =
+      '<span class="phase-lab">' + (labels[step.phase] || '') + '</span>' + body +
+      '<br>答案长度 ' + step.answer.length + ' / ' + k;
+  }
+
+  function renderAnswers(step) {
+    var html = '<span class="label">' + (method === 'heap' ? '当前入选' : '答案') + '</span>';
+    if (!step.answer.length) html += '<span class="empty">尚未收集</span>';
+    step.answer.forEach(function (value, index) {
+      var latest = value === step.collectingValue && index === step.answer.length - 1;
+      html += '<span class="answer-chip' + (latest ? ' latest' : '') + (method === 'heap' && step.phase !== 'done' ? ' soft' : '') + '">' + value + '</span>';
+    });
+    if (method === 'heap') html += '<span class="need-chip">k = ' + k + '，堆内 ' + step.heap.length + '</span>';
+    else html += '<span class="need-chip">k = ' + k + '，还需 ' + Math.max(0, k - step.answer.length) + '</span>';
+    answersEl.innerHTML = html;
+  }
+
+  function renderStats() {
+    var unique = new Set(nums).size;
+    var answer = APP.solve(nums, k, method);
+    statsEl.innerHTML =
+      '<div class="stat">数组长度 n<b>' + nums.length + '</b></div>' +
+      '<div class="stat">不同元素 m<b>' + unique + '</b></div>' +
+      '<div class="stat">k<b>' + k + '</b></div>' +
+      '<div class="stat">最终答案<b>[' + answer.join(', ') + ']</b></div>' +
+      '<div class="stat">时间<b>' + TIME[method] + '</b></div>' +
+      '<div class="stat">额外空间<b>O(n)</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderPhases(step);
+    renderArray(step);
+    renderFreq(step);
+    renderBuckets(step);
+    renderHeap(step);
+    renderRank(step);
+    renderRule(step);
+    renderAnswers(step);
+    $('currentValue').textContent = step.current === null ? '—' : step.current;
+    $('currentFreq').textContent = step.currentCount === null ? '—' : step.currentCount;
+    if (method === 'heap') $('needValue').textContent = (step.heap ? step.heap.length : 0) + ' / ' + k;
+    else $('needValue').textContent = Math.max(0, k - step.answer.length);
+    $('answerValue').textContent = step.answer.length ? '[' + step.answer.join(', ') + ']' : '—';
+    statusEl.innerHTML = step.msg;
+    progressEl.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动播放'; }
+  }
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (stepIndex >= steps.length - 1) { stepIndex = 0; render(); }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, 850);
+  }
+  function load() {
+    var parsed = APP.parseInputs(numsInput.value, kInput.value);
+    if (parsed.err) {
+      errEl.textContent = '输入有误：' + parsed.err + '。';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    stopPlay();
+    nums = parsed.nums; k = parsed.k;
+    steps = APP.buildSteps(nums, k, method);
+    stepIndex = 0;
+    buildArray(); renderStats(); render();
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay;
+  $('resetBtn').onclick = function () { stopPlay(); stepIndex = 0; render(); };
+  $('loadBtn').onclick = load;
+  [numsInput, kInput].forEach(function (input) {
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () {
+      numsInput.value = chip.dataset.nums;
+      kInput.value = chip.dataset.k;
+      load();
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (tab) {
+    tab.onclick = function () { setMethod(tab.getAttribute('data-method')); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.compare-item'), function (item) {
+    item.onclick = function () { setMethod(item.getAttribute('data-method')); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      codeLang = tab.dataset.lang;
+      $('codeBlock').innerHTML = CODES[method][codeLang];
+      Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (x) {
+        x.classList.toggle('active', x.dataset.lang === codeLang);
+      });
+    };
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement === numsInput || document.activeElement === kInput) return;
+    if (e.key === 'ArrowRight') { stopPlay(); next(); }
+    if (e.key === 'ArrowLeft') { stopPlay(); prev(); }
+  });
+
+  syncChrome();
+  load();
+})();
+</script>
+</body>
+</html>
