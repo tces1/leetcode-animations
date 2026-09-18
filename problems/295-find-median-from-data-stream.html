@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="tags" content="对顶堆 · 优先队列 · 设计">
+<meta name="tags" content="对顶堆 · 优先队列 · heapq · 设计">
 <title>295. 数据流的中位数 — 动画演示</title>
 <style>
   :root { color-scheme: light; }
@@ -13,12 +13,15 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: #f6f7f9; color: #1d2129; padding: 24px; line-height: 1.5;
   }
-  .wrap { max-width: 920px; margin: 0 auto; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
   .navbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
   .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#991b1b; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
   .link-lc { font-size:12px; color:#6b7280; } .link-lc a { color:#6366f1; }
+  .link-lc a:hover { text-decoration:underline; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono", Menlo, monospace; }
+  pre code { background:transparent; padding:0; color:inherit; }
 
   .card {
     background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
@@ -94,11 +97,38 @@
   @keyframes mpulse { 0%{transform:scale(1);} 50%{transform:scale(1.14); box-shadow:0 8px 20px rgba(17,24,39,.4);} 100%{transform:scale(1);} }
   .median-rule { font-size:11px; color:#9ca3af; margin-top:6px; max-width:150px; margin-left:auto; margin-right:auto; }
 
+  .api-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .api-pane {
+    border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:12px; min-width:0;
+  }
+  .api-pane.min { background:#eff6ff; border-color:#bfdbfe; }
+  .api-pane.max { background:#fff7ed; border-color:#fed7aa; }
+  .api-head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:8px; }
+  .api-head b { font-size:13px; color:#1d2129; }
+  .api-head small { font-size:11px; color:#6b7280; }
+  .api-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .api-table th {
+    text-align:left; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:#94a3b8; padding:4px 6px 6px 0; border-bottom:1px solid #e5e7eb;
+  }
+  .api-table td { padding:6px 8px 6px 0; vertical-align:top; color:#374151; border-bottom:1px solid #eef2f6; }
+  .api-table tr:last-child td { border-bottom:none; }
+  .api-table code { background:#fff; border:1px solid #e5e7eb; }
+  .api-pane.min code { background:#dbeafe; border-color:#93c5fd; color:#1e3a8a; }
+  .api-pane.max code { background:#ffedd5; border-color:#fdba74; color:#9a3412; }
+  .api-table .fn { font-weight:700; }
+  .api-table .cost { font:700 11px "SF Mono", Menlo, monospace; color:#4f46e5; white-space:nowrap; }
+  .api-pane.max .cost { color:#c2410c; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .key-note code { background:#dbeafe; }
+  .key-note b { color:#1d2129; }
+
   @media (max-width:680px){
     .heaps { flex-direction:column; align-items:stretch; }
     .heap-col.left, .heap-col.right { text-align:center; }
     .heap-col.left .heap-row, .heap-col.right .heap-row { justify-content:center; }
     .median-rule { max-width:none; }
+    .api-grid { grid-template-columns:1fr; }
   }
 
   .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px; }
@@ -125,10 +155,49 @@
   <div class="navbar">
     <span class="difftag">困难</span>
     <span class="link-lc">原题：<a href="https://leetcode.cn/problems/find-median-from-data-stream/" target="_blank" rel="noopener">LeetCode 295</a></span>
+    <span class="link-lc">· <a href="../index.html">返回动画列表</a></span>
   </div>
 
   <h1>295. 数据流的中位数 · 对顶堆动画</h1>
   <div class="sub">用两个堆把数据「一分为二」：<b>left</b> 是大顶堆存较小的一半，<b>right</b> 是小顶堆存较大的一半，并始终让 left 比 right 多 0 或 1 个。中位数就落在两个堆顶之间：奇数个取 left 堆顶，偶数个取两堆顶的平均。</div>
+
+  <div class="card">
+    <div class="panel-title">Python heapq 速查</div>
+    <div class="api-grid">
+      <div class="api-pane min">
+        <div class="api-head"><b>小顶堆（默认）</b><small>from heapq import …</small></div>
+        <table class="api-table">
+          <thead><tr><th>函数</th><th>作用</th><th>复杂度</th></tr></thead>
+          <tbody>
+            <tr><td class="fn"><code>heapify(x)</code></td><td>原地把列表变成小顶堆</td><td class="cost">O(n)</td></tr>
+            <tr><td class="fn"><code>heappush(h, x)</code></td><td>插入</td><td class="cost">O(log n)</td></tr>
+            <tr><td class="fn"><code>heappop(h)</code></td><td>弹出并返回最小</td><td class="cost">O(log n)</td></tr>
+            <tr><td class="fn"><code>h[0]</code></td><td>只看堆顶，不弹出</td><td class="cost">O(1)</td></tr>
+            <tr><td class="fn"><code>heappushpop(h, x)</code></td><td>先 push 再 pop 最小</td><td class="cost">O(log n)</td></tr>
+            <tr><td class="fn"><code>heapreplace(h, x)</code></td><td>先 pop 最小再 push（堆不能空）</td><td class="cost">O(log n)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="api-pane max">
+        <div class="api-head"><b>大顶堆（3.14+）</b><small>*_max 公开 API</small></div>
+        <table class="api-table">
+          <thead><tr><th>函数</th><th>作用</th><th>复杂度</th></tr></thead>
+          <tbody>
+            <tr><td class="fn"><code>heapify_max(x)</code></td><td>原地变成大顶堆</td><td class="cost">O(n)</td></tr>
+            <tr><td class="fn"><code>heappush_max(h, x)</code></td><td>插入</td><td class="cost">O(log n)</td></tr>
+            <tr><td class="fn"><code>heappop_max(h)</code></td><td>弹出并返回最大</td><td class="cost">O(log n)</td></tr>
+            <tr><td class="fn"><code>heappushpop_max(h, x)</code></td><td>先 push 再 pop 最大</td><td class="cost">O(log n)</td></tr>
+            <tr><td class="fn"><code>heapreplace_max(h, x)</code></td><td>先 pop 最大再 push</td><td class="cost">O(log n)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="key-note">
+      本题 <b>right</b> 用小顶堆（<code>heappush</code> / <code>heappushpop</code> / <code>h[0]</code>），<b>left</b> 用大顶堆（<code>heappush_max</code> / <code>heappushpop_max</code> / <code>h[0]</code>）。
+      <code>heappushpop</code> 是先塞进去再弹出，新数有机会留下；<code>heapreplace</code> 是先丢掉原来的堆顶再插入，堆不能为空。
+      Python &lt; 3.14 没有 <code>*_max</code> 时，把值取负放进普通小顶堆即可模拟大顶堆。
+    </div>
+  </div>
 
   <div class="card">
     <div class="controls">

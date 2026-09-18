@@ -149,7 +149,7 @@ leetcode-animations/
 | 279 | [完全平方数](https://tces1.github.io/leetcode-animations/problems/279-perfect-squares.html) | 中等 | 动态规划 · 完全背包 · 填表 |
 | 283 | [移动零](https://tces1.github.io/leetcode-animations/problems/283-move-zeroes.html) | 简单 | 数组 · 双指针 · 原地交换 · 稳定顺序 |
 | 287 | [寻找重复数](https://tces1.github.io/leetcode-animations/problems/287-find-the-duplicate-number.html) | 中等 | 数组 · 快慢指针 · Floyd判圈 · O(n) |
-| 295 | [数据流的中位数](https://tces1.github.io/leetcode-animations/problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · 设计 |
+| 295 | [数据流的中位数](https://tces1.github.io/leetcode-animations/problems/295-find-median-from-data-stream.html) | 困难 | 对顶堆 · 优先队列 · heapq · 设计 |
 | 300 | [最长递增子序列](https://tces1.github.io/leetcode-animations/problems/300-longest-increasing-subsequence.html) | 中等 | 动态规划 · 填表 + 记忆化递归树双视角 |
 | 322 | [零钱兑换](https://tces1.github.io/leetcode-animations/problems/322-coin-change.html) | 中等 | 动态规划 · 完全背包 · 记忆化搜索 · 递归树 |
 | 347 | [前 K 个高频元素](https://tces1.github.io/leetcode-animations/problems/347-top-k-frequent-elements.html) | 中等 | 哈希表 · 桶排序 · 小顶堆 · 计数 · 前K高频 |
