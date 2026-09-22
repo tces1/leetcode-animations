@@ -163,19 +163,19 @@
   </div>
 
   <h1>15. 三数之和 · 双指针动画</h1>
-  <div class="sub">把问题拆成一句话：<b>排序后，固定第一个数，再用左右双指针寻找另外两个数</b>。和太小就移动左指针，和太大就移动右指针；相等时记录答案并跳过重复值。排序 <code>O(n log n)</code>，双指针总计 <code>O(n²)</code>。</div>
+  <div class="sub">排序后固定 <code>p0</code>，在右侧用 <code>left / right</code> 找两数之和等于 <code>target = -nums[p0]</code>。两数和偏小就 <code>left++</code>，偏大就 <code>right--</code>；命中后记下三元组，并<b>只跳过左侧重复值</b>。固定值本身也要去重；若 <code>nums[p0] &gt; 0</code>，后面全是正数，直接跳过。排序 <code>O(n log n)</code>，双指针总计 <code>O(n²)</code>。</div>
 
   <div class="card">
     <div class="panel-title">最容易记住的四步</div>
     <div class="idea">
-      <div class="idea-item"><div class="no">① 排序</div>升序排列后，移动指针才有明确方向：<b>左移右指针让和变小，右移左指针让和变大</b>。</div>
-      <div class="idea-item"><div class="no">② 固定 nums[i]</div>枚举第一个数 <b>v</b>，问题变成在它右边寻找两数之和等于 <code>-v</code>。</div>
-      <div class="idea-item"><div class="no">③ 左右夹逼</div><code>sum &lt; 0</code> 时 <b>left++</b>；<code>sum &gt; 0</code> 时 <b>right--</b>；等于 0 就收集答案。</div>
-      <div class="idea-item"><div class="no">④ 相邻去重</div>排序后重复值挨在一起。固定数与找到答案后的左右指针都只需<b>跳过相邻重复值</b>。</div>
+      <div class="idea-item"><div class="no">① 排序</div>升序后指针才有方向：<b>左移 right 让两数和变小，右移 left 让两数和变大</b>。</div>
+      <div class="idea-item"><div class="no">② 固定 p0</div>枚举第一个数，令 <code>target = -nums[p0]</code>，问题变成在它右边找两数之和。</div>
+      <div class="idea-item"><div class="no">③ 左右夹逼</div><code>left+right &lt; target</code> 时 <b>left++</b>；<code>&gt; target</code> 时 <b>right--</b>；相等就收集答案。</div>
+      <div class="idea-item"><div class="no">④ 去重</div>相同的 <code>p0</code> 跳过；找到一组后，把 <code>left</code> 推过相同值，避免同一对再记一遍。</div>
     </div>
     <div class="prune-note">
-      <div class="prune break"><span class="keyword">break</span><span>当前能组成的<b>最小和</b>都大于 0，后面的数只会更大，所以整个循环可以结束。</span></div>
-      <div class="prune continue"><span class="keyword">continue</span><span>当前能组成的<b>最大和</b>仍小于 0，只说明当前 v 太小；换下一个更大的 v 仍可能有解。</span></div>
+      <div class="prune break"><span class="keyword">continue</span><span><code>nums[p0] &gt; 0</code>：数组已排序，后面的固定值只会更大，三数和不可能为 0。</span></div>
+      <div class="prune continue"><span class="keyword">continue</span><span><code>p0 &gt; 0</code> 且 <code>nums[p0] == nums[p0-1]</code>：这个固定值已经找过所有组合，跳过以免重复答案。</span></div>
     </div>
   </div>
 
@@ -188,9 +188,9 @@
       <span class="lab">示例：</span>
       <span class="chip" data-v="-1 0 1 2 -1 -4">经典用例</span>
       <span class="chip" data-v="0 0 0 0">全是 0</span>
-      <span class="chip" data-v="-4 -1 -1 0 1 2">观察 continue</span>
-      <span class="chip" data-v="-2 0 0 2 2">重复值</span>
-      <span class="chip" data-v="1 2 3 4">触发 break</span>
+      <span class="chip" data-v="-4 -1 -1 0 1 2">固定值去重</span>
+      <span class="chip" data-v="-2 0 0 2 2">左侧重复</span>
+      <span class="chip" data-v="1 2 3 4">正数剪枝</span>
       <span class="chip" data-v="-8 -6 -4 -2 1 3 5 7 9">较长用例</span>
     </div>
     <div class="err" id="err"></div>
@@ -213,10 +213,10 @@
     <div class="vars" id="vars"></div>
     <div class="results" id="results"></div>
     <div class="legend">
-      <span><span class="dot dot-fixed"></span>固定值 i</span>
+      <span><span class="dot dot-fixed"></span>固定值 p0</span>
       <span><span class="dot dot-left"></span>左指针 left</span>
       <span><span class="dot dot-right"></span>右指针 right</span>
-      <span><span class="dot dot-check"></span>剪枝检查</span>
+      <span><span class="dot dot-check"></span>跳过 / 剪枝</span>
       <span><span class="dot dot-found"></span>找到三元组</span>
     </div>
 
@@ -276,10 +276,11 @@
 
     function snap(o) {
       steps.push({
-        i:o.i === undefined ? -1 : o.i,
+        p0:o.p0 === undefined ? -1 : o.p0,
         left:o.left === undefined ? -1 : o.left,
         right:o.right === undefined ? -1 : o.right,
-        sum:o.sum === undefined ? null : o.sum,
+        two:o.two === undefined ? null : o.two,
+        target:o.target === undefined ? null : o.target,
         phase:o.phase || '',
         check:o.check ? o.check.slice() : [],
         found:o.found ? o.found.slice() : [],
@@ -288,70 +289,56 @@
       });
     }
 
-    snap({ phase:'sorted', msg:'先排序：<b>[' + nums.join(', ') + ']</b> → <b>[' + a.join(', ') + ']</b>。现在指针移动有了明确方向。' });
+    snap({ phase:'sorted', msg:'先排序：<b>[' + nums.join(', ') + ']</b> → <b>[' + a.join(', ') + ']</b>。固定 p0 后，在右侧用双指针找两数之和。' });
 
-    for (var i = 0; i < n - 2; i++) {
-      var v = a[i];
+    for (var p0 = 0; p0 < n - 2; p0++) {
+      var v = a[p0];
 
-      if (i > 0 && v === a[i - 1]) {
-        snap({ i:i, phase:'skipFixed', check:[i],
-          msg:'固定值 <b>nums[' + i + '] = ' + v + '</b> 与前一个相同。前一个位置已经找过所有组合，直接跳过，避免重复答案。' });
-        continue;
-      }
-
-      var minSum = v + a[i + 1] + a[i + 2];
-      if (minSum > 0) {
-        snap({ i:i, left:i + 1, right:i + 2, sum:minSum, phase:'pruneBreak', check:[i, i + 1, i + 2],
-          msg:'当前最小组合 <b>' + v + ' + ' + a[i + 1] + ' + ' + a[i + 2] + ' = ' + minSum + ' &gt; 0</b>。后面的数只会更大，因此执行 <code>break</code>。' });
+      if (v > 0) {
+        snap({ p0:p0, phase:'prunePositive', check:[p0],
+          msg:'<code>nums[' + p0 + '] = ' + v + ' &gt; 0</code>。数组已排序，后面的固定值只会更大，三数和不可能为 0，执行 <code>continue</code>（后续 p0 同样会被跳过）。' });
         break;
       }
 
-      var maxSum = v + a[n - 2] + a[n - 1];
-      if (maxSum < 0) {
-        snap({ i:i, left:n - 2, right:n - 1, sum:maxSum, phase:'pruneContinue', check:[i, n - 2, n - 1],
-          msg:'当前最大组合 <b>' + v + ' + ' + a[n - 2] + ' + ' + a[n - 1] + ' = ' + maxSum + ' &lt; 0</b>。当前 v 太小，执行 <code>continue</code>，尝试下一个更大的固定值。' });
+      if (p0 > 0 && a[p0 - 1] === v) {
+        snap({ p0:p0, phase:'skipFixed', check:[p0],
+          msg:'固定值 <b>nums[' + p0 + '] = ' + v + '</b> 与 <b>nums[' + (p0 - 1) + ']</b> 相同，前面已经找过所有组合，<code>continue</code> 跳过以免重复答案。' });
         continue;
       }
 
-      var left = i + 1, right = n - 1;
-      snap({ i:i, left:left, right:right, phase:'fixed',
-        msg:'固定 <b>v = nums[' + i + '] = ' + v + '</b>，在右侧区间寻找两个数，使它们之和等于 <b>' + (-v) + '</b>。' });
+      var target = -v;
+      var left = p0 + 1, right = n - 1;
+      snap({ p0:p0, left:left, right:right, target:target, phase:'fixed',
+        msg:'固定 <b>p0 = ' + p0 + '</b>，<b>nums[p0] = ' + v + '</b>，令 <code>target = -nums[p0] = ' + target + '</code>。接下来让 left=' + left + '、right=' + right + ' 寻找两数之和。' });
 
       while (left < right) {
-        var total = v + a[left] + a[right];
+        var two = a[left] + a[right];
 
-        if (total < 0) {
-          snap({ i:i, left:left, right:right, sum:total, phase:'tooSmall',
-            msg:'<b>' + v + ' + ' + a[left] + ' + ' + a[right] + ' = ' + total + ' &lt; 0</b>，和太小。让左指针右移，换一个更大的数：<code>left++</code>。' });
-          left++;
-        } else if (total > 0) {
-          snap({ i:i, left:left, right:right, sum:total, phase:'tooLarge',
-            msg:'<b>' + v + ' + ' + a[left] + ' + ' + a[right] + ' = ' + total + ' &gt; 0</b>，和太大。让右指针左移，换一个更小的数：<code>right--</code>。' });
-          right--;
-        } else {
+        if (two === target) {
           results.push([v, a[left], a[right]]);
-          snap({ i:i, left:left, right:right, sum:0, phase:'found', found:[i, left, right],
-            msg:'<b>' + v + ' + ' + a[left] + ' + ' + a[right] + ' = 0</b>，<span class="op">找到三元组 [' + v + ', ' + a[left] + ', ' + a[right] + ']</span>。记录后两端都向中间移动。' });
+          snap({ p0:p0, left:left, right:right, two:two, target:target, phase:'found', found:[p0, left, right],
+            msg:'<b>nums[left] + nums[right] = ' + a[left] + ' + ' + a[right] + ' = ' + two + '</b>，等于 target <b>' + target + '</b>。<span class="op">记录 [' + v + ', ' + a[left] + ', ' + a[right] + ']</span>。记下当前 left 的值，然后 left 右移并跳过相同值。' });
 
-          var leftValue = a[left], rightValue = a[right];
+          var tmp = a[left];
           left++;
-          right--;
-
-          while (left < right && a[left] === leftValue) {
-            snap({ i:i, left:left, right:right, phase:'skipLeft', check:[left],
-              msg:'左侧值 <b>' + a[left] + '</b> 刚刚已经使用过，跳过重复值：<code>left++</code>。' });
+          while (left < n - 1 && a[left] === tmp) {
+            snap({ p0:p0, left:left, right:right, target:target, phase:'skipLeft', check:[left],
+              msg:'左侧 <b>nums[' + left + '] = ' + a[left] + '</b> 与刚刚用过的值相同，<code>left++</code> 跳过重复。' });
             left++;
           }
-          while (left < right && a[right] === rightValue) {
-            snap({ i:i, left:left, right:right, phase:'skipRight', check:[right],
-              msg:'右侧值 <b>' + a[right] + '</b> 刚刚已经使用过，跳过重复值：<code>right--</code>。' });
-            right--;
-          }
+        } else if (two < target) {
+          snap({ p0:p0, left:left, right:right, two:two, target:target, phase:'tooSmall',
+            msg:'<b>' + a[left] + ' + ' + a[right] + ' = ' + two + ' &lt; target ' + target + '</b>，两数和太小。<code>left++</code> 换一个更大的数。' });
+          left++;
+        } else {
+          snap({ p0:p0, left:left, right:right, two:two, target:target, phase:'tooLarge',
+            msg:'<b>' + a[left] + ' + ' + a[right] + ' = ' + two + ' &gt; target ' + target + '</b>，两数和太大。<code>right--</code> 换一个更小的数。' });
+          right--;
         }
       }
 
-      snap({ i:i, left:left, right:right, phase:'fixedDone',
-        msg:'左右指针已经相遇，固定值 <b>' + v + '</b> 的所有可能组合检查完毕，继续枚举下一个固定值。' });
+      snap({ p0:p0, left:left, right:right, target:target, phase:'fixedDone',
+        msg:'left 与 right 已经相遇，固定值 <b>' + v + '</b> 的右侧组合检查完毕，继续枚举下一个 p0。' });
     }
 
     snap({ phase:'done',
@@ -397,26 +384,24 @@
     if (window.innerWidth <= 600) arrayEl.style.gridTemplateColumns = 'repeat(' + sorted.length + ', 48px)';
   }
 
-  function relation(sum) {
-    if (sum === null) return '';
-    if (sum < 0) return '<span class="eq-low">&lt; 0</span>';
-    if (sum > 0) return '<span class="eq-high">&gt; 0</span>';
-    return '<span class="eq-zero">= 0 ✓</span>';
+  function relation(two, target) {
+    if (two === null || target === null) return '';
+    if (two < target) return '<span class="eq-low">&lt; target</span>';
+    if (two > target) return '<span class="eq-high">&gt; target</span>';
+    return '<span class="eq-zero">= target ✓</span>';
   }
 
   function renderEquation(step) {
-    if (step.phase === 'pruneBreak') {
-      equationEl.innerHTML = '<span class="small">最小和剪枝</span>' + sorted[step.i] + ' + ' + sorted[step.left] + ' + ' + sorted[step.right] + ' = ' + step.sum + ' ' + relation(step.sum);
-    } else if (step.phase === 'pruneContinue') {
-      equationEl.innerHTML = '<span class="small">最大和剪枝</span>' + sorted[step.i] + ' + ' + sorted[step.left] + ' + ' + sorted[step.right] + ' = ' + step.sum + ' ' + relation(step.sum);
-    } else if (step.sum !== null && step.i >= 0 && step.left >= 0 && step.right >= 0) {
-      equationEl.innerHTML = sorted[step.i] + ' + ' + sorted[step.left] + ' + ' + sorted[step.right] + ' = <b>' + step.sum + '</b> ' + relation(step.sum);
+    if (step.phase === 'prunePositive') {
+      equationEl.innerHTML = '<span class="small">正数剪枝</span>nums[p0] = <b>' + sorted[step.p0] + '</b> &gt; 0';
+    } else if (step.two !== null && step.left >= 0 && step.right >= 0) {
+      equationEl.innerHTML = '<span class="small">两数之和</span>' + sorted[step.left] + ' + ' + sorted[step.right] + ' = <b>' + step.two + '</b>　target = <b>' + step.target + '</b>　' + relation(step.two, step.target);
     } else if (step.phase === 'fixed') {
-      equationEl.innerHTML = '<span class="small">两数目标</span>nums[left] + nums[right] = <b>' + (-sorted[step.i]) + '</b>';
+      equationEl.innerHTML = '<span class="small">两数目标</span>nums[left] + nums[right] = <b>' + step.target + '</b>';
     } else if (step.phase === 'done') {
       equationEl.innerHTML = '<span class="eq-zero">搜索完成</span>';
     } else {
-      equationEl.textContent = '按步骤观察固定值与左右指针';
+      equationEl.textContent = '按步骤观察 p0 与左右指针';
     }
   }
 
@@ -443,9 +428,9 @@
 
     cells.forEach(function (ref, index) {
       var cls = 'cell', labels = [];
-      if (step.i >= 0 && index < step.i) cls += ' before';
+      if (step.p0 >= 0 && index < step.p0) cls += ' before';
       if (checkSet[index]) cls += ' check';
-      if (index === step.i) { cls += ' fixed'; labels.push('<span class="pi">i</span>'); }
+      if (index === step.p0) { cls += ' fixed'; labels.push('<span class="pi">p0</span>'); }
       if (index === step.left) { cls += ' left'; labels.push('<span class="pl">L</span>'); }
       if (index === step.right) { cls += ' right'; labels.push('<span class="pr">R</span>'); }
       if (foundSet[index]) cls += ' found';
@@ -453,12 +438,12 @@
       ref.ptr.innerHTML = labels.join('·');
     });
 
-    var iValue = step.i >= 0 ? sorted[step.i] : '—';
+    var p0Value = step.p0 >= 0 ? sorted[step.p0] : '—';
     varsEl.innerHTML =
-      '<span class="box"><span class="pi">i</span> = <b>' + (step.i >= 0 ? step.i : '—') + '</b>，v = <b>' + iValue + '</b></span>' +
+      '<span class="box"><span class="pi">p0</span> = <b>' + (step.p0 >= 0 ? step.p0 : '—') + '</b>，nums[p0] = <b>' + p0Value + '</b></span>' +
       '<span class="box"><span class="pl">left</span> = <b>' + (step.left >= 0 ? step.left : '—') + '</b></span>' +
       '<span class="box"><span class="pr">right</span> = <b>' + (step.right >= 0 ? step.right : '—') + '</b></span>' +
-      '<span class="box">target = <b>' + (step.i >= 0 ? -sorted[step.i] : '—') + '</b></span>';
+      '<span class="box">target = <b>' + (step.target !== null ? step.target : '—') + '</b></span>';
 
     renderEquation(step);
     renderResults(step.results);
@@ -546,67 +531,61 @@
 
   var codes = {
     py:
-'<span class="cmt"># 排序 + 枚举固定值 + 双指针</span>\n' +
+'<span class="cmt"># 排序 + 固定 p0 + 双指针找 target</span>\n' +
 'class Solution:\n' +
 '    def threeSum(self, nums: list[int]) -&gt; list[list[int]]:\n' +
-'        nums.sort()\n' +
-'        ans = []\n' +
+'        nums = sorted(nums)\n' +
+'        n = len(nums)\n' +
+'        resp = []\n' +
 '\n' +
-'        for i in range(len(nums) - 2):\n' +
-'            if i &gt; 0 and nums[i] == nums[i - 1]:\n' +
-'                continue                         <span class="cmt"># 固定值去重</span>\n' +
-'\n' +
-'            if nums[i] + nums[i + 1] + nums[i + 2] &gt; 0:\n' +
-'                break                            <span class="cmt"># 最小和都太大</span>\n' +
-'            if nums[i] + nums[-2] + nums[-1] &lt; 0:\n' +
-'                continue                         <span class="cmt"># 最大和仍太小</span>\n' +
-'\n' +
-'            left, right = i + 1, len(nums) - 1\n' +
+'        for p0 in range(n - 2):\n' +
+'            if nums[p0] &gt; 0 or p0 &gt; 0 and nums[p0 - 1] == nums[p0]:\n' +
+'                continue                      <span class="cmt"># 正数剪枝 / 固定值去重</span>\n' +
+'            target = -nums[p0]\n' +
+'            left, right = p0 + 1, n - 1\n' +
 '            while left &lt; right:\n' +
-'                total = nums[i] + nums[left] + nums[right]\n' +
-'                if total &lt; 0:\n' +
+'                s = nums[left] + nums[right]\n' +
+'                if s == target:\n' +
+'                    resp.append([nums[p0], nums[left], nums[right]])\n' +
+'                    tmp = nums[left]\n' +
 '                    left += 1\n' +
-'                elif total &gt; 0:\n' +
-'                    right -= 1\n' +
+'                    while left &lt; n - 1 and nums[left] == tmp:\n' +
+'                        left += 1             <span class="cmt"># 左侧去重</span>\n' +
+'                elif s &lt; target:\n' +
+'                    left += 1\n' +
 '                else:\n' +
-'                    ans.append([nums[i], nums[left], nums[right]])\n' +
-'                    left_value, right_value = nums[left], nums[right]\n' +
-'                    left, right = left + 1, right - 1\n' +
-'                    while left &lt; right and nums[left] == left_value:\n' +
-'                        left += 1                 <span class="cmt"># 左侧去重</span>\n' +
-'                    while left &lt; right and nums[right] == right_value:\n' +
-'                        right -= 1                <span class="cmt"># 右侧去重</span>\n' +
+'                    right -= 1\n' +
 '\n' +
-'        return ans',
+'        return resp',
     java:
-'<span class="cmt">// 排序 + 枚举固定值 + 双指针</span>\n' +
+'<span class="cmt">// 排序 + 固定 p0 + 双指针找 target</span>\n' +
 'class Solution {\n' +
 '    public List&lt;List&lt;Integer&gt;&gt; threeSum(int[] nums) {\n' +
 '        Arrays.sort(nums);\n' +
-'        List&lt;List&lt;Integer&gt;&gt; ans = new ArrayList&lt;&gt;();\n' +
+'        int n = nums.length;\n' +
+'        List&lt;List&lt;Integer&gt;&gt; resp = new ArrayList&lt;&gt;();\n' +
 '\n' +
-'        for (int i = 0; i &lt; nums.length - 2; i++) {\n' +
-'            if (i &gt; 0 &amp;&amp; nums[i] == nums[i - 1]) continue;\n' +
-'            if (nums[i] + nums[i + 1] + nums[i + 2] &gt; 0) break;\n' +
-'            if (nums[i] + nums[nums.length - 2] + nums[nums.length - 1] &lt; 0) continue;\n' +
-'\n' +
-'            int left = i + 1, right = nums.length - 1;\n' +
+'        for (int p0 = 0; p0 &lt; n - 2; p0++) {\n' +
+'            if (nums[p0] &gt; 0 || (p0 &gt; 0 &amp;&amp; nums[p0 - 1] == nums[p0])) {\n' +
+'                continue;                     <span class="cmt">// 正数剪枝 / 固定值去重</span>\n' +
+'            }\n' +
+'            int target = -nums[p0];\n' +
+'            int left = p0 + 1, right = n - 1;\n' +
 '            while (left &lt; right) {\n' +
-'                int total = nums[i] + nums[left] + nums[right];\n' +
-'                if (total &lt; 0) {\n' +
+'                int s = nums[left] + nums[right];\n' +
+'                if (s == target) {\n' +
+'                    resp.add(Arrays.asList(nums[p0], nums[left], nums[right]));\n' +
+'                    int tmp = nums[left];\n' +
 '                    left++;\n' +
-'                } else if (total &gt; 0) {\n' +
-'                    right--;\n' +
+'                    while (left &lt; n - 1 &amp;&amp; nums[left] == tmp) left++;\n' +
+'                } else if (s &lt; target) {\n' +
+'                    left++;\n' +
 '                } else {\n' +
-'                    ans.add(Arrays.asList(nums[i], nums[left], nums[right]));\n' +
-'                    int lv = nums[left], rv = nums[right];\n' +
-'                    left++; right--;\n' +
-'                    while (left &lt; right &amp;&amp; nums[left] == lv) left++;\n' +
-'                    while (left &lt; right &amp;&amp; nums[right] == rv) right--;\n' +
+'                    right--;\n' +
 '                }\n' +
 '            }\n' +
 '        }\n' +
-'        return ans;\n' +
+'        return resp;\n' +
 '    }\n' +
 '}'
   };
