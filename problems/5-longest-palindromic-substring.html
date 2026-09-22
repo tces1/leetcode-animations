@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="tags" content="动态规划 · 二维 DP · 区间 · 字符串">
+<meta name="tags" content="动态规划 · 二维 DP · 区间 · 中心扩展 · 字符串">
+<meta name="description" content="LeetCode 5 最长回文子串：二维区间 DP 与中心扩展法逐步动画对照。">
 <title>5. 最长回文子串 — 动画演示</title>
 <style>
   :root { color-scheme: light; }
@@ -21,8 +22,10 @@
   .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .sub b { color:#1d2129; }
   .link-lc { font-size:12px; color:#6b7280; }
   .link-lc a { color:#6366f1; }
+  code { background:#eef0f4; padding:1px 5px; border-radius:5px; font:12px "SF Mono", Menlo, monospace; }
 
   .card {
     background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
@@ -52,9 +55,34 @@
   }
   .chip:hover { background: #e6e8ec; }
   .hint { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .hidden { display:none !important; }
+
+  .method-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  button.method-tab {
+    padding:8px 14px; border:1px solid #e5e7eb; border-radius:999px; background:#f8fafc;
+    color:#374151; font-size:13px; font-weight:700; box-shadow:none;
+  }
+  button.method-tab:hover { background:#eef2ff; color:#3730a3; }
+  button.method-tab.active, button.method-tab.active:hover {
+    background:#6366f1; border-color:#4338ca; color:#fff;
+  }
+  .idea { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+  .idea-item { border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; font-size:13px; color:#4b5563; background:#f8fafc; }
+  .idea-item .no { font-size:11px; font-weight:700; letter-spacing:.05em; color:#6366f1; }
+  .idea-item b { color:#1d2129; }
+  .compare { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .compare-item {
+    border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px;
+    font-size:13px; color:#4b5563; background:#f8fafc; cursor:pointer;
+  }
+  .compare-item.on { background:#eef2ff; border-color:#818cf8; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+  .compare-item .no { font-size:11px; font-weight:800; letter-spacing:.04em; color:#6366f1; margin-bottom:4px; }
+  .compare-item b { color:#1d2129; }
+  .key-note { margin-top:12px; padding:11px 14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:13px; }
+  .key-note code { background:#dbeafe; }
 
   /* string row */
-  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }
   .scell { width: 40px; display:flex; flex-direction:column; align-items:center; gap:3px; }
   .scell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
   .schar {
@@ -65,6 +93,19 @@
   .schar.endi { background:#6366f1; color:#fff; border-color:#4338ca; }
   .schar.endj { background:#0ea5e9; color:#fff; border-color:#0369a1; }
   .schar.inpal { background:#dcfce7; color:#166534; border-color:#86efac; }
+  .schar.range { background:#e0e7ff; color:#3730a3; border-color:#a5b4fc; }
+  .schar.midc { background:#fef3c7; color:#92400e; border-color:#f59e0b; }
+  .schar.miss { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
+  .schar.bestmark { box-shadow:inset 0 -4px 0 #22c55e; }
+  .scell .ptr { font-size:10px; font-weight:800; min-height:14px; white-space:nowrap; color:#6366f1; }
+  .ptr-r { color:#0369a1; }
+  .ptr-mid { color:#d97706; }
+
+  .gap-cell { width:12px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .gap-cell .idx { font-size:11px; visibility:hidden; }
+  .gap-mark { width:6px; height:40px; border-radius:4px; background:transparent; transition:all .2s; }
+  .gap-mark.on { background:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.28); }
+  .gap-cell .ptr { font-size:10px; font-weight:800; min-height:14px; color:#d97706; }
 
   /* dp matrix */
   .matrix-wrap { overflow-x:auto; }
@@ -84,7 +125,20 @@
   td.best { background:#bbf7d0; color:#14532d; box-shadow:inset 0 0 0 2px #22c55e; }
 
   .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
-  .ansbadge { font-family:"SF Mono",Menlo,monospace; font-size:14px; color:#166534; background:#dcfce7; border:1px solid #86efac; border-radius:999px; padding:3px 12px; margin-left:10px; }
+  .ansbadge { font-family:"SF Mono",Menlo,monospace; font-size:14px; color:#166534; background:#dcfce7; border:1px solid #86efac; border-radius:999px; padding:3px 12px; margin-left:10px; text-transform:none; letter-spacing:0; font-weight:700; }
+
+  .stats { display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:12px; }
+  .stat { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 12px; font-size:12px; color:#6b7280; }
+  .stat b { display:block; font-size:14px; color:#1d2129; font-family:"SF Mono",Menlo,monospace; }
+  .center-block { margin-bottom:12px; }
+  .center-lab { font-size:11px; font-weight:700; color:#9ca3af; margin-bottom:6px; letter-spacing:.04em; }
+  .pills { display:flex; flex-wrap:wrap; gap:6px; }
+  .pill {
+    font:700 12px "SF Mono", Menlo, monospace;
+    padding:6px 10px; border-radius:8px; border:1px solid #e5e7eb; background:#f8fafc; color:#64748b;
+  }
+  .pill.cur { background:#6366f1; border-color:#4338ca; color:#fff; }
+  .pill.done { background:#ecfdf5; border-color:#86efac; color:#166534; }
 
   .status {
     background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:24px;
@@ -97,7 +151,10 @@
 
   details.code { margin-top: 4px; }
   details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
-  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; }
+  .code-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 10px; }
+  .code-tab { font-size:13px; padding:5px 12px; border-radius:999px; cursor:pointer; background:#f1f2f4; border:1px solid #e5e7eb; color:#374151; }
+  .code-tab.active { background:#6366f1; border-color:#4338ca; color:#fff; }
+  pre { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.55; margin:0; }
   pre .cmt { color:#7dd3fc; }
   .star-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; margin:0 0 16px; padding:12px 16px; border:1px solid #e0e7ff; border-radius:12px; background:linear-gradient(180deg,#f8faff 0%,#fff 100%); }
   .star-banner-copy { flex:1; min-width:180px; }
@@ -106,6 +163,11 @@
   .star-cta { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid #c7d2fe; border-radius:8px; background:#fff; color:#312e81; text-decoration:none; font-size:13px; font-weight:700; box-shadow:0 1px 0 rgba(99,102,241,.08); flex-shrink:0; }
   .star-cta:hover { border-color:#818cf8; background:#eef2ff; }
   .star-cta svg { width:14px; height:14px; fill:currentColor; }
+  @media (max-width:640px) {
+    body { padding:16px 12px; }
+    .compare { grid-template-columns:1fr; }
+    .progress { width:100%; margin-left:0; }
+  }
 </style>
 </head>
 <body>
@@ -115,8 +177,42 @@
     <span class="link-lc">原题：<a href="https://leetcode.cn/problems/longest-palindromic-substring/" target="_blank" rel="noopener">LeetCode 5</a></span>
   </div>
 
-  <h1>5. 最长回文子串 · 二维 DP 动画</h1>
-  <div class="sub"><code>dp[i][j]</code> = 子串 <code>s[i..j]</code> 是否回文。递推：<code>s[i]==s[j]</code> 且里面 <code>dp[i+1][j-1]</code> 也回文 → <code>dp[i][j]=true</code>。因为要用到「更靠里」的格子，必须<b>按子串长度从小到大</b>填。边界：长度 1 一定回文；长度 2 两端相等即可。</div>
+  <h1>5. 最长回文子串 · 二维 DP / 中心扩展</h1>
+  <div class="sub" id="pageSub"></div>
+
+  <div class="card">
+    <div class="method-tabs">
+      <button type="button" class="method-tab active" data-method="dp">① 二维 DP</button>
+      <button type="button" class="method-tab" data-method="expand">② 中心扩展</button>
+    </div>
+    <div id="ideaDp">
+      <div class="idea">
+        <div class="idea-item"><div class="no">① 定义</div><code>dp[i][j]</code> = 子串 <code>s[i..j]</code> 是否回文。</div>
+        <div class="idea-item"><div class="no">② 递推</div>两端 <code>s[i]==s[j]</code>，且里面 <code>dp[i+1][j-1]</code> 也回文。</div>
+        <div class="idea-item"><div class="no">③ 填表顺序</div>必须<b>按长度从小到大</b>填，才能先得到更靠里的格子。</div>
+        <div class="idea-item"><div class="no">④ 边界</div>长度 1 一定回文；长度 2 只要两端相等。</div>
+      </div>
+    </div>
+    <div id="ideaExpand" class="hidden">
+      <div class="idea">
+        <div class="idea-item"><div class="no">① 枚举中心</div>每个字符做<b>奇数</b>中心，每条缝隙做<b>偶数</b>中心，共 <code>2n-1</code> 个。</div>
+        <div class="idea-item"><div class="no">② 双向扩展</div><code>L</code> 左移、<code>R</code> 右移，只要 <code>s[L]==s[R]</code> 就继续。</div>
+        <div class="idea-item"><div class="no">③ 碰壁即停</div>越界或两端不等，这个中心的扩展结束。</div>
+        <div class="idea-item"><div class="no">④ 刷新最长</div>每次扩成功都和当前答案比长度，更长就替换。</div>
+      </div>
+      <div class="key-note">回文由中心唯一确定。奇数回文中心是一个字符（如 <code>aba</code> 的 <code>b</code>）；偶数回文中心是两个字符之间的缝隙（如 <code>abba</code> 的两个 <code>b</code> 中间）。时间仍是 O(n²)，但只要几个指针，空间 O(1)。</div>
+    </div>
+    <div class="compare">
+      <div class="compare-item on" data-method="dp">
+        <div class="no">① 二维 DP</div>
+        时间 <b>O(n²)</b> · 空间 <b>O(n²)</b><br>按长度填上三角，依赖内格
+      </div>
+      <div class="compare-item" data-method="expand">
+        <div class="no">② 中心扩展</div>
+        时间 <b>O(n²)</b> · 空间 <b>O(1)</b><br>从中心向两边扩，不建表
+      </div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="controls">
@@ -131,26 +227,52 @@
       <span class="chip">forgeeksskeegfor</span>
       <span class="chip">abcda</span>
     </div>
-    <div class="legend">
+    <div class="legend" id="legendDp">
       <span><span class="dot" style="background:#6366f1"></span>当前格 (i,j) / s[i]</span>
       <span><span class="dot" style="background:#0ea5e9"></span>s[j]</span>
       <span><span class="dot" style="background:#f59e0b"></span>依赖的内格 (i+1,j-1)</span>
       <span><span class="dot" style="background:#dcfce7;border:1px solid #86efac"></span>是回文</span>
       <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>不是</span>
     </div>
+    <div class="legend hidden" id="legendExpand">
+      <span><span class="dot" style="background:#f59e0b"></span>中心（字符或缝隙）</span>
+      <span><span class="dot" style="background:#6366f1"></span>L</span>
+      <span><span class="dot" style="background:#0ea5e9"></span>R</span>
+      <span><span class="dot" style="background:#e0e7ff;border:1px solid #a5b4fc"></span>当前回文</span>
+      <span><span class="dot" style="background:#fee2e2;border:1px solid #fca5a5"></span>两端不等</span>
+      <span><span class="dot" style="background:#fff;box-shadow:inset 0 -3px 0 #22c55e;border:1px solid #e5e7eb"></span>目前最长</span>
+    </div>
     <div class="hint">提示：字符串较长时表格可横向滚动；为便于观看，长度会被限制在 14 以内。</div>
   </div>
 
   <div class="card">
-    <div class="panel-title">s（字符串，上标 = 下标）</div>
+    <div class="panel-title">s（字符串，上标 = 下标）
+      <span class="ansbadge" id="ansBadge">最长 = —</span>
+    </div>
     <div class="arr-row" id="strRow"></div>
   </div>
 
-  <div class="card">
-    <div class="panel-title">dp 表（行 = i 起点，列 = j 终点；只用上三角 i ≤ j）
-      <span class="ansbadge" id="ansBadge">最长 = —</span>
-    </div>
+  <div class="card" id="dpCard">
+    <div class="panel-title">dp 表（行 = i 起点，列 = j 终点；只用上三角 i ≤ j）</div>
     <div class="matrix-wrap"><table class="dp" id="dpTable"></table></div>
+  </div>
+
+  <div class="card hidden" id="expandCard">
+    <div class="stats">
+      <div class="stat">mid<b id="statMid">—</b></div>
+      <div class="stat">类型<b id="statKind">—</b></div>
+      <div class="stat">L / R<b id="statLR">—</b></div>
+      <div class="stat">当前子串<b id="statCur">—</b></div>
+      <div class="stat">最长<b id="statBest">—</b></div>
+    </div>
+    <div class="center-block">
+      <div class="center-lab">奇数中心（以字符为中心）</div>
+      <div class="pills" id="oddPills"></div>
+    </div>
+    <div class="center-block" style="margin-bottom:0;">
+      <div class="center-lab">偶数中心（以相邻字符的缝隙为中心）</div>
+      <div class="pills" id="evenPills"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -167,8 +289,32 @@
 
   <div class="card">
     <details class="code">
-      <summary>查看参考代码（Java / Python）</summary>
-      <pre><code>// Java · 二维 DP(区间) · 时间/空间 O(n²)
+      <summary>查看参考代码（与当前解法一致）</summary>
+      <div class="code-tabs">
+        <span class="code-tab active" data-lang="py">Python</span>
+        <span class="code-tab" data-lang="java">Java</span>
+      </div>
+      <pre class="code-block" data-method="dp" data-lang="py"><code><span class="cmt"># Python · 二维 DP(区间) · 时间/空间 O(n²)</span>
+class Solution:
+    def longestPalindrome(self, s: str) -&gt; str:
+        n = len(s)
+        dp = [[False] * n for _ in range(n)]
+        start, maxLen = 0, 1
+        for i in range(n):
+            dp[i][i] = True                 <span class="cmt"># 长度 1</span>
+        for L in range(2, n + 1):           <span class="cmt"># 按长度从小到大</span>
+            for i in range(n - L + 1):
+                j = i + L - 1
+                if s[i] != s[j]:
+                    dp[i][j] = False
+                elif L == 2:
+                    dp[i][j] = True         <span class="cmt"># 两端相等且长度 2</span>
+                else:
+                    dp[i][j] = dp[i + 1][j - 1]   <span class="cmt"># 看里面那格</span>
+                if dp[i][j] and L &gt; maxLen:
+                    start, maxLen = i, L
+        return s[start:start + maxLen]</code></pre>
+      <pre class="code-block hidden" data-method="dp" data-lang="java"><code>// Java · 二维 DP(区间) · 时间/空间 O(n²)
 class Solution {
     public String longestPalindrome(String s) {
         int n = s.length();
@@ -187,26 +333,59 @@ class Solution {
         return s.substring(start, start + maxLen);
     }
 }</code></pre>
-      <pre><code><span class="cmt"># Python · 二维 DP(区间) · 时间/空间 O(n²)</span>
+      <pre class="code-block hidden" data-method="expand" data-lang="py"><code><span class="cmt"># Python · 中心扩展 · 时间 O(n²) 空间 O(1)</span>
 class Solution:
     def longestPalindrome(self, s: str) -&gt; str:
         n = len(s)
-        dp = [[False] * n for _ in range(n)]
-        start, maxLen = 0, 1
-        for i in range(n):
-            dp[i][i] = True                 # 长度 1
-        for L in range(2, n + 1):           # 按长度从小到大
-            for i in range(n - L + 1):
-                j = i + L - 1
-                if s[i] != s[j]:
-                    dp[i][j] = False
-                elif L == 2:
-                    dp[i][j] = True         # 两端相等且长度 2
-                else:
-                    dp[i][j] = dp[i + 1][j - 1]   # 看里面那格
-                if dp[i][j] and L &gt; maxLen:
-                    start, maxLen = i, L
-        return s[start:start + maxLen]</code></pre>
+        resp = ""
+        for mid in range(n):
+            <span class="cmt"># 奇数：以 s[mid] 为中心</span>
+            dl = dr = mid
+            while 0 &lt;= dl and dr &lt; n:
+                if s[dl] != s[dr]:
+                    break
+                if dr - dl + 1 &gt; len(resp):
+                    resp = s[dl:dr + 1]
+                dl -= 1
+                dr += 1
+            <span class="cmt"># 偶数：以 s[mid] 与 s[mid+1] 的缝隙为中心</span>
+            dl, dr = mid, mid + 1
+            while 0 &lt;= dl and dr &lt; n:
+                if s[dl] != s[dr]:
+                    break
+                if dr - dl + 1 &gt; len(resp):
+                    resp = s[dl:dr + 1]
+                dl -= 1
+                dr += 1
+        return resp</code></pre>
+      <pre class="code-block hidden" data-method="expand" data-lang="java"><code>// Java · 中心扩展 · 时间 O(n²) 空间 O(1)
+class Solution {
+    public String longestPalindrome(String s) {
+        int n = s.length();
+        String resp = "";
+        for (int mid = 0; mid &lt; n; mid++) {
+            <span class="cmt">// 奇数：以 s[mid] 为中心</span>
+            int dl = mid, dr = mid;
+            while (dl &gt;= 0 &amp;&amp; dr &lt; n) {
+                if (s.charAt(dl) != s.charAt(dr)) break;
+                if (dr - dl + 1 &gt; resp.length()) {
+                    resp = s.substring(dl, dr + 1);
+                }
+                dl--; dr++;
+            }
+            <span class="cmt">// 偶数：以缝隙为中心</span>
+            dl = mid; dr = mid + 1;
+            while (dl &gt;= 0 &amp;&amp; dr &lt; n) {
+                if (s.charAt(dl) != s.charAt(dr)) break;
+                if (dr - dl + 1 &gt; resp.length()) {
+                    resp = s.substring(dl, dr + 1);
+                }
+                dl--; dr++;
+            }
+        }
+        return resp;
+    }
+}</code></pre>
     </details>
   </div>
   <div class="star-banner">
@@ -230,16 +409,21 @@ class Solution:
   var progressEl = document.getElementById('progress');
   var ansBadge = document.getElementById('ansBadge');
   var MAX_N = 14;
+  var SUB = {
+    dp: '<code>dp[i][j]</code> = 子串 <code>s[i..j]</code> 是否回文。递推：<code>s[i]==s[j]</code> 且里面 <code>dp[i+1][j-1]</code> 也回文 → <code>dp[i][j]=true</code>。因为要用到「更靠里」的格子，必须<b>按子串长度从小到大</b>填。',
+    expand: '回文由中心唯一确定。枚举每个 <code>mid</code>：先以 <code>s[mid]</code> 为奇数中心向两边扩，再以 <code>s[mid]</code> 与 <code>s[mid+1]</code> 的缝隙为偶数中心向两边扩。两端相等就继续，越界或不等就停，全程刷新最长子串。'
+  };
 
+  var method = 'dp';
+  var codeLang = 'py';
   var s = '';
   var steps = [];
   var stepIdx = 0;
   var playTimer = null;
 
-  function buildSteps(s) {
+  function buildDpSteps(s) {
     var snaps = [];
     var n = s.length;
-    // dp[i][j]: -1 未定, 0 false, 1 true
     var dp = [];
     for (var a = 0; a < n; a++) { dp.push(new Array(n).fill(-1)); }
     var start = 0, maxLen = (n ? 1 : 0);
@@ -262,7 +446,6 @@ class Solution:
 
     snap({ msg: '初始化：dp 全部未定；答案先取任意单个字符（长度 1）。接下来先填长度 1，再按长度递增。' });
 
-    // 长度 1
     for (var i = 0; i < n; i++) dp[i][i] = 1;
     snap({ msg: '<b>长度 1</b>：对角线 dp[i][i] 全部设为 <span class="op">回文</span>（单个字符一定是回文）。' });
 
@@ -293,30 +476,144 @@ class Solution:
     return snaps;
   }
 
-  function load(str) {
-    str = (str || '').trim();
-    if (!str.length) return;
-    if (str.length > MAX_N) str = str.slice(0, MAX_N);
-    s = str;
-    input.value = s;
-    steps = buildSteps(s);
-    stepIdx = 0;
-    renderStatic();
-    render();
+  function buildExpandSteps(s) {
+    var snaps = [];
+    var n = s.length;
+    var resp = '';
+    var bestL = 0, bestR = -1;
+
+    function snap(o) {
+      snaps.push({
+        mid: o.mid == null ? -1 : o.mid,
+        kind: o.kind || '',
+        dl: o.dl == null ? -1 : o.dl,
+        dr: o.dr == null ? -1 : o.dr,
+        phase: o.phase || '',
+        bestL: bestL,
+        bestR: bestR,
+        resp: resp,
+        done: !!o.done,
+        msg: o.msg
+      });
+    }
+
+    if (!n) { snap({ msg: '字符串为空。', done: true }); return snaps; }
+
+    snap({
+      msg: '初始化：答案为空。接下来枚举每个 mid：先按<b>奇数中心</b>（L = R = mid）向外扩，再按<b>偶数中心</b>（L = mid，R = mid+1）向外扩。'
+    });
+
+    for (var mid = 0; mid < n; mid++) {
+      var dl = mid, dr = mid;
+      while (dl >= 0 && dr < n) {
+        if (s[dl] !== s[dr]) {
+          snap({ mid: mid, kind: 'odd', dl: dl, dr: dr, phase: 'miss',
+            msg: 'mid=' + mid + '，<span class="dep">奇数</span>：比较 s[' + dl + ']=<b>' + s[dl] + '</b> 与 s[' + dr + ']=<b>' + s[dr] + '</b> → <span class="no">不相等</span>，这个奇数中心扩展结束。' });
+          break;
+        }
+        var updated = false;
+        if (dr - dl + 1 > resp.length) {
+          resp = s.slice(dl, dr + 1);
+          bestL = dl; bestR = dr;
+          updated = true;
+        }
+        var cur = s.slice(dl, dr + 1);
+        var single = (dl === dr);
+        snap({ mid: mid, kind: 'odd', dl: dl, dr: dr, phase: 'match',
+          msg: 'mid=' + mid + '，<span class="dep">奇数</span>' + (single ? '：单字符 s[' + mid + ']=<b>' + s[mid] + '</b> 一定是回文' : '：s[' + dl + '] 与 s[' + dr + '] 都是 <b>' + s[dl] + '</b>，当前 "' + cur + '" <span class="op">是回文</span>') +
+            (updated ? '，刷新最长 = "<b>' + resp + '</b>"。' : '（没有更长，最长仍是 "' + resp + '"）。') });
+        dl--; dr++;
+      }
+
+      dl = mid; dr = mid + 1;
+      if (dr >= n) continue;
+      while (dl >= 0 && dr < n) {
+        if (s[dl] !== s[dr]) {
+          snap({ mid: mid, kind: 'even', dl: dl, dr: dr, phase: 'miss',
+            msg: 'mid=' + mid + '，<span class="dep">偶数</span>：缝隙在 s[' + mid + '] 与 s[' + (mid + 1) + '] 之间，比较 s[' + dl + ']=<b>' + s[dl] + '</b> 与 s[' + dr + ']=<b>' + s[dr] + '</b> → <span class="no">不相等</span>，偶数扩展结束。' });
+          break;
+        }
+        var updatedE = false;
+        if (dr - dl + 1 > resp.length) {
+          resp = s.slice(dl, dr + 1);
+          bestL = dl; bestR = dr;
+          updatedE = true;
+        }
+        var curE = s.slice(dl, dr + 1);
+        snap({ mid: mid, kind: 'even', dl: dl, dr: dr, phase: 'match',
+          msg: 'mid=' + mid + '，<span class="dep">偶数</span>：s[' + dl + '] 与 s[' + dr + '] 都是 <b>' + s[dl] + '</b>，当前 "' + curE + '" <span class="op">是回文</span>' +
+            (updatedE ? '，刷新最长 = "<b>' + resp + '</b>"。' : '（没有更长，最长仍是 "' + resp + '"）。') });
+        dl--; dr++;
+      }
+    }
+
+    snap({ done: true, dl: bestL, dr: bestR, bestL: bestL, bestR: bestR,
+      msg: '完成 ✅ 最长回文子串 = "<b>' + resp + '</b>"（下标 ' + bestL + '..' + bestR + '，长度 ' + resp.length + '）。' });
+    return snaps;
+  }
+
+  function syncChrome() {
+    document.getElementById('pageSub').innerHTML = SUB[method];
+    document.getElementById('ideaDp').classList.toggle('hidden', method !== 'dp');
+    document.getElementById('ideaExpand').classList.toggle('hidden', method !== 'expand');
+    document.getElementById('legendDp').classList.toggle('hidden', method !== 'dp');
+    document.getElementById('legendExpand').classList.toggle('hidden', method !== 'expand');
+    document.getElementById('dpCard').classList.toggle('hidden', method !== 'dp');
+    document.getElementById('expandCard').classList.toggle('hidden', method !== 'expand');
+    Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (tab) {
+      tab.classList.toggle('active', tab.getAttribute('data-method') === method);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.compare-item'), function (item) {
+      item.classList.toggle('on', item.getAttribute('data-method') === method);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+      tab.classList.toggle('active', tab.getAttribute('data-lang') === codeLang);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.code-block'), function (block) {
+      var show = block.getAttribute('data-method') === method && block.getAttribute('data-lang') === codeLang;
+      block.classList.toggle('hidden', !show);
+    });
+  }
+
+  function setMethod(next) {
+    if (method === next) return;
+    method = next;
+    syncChrome();
+    load(input.value);
+  }
+
+  function makeCell(i, withPtr) {
+    var cell = document.createElement('div');
+    cell.className = 'scell';
+    var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = i;
+    var ch = document.createElement('div'); ch.className = 'schar'; ch.textContent = s[i]; ch.dataset.idx = i;
+    cell.appendChild(lab); cell.appendChild(ch);
+    if (withPtr) {
+      var ptr = document.createElement('div'); ptr.className = 'ptr'; ptr.dataset.idx = i;
+      cell.appendChild(ptr);
+    }
+    return cell;
+  }
+
+  function makeGap(i) {
+    var cell = document.createElement('div');
+    cell.className = 'gap-cell';
+    cell.dataset.gap = i;
+    var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = '.';
+    var mark = document.createElement('div'); mark.className = 'gap-mark';
+    var ptr = document.createElement('div'); ptr.className = 'ptr';
+    cell.appendChild(lab); cell.appendChild(mark); cell.appendChild(ptr);
+    return cell;
   }
 
   function renderStatic() {
-    // string row
     strRow.innerHTML = '';
+    var withPtr = method === 'expand';
     for (var i = 0; i < s.length; i++) {
-      var cell = document.createElement('div');
-      cell.className = 'scell';
-      var lab = document.createElement('div'); lab.className = 'idx'; lab.textContent = i;
-      var ch = document.createElement('div'); ch.className = 'schar'; ch.textContent = s[i]; ch.dataset.idx = i;
-      cell.appendChild(lab); cell.appendChild(ch);
-      strRow.appendChild(cell);
+      strRow.appendChild(makeCell(i, withPtr));
+      if (withPtr && i < s.length - 1) strRow.appendChild(makeGap(i));
     }
-    // dp table
+
     var n = s.length;
     var html = '<tr><th></th>';
     for (var c = 0; c < n; c++) html += '<th>j=' + c + '<br>' + s[c] + '</th>';
@@ -329,14 +626,37 @@ class Solution:
       html += '</tr>';
     }
     dpTable.innerHTML = html;
+
+    var oddPills = document.getElementById('oddPills');
+    var evenPills = document.getElementById('evenPills');
+    oddPills.innerHTML = '';
+    evenPills.innerHTML = '';
+    for (var oi = 0; oi < n; oi++) {
+      var op = document.createElement('span');
+      op.className = 'pill';
+      op.dataset.i = oi;
+      op.textContent = oi + ':' + s[oi];
+      oddPills.appendChild(op);
+    }
+    for (var ei = 0; ei < n - 1; ei++) {
+      var ep = document.createElement('span');
+      ep.className = 'pill';
+      ep.dataset.i = ei;
+      ep.textContent = s[ei] + '·' + s[ei + 1];
+      evenPills.appendChild(ep);
+    }
   }
 
-  function render() {
-    var st = steps[stepIdx];
-    var n = s.length;
+  function bestText(st) {
+    if (method === 'dp') {
+      return st.maxLen ? '"' + s.slice(st.start, st.start + st.maxLen) + '" (长' + st.maxLen + ')' : '—';
+    }
+    return st.resp ? '"' + st.resp + '" (长' + st.resp.length + ')' : '—';
+  }
 
-    // string row
-    Array.prototype.forEach.call(strRow.children, function (cell) {
+  function renderDp() {
+    var st = steps[stepIdx];
+    Array.prototype.forEach.call(strRow.querySelectorAll('.scell'), function (cell) {
       var ch = cell.querySelector('.schar');
       var idx = +ch.dataset.idx;
       ch.className = 'schar';
@@ -348,7 +668,6 @@ class Solution:
       }
     });
 
-    // dp table cells
     Array.prototype.forEach.call(dpTable.querySelectorAll('td'), function (td) {
       var i = +td.dataset.i, j = +td.dataset.j;
       td.className = '';
@@ -357,19 +676,106 @@ class Solution:
       if (v === 1) { td.classList.add('pal'); td.textContent = 'T'; }
       else if (v === 0) { td.classList.add('no'); td.textContent = 'F'; }
       else { td.textContent = ''; }
-      // best-substring cells at end
       if (st.done && v === 1 && i === st.start && j === st.start + st.maxLen - 1) td.classList.add('best');
       if (!st.done) {
         if (i === st.i && j === st.j) td.classList.add('cur');
         else if (i === st.depI && j === st.depJ) td.classList.add('dep');
       }
     });
+  }
 
-    ansBadge.textContent = '最长 = ' + (st.maxLen ? '"' + s.slice(st.start, st.start + st.maxLen) + '" (长' + st.maxLen + ')' : '—');
+  function renderExpand() {
+    var st = steps[stepIdx];
+    Array.prototype.forEach.call(strRow.querySelectorAll('.scell'), function (cell) {
+      var ch = cell.querySelector('.schar');
+      var ptr = cell.querySelector('.ptr');
+      var idx = +ch.dataset.idx;
+      ch.className = 'schar';
+      ptr.textContent = '';
+      ptr.className = 'ptr';
+
+      if (st.done) {
+        if (idx >= st.bestL && idx <= st.bestR) ch.classList.add('inpal');
+        return;
+      }
+
+      if (st.bestR >= st.bestL && idx >= st.bestL && idx <= st.bestR) ch.classList.add('bestmark');
+      if (st.dl >= 0 && st.dr >= st.dl && idx >= st.dl && idx <= st.dr) ch.classList.add('range');
+      if (st.kind === 'odd' && idx === st.mid) ch.classList.add('midc');
+      if (st.kind === 'even' && (idx === st.mid || idx === st.mid + 1)) ch.classList.add('midc');
+
+      if (st.dl >= 0 && st.dl === st.dr && idx === st.dl) {
+        ch.classList.add('endi');
+      } else {
+        if (idx === st.dl) ch.classList.add('endi');
+        if (idx === st.dr) ch.classList.add('endj');
+      }
+      if (st.phase === 'miss' && (idx === st.dl || idx === st.dr)) {
+        ch.classList.remove('endi', 'endj', 'range', 'midc');
+        ch.classList.add('miss');
+      }
+
+      var labs = [];
+      if (st.dl >= 0 && st.dl === st.dr && idx === st.dl) labs.push('L=R');
+      else {
+        if (idx === st.dl) labs.push('L');
+        if (idx === st.dr) labs.push('R');
+      }
+      if (st.kind === 'odd' && idx === st.mid && !(st.dl === st.dr && idx === st.mid)) labs.push('mid');
+      ptr.textContent = labs.join(' ');
+      if (labs.indexOf('R') !== -1 && labs.indexOf('L') === -1) ptr.classList.add('ptr-r');
+      if (labs.indexOf('mid') !== -1) ptr.classList.add('ptr-mid');
+    });
+
+    Array.prototype.forEach.call(strRow.querySelectorAll('.gap-cell'), function (gap) {
+      var g = +gap.dataset.gap;
+      var on = !st.done && st.kind === 'even' && st.mid === g;
+      gap.querySelector('.gap-mark').classList.toggle('on', on);
+      gap.querySelector('.ptr').textContent = on ? '中心' : '';
+    });
+
+    document.getElementById('statMid').textContent = st.mid >= 0 ? String(st.mid) : '—';
+    document.getElementById('statKind').textContent = st.kind === 'odd' ? '奇数' : (st.kind === 'even' ? '偶数' : '—');
+    document.getElementById('statLR').textContent = (st.dl >= 0 && st.dr >= 0) ? (st.dl + ' / ' + st.dr) : '—';
+    document.getElementById('statCur').textContent = (st.dl >= 0 && st.dr >= st.dl && st.phase !== 'miss') ? '"' + s.slice(st.dl, st.dr + 1) + '"' : '—';
+    document.getElementById('statBest').textContent = st.resp ? '"' + st.resp + '"' : '—';
+
+    Array.prototype.forEach.call(document.getElementById('oddPills').children, function (pill) {
+      var i = +pill.dataset.i;
+      pill.className = 'pill';
+      if (st.done || (st.mid >= 0 && (i < st.mid || (i === st.mid && st.kind === 'even')))) pill.classList.add('done');
+      if (!st.done && st.kind === 'odd' && i === st.mid) pill.classList.add('cur');
+    });
+    Array.prototype.forEach.call(document.getElementById('evenPills').children, function (pill) {
+      var i = +pill.dataset.i;
+      pill.className = 'pill';
+      if (st.done || (st.mid >= 0 && i < st.mid)) pill.classList.add('done');
+      if (!st.done && st.kind === 'even' && i === st.mid) pill.classList.add('cur');
+    });
+  }
+
+  function render() {
+    if (method === 'dp') renderDp();
+    else renderExpand();
+    var st = steps[stepIdx];
+    ansBadge.textContent = '最长 = ' + bestText(st);
     statusEl.innerHTML = st.msg;
     progressEl.textContent = '步骤 ' + (stepIdx + 1) + ' / ' + steps.length;
     document.getElementById('prevBtn').disabled = (stepIdx === 0);
     document.getElementById('nextBtn').disabled = (stepIdx === steps.length - 1);
+  }
+
+  function load(str) {
+    str = (str || '').trim();
+    if (!str.length) return;
+    if (str.length > MAX_N) str = str.slice(0, MAX_N);
+    s = str;
+    input.value = s;
+    steps = method === 'dp' ? buildDpSteps(s) : buildExpandSteps(s);
+    stepIdx = 0;
+    stopPlay();
+    renderStatic();
+    render();
   }
 
   function next(){ if (stepIdx < steps.length - 1){ stepIdx++; render(); } }
@@ -391,7 +797,27 @@ class Solution:
   Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(ch){
     ch.onclick = function(){ input.value = ch.textContent; load(ch.textContent); };
   });
+  Array.prototype.forEach.call(document.querySelectorAll('.method-tab'), function (tab) {
+    tab.onclick = function () { setMethod(tab.getAttribute('data-method')); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.compare-item'), function (item) {
+    item.onclick = function () { setMethod(item.getAttribute('data-method')); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.code-tab'), function (tab) {
+    tab.onclick = function () {
+      codeLang = tab.getAttribute('data-lang');
+      syncChrome();
+    };
+  });
 
+  try {
+    var q = new URLSearchParams(location.search);
+    if (q.get('s')) input.value = q.get('s');
+    if (q.get('method') === 'expand') method = 'expand';
+    if (q.get('method') === 'dp') method = 'dp';
+  } catch (err) {}
+
+  syncChrome();
   load(input.value);
 })();
 </script>

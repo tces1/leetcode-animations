@@ -73,7 +73,7 @@ leetcode-animations/
 | 2 | [两数相加](https://tces1.github.io/leetcode-animations/problems/2-add-two-numbers.html) | 中等 | 链表 · 数学 · 模拟 · 进位 · dummy · O(1) 空间 |
 | 3 | [无重复字符的最长子串](https://tces1.github.io/leetcode-animations/problems/3-longest-substring-without-repeating-characters.html) | 中等 | 字符串 · 滑动窗口 · 哈希表 · 下标跳跃 |
 | 4 | [寻找两个正序数组的中位数](https://tces1.github.io/leetcode-animations/problems/4-median-of-two-sorted-arrays.html) | 困难 | 数组 · 二分查找 · 划分 · 切组 · O(log(m+n)) |
-| 5 | [最长回文子串](https://tces1.github.io/leetcode-animations/problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 字符串 |
+| 5 | [最长回文子串](https://tces1.github.io/leetcode-animations/problems/5-longest-palindromic-substring.html) | 中等 | 动态规划 · 二维 DP · 区间 · 中心扩展 · 字符串 |
 | 11 | [盛最多水的容器](https://tces1.github.io/leetcode-animations/problems/11-container-with-most-water.html) | 中等 | 数组 · 双指针 · 贪心 |
 | 15 | [三数之和](https://tces1.github.io/leetcode-animations/problems/15-3sum.html) | 中等 | 数组 · 排序 · 双指针 · 去重 · 剪枝 |
 | 17 | [电话号码的字母组合](https://tces1.github.io/leetcode-animations/problems/17-letter-combinations-of-a-phone-number.html) | 中等 | 回溯 · DFS · 电话按键 · 笛卡尔积 |
