@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tags" content="动态规划 · 记忆化搜索 · 字符串 · 完全背包">
+<title>139. 单词拆分 — 动画演示</title>
+<style>
+  :root { color-scheme:light; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:24px; background:#f6f7f9; color:#1d2129; line-height:1.5;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  code, pre { font-family:"SF Mono",Menlo,Consolas,monospace; }
+  .wrap { max-width:1040px; margin:0 auto; }
+  .navbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .difftag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; }
+  .link-lc { font-size:12px; color:#6b7280; }
+  .link-lc a { color:#6366f1; }
+  h1 { font-size:21px; margin:0 0 5px; }
+  .sub { color:#6b7280; font-size:13px; margin-bottom:16px; }
+  .card {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px;
+    margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .method-switch { display:grid; grid-template-columns:repeat(2,minmax(220px,1fr)); gap:10px; }
+  .mode-btn {
+    text-align:left; background:#f8fafc; color:#374151; border:1px solid #e5e7eb; padding:12px 14px;
+  }
+  .mode-btn:hover { background:#f1f5f9; }
+  .mode-btn.active { background:#eef2ff; color:#3730a3; border-color:#818cf8; box-shadow:0 0 0 2px rgba(99,102,241,.12); }
+  .mode-btn span { display:block; color:#6b7280; font-size:12px; font-weight:400; margin-top:2px; }
+  .mode-btn.active span { color:#6366f1; }
+  .idea-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .idea-item { background:#f8fafc; border:1px solid #eef0f4; border-radius:9px; padding:11px; font-size:13px; }
+  .idea-item b { display:block; color:#4f46e5; margin-bottom:3px; }
+  .note { margin-top:10px; color:#4b5563; font-size:13px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  input[type=text] {
+    flex:1; min-width:260px; padding:9px 12px; font-size:15px; font-family:"SF Mono",Menlo,monospace;
+    border:1px solid #d1d5db; border-radius:8px; outline:none;
+  }
+  input[type=text]:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+  button {
+    padding:9px 16px; font-size:14px; font-weight:600; border:none; border-radius:8px;
+    cursor:pointer; background:#6366f1; color:#fff; transition:background .15s;
+  }
+  button:hover { background:#4f46e5; }
+  button.ghost { background:#eef0f4; color:#374151; }
+  button.ghost:hover { background:#e2e5eb; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .examples { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
+  .chip {
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; padding:5px 9px; background:#f1f2f4;
+    border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; color:#374151;
+  }
+  .chip:hover { background:#e6e8ec; }
+  .hint { font-size:12px; color:#8b93a1; margin-top:8px; }
+  .error { display:none; color:#b91c1c; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:8px 10px; margin-top:9px; font-size:13px; }
+  .normalization { display:none; color:#92400e; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:8px 10px; margin-top:9px; font-size:13px; }
+  .panel-title { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; }
+  .sq-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .sq {
+    font-family:"SF Mono",Menlo,monospace; font-size:13px; padding:6px 11px; background:#f1f2f4;
+    border:1px solid #e5e7eb; border-radius:8px; color:#4b5563; transition:all .15s;
+  }
+  .sq.on { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-2px); box-shadow:0 4px 10px rgba(99,102,241,.3); }
+  .sq.skip { opacity:.38; }
+  .phase-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+  .phase { border:1px solid #e5e7eb; border-radius:8px; padding:8px 9px; color:#9ca3af; font-size:11px; }
+  .phase b { display:block; color:#6b7280; font-size:12px; }
+  .phase.done { background:#f0fdf4; border-color:#bbf7d0; }
+  .phase.active { background:#eef2ff; border-color:#818cf8; color:#4f46e5; }
+  .phase.active b { color:#3730a3; }
+  .dashboard { display:grid; grid-template-columns:repeat(6,minmax(100px,1fr)); gap:8px; margin-bottom:16px; }
+  .metric { background:#f8fafc; border:1px solid #eef0f4; border-radius:8px; padding:8px 10px; color:#6b7280; font-size:11px; min-width:0; }
+  .metric b { display:block; color:#1f2937; font-family:"SF Mono",Menlo,monospace; font-size:13px; overflow-wrap:anywhere; }
+  .str-row { display:flex; flex-wrap:wrap; gap:4px; align-items:flex-end; margin-bottom:14px; font-family:"SF Mono",Menlo,monospace; }
+  .sch { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .sch .ch {
+    width:32px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700;
+    border-radius:6px; background:#f1f2f4; border:2px solid #e5e7eb; color:#64748b; transition:all .15s;
+  }
+  .sch .ix { font-size:10px; color:#9ca3af; }
+  .sch.hl .ch { background:#6366f1; color:#fff; border-color:#4338ca; box-shadow:0 0 0 2px rgba(99,102,241,.25); }
+  .sch.src .ch { background:#fef9c3; color:#854d0e; border-color:#fde047; }
+  .sch.done .ch { background:#dcfce7; color:#166534; border-color:#86efac; }
+  .match-bar { font-size:13px; color:#4b5563; min-height:22px; margin-bottom:12px; }
+  .match-bar code { background:#eef0f4; padding:1px 6px; border-radius:5px; }
+  .arr-row { display:flex; flex-wrap:wrap; gap:6px; }
+  .cell { width:46px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .idx { font-size:11px; color:#9ca3af; font-family:"SF Mono",Menlo,monospace; }
+  .dp-box {
+    width:100%; height:44px; display:flex; align-items:center; justify-content:center; font-family:"SF Mono",Menlo,monospace;
+    font-size:15px; font-weight:700; border-radius:8px; background:#f1f2f4; color:#4b5563;
+    border:2px solid transparent; transition:all .2s;
+  }
+  .dp-box.done-true { background:#dcfce7; color:#166534; border-color:#86efac; }
+  .dp-box.done-false { background:#fee2e2; color:#b91c1c; border-color:#fca5a5; }
+  .dp-box.active { background:#6366f1; color:#fff; border-color:#4338ca; transform:translateY(-4px); box-shadow:0 6px 12px rgba(99,102,241,.35); }
+  .dp-box.src { background:#fef9c3; color:#854d0e; border-color:#fde047; }
+  .dp-box.empty { color:#c7cbd1; }
+  .tree-wrap { width:100%; overflow:auto; border:1px solid #eef0f4; border-radius:10px; background:#fbfbfc; max-height:680px; }
+  svg { display:block; }
+  .edge { stroke:#d1d5db; stroke-width:2; }
+  .edge.active { stroke:#6366f1; stroke-width:3; }
+  .edge-lab { font:600 10px "SF Mono",Menlo,monospace; fill:#9ca3af; }
+  .edge-lab.active { fill:#4f46e5; }
+  .node circle { fill:#f1f2f4; stroke:#d1d5db; stroke-width:2; transition:all .15s; }
+  .node .n-amt { font:700 13px "SF Mono",Menlo,monospace; fill:#4b5563; }
+  .node .n-val { font:600 10px "SF Mono",Menlo,monospace; fill:#6b7280; }
+  .node.done-true circle { fill:#dcfce7; stroke:#86efac; }
+  .node.done-true .n-amt { fill:#166534; }
+  .node.done-false circle { fill:#fee2e2; stroke:#fca5a5; }
+  .node.done-false .n-amt { fill:#b91c1c; }
+  .node.success circle { fill:#34d399; stroke:#059669; }
+  .node.success .n-amt { fill:#053b26; }
+  .node.cache circle { fill:#ffedd5; stroke:#fdba74; }
+  .node.cache .n-amt { fill:#9a3412; }
+  .node.active circle { fill:#6366f1; stroke:#4338ca; stroke-width:3; }
+  .node.active .n-amt { fill:#fff; }
+  .node.active .n-val { fill:#e0e7ff; }
+  .memo-under { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .stack-list,.cache-list { display:flex; flex-wrap:wrap; gap:6px; min-height:29px; }
+  .pill { padding:4px 8px; border-radius:999px; background:#eef0f4; color:#4b5563; font:12px "SF Mono",Menlo,monospace; }
+  .pill.active { background:#6366f1; color:#fff; }
+  .pill.cached { background:#ffedd5; color:#9a3412; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#6b7280; margin-top:10px; }
+  .dot { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px; border:1px solid rgba(0,0,0,.08); }
+  .status { background:#111827; color:#e5e7eb; border-radius:10px; padding:14px 16px; font-size:14px; min-height:50px; }
+  .status b { color:#fca5a5; }
+  .status .op { color:#86efac; font-weight:700; }
+  .status .hit { color:#fdba74; font-weight:700; }
+  .status .no { color:#fca5a5; font-weight:700; }
+  .progress { font-size:12px; color:#9ca3af; margin-left:auto; }
+  .complexity { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px; }
+  .complexity .metric { background:#fff; }
+  details.code summary { cursor:pointer; font-weight:600; font-size:14px; color:#4f46e5; }
+  .code-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .code-title { font-size:12px; color:#6b7280; font-weight:700; margin-bottom:5px; }
+  pre { margin:0; background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; overflow:auto; font-size:12px; line-height:1.55; }
+  pre .cmt { color:#7dd3fc; }
+  [hidden] { display:none !important; }
+  @media (max-width:760px) {
+    body { padding:14px; }
+    .method-switch,.idea-grid,.code-grid,.memo-under { grid-template-columns:1fr; }
+    .dashboard { grid-template-columns:repeat(2,1fr); }
+    .complexity { grid-template-columns:repeat(2,1fr); }
+    .phase-strip { grid-template-columns:repeat(2,1fr); }
+  }
+  .star-banner { display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; margin:0 0 16px; padding:12px 16px; border:1px solid #e0e7ff; border-radius:12px; background:linear-gradient(180deg,#f8faff 0%,#fff 100%); }
+  .star-banner-copy { flex:1; min-width:180px; }
+  .star-banner-title { font-size:14px; font-weight:700; color:#1d2129; }
+  .star-banner-sub { margin-top:2px; font-size:12px; color:#6b7280; }
+  .star-cta { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid #c7d2fe; border-radius:8px; background:#fff; color:#312e81; text-decoration:none; font-size:13px; font-weight:700; box-shadow:0 1px 0 rgba(99,102,241,.08); flex-shrink:0; }
+  .star-cta:hover { border-color:#818cf8; background:#eef2ff; }
+  .star-cta svg { width:14px; height:14px; fill:currentColor; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="navbar">
+    <span class="difftag">中等</span>
+    <span class="link-lc">原题：<a href="https://leetcode.cn/problems/word-break/" target="_blank" rel="noopener">LeetCode 139</a></span>
+  </div>
+  <h1 id="pageHeading">139. 单词拆分 · 动态规划填表</h1>
+  <div class="sub" id="pageSub"></div>
+
+  <div class="card">
+    <div class="panel-title">选择方法</div>
+    <div class="method-switch">
+      <button class="mode-btn active" data-mode="dp" aria-pressed="true">方法 A：动态规划填表<span>自底向上 <code>dp[0…n]</code>，前缀能否拆分</span></button>
+      <button class="mode-btn" data-mode="memo" aria-pressed="false">方法 B：记忆化 DFS<span>自顶向下 <code>sub(start)</code> + 缓存</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title" id="ideaTitle"></div>
+    <div class="idea-grid" id="ideaGrid"></div>
+    <div class="note" id="methodNote"></div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="text" id="wbInput" value="leetcode | leet,code" spellcheck="false" aria-label="字符串与词典" placeholder="字符串 | 词典，例如 leetcode | leet,code">
+      <button id="loadBtn">载入</button>
+    </div>
+    <div class="examples">
+      <button class="chip" type="button">leetcode | leet,code</button>
+      <button class="chip" type="button">applepenapple | apple,pen</button>
+      <button class="chip" type="button">catsandog | cats,dog,sand,and,cat</button>
+      <button class="chip" type="button">aaaa | aa,aaa</button>
+      <button class="chip" type="button">a | a</button>
+      <button class="chip" type="button">ab | a,b,aba</button>
+    </div>
+    <div class="hint">格式：小写字母串 <code>|</code> 词典（逗号或空格分隔）。动画限制：串长 ≤ 14、词典 ≤ 8 个词、单词 ≤ 10 字符；重复词会去重并保持首次出现顺序。</div>
+    <div class="error" id="inputError" role="alert"></div>
+    <div class="normalization" id="normalizationNote"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="card">
+    <div class="panel-title">字符串 s（下标 = 前缀长度 / 递归起点）</div>
+    <div class="str-row" id="strRow"></div>
+    <div class="match-bar" id="matchBar"></div>
+
+    <div class="panel-title">wordDict（两方法按此顺序枚举）</div>
+    <div class="sq-row" id="wordRow"></div>
+    <div class="phase-strip" id="phaseStrip"></div>
+    <div class="dashboard" id="dashboard"></div>
+
+    <section id="dpPanel">
+      <div class="panel-title">dp 表（上标 = 前缀长度 i，格内 = dp[i] 能否拆分 s[0:i]）</div>
+      <div class="arr-row" id="dpRow"></div>
+    </section>
+
+    <section id="memoPanel" hidden>
+      <div class="panel-title">记忆化递归树（节点 = 起点 start；边 = 选中的单词）</div>
+      <div class="tree-wrap" id="treeWrap"><svg id="memoSvg" xmlns="http://www.w3.org/2000/svg" aria-label="记忆化递归树"></svg></div>
+      <div class="memo-under">
+        <div><div class="panel-title">调用栈（右侧为当前帧）</div><div class="stack-list" id="stackList"></div></div>
+        <div><div class="panel-title">memo 缓存（start → 结果）</div><div class="cache-list" id="cacheList"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="card">
+    <div class="controls" style="margin-bottom:14px;">
+      <button id="prevBtn" class="ghost">◀ 上一步</button>
+      <button id="nextBtn">下一步 ▶</button>
+      <button id="playBtn" class="ghost">▶ 自动播放</button>
+      <button id="resetBtn" class="ghost">↺ 重置</button>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="panel-title">当前状态</div>
+    <div class="status" id="status">点击「下一步」开始。</div>
+    <div class="complexity" id="complexity"></div>
+  </div>
+
+  <div class="card">
+    <details class="code">
+      <summary id="codeSummary">查看方法 A 参考代码（Java / Python）</summary>
+      <div class="code-grid" id="dpCode">
+        <div><div class="code-title">Java · 一维 DP</div><pre><code>class Solution {
+    public boolean wordBreak(String s, List&lt;String&gt; wordDict) {
+        Set&lt;String&gt; set = new HashSet&lt;&gt;(wordDict);
+        int n = s.length();
+        boolean[] dp = new boolean[n + 1];
+        dp[0] = true;
+        for (int i = 1; i &lt;= n; i++) {
+            for (int j = 0; j &lt; i; j++) {
+                if (dp[j] &amp;&amp; set.contains(s.substring(j, i))) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+        return dp[n];
+    }
+}</code></pre></div>
+        <div><div class="code-title">Python · 一维 DP</div><pre><code>class Solution:
+    def wordBreak(self, s: str, wordDict: List[str]) -&gt; bool:
+        ws = set(wordDict)
+        n = len(s)
+        dp = [False] * (n + 1)
+        dp[0] = True
+        for i in range(1, n + 1):
+            for j in range(i):
+                if dp[j] and s[j:i] in ws:
+                    dp[i] = True
+                    break
+        return dp[n]</code></pre></div>
+      </div>
+      <div class="code-grid" id="memoCode" hidden>
+        <div><div class="code-title">Java · 记忆化 DFS</div><pre><code>class Solution {
+    public boolean wordBreak(String s, List&lt;String&gt; wordDict) {
+        int n = s.length();
+        Boolean[] memo = new Boolean[n + 1];
+        return dfs(0, s, wordDict, memo);
+    }
+    private boolean dfs(int start, String s, List&lt;String&gt; dict, Boolean[] memo) {
+        if (start == s.length()) return true;
+        if (memo[start] != null) return memo[start];
+        for (String w : dict) {
+            int wn = w.length();
+            if (s.startsWith(w, start) &amp;&amp; dfs(start + wn, s, dict, memo)) {
+                return memo[start] = true;
+            }
+        }
+        return memo[start] = false;
+    }
+}</code></pre></div>
+        <div><div class="code-title">Python · 记忆化 DFS</div><pre><code>class Solution:
+    def wordBreak(self, s: str, wordDict: List[str]) -&gt; bool:
+        n = len(s)
+
+        @cache
+        def sub(start):
+            if start == n:
+                return True
+            for item in wordDict:
+                wn = len(item)
+                if s[start:start + wn] == item and sub(start + wn):
+                    return True
+            return False
+
+        return sub(0)</code></pre></div>
+      </div>
+    </details>
+  </div>
+  <div class="star-banner">
+    <div class="star-banner-copy">
+      <div class="star-banner-title">觉得这个动画有帮助？</div>
+      <div class="star-banner-sub">给 GitHub 仓库点一颗 Star，能让更多人刷到这些可视化。</div>
+    </div>
+    <a class="star-cta" href="https://github.com/tces1/leetcode-animations" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      Star
+    </a>
+  </div>
+</div>
+
+<script>
+(function (root) {
+  'use strict';
+  var LIMITS = { maxLen: 14, maxWords: 8, maxWordLen: 10 };
+
+  function own(object, key) { return Object.prototype.hasOwnProperty.call(object, key); }
+  function boolTxt(v) { return v ? 'T' : 'F'; }
+
+  function parseInput(raw) {
+    var text = String(raw === undefined || raw === null ? '' : raw).trim();
+    var parts = text.split('|');
+    if (parts.length !== 2) return { ok: false, error: '必须且只能包含一个「|」，左边是字符串 s，右边是词典' };
+    var sText = parts[0].trim(), dictText = parts[1].trim();
+    if (!sText) return { ok: false, error: '字符串 s 不能为空' };
+    if (!dictText) return { ok: false, error: '词典不能为空' };
+    if (!/^[a-z]+$/.test(sText)) return { ok: false, error: 's 只能由小写字母组成' };
+    if (sText.length > LIMITS.maxLen) return { ok: false, error: 's 长度不能超过 ' + LIMITS.maxLen };
+    if (/^,|,$|,\s*,/.test(dictText)) return { ok: false, error: '词典中存在空项' };
+    var tokens = dictText.split(/[,\s]+/);
+    var words = [], seen = {}, i;
+    for (i = 0; i < tokens.length; i++) {
+      var w = tokens[i];
+      if (!/^[a-z]+$/.test(w)) return { ok: false, error: '单词「' + w + '」只能由小写字母组成' };
+      if (w.length > LIMITS.maxWordLen) return { ok: false, error: '单词长度不能超过 ' + LIMITS.maxWordLen };
+      if (!seen[w]) { seen[w] = true; words.push(w); }
+    }
+    if (words.length > LIMITS.maxWords) return { ok: false, error: '词典最多 ' + LIMITS.maxWords + ' 个不同单词' };
+    var normalized = sText + ' | ' + words.join(',');
+    return {
+      ok: true, error: null, s: sText, words: words, normalized: normalized,
+      changed: normalized !== text.replace(/\s*\|\s*/, ' | ').replace(/\s*,\s*/g, ','),
+      hadDuplicates: words.length !== tokens.length
+    };
+  }
+
+  function wordSet(words) {
+    var set = {};
+    for (var i = 0; i < words.length; i++) set[words[i]] = true;
+    return set;
+  }
+
+  function computeDP(s, words) {
+    var ws = wordSet(words), n = s.length, dp = new Array(n + 1).fill(false);
+    dp[0] = true;
+    for (var end = 1; end <= n; end++) {
+      for (var start = 0; start < end; start++) {
+        if (dp[start] && ws[s.slice(start, end)]) { dp[end] = true; break; }
+      }
+    }
+    return dp;
+  }
+
+  function solveDP(s, words) { return computeDP(s, words)[s.length]; }
+
+  function solveMemo(s, words) {
+    var n = s.length, memo = {};
+    function sub(start) {
+      if (own(memo, start)) return memo[start];
+      if (start === n) return memo[start] = true;
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i], wn = w.length;
+        if (s.slice(start, start + wn) === w && sub(start + wn)) return memo[start] = true;
+      }
+      return memo[start] = false;
+    }
+    return sub(0);
+  }
+
+  function buildDPSteps(s, words) {
+    var steps = [], ws = wordSet(words), n = s.length;
+    var dp = new Array(n + 1).fill(false), from = new Array(n + 1).fill(null);
+    dp[0] = true;
+    function snap(data) {
+      data = data || {};
+      steps.push({
+        mode: 'dp', phase: data.phase || 'init',
+        i: data.i === undefined ? -1 : data.i, j: data.j === undefined ? -1 : data.j,
+        word: data.word === undefined ? null : data.word, matched: !!data.matched, updated: !!data.updated,
+        done: !!data.done, result: data.result === undefined ? null : data.result,
+        dp: dp.slice(), from: from.slice(), message: data.message
+      });
+    }
+    snap({ phase: 'init', message: '初始化：<code>dp[0] = T</code>（空前缀可拆分），其余为 <b>F</b>。' });
+    for (var i = 1; i <= n; i++) {
+      snap({ phase: 'visit', i: i, message: '计算 <b>dp[' + i + ']</b>：枚举切分点 <code>j</code>，看前缀 <code>s[0:j]</code> 是否可行且 <code>s[j:i]</code> 在词典中。' });
+      for (var j = 0; j < i; j++) {
+        var piece = s.slice(j, i), inDict = !!ws[piece], ok = dp[j] && inDict;
+        snap({
+          phase: 'try', i: i, j: j, word: piece, matched: inDict, updated: ok && !dp[i],
+          message: '尝试 <code>j=' + j + '</code>：片段 <b>"' + piece + '"</b>' +
+            (inDict ? ' 在词典中' : ' <span class="no">不在词典</span>') +
+            '，且 <code>dp[' + j + ']=' + boolTxt(dp[j]) + '</code>。' +
+            (ok ? ' <span class="op">条件满足，dp[' + i + '] 置为 T。</span>' : ' 无法更新。')
+        });
+        if (ok) { dp[i] = true; from[i] = { j: j, word: piece }; break; }
+      }
+      snap({
+        phase: 'set', i: i,
+        message: '前缀长度 ' + i + ' 枚举结束，<b>dp[' + i + '] = ' + boolTxt(dp[i]) + '</b>' +
+          (dp[i] && from[i] ? '（由 <code>s[' + from[i].j + ':' + i + ']="' + from[i].word + '"</code> 转移）。' : '。')
+      });
+    }
+    var ans = dp[n], msg;
+    if (ans) {
+      var path = [], pos = n;
+      while (pos > 0 && from[pos]) { path.unshift(from[pos].word); pos = from[pos].j; }
+      msg = '完成 ✅ <b>dp[' + n + '] = T</b>，可以拆分；一种方案：' + (path.length ? path.join(' + ') : '（空串）') + '。';
+    } else msg = '完成 ❌ <b>dp[' + n + '] = F</b>，无法拆成词典单词。';
+    snap({ phase: 'end', done: true, result: ans, message: msg });
+    return steps;
+  }
+
+  function computeSubValues(s, words) {
+    var n = s.length, val = new Array(n + 1);
+    val[n] = true;
+    for (var start = n - 1; start >= 0; start--) {
+      var ok = false;
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i], wn = w.length;
+        if (start + wn <= n && s.slice(start, start + wn) === w && val[start + wn]) { ok = true; break; }
+      }
+      val[start] = ok;
+    }
+    return val;
+  }
+
+  function buildMemoModel(s, words) {
+    var nodes = [], edges = [], values = computeSubValues(s, words), expanded = {}, n = s.length;
+    function build(start) {
+      var node = { id: nodes.length, start: start, kind: 'expand', value: values[start], children: [] };
+      nodes.push(node);
+      if (start === n) { node.kind = 'success'; return node; }
+      if (expanded[start]) { node.kind = 'cache'; return node; }
+      expanded[start] = true;
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i], wn = w.length;
+        if (start + wn > n || s.slice(start, start + wn) !== w) continue;
+        var child = build(start + wn);
+        node.children.push({ word: w, id: child.id });
+        edges.push({ from: node.id, to: child.id, word: w });
+      }
+      return node;
+    }
+    var root = build(0);
+    return { nodes: nodes, edges: edges, rootId: root.id, values: values, s: s, words: words.slice(), n: n };
+  }
+
+  function buildMemoSteps(model) {
+    var steps = [], nodes = model.nodes, words = model.words, s = model.s;
+    var states = new Array(nodes.length).fill('idle'), values = new Array(nodes.length).fill(null);
+    var stack = [], memo = {};
+    function memoEntries() {
+      return Object.keys(memo).map(Number).sort(function (a, b) { return a - b; })
+        .map(function (start) { return { start: start, value: memo[start] }; });
+    }
+    function snap(data) {
+      data = data || {};
+      steps.push({
+        mode: 'memo', phase: data.phase || 'call',
+        activeId: data.activeId === undefined ? -1 : data.activeId,
+        edge: data.edge ? { from: data.edge.from, to: data.edge.to } : null,
+        word: data.word === undefined ? null : data.word,
+        childStart: data.childStart === undefined ? null : data.childStart,
+        hlFrom: data.hlFrom === undefined ? -1 : data.hlFrom,
+        hlTo: data.hlTo === undefined ? -1 : data.hlTo,
+        done: !!data.done, result: data.result === undefined ? null : data.result,
+        states: states.slice(), values: values.slice(), stack: stack.slice(),
+        memo: memoEntries(), message: data.message
+      });
+    }
+    function run(node) {
+      stack.push(node.start);
+      snap({
+        phase: 'call', activeId: node.id, hlFrom: node.start, hlTo: node.start,
+        message: '进入 <b>sub(' + node.start + ')</b>，处理后缀 <code>"' + s.slice(node.start) + '"</code>。'
+      });
+      if (node.kind === 'success') {
+        values[node.id] = true; states[node.id] = 'success'; memo[model.n] = true;
+        snap({ phase: 'base', activeId: node.id, hlFrom: model.n, hlTo: model.n, message: '基例 <code>start == n</code>，<span class="op">返回 True</span> ✅。' });
+        stack.pop();
+        return true;
+      }
+      if (node.kind === 'cache') {
+        var cached = own(memo, node.start) ? memo[node.start] : node.value;
+        values[node.id] = cached; states[node.id] = 'cache';
+        snap({
+          phase: 'cache', activeId: node.id, hlFrom: node.start, hlTo: node.start,
+          message: '<b>sub(' + node.start + ')</b> 已在缓存 = <b>' + boolTxt(cached) + '</b>，<span class="hit">↺ 直接返回</span>。'
+        });
+        stack.pop();
+        return cached;
+      }
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i], wn = w.length;
+        if (node.start + wn > s.length || s.slice(node.start, node.start + wn) !== w) {
+          snap({
+            phase: 'skip', activeId: node.id, word: w,
+            message: '词典词 <b>"' + w + '"</b> 与 <code>s[' + node.start + ':]</code> 前缀不匹配，<span class="no">跳过</span>。'
+          });
+          continue;
+        }
+        var childRef = null;
+        for (var j = 0; j < node.children.length; j++) if (node.children[j].word === w) { childRef = node.children[j]; break; }
+        snap({
+          phase: 'branch', activeId: node.id, word: w, childStart: node.start + wn,
+          edge: { from: node.id, to: childRef.id },
+          hlFrom: node.start, hlTo: node.start + wn,
+          message: '前缀匹配 <b>"' + w + '"</b>，递归 <code>sub(' + (node.start + wn) + ')</code>。'
+        });
+        var sub = run(nodes[childRef.id]);
+        if (sub) {
+          values[node.id] = true; states[node.id] = 'done-true'; memo[node.start] = true;
+          snap({
+            phase: 'return', activeId: node.id, word: w,
+            message: '子调用返回 <b>T</b>，<span class="op">sub(' + node.start + ') = True</span> 并写入缓存（不再尝试后续词）。'
+          });
+          stack.pop();
+          return true;
+        }
+        snap({
+          phase: 'backtrack', activeId: node.id, word: w, childStart: node.start + wn,
+          edge: { from: node.id, to: childRef.id },
+          message: '子调用返回 <b>F</b>，继续尝试词典中的下一个单词。'
+        });
+      }
+      values[node.id] = false; states[node.id] = 'done-false'; memo[node.start] = false;
+      snap({ phase: 'return', activeId: node.id, message: '所有候选词均失败，<b>sub(' + node.start + ') = False</b> 并写入缓存。' });
+      stack.pop();
+      return false;
+    }
+    snap({ phase: 'init', message: '空缓存，从 <b>sub(0)</b> 开始；与题面代码一致，任一子问题为 True 即短路返回。' });
+    var raw = run(nodes[model.rootId]);
+    var endMessage = raw
+      ? '完成 ✅ <code>sub(0) = True</code>，字符串可以拆分。'
+      : '完成 ❌ <code>sub(0) = False</code>，无法拆分。';
+    snap({ phase: 'end', done: true, result: raw, message: endMessage });
+    return steps;
+  }
+
+  function build(mode, s, words) {
+    if (mode === 'memo') {
+      var model = buildMemoModel(s, words);
+      return { mode: mode, model: model, steps: buildMemoSteps(model), result: solveMemo(s, words) };
+    }
+    return { mode: 'dp', model: null, steps: buildDPSteps(s, words), result: solveDP(s, words) };
+  }
+
+  function validateSnapshots(steps) {
+    var errors = [];
+    if (!steps.length) return { ok: false, errors: ['缺少动画快照'] };
+    for (var i = 0; i < steps.length; i++) {
+      var snapshot = steps[i];
+      var arrays = snapshot.mode === 'dp' ? ['dp', 'from'] : ['states', 'values', 'stack', 'memo'];
+      for (var j = 0; j < arrays.length; j++) if (!Array.isArray(snapshot[arrays[j]])) errors.push('第 ' + (i + 1) + ' 帧缺少 ' + arrays[j]);
+      if (i && snapshot.mode === 'dp' && snapshot.dp === steps[i - 1].dp) errors.push('相邻 DP 帧共享数组');
+    }
+    var last = steps[steps.length - 1];
+    if (!last.done || last.phase !== 'end') errors.push('最后一帧不是结束快照');
+    return { ok: errors.length === 0, errors: errors };
+  }
+
+  function run(input) {
+    var parsed = parseInput(input);
+    if (!parsed.ok) return { error: parsed.error };
+    var dp = build('dp', parsed.s, parsed.words), memo = build('memo', parsed.s, parsed.words);
+    return {
+      error: null, s: parsed.s, words: parsed.words.slice(),
+      dp: dp, memo: memo, consistent: dp.result === memo.result,
+      validation: { dp: validateSnapshots(dp.steps), memo: validateSnapshots(memo.steps) }
+    };
+  }
+
+  root.WordBreak139 = {
+    parseInput: parseInput, solveDP: solveDP, solveMemo: solveMemo,
+    buildDPSteps: buildDPSteps, buildMemoModel: buildMemoModel, buildMemoSteps: buildMemoSteps,
+    build: build, validateSnapshots: validateSnapshots, run: run, limits: LIMITS
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var App = window.WordBreak139;
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('wbInput'), prevBtn = $('prevBtn'), nextBtn = $('nextBtn'), playBtn = $('playBtn');
+  var mode = 'dp', s = '', words = [], steps = [], stepIndex = 0, timer = null, memoModel = null;
+  var nodeEls = {}, edgeEls = {}, R = 22, X_GAP = 72, Y_GAP = 92, PAD_X = 34, PAD_Y = 34;
+
+  function boolTxt(v) { return v ? 'T' : 'F'; }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; }
+    playBtn.textContent = '▶ 自动播放';
+  }
+  function showError(message) {
+    $('inputError').textContent = '输入有误：' + message + '。';
+    $('inputError').style.display = 'block';
+  }
+  function clearMessages() {
+    $('inputError').style.display = 'none';
+    $('normalizationNote').style.display = 'none';
+  }
+
+  function renderMethodText() {
+    var dp = mode === 'dp';
+    $('pageHeading').textContent = '139. 单词拆分 · ' + (dp ? '动态规划填表' : '记忆化 DFS');
+    $('pageSub').innerHTML = dp
+      ? '<code>dp[i]</code> 表示前缀 <code>s[0:i]</code> 能否被词典拆分；从 <code>dp[0]=T</code> 起，枚举切分点 <code>j</code> 与片段 <code>s[j:i]</code>。'
+      : '<code>sub(start)</code> 表示后缀 <code>s[start:]</code> 能否拆分；按词典顺序匹配前缀并递归，<code>@cache</code> 缓存起点结果。';
+    $('ideaTitle').textContent = dp ? '方法 A · 自底向上填表' : '方法 B · 自顶向下记忆化';
+    $('ideaGrid').innerHTML = dp
+      ? '<div class="idea-item"><b>① 状态定义</b><code>dp[i]</code>：前 i 个字符能否拆分。</div>' +
+        '<div class="idea-item"><b>② 转移</b>若 <code>dp[j]</code> 且 <code>s[j:i]∈dict</code>，则 <code>dp[i]=T</code>。</div>' +
+        '<div class="idea-item"><b>③ 答案</b><code>dp[n]</code>；找到一条切分即可 break。</div>'
+      : '<div class="idea-item"><b>① 状态定义</b><code>sub(start)</code>：从 start 到末尾能否拆分。</div>' +
+        '<div class="idea-item"><b>② 枚举词典</b>前缀等于某词则递归 <code>sub(start+len)</code>。</div>' +
+        '<div class="idea-item"><b>③ 短路 + 缓存</b>任一子问题为 T 即返回；重复 start 读 memo。</div>';
+    $('methodNote').innerHTML = dp
+      ? '<b>与完全背包：</b>按「前缀长度」从小到大，保证子问题 <code>dp[j]</code> 已就绪。'
+      : '<b>与你提交的代码一致：</b>按 <code>wordDict</code> 顺序尝试，成功即返回 True；橙色节点为缓存命中。';
+    $('legend').innerHTML = dp
+      ? '<span><span class="dot" style="background:#6366f1"></span>当前 dp[i]</span><span><span class="dot" style="background:#fef9c3;border-color:#fde047"></span>切分点 j</span><span><span class="dot" style="background:#dcfce7"></span>T</span><span><span class="dot" style="background:#fee2e2"></span>F</span>'
+      : '<span><span class="dot" style="background:#6366f1;border-radius:50%"></span>当前节点</span><span><span class="dot" style="background:#34d399;border-radius:50%"></span>start=n</span><span><span class="dot" style="background:#ffedd5;border-radius:50%"></span>缓存 ↺</span><span><span class="dot" style="background:#dcfce7;border-radius:50%"></span>True</span><span><span class="dot" style="background:#fee2e2;border-radius:50%"></span>False</span>';
+    $('complexity').innerHTML =
+      '<div class="metric">方法<b>' + (dp ? 'DP 填表' : 'Memo DFS') + '</b></div>' +
+      '<div class="metric">时间复杂度<b>O(n² · L)</b></div>' +
+      '<div class="metric">空间复杂度<b>O(n)</b></div>' +
+      '<div class="metric">说明<b>L 为枚举/比较开销</b></div>';
+    $('codeSummary').textContent = '查看' + (dp ? '方法 A' : '方法 B') + '参考代码（Java / Python）';
+    $('dpCode').hidden = !dp; $('memoCode').hidden = dp;
+    $('dpPanel').hidden = !dp; $('memoPanel').hidden = dp;
+    Array.prototype.forEach.call(document.querySelectorAll('.mode-btn'), function (button) {
+      var active = button.dataset.mode === mode;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    renderPhaseStrip();
+  }
+
+  function renderPhaseStrip() {
+    var phases = mode === 'dp'
+      ? [['init', '阶段 1', '初始化'], ['visit', '阶段 2', '选前缀 i'], ['try', '阶段 3', '试切分 j'], ['end', '阶段 4', '答案']]
+      : [['call', '阶段 1', '进入 sub'], ['branch', '阶段 2', '匹配单词'], ['cache', '阶段 3', '缓存/回溯'], ['end', '阶段 4', '返回答案']];
+    $('phaseStrip').innerHTML = phases.map(function (item) {
+      return '<div class="phase" data-phase="' + item[0] + '"><span>' + item[1] + '</span><b>' + item[2] + '</b></div>';
+    }).join('');
+  }
+
+  function phaseRank(phase) {
+    if (mode === 'dp') {
+      if (phase === 'init') return 0;
+      if (phase === 'visit') return 1;
+      if (phase === 'try' || phase === 'skip' || phase === 'set') return 2;
+      return 3;
+    }
+    if (phase === 'init' || phase === 'call' || phase === 'base') return 0;
+    if (phase === 'branch' || phase === 'skip') return 1;
+    if (phase === 'cache' || phase === 'backtrack' || phase === 'return') return 2;
+    return 3;
+  }
+
+  function highlightPhases(step) {
+    var rank = phaseRank(step.phase);
+    Array.prototype.forEach.call($('phaseStrip').children, function (element, index) {
+      element.className = 'phase' + (index < rank ? ' done' : '') + (index === rank ? ' active' : '');
+    });
+  }
+
+  function renderStringStatic() {
+    $('strRow').innerHTML = '';
+    for (var i = 0; i < s.length; i++) {
+      var col = document.createElement('div');
+      col.className = 'sch';
+      col.dataset.index = i;
+      var ch = document.createElement('div'); ch.className = 'ch'; ch.textContent = s[i];
+      var ix = document.createElement('div'); ix.className = 'ix'; ix.textContent = i;
+      col.appendChild(ch); col.appendChild(ix);
+      $('strRow').appendChild(col);
+    }
+    var end = document.createElement('div');
+    end.className = 'sch'; end.dataset.index = s.length;
+    var chEnd = document.createElement('div'); chEnd.className = 'ch'; chEnd.textContent = '|';
+    var ixEnd = document.createElement('div'); ixEnd.className = 'ix'; ixEnd.textContent = s.length;
+    end.appendChild(chEnd); end.appendChild(ixEnd);
+    $('strRow').appendChild(end);
+  }
+
+  function paintString(step) {
+    var from = -1, to = -1;
+    if (mode === 'dp') {
+      if (step.j >= 0 && step.i >= 0) { from = step.j; to = step.i; }
+      else if (step.i >= 0) { from = 0; to = step.i; }
+    } else {
+      if (step.hlFrom >= 0 && step.hlTo >= 0) { from = step.hlFrom; to = step.hlTo; }
+    }
+    Array.prototype.forEach.call($('strRow').children, function (col) {
+      var idx = Number(col.dataset.index);
+      col.className = 'sch';
+      if (from >= 0 && to > from && idx >= from && idx < to) col.classList.add('hl');
+      else if (mode === 'dp' && step.j >= 0 && idx === step.j) col.classList.add('src');
+      else if (mode === 'dp' && step.i >= 0 && idx < step.i && step.dp && step.dp[step.i] !== undefined && idx < step.i) {
+        if (step.phase === 'end' && step.dp[s.length]) col.classList.add('done');
+      }
+    });
+    var bar = '';
+    if (mode === 'dp' && step.word && step.j >= 0) {
+      bar = '当前片段 <code>s[' + step.j + ':' + step.i + ']="' + step.word + '"</code>';
+    } else if (mode === 'memo' && step.word && step.hlFrom >= 0) {
+      bar = '尝试词 <code>"' + step.word + '"</code> → 覆盖 <code>[' + step.hlFrom + ',' + step.hlTo + ')</code>';
+    }
+    $('matchBar').innerHTML = bar;
+  }
+
+  function renderWords(step) {
+    $('wordRow').innerHTML = '';
+    words.forEach(function (w) {
+      var el = document.createElement('div');
+      el.className = 'sq';
+      if (step.word === w) el.classList.add(step.phase === 'skip' ? 'skip' : 'on');
+      el.textContent = '"' + w + '"';
+      $('wordRow').appendChild(el);
+    });
+  }
+
+  function makeCell(index) {
+    var cell = document.createElement('div'), label = document.createElement('div'), box = document.createElement('div');
+    cell.className = 'cell'; label.className = 'idx'; label.textContent = index;
+    box.className = 'dp-box'; box.dataset.index = index;
+    cell.appendChild(label); cell.appendChild(box);
+    return cell;
+  }
+
+  function renderDPStatic() {
+    $('dpRow').innerHTML = '';
+    for (var i = 0; i <= s.length; i++) $('dpRow').appendChild(makeCell(i));
+  }
+
+  function renderDP(step) {
+    Array.prototype.forEach.call($('dpRow').children, function (cell) {
+      var box = cell.querySelector('.dp-box'), index = Number(box.dataset.index);
+      box.className = 'dp-box';
+      var known = index === 0 || index < step.i || step.done || (step.i >= 0 && step.dp[index] !== undefined && (step.phase === 'set' || step.phase === 'end') && index <= step.i);
+      if (index === 0 || (index < step.i && step.dp[index]) || (step.done && step.dp[index])) {
+        box.textContent = boolTxt(step.dp[index]);
+        if (step.dp[index]) box.classList.add('done-true'); else if (index < step.i || step.done) box.classList.add('done-false');
+      } else if (index === step.i && step.phase !== 'init') {
+        box.textContent = boolTxt(step.dp[index]);
+        box.classList.add('active');
+        if (step.dp[index]) box.classList.add('done-true');
+      } else if (index === step.j) {
+        box.textContent = boolTxt(step.dp[index]);
+        box.classList.add('src');
+      } else {
+        box.textContent = index === 0 ? 'T' : (known && step.dp[index] !== undefined ? boolTxt(step.dp[index]) : '·');
+        if (known && step.dp[index]) box.classList.add('done-true');
+        else box.classList.add('empty');
+      }
+    });
+    $('dashboard').innerHTML =
+      '<div class="metric">前缀 i<b>' + (step.i < 0 ? '—' : step.i) + '</b></div>' +
+      '<div class="metric">切分 j<b>' + (step.j < 0 ? '—' : step.j) + '</b></div>' +
+      '<div class="metric">片段<b>' + (step.word ? '"' + step.word + '"' : '—') + '</b></div>' +
+      '<div class="metric">在词典<b>' + (step.word === null ? '—' : (step.matched ? '是' : '否')) + '</b></div>' +
+      '<div class="metric">dp[i]<b>' + (step.i < 0 ? '—' : boolTxt(step.dp[step.i])) + '</b></div>' +
+      '<div class="metric">答案<b>' + (step.result === null ? '—' : boolTxt(step.result)) + '</b></div>';
+  }
+
+  function svgElement(name, attrs) {
+    var element = document.createElementNS('http://www.w3.org/2000/svg', name);
+    Object.keys(attrs || {}).forEach(function (key) { element.setAttribute(key, attrs[key]); });
+    return element;
+  }
+
+  function layoutMemo() {
+    var nodes = memoModel.nodes, leaf = 0, maxDepth = 0;
+    function place(node, depth) {
+      node.depth = depth; maxDepth = Math.max(maxDepth, depth);
+      if (!node.children.length) node._leaf = leaf++;
+      else {
+        node.children.forEach(function (child) { place(nodes[child.id], depth + 1); });
+        node._leaf = (nodes[node.children[0].id]._leaf + nodes[node.children[node.children.length - 1].id]._leaf) / 2;
+      }
+    }
+    place(nodes[memoModel.rootId], 0);
+    nodes.forEach(function (node) {
+      node.x = PAD_X + node._leaf * X_GAP + R;
+      node.y = PAD_Y + node.depth * Y_GAP + R;
+    });
+    return {
+      width: PAD_X * 2 + Math.max(1, leaf) * X_GAP + R * 2,
+      height: PAD_Y * 2 + (maxDepth + 1) * Y_GAP
+    };
+  }
+
+  function renderMemoStatic() {
+    var svg = $('memoSvg'), size = layoutMemo();
+    svg.innerHTML = '';
+    svg.setAttribute('viewBox', '0 0 ' + size.width + ' ' + size.height);
+    svg.setAttribute('width', size.width); svg.setAttribute('height', size.height);
+    nodeEls = {}; edgeEls = {};
+    memoModel.edges.forEach(function (edge) {
+      var parent = memoModel.nodes[edge.from], child = memoModel.nodes[edge.to];
+      var line = svgElement('line', { x1: parent.x, y1: parent.y, x2: child.x, y2: child.y, class: 'edge' });
+      var label = svgElement('text', { x: (parent.x + child.x) / 2 + 6, y: (parent.y + child.y) / 2, class: 'edge-lab' });
+      label.textContent = '"' + edge.word + '"';
+      svg.appendChild(line); svg.appendChild(label);
+      edgeEls[edge.from + '-' + edge.to] = { line: line, label: label };
+    });
+    memoModel.nodes.forEach(function (node) {
+      var group = svgElement('g', { class: 'node' });
+      var circle = svgElement('circle', { cx: node.x, cy: node.y, r: R });
+      var amt = svgElement('text', { x: node.x, y: node.y + 1, 'text-anchor': 'middle', 'dominant-baseline': 'middle', class: 'n-amt' });
+      var val = svgElement('text', { x: node.x, y: node.y + R + 14, 'text-anchor': 'middle', class: 'n-val' });
+      amt.textContent = node.start;
+      val.textContent = node.start === memoModel.n ? 'end' : s.slice(node.start, Math.min(node.start + 6, memoModel.n)) + (node.start + 6 < memoModel.n ? '…' : '');
+      group.appendChild(circle); group.appendChild(amt); group.appendChild(val);
+      svg.appendChild(group);
+      nodeEls[node.id] = { group: group, value: val };
+    });
+  }
+
+  function renderMemo(step) {
+    memoModel.nodes.forEach(function (node) {
+      var refs = nodeEls[node.id], state = step.states[node.id] || 'idle';
+      refs.group.setAttribute('class', 'node ' + (node.id === step.activeId ? 'active' : state));
+      var value = step.values[node.id];
+      refs.value.textContent = value === null || value === undefined ? '' : (state === 'cache' ? '↺ ' : '') + boolTxt(value);
+    });
+    Object.keys(edgeEls).forEach(function (key) {
+      edgeEls[key].line.setAttribute('class', 'edge');
+      edgeEls[key].label.setAttribute('class', 'edge-lab');
+    });
+    if (step.edge) {
+      var activeEdge = edgeEls[step.edge.from + '-' + step.edge.to];
+      if (activeEdge) {
+        activeEdge.line.setAttribute('class', 'edge active');
+        activeEdge.label.setAttribute('class', 'edge-lab active');
+      }
+    }
+    $('stackList').innerHTML = step.stack.length ? step.stack.map(function (start, index) {
+      return '<span class="pill' + (index === step.stack.length - 1 ? ' active' : '') + '">sub(' + start + ')</span>';
+    }).join('') : '<span class="hint">调用栈为空</span>';
+    $('cacheList').innerHTML = step.memo.length ? step.memo.map(function (entry) {
+      return '<span class="pill cached">' + entry.start + ' → ' + boolTxt(entry.value) + '</span>';
+    }).join('') : '<span class="hint">缓存为空</span>';
+    var activeStart = step.activeId < 0 ? null : memoModel.nodes[step.activeId].start;
+    $('dashboard').innerHTML =
+      '<div class="metric">当前<b>' + (activeStart === null ? '—' : 'sub(' + activeStart + ')') + '</b></div>' +
+      '<div class="metric">单词<b>' + (step.word ? '"' + step.word + '"' : '—') + '</b></div>' +
+      '<div class="metric">子起点<b>' + (step.childStart === null ? '—' : step.childStart) + '</b></div>' +
+      '<div class="metric">后缀<b>' + (activeStart === null ? '—' : '"' + s.slice(activeStart) + '"') + '</b></div>' +
+      '<div class="metric">栈/缓存<b>' + step.stack.length + ' / ' + step.memo.length + '</b></div>' +
+      '<div class="metric">答案<b>' + (step.result === null ? '—' : boolTxt(step.result)) + '</b></div>';
+  }
+
+  function render() {
+    var step = steps[stepIndex];
+    renderWords(step); paintString(step); highlightPhases(step);
+    if (mode === 'dp') renderDP(step); else renderMemo(step);
+    $('status').innerHTML = step.message;
+    $('progress').textContent = (mode === 'dp' ? 'DP 填表' : 'Memo DFS') + ' · 步骤 ' + (stepIndex + 1) + ' / ' + steps.length;
+    prevBtn.disabled = stepIndex === 0;
+    nextBtn.disabled = stepIndex === steps.length - 1;
+  }
+
+  function rebuild(parsed) {
+    stopPlay(); s = parsed.s; words = parsed.words.slice(); input.value = parsed.normalized;
+    var dpResult = App.solveDP(s, words), memoResult = App.solveMemo(s, words);
+    if (dpResult !== memoResult) { showError('内部一致性校验失败：DP=' + dpResult + '，Memo=' + memoResult); return false; }
+    var built = App.build(mode, s, words);
+    steps = built.steps; memoModel = built.model; stepIndex = 0;
+    var validation = App.validateSnapshots(steps);
+    if (!validation.ok) { showError('快照校验失败：' + validation.errors.join('；')); return false; }
+    renderMethodText();
+    renderStringStatic();
+    if (mode === 'dp') renderDPStatic(); else renderMemoStatic();
+    render();
+    return true;
+  }
+
+  function load(raw) {
+    clearMessages();
+    var parsed = App.parseInput(raw);
+    if (!parsed.ok) { stopPlay(); showError(parsed.error); return false; }
+    if (parsed.changed || parsed.hadDuplicates) {
+      $('normalizationNote').textContent = '已规范化为：' + parsed.normalized;
+      $('normalizationNote').style.display = 'block';
+    }
+    return rebuild(parsed);
+  }
+
+  function switchMode(nextMode) {
+    if (nextMode === mode) return;
+    clearMessages();
+    var parsed = App.parseInput(input.value);
+    if (!parsed.ok) { showError(parsed.error + '；修正后才能切换方法'); return; }
+    stopPlay(); mode = nextMode; rebuild(parsed);
+  }
+
+  function next() { if (stepIndex < steps.length - 1) { stepIndex++; render(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); } }
+  function reset() { stopPlay(); stepIndex = 0; render(); }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    playBtn.textContent = '⏸ 暂停';
+    timer = setInterval(function () {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      next();
+    }, mode === 'dp' ? 720 : 680);
+  }
+
+  prevBtn.onclick = function () { stopPlay(); prev(); };
+  nextBtn.onclick = function () { stopPlay(); next(); };
+  playBtn.onclick = togglePlay; $('resetBtn').onclick = reset;
+  $('loadBtn').onclick = function () { load(input.value); };
+  input.addEventListener('keydown', function (event) { if (event.key === 'Enter') load(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (chip) {
+    chip.onclick = function () { input.value = chip.textContent; load(chip.textContent); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.mode-btn'), function (button) {
+    button.onclick = function () { switchMode(button.dataset.mode); };
+  });
+
+  load(input.value);
+})();
+</script>
+</body>
+</html>
