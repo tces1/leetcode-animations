@@ -124,6 +124,7 @@ leetcode-animations/
 | 128 | [最长连续序列](https://tces1.github.io/leetcode-animations/problems/128-longest-consecutive-sequence.html) | 中等 | 数组 · 哈希集合 · 连续序列 · O(n) |
 | 131 | [分割回文串](https://tces1.github.io/leetcode-animations/problems/131-palindrome-partitioning.html) | 中等 | 回溯 · 剪枝 · 回文预处理 DP |
 | 138 | [随机链表的复制](https://tces1.github.io/leetcode-animations/problems/138-copy-list-with-random-pointer.html) | 中等 | 链表 · 随机指针 · 原地穿插 · 节点身份 · O(1) 空间 |
+| 139 | [单词拆分](https://tces1.github.io/leetcode-animations/problems/139-word-break.html) | 中等 | 动态规划 · 记忆化搜索 · 字符串 · 完全背包 |
 | 141 | [环形链表](https://tces1.github.io/leetcode-animations/problems/141-linked-list-cycle.html) | 简单 | 链表 · Floyd 判圈 · 快慢指针 · 双指针 · O(1) 空间 |
 | 142 | [环形链表 II](https://tces1.github.io/leetcode-animations/problems/142-linked-list-cycle-ii.html) | 中等 | 链表 · Floyd 判圈 · 快慢指针 · 环入口 · 双指针 · O(1) 空间 |
 | 146 | [LRU 缓存](https://tces1.github.io/leetcode-animations/problems/146-lru-cache.html) | 中等 | 哈希表 · 双向链表 · LRU · dummy head tail · 设计 · O(1) |
